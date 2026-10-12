@@ -8,14 +8,17 @@ import { AlbumPicker } from './AlbumPicker'
 // import until the server has copied the photos in.
 export function GooglePhotosImportModal({
   albums,
+  initialAlbum = '',
   onClose,
   onImported,
 }: {
   albums: string[]
+  /** Pre-fills the album, for a re-sync. */
+  initialAlbum?: string
   onClose: () => void
   onImported: (album: string) => void
 }) {
-  const [album, setAlbum] = useState('')
+  const [album, setAlbum] = useState(initialAlbum)
   const [importId, setImportId] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<{ message: string; enableUrl?: string } | null>(null)
@@ -60,6 +63,7 @@ export function GooglePhotosImportModal({
         {!imp ? (
           <form onSubmit={start}>
             <div className="tiny muted" style={{ marginBottom: 14, fontWeight: 600 }}>
+              {initialAlbum ? `Re-sync “${initialAlbum}”: pick the album again in Google Photos and only the photos Waffled doesn’t have yet are copied. ` : null}
               Name the album these photos go into here. Your Google albums appear in the next step, inside Google Photos, where you can open one and select its photos.
             </div>
             <label className="ap-field-label" style={{ marginBottom: 18 }}>
@@ -115,7 +119,7 @@ function importMessage(imp: { status: string; album: string; importedCount: numb
       return `Copying photos into “${imp.album}”… ${imp.importedCount} so far.`
     case 'done': {
       const skipped = imp.skippedCount ? ` (${imp.skippedCount} skipped — videos or already imported)` : ''
-      return `Added ${imp.importedCount} ${imp.importedCount === 1 ? 'photo' : 'photos'} to “${imp.album}”${skipped}.`
+      return `Added ${imp.importedCount} ${imp.importedCount === 1 ? 'photo' : 'photos'} to “${imp.album}”${skipped}. Photos added in Google later need another re-sync.`
     }
     case 'expired':
       return 'The Google Photos session ran out before anything was picked.'

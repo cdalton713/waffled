@@ -43,7 +43,8 @@ struct DisplayKioskSettingsView: View {
     @State private var googleStatus: WaffledAPI.GooglePhotosStatus?
     @State private var googleBusy = false
     @State private var googleLauncher = OAuthLauncher()
-    @State private var showGoogleImport = false
+    @State private var googleImportAlbum: String?   // "" = new album, a name = re-sync
+    @State private var confirmGoogleDisconnect = false
 
     /// The device-level "make this a shared kiosk" card only makes sense on an iPad,
     /// and only a parent can flip it.
@@ -548,35 +549,64 @@ struct DisplayKioskSettingsView: View {
     // MARK: Google Photos
 
     private func googlePhotosRow(_ g: WaffledAPI.GooglePhotosStatus) -> some View {
-        HStack(spacing: 12) {
-            rowLabel("Google Photos", !g.configured
-                     ? "Not set up on this server yet — see the Google Photos guide in the docs."
-                     : g.account.map { "Connected as \($0.email ?? "Google account"). Each album you import joins the Mix." }
-                       ?? "Bring photos in from Google Photos as albums, then mix them here.")
-            if let account = g.account {
-                Button("Import") { showGoogleImport = true }
-                    .font(.system(size: 14, weight: .bold)).foregroundStyle(WF.primary)
-                    .disabled(googleBusy)
-                Button("Disconnect") { Task { await disconnectGoogle(account.id) } }
-                    .font(.system(size: 14, weight: .semibold)).foregroundStyle(WF.danger)
-                    .disabled(googleBusy)
-            } else if g.configured {
-                Button("Connect") { Task { await connectGoogle() } }
-                    .font(.system(size: 14, weight: .bold)).foregroundStyle(WF.primary)
-                    .disabled(googleBusy)
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 12) {
+                rowLabel("Google Photos", !g.configured
+                         ? "Not set up on this server yet — see the Google Photos guide in the docs."
+                         : g.account.map { "Connected as \($0.email ?? "Google account"). Each album you import joins the Mix." }
+                           ?? "Bring photos in from Google Photos as albums, then mix them here.")
+                if g.account != nil {
+                    Button("Import") { googleImportAlbum = "" }
+                        .font(.system(size: 14, weight: .bold)).foregroundStyle(WF.primary)
+                        .disabled(googleBusy)
+                    Button("Disconnect") { confirmGoogleDisconnect = true }
+                        .font(.system(size: 14, weight: .semibold)).foregroundStyle(WF.danger)
+                        .disabled(googleBusy)
+                } else if g.configured {
+                    Button("Connect") { Task { await connectGoogle() } }
+                        .font(.system(size: 14, weight: .bold)).foregroundStyle(WF.primary)
+                        .disabled(googleBusy)
+                }
+            }
+            if g.account != nil {
+                Text("Waffled keeps its own copies. Photos you add to Google later won’t appear until you re-sync that album; ones you already have are skipped.")
+                    .font(.system(size: 12.5)).foregroundStyle(WF.ink3)
+                    .fixedSize(horizontal: false, vertical: true)
+                ForEach(g.albums, id: \.self) { a in
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(a.name).font(.system(size: 15, weight: .semibold)).foregroundStyle(WF.ink)
+                            Text("\(a.photoCount) \(a.photoCount == 1 ? "photo" : "photos")")
+                                .font(.system(size: 12.5)).foregroundStyle(WF.ink3)
+                        }
+                        Spacer()
+                        Button("Re-sync") { googleImportAlbum = a.name }
+                            .font(.system(size: 14, weight: .bold)).foregroundStyle(WF.primary)
+                            .accessibilityLabel("Re-sync \(a.name)")
+                    }
+                }
             }
         }
         .padding(.vertical, 14)
-        .sheet(isPresented: $showGoogleImport) {
-            GooglePhotosImportSheet(albums: albumChoices) { album in
+        .sheet(isPresented: Binding(get: { googleImportAlbum != nil }, set: { if !$0 { googleImportAlbum = nil } })) {
+            GooglePhotosImportSheet(albums: albumChoices, initialAlbum: googleImportAlbum ?? "") { album in
                 Task { await addToMix(album) }
             }
+        }
+        .confirmationDialog("Disconnect Google Photos?", isPresented: $confirmGoogleDisconnect, titleVisibility: .visible) {
+            Button("Disconnect and remove", role: .destructive) {
+                if let id = g.account?.id { Task { await disconnectGoogle(id) } }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This removes the \(g.photoCount) \(g.photoCount == 1 ? "photo" : "photos") imported from Google and drops those albums from the screensaver. Photos you uploaded yourself stay.")
         }
     }
 
     /// A freshly imported album joins the screensaver mix straight away.
     private func addToMix(_ album: String) async {
         previewPhotos = (try? await api.photos()) ?? previewPhotos
+        googleStatus = try? await api.googlePhotosStatus()
         cfg?.photoSource = "albums"
         if cfg?.photoAlbums.contains(album) == false { cfg?.photoAlbums.append(album) }
         dirty = true
@@ -597,6 +627,8 @@ struct DisplayKioskSettingsView: View {
         defer { googleBusy = false }
         try? await api.disconnectGooglePhotos(accountId: accountId)
         googleStatus = try? await api.googlePhotosStatus()
+        // The server drops removed albums from the mix; reload so this screen matches.
+        await load()
     }
 
     // MARK: building blocks (mirrors NotificationsSettingsView)

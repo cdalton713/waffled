@@ -6,12 +6,15 @@ import SwiftUI
 /// `GooglePhotosImportModal.tsx`.
 struct GooglePhotosImportSheet: View {
     var albums: [String] = []
+    /// Pre-fills the album, for a re-sync.
+    var initialAlbum: String = ""
     var onImported: (_ album: String) -> Void = { _ in }
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
 
     @State private var album = ""
+    @State private var seeded = false
     @State private var current: WaffledAPI.GooglePhotosImport?
     @State private var busy = false
     @State private var errorText: String?
@@ -35,7 +38,9 @@ struct GooglePhotosImportSheet: View {
                                 .font(.system(size: 15, weight: .bold)).foregroundStyle(WF.primary)
                         }
                     } else {
-                        Text("Choose the Waffled album, then pick photos in Google Photos. You can browse inside your Google albums while picking.")
+                        Text(initialAlbum.isEmpty
+                             ? "Name the Waffled album, then pick photos in Google Photos. Your Google albums appear there; open one and select its photos."
+                             : "Re-sync “\(initialAlbum)”: pick the album again in Google Photos and only the photos Waffled doesn’t have yet are copied.")
                             .font(.system(size: 13.5)).foregroundStyle(WF.ink3)
                             .fixedSize(horizontal: false, vertical: true)
                         WaffledFieldCard(title: "Album") {
@@ -76,6 +81,7 @@ struct GooglePhotosImportSheet: View {
                 }
             }
             .task(id: current?.id) { await poll() }
+            .onAppear { if !seeded { album = initialAlbum; seeded = true } }
         }
     }
 
@@ -113,7 +119,7 @@ struct GooglePhotosImportSheet: View {
         case "done":
             let noun = imp.importedCount == 1 ? "photo" : "photos"
             let skipped = imp.skippedCount > 0 ? " (\(imp.skippedCount) skipped — videos or already imported)" : ""
-            return "Added \(imp.importedCount) \(noun) to “\(imp.album)”\(skipped)."
+            return "Added \(imp.importedCount) \(noun) to “\(imp.album)”\(skipped). Photos added in Google later need another re-sync."
         case "expired":
             return "The Google Photos session ran out before anything was picked."
         default:

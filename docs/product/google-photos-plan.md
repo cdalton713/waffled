@@ -24,6 +24,10 @@ So Waffled **copies** each pick into the BlobStore. A Google album can't stay "l
   - The first poll that sees `mediaItemsSet` moves the import to `importing` (a guarded UPDATE)
     and starts the download in a background job.
 - Downloads ask for `=w2560-h2560` so Google serves JPEG/PNG/WebP, never HEIC. Videos are skipped.
+- Disconnect hard-deletes the imported photo rows and their files, the import history, and any
+  mix album left with no photos. Hard delete (not soft) so a reconnect can import the same items.
+- Settings lists each imported album (photo count, last sync) with a **Re-sync** button that
+  reopens the picker pre-filled with that album.
 - The screensaver's `albums` source (`photoAlbums`, max 50) mixes several albums. It always
   shuffles, because a random mix is the point.
 

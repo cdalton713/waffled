@@ -209,6 +209,51 @@ async function advanceImport(householdId: string, imp: ImportRow): Promise<void>
   )
 }
 
+// Hard delete, so a later reconnect can import the same Google photos again
+// (soft-deleted rows would still hold the external_id unique slot).
+async function removeImportedPhotos(householdId: string): Promise<number> {
+  const { rows } = await query<{ storage_key: string | null }>(
+    `delete from photos where household_id = $1 and source = 'google_photos' returning storage_key`,
+    [householdId]
+  )
+  await query(`delete from google_photos_imports where household_id = $1`, [householdId])
+  const store = getBlobStore()
+  await Promise.all(rows.map((r) => (r.storage_key ? store.delete(r.storage_key).catch(() => undefined) : undefined)))
+  // Drop mix albums that no longer have any photo at all.
+  await query(
+    `update households h
+        set settings = jsonb_set(h.settings, '{display,photoAlbums}', coalesce((
+          select jsonb_agg(a) from jsonb_array_elements_text(h.settings->'display'->'photoAlbums') a
+           where exists (select 1 from photos p where p.household_id = h.id and p.deleted_at is null and p.memory = a)
+        ), '[]'::jsonb))
+      where h.id = $1 and jsonb_typeof(h.settings->'display'->'photoAlbums') = 'array'`,
+    [householdId]
+  )
+  return rows.length
+}
+
+interface AlbumSummaryRow extends QueryResultRow {
+  name: string
+  photo_count: number
+  last_synced_at: Date
+}
+
+async function importedAlbums(householdId: string) {
+  const { rows } = await query<AlbumSummaryRow>(
+    `select ph.memory as name, count(*)::int as photo_count,
+            greatest(max(ph.created_at), (
+              select max(gi.updated_at) from google_photos_imports gi
+               where gi.household_id = $1 and gi.album = ph.memory and gi.status = 'done'
+            )) as last_synced_at
+       from photos ph
+      where ph.household_id = $1 and ph.source = 'google_photos' and ph.deleted_at is null and ph.memory is not null
+      group by ph.memory
+      order by ph.memory`,
+    [householdId]
+  )
+  return rows.map((r) => ({ name: r.name, photoCount: r.photo_count, lastSyncedAt: r.last_synced_at }))
+}
+
 export function registerGooglePhotosRoutes(api: Api): void {
   api.post('/api/photos/google/connect', adminRoute(async (tenant, req: Request, res: Response) => {
     if (!googlePhotosConfigured()) {
@@ -293,14 +338,18 @@ export function registerGooglePhotosRoutes(api: Api): void {
       `select * from google_photos_imports where household_id = $1 order by created_at desc limit 20`,
       [tenant.householdId]
     )
+    const albums = await importedAlbums(tenant.householdId)
     return {
       configured: googlePhotosConfigured() && encryptionAvailable(),
       account: account ? { id: account.id, email: account.email, connectedAt: account.created_at } : null,
       imports: rows.map(presentImport),
+      albums,
+      photoCount: albums.reduce((n, a) => n + a.photoCount, 0),
     }
   }))
 
-  // Imported photos stay: they are household copies, not live links.
+  // Disconnecting takes everything Google brought in with it: the imported photos
+  // (rows + files), the import history, and those albums from the screensaver mix.
   api.delete('/api/photos/google/accounts/:id', adminRoute(async (tenant, req: Request, res: Response) => {
     const id = String(req.params.id)
     if (!UUID_RE.test(id)) return res.status(404).json({ error: 'NotFound' })
@@ -309,12 +358,8 @@ export function registerGooglePhotosRoutes(api: Api): void {
       [tenant.householdId, id]
     )
     if (!rows.length) return res.status(404).json({ error: 'NotFound' })
-    await query(
-      `update google_photos_imports set status = 'failed', error = 'Disconnected'
-        where household_id = $1 and status = 'picking'`,
-      [tenant.householdId]
-    )
-    return { ok: true }
+    const removed = await removeImportedPhotos(tenant.householdId)
+    return { ok: true, removedPhotos: removed }
   }))
 
   api.post('/api/photos/google/imports', adminRoute(async (tenant, req: Request, res: Response) => {

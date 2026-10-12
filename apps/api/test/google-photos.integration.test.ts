@@ -339,6 +339,15 @@ describe('import', () => {
     expect(lastPickerAuth).toBe(`Bearer access-r${refreshGrants}`)
   })
 
+  it('summarises each imported album with its photo count and last sync time', async () => {
+    const status = json(await call('GET', '/api/photos/google/status', kevin))
+    expect(status.photoCount).toBe(4)
+    const beach = status.albums.find((a: { name: string }) => a.name === 'Beach')
+    expect(beach).toMatchObject({ name: 'Beach', photoCount: 3 })
+    expect(new Date(beach.lastSyncedAt).getTime()).toBeGreaterThan(0)
+    expect(status.albums.find((a: { name: string }) => a.name === 'Kids')).toMatchObject({ photoCount: 1 })
+  })
+
   it('lists recent imports in the status', async () => {
     const status = json(await call('GET', '/api/photos/google/status', kevin))
     expect(status.imports.map((i: { album: string }) => i.album)).toEqual(expect.arrayContaining(['Beach', 'Kids']))
@@ -351,11 +360,32 @@ describe('import', () => {
 })
 
 describe('disconnect', () => {
-  it('removes the account but keeps imported photos', async () => {
+  it('removes the account, every imported photo and its file, and the albums from the mix', async () => {
+    // An uploaded photo in the same album must survive; a Google album in the mix must not.
+    await call('POST', '/api/photos', kevin, { caption: 'Mine', emoji: '🏖️', memory: 'Beach' })
+    await call('PUT', '/api/kiosk/display', kevin, { photoSource: 'albums', photoAlbums: ['Beach', 'Kids', 'Uploads'] })
+    await call('POST', '/api/photos', kevin, { caption: 'Up', emoji: '📷', memory: 'Uploads' })
+    const files = json(await call('GET', '/api/photos?memory=Kids', kevin)).photos.map((p: { imageUrl: string }) => join(mediaDir, p.imageUrl.replace(/^\/media\//, '')))
+    expect(files.every(existsSync)).toBe(true)
+
     const status = json(await call('GET', '/api/photos/google/status', kevin))
     expect((await call('DELETE', `/api/photos/google/accounts/${status.account.id}`, kidToken)).statusCode).toBe(403)
-    expect((await call('DELETE', `/api/photos/google/accounts/${status.account.id}`, kevin)).statusCode).toBe(200)
-    expect(json(await call('GET', '/api/photos/google/status', kevin)).account).toBeNull()
-    expect(json(await call('GET', '/api/photos?memory=Beach', kevin)).photos).toHaveLength(3)
+    const res = await call('DELETE', `/api/photos/google/accounts/${status.account.id}`, kevin)
+    expect(res.statusCode).toBe(200)
+    expect(json(res)).toMatchObject({ removedPhotos: 4 })
+
+    const after = json(await call('GET', '/api/photos/google/status', kevin))
+    expect(after).toMatchObject({ account: null, imports: [], albums: [], photoCount: 0 })
+    expect(json(await call('GET', '/api/photos?memory=Beach', kevin)).photos.map((p: { caption: string }) => p.caption)).toEqual(['Mine'])
+    expect(json(await call('GET', '/api/photos?memory=Kids', kevin)).photos).toHaveLength(0)
+    expect(files.some(existsSync)).toBe(false)
+    // Beach still has an uploaded photo; Kids is gone entirely.
+    expect(json(await call('GET', '/api/kiosk/display', kevin)).photoAlbums).toEqual(['Beach', 'Uploads'])
+  })
+
+  it('can reconnect and re-import the same photos after a disconnect', async () => {
+    await connect()
+    const imp = await pick('Beach', [photoItem('p1'), photoItem('p2')])
+    expect(imp).toMatchObject({ status: 'done', importedCount: 2, skippedCount: 0 })
   })
 })

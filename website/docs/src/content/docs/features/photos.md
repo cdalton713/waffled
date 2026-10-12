@@ -47,4 +47,4 @@ Photos and the screensaver are **core — never gated**. There's no module toggl
 - 🌤️ **Weather in the chrome** comes from Open-Meteo — no API key required.
 - 📱 **iPhone is deliberately lean** — it gets the wall, upload, and a chrome-free "Play", but not the ambient clock/weather/event overlay. Reach for [Kiosk & display](/features/kiosk/) on a tablet for the full frame.
 - 🎞️ **Ken-Burns slow-zoom is iOS-only** — the web screensaver crossfades without the zoom.
-- 🌈 **Google Photos picks are copies.** Google no longer lets apps read your albums directly, so new photos you add in Google Photos don't appear on their own. Import again to add them; photos you already imported are skipped. iCloud shared albums are still planned.
+- 🌈 **Google Photos picks are copies.** Google no longer lets apps read your albums directly, so new photos you add in Google Photos don't appear on their own. Use **Re-sync** on the album in Settings → Display & Kiosk to add them; photos you already imported are skipped. Disconnecting Google Photos removes the imported photos. iCloud shared albums are still planned.

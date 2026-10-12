@@ -3163,9 +3163,12 @@ const INTERVAL_OPTS = [5, 10, 20, 30]
 function GooglePhotosRow({ albums, onImported }: { albums: string[]; onImported: (album: string) => void }) {
   const { status, refetch } = useGooglePhotosStatus()
   const [busy, setBusy] = useState(false)
-  const [importing, setImporting] = useState(false)
   const [err, setErr] = useState<string | null>(null)
+  // undefined = closed; '' = a new album; a name = re-sync that album.
+  const [importAlbum, setImportAlbum] = useState<string | undefined>(undefined)
+  const [confirmDisconnect, setConfirmDisconnect] = useState(false)
   if (!status) return null
+  const account = status.account
   async function connect() {
     setBusy(true)
     setErr(null)
@@ -3181,28 +3184,71 @@ function GooglePhotosRow({ albums, onImported }: { albums: string[]; onImported:
     setBusy(true)
     try {
       await googlePhotosApi.disconnectGooglePhotos(id)
+      setConfirmDisconnect(false)
       refetch()
+      onImported('') // refresh the album list; '' is never added to the mix
     } finally {
       setBusy(false)
     }
   }
   const sub = !status.configured
     ? 'Not set up on this server yet — see the Google Photos guide in the docs.'
-    : status.account
-      ? `Connected as ${status.account.email ?? 'Google account'}. Each album you import joins the screensaver mix.`
+    : account
+      ? `Connected as ${account.email ?? 'Google account'}. Each album you import joins the screensaver mix.`
       : 'Bring photos in from Google Photos as albums, then mix them here.'
+  const photoCount = status.photoCount ?? 0
   return (
-    <SettingRow icon="🌈" title="Google Photos" sub={err ?? sub}>
-      {status.account ? (
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button type="button" className="btn btn-primary" disabled={busy} onClick={() => setImporting(true)}>Import album</button>
-          <button type="button" className="btn btn-ghost" disabled={busy} onClick={() => disconnect(status.account!.id)}>Disconnect</button>
+    <>
+      <SettingRow icon="🌈" title="Google Photos" sub={err ?? sub}>
+        {account ? (
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button type="button" className="btn btn-primary" disabled={busy} onClick={() => setImportAlbum('')}>Import album</button>
+            <button type="button" className="btn btn-ghost" disabled={busy} onClick={() => setConfirmDisconnect(true)}>Disconnect</button>
+          </div>
+        ) : (
+          <button type="button" className="btn btn-primary" disabled={busy || !status.configured} onClick={connect}>Connect Google Photos</button>
+        )}
+      </SettingRow>
+      {account && (
+        <div style={{ padding: '0 16px 14px 64px' }}>
+          <div className="tiny muted" style={{ fontWeight: 600, marginBottom: (status.albums ?? []).length ? 8 : 0 }}>
+            Waffled keeps its own copies. Photos you add to Google later won’t appear here until you re-sync that album; ones you already have are skipped.
+          </div>
+          {(status.albums ?? []).map((a) => (
+            <div key={a.name} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0' }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 700 }}>{a.name}</div>
+                <div className="tiny muted" style={{ fontWeight: 600 }}>
+                  {a.photoCount} {a.photoCount === 1 ? 'photo' : 'photos'} · synced {fmtWhen(a.lastSyncedAt)}
+                </div>
+              </div>
+              <button type="button" className="pill" aria-label={`Re-sync ${a.name}`} disabled={busy} onClick={() => setImportAlbum(a.name)}>↻ Re-sync</button>
+            </div>
+          ))}
         </div>
-      ) : (
-        <button type="button" className="btn btn-primary" disabled={busy || !status.configured} onClick={connect}>Connect Google Photos</button>
       )}
-      {importing && <GooglePhotosImportModal albums={albums} onClose={() => setImporting(false)} onImported={onImported} />}
-    </SettingRow>
+      {importAlbum !== undefined && (
+        <GooglePhotosImportModal
+          albums={albums}
+          initialAlbum={importAlbum}
+          onClose={() => setImportAlbum(undefined)}
+          onImported={(album) => {
+            refetch()
+            onImported(album)
+          }}
+        />
+      )}
+      {confirmDisconnect && account && (
+        <ConfirmDialog
+          title="Disconnect Google Photos?"
+          message={`This removes the ${photoCount} ${photoCount === 1 ? 'photo' : 'photos'} imported from Google, and drops those albums from the screensaver. Photos you uploaded yourself stay.`}
+          confirmLabel="Disconnect and remove"
+          danger
+          onConfirm={() => disconnect(account.id)}
+          onClose={() => setConfirmDisconnect(false)}
+        />
+      )}
+    </>
   )
 }
 
@@ -3235,6 +3281,7 @@ function DisplayKioskPanel() {
   }
   function addToMix(album: string) {
     refetchPhotos()
+    if (!album) return
     setCfg((c) =>
       c ? { ...c, photoSource: 'albums', photoAlbums: c.photoAlbums.includes(album) ? c.photoAlbums : [...c.photoAlbums, album] } : c,
     )

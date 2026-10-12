@@ -22,11 +22,15 @@ Google no longer lets apps read your Google Photos albums directly, so imports g
 
 Things to know:
 
-- **Imports are copies.** Photos you add in Google Photos later don't appear on their own.
-  Import again to add them; photos already imported are skipped, so re-picking a whole album
-  is safe.
+- **Imports are copies, so re-sync to get new photos.** Google never pushes changes, so photos
+  you add to a Google album later don't appear on their own. In **Settings → Display & Kiosk**,
+  each imported album shows its photo count and last sync time, plus a **Re-sync** button.
+  Re-sync, pick the album again in Google Photos, and only the photos Waffled doesn't already
+  have are copied.
 - **Photos only.** Videos in a pick are skipped.
-- **Disconnecting keeps the photos.** They're the household's copies now.
+- **Disconnecting removes them.** Disconnect deletes every photo imported from Google (and
+  its file), the import history, and those albums from the screensaver mix. Photos you uploaded
+  yourself stay. You're asked to confirm first.
 - Only **admins** can connect Google Photos and run imports.
 
 ## One-time: enable the API on your Google OAuth client

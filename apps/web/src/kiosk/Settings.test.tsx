@@ -299,6 +299,51 @@ describe('Settings screen', () => {
     open.mockRestore()
   }, 12_000)
 
+  it('lists imported Google albums with re-sync, and warns that disconnect removes them', async () => {
+    const deletes: string[] = []
+    globalThis.fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      const u = String(url)
+      const ok = (body: unknown) => ({ ok: true, status: 200, json: async () => body })
+      if (u.includes('/api/kiosk/display')) return ok({ ...displayConfig, photoAlbums: [] })
+      if (u.includes('/api/photos/google/accounts/a1') && init?.method === 'DELETE') {
+        deletes.push(u)
+        return { ok: true, status: 200, json: async () => ({ ok: true, removedPhotos: 3 }) }
+      }
+      if (u.includes('/api/photos/google/status')) {
+        return ok({
+          configured: true,
+          account: deletes.length ? null : { id: 'a1', email: 'k@example.com', connectedAt: '' },
+          imports: [],
+          albums: deletes.length ? [] : [{ name: 'Beach', photoCount: 3, lastSyncedAt: '2026-10-10T12:00:00Z' }],
+          photoCount: deletes.length ? 0 : 3,
+        })
+      }
+      if (u.includes('/api/photos')) return ok({ photos: [{ ...samplePhotos[0], memory: 'Beach' }] })
+      if (u.includes('/api/household/settings')) return ok({ household, members })
+      if (u.includes('/api/household')) return ok({ provisioned: true, household, person: members[0] })
+      if (u.includes('/api/persons')) return ok({ persons: [] })
+      if (u.includes('/api/events')) return ok({ events: [] })
+      return { ok: false, status: 404, json: async () => ({}) }
+    }) as unknown as typeof fetch
+
+    renderSettings()
+    await screen.findByText('Kevin')
+    fireEvent.click(screen.getByText('Display & Kiosk'))
+
+    expect(await screen.findByText(/won’t appear here until you re-sync/)).toBeInTheDocument()
+    expect(screen.getByText(/3 photos · synced/)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Re-sync Beach' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Import from Google Photos' })
+    expect(within(dialog).getByRole('combobox')).toHaveValue('Beach')
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Close' }))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Disconnect' }))
+    expect(await screen.findByText(/removes the 3 photos imported from Google/)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Disconnect and remove' }))
+    await waitFor(() => expect(deletes).toHaveLength(1))
+    expect(await screen.findByRole('button', { name: 'Connect Google Photos' })).toBeInTheDocument()
+  })
+
   it('renders the permissions grid with a Manage goals column and toggles it', async () => {
     const puts: PermissionMatrix[] = []
     const emptyRow = { 'chore.manage': false, 'chore.approve': false, 'reward.manage': false, 'reward.approve': false, 'reward.grant': false, 'goal.manage': false, 'planning.manage': false }

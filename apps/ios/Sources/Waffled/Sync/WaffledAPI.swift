@@ -2776,7 +2776,19 @@ struct WaffledAPI: Sendable {
         let configured: Bool
         let account: Account?
         let imports: [GooglePhotosImport]
+        var albums: [Album] = []
+        var photoCount = 0
         struct Account: Decodable, Sendable { let id: String; let email: String? }
+        struct Album: Decodable, Sendable, Hashable { let name: String; let photoCount: Int; let lastSyncedAt: String? }
+        enum CodingKeys: String, CodingKey { case configured, account, imports, albums, photoCount }
+        init(from d: Decoder) throws {
+            let c = try d.container(keyedBy: CodingKeys.self)
+            configured = try c.decode(Bool.self, forKey: .configured)
+            account = try c.decodeIfPresent(Account.self, forKey: .account)
+            imports = try c.decodeIfPresent([GooglePhotosImport].self, forKey: .imports) ?? []
+            albums = try c.decodeIfPresent([Album].self, forKey: .albums) ?? []
+            photoCount = try c.decodeIfPresent(Int.self, forKey: .photoCount) ?? 0
+        }
     }
 
     struct GooglePhotosImport: Decodable, Sendable, Equatable {

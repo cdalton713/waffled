@@ -80,6 +80,9 @@ export interface GooglePhotosStatus {
   configured: boolean
   account: { id: string; email: string | null; connectedAt: string } | null
   imports: GooglePhotosImport[]
+  /** Each album that holds imported photos, for the re-sync list. */
+  albums?: Array<{ name: string; photoCount: number; lastSyncedAt: string }>
+  photoCount?: number
 }
 
 // Google Photos import: connect once, then each import opens Google's picker and
