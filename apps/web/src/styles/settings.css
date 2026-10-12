@@ -681,3 +681,5 @@ select.sel {
 
 /* The .toggle pill is normally a <span>; reset it when used as a real button. */
 button.toggle { border: 0; padding: 0; cursor: pointer; -webkit-appearance: none; appearance: none; }
+.appr-grid.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 720px) { .appr-grid.four { grid-template-columns: 1fr 1fr; } }

@@ -171,6 +171,41 @@ describe('Settings screen', () => {
     expect(await screen.findByText('Use this browser as the family display')).toBeInTheDocument()
   })
 
+  it('Appearance offers Classic and Kitchen palettes, each with a night variant', async () => {
+    mockApi()
+    localStorage.clear()
+    renderSettings()
+    await screen.findByText('Kevin')
+    fireEvent.change(screen.getByLabelText('Settings section'), { target: { value: 'appearance' } })
+
+    fireEvent.click(screen.getByRole('button', { name: /^Kitchen night/ }))
+    expect(document.documentElement.getAttribute('data-palette')).toBe('kitchen')
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
+
+    fireEvent.click(screen.getByRole('button', { name: /^Classic$/ }))
+    expect(document.documentElement.getAttribute('data-palette')).toBe('classic')
+    expect(document.documentElement.getAttribute('data-theme')).toBe('light')
+  })
+
+  it('Display & Kiosk has the theme picker and a per-device Kiosk mode switch', async () => {
+    mockApi()
+    localStorage.clear()
+    renderSettings()
+    await screen.findByText('Kevin')
+    fireEvent.click(screen.getByText('Display & Kiosk'))
+
+    fireEvent.click(await screen.findByRole('button', { name: /^Kitchen$/ }))
+    expect(document.documentElement.getAttribute('data-palette')).toBe('kitchen')
+
+    const kiosk = screen.getByRole('switch', { name: 'Kiosk mode' })
+    expect(kiosk).toHaveAttribute('aria-checked', 'false')
+    fireEvent.click(kiosk)
+    expect(localStorage.getItem('waffled.kiosk.viewOnly')).toBe('1')
+    expect(screen.getByRole('switch', { name: 'Kiosk mode' })).toHaveAttribute('aria-checked', 'true')
+    fireEvent.click(screen.getByRole('switch', { name: 'Kiosk mode' }))
+    expect(localStorage.getItem('waffled.kiosk.viewOnly')).toBeNull()
+  })
+
   it('saves screensaver photo-source / interval / shuffle changes', async () => {
     const puts: Array<Record<string, unknown>> = []
     globalThis.fetch = vi.fn(async (url: string, init?: RequestInit) => {
