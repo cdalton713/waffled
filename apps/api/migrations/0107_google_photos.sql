@@ -6,7 +6,7 @@
 create table google_photos_accounts (
   id uuid primary key default gen_random_uuid(),
   household_id uuid not null references households(id),
-  person_id uuid references persons(id),
+  person_id uuid,
   google_sub text not null,
   email text,
   scope text,
@@ -15,22 +15,24 @@ create table google_photos_accounts (
   access_token_expires_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  unique (household_id, google_sub)
+  unique (household_id, google_sub),
+  foreign key (household_id, person_id) references persons (household_id, id)
 );
 
 create table google_photos_oauth_states (
   state text primary key,
   household_id uuid not null references households(id),
-  person_id uuid references persons(id),
+  person_id uuid,
   redirect_to text,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  foreign key (household_id, person_id) references persons (household_id, id)
 );
 
 create table google_photos_imports (
   id uuid primary key default gen_random_uuid(),
   household_id uuid not null references households(id),
   account_id uuid references google_photos_accounts(id) on delete set null,
-  person_id uuid references persons(id),
+  person_id uuid,
   album text not null,
   session_id text not null,
   picker_uri text not null,
@@ -41,7 +43,8 @@ create table google_photos_imports (
   skipped_count integer not null default 0,
   error text,
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  updated_at timestamptz not null default now(),
+  foreign key (household_id, person_id) references persons (household_id, id)
 );
 
 create index ix_google_photos_imports_household on google_photos_imports (household_id, created_at desc);
