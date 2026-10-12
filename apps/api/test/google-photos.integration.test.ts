@@ -32,6 +32,7 @@ let sessionSeq = 0
 let refreshGrants = 0
 let lastPickerAuth = ''
 let nextItems: unknown[] = []
+let pickerDisabled = false
 
 function mint(sub: string): string {
   return jwt.sign({}, SECRET, { algorithm: 'HS256', subject: sub, issuer: 'waffled-local', audience: 'waffled-api', expiresIn: '1h' })
@@ -96,6 +97,11 @@ function startStub(): Promise<number> {
           return
         }
         if (path.startsWith('/v1/')) lastPickerAuth = String(req.headers.authorization ?? '')
+        if (req.method === 'POST' && path === '/v1/sessions' && pickerDisabled) {
+          res.statusCode = 403
+          res.end(JSON.stringify({ error: { code: 403, status: 'PERMISSION_DENIED', message: 'Google Photos Picker API has not been used in project 123 before or it is disabled.', details: [{ '@type': 'type.googleapis.com/google.rpc.ErrorInfo', reason: 'SERVICE_DISABLED', metadata: { activationUrl: 'https://console.developers.google.com/apis/api/photospicker.googleapis.com/overview?project=123' } }] } }))
+          return
+        }
         if (req.method === 'POST' && path === '/v1/sessions') {
           const id = `sess-${++sessionSeq}`
           sessions.set(id, { id, picked: false, expired: false, deleted: false, items: nextItems })
@@ -272,6 +278,21 @@ describe('import', () => {
 
     const polled = json(await call('GET', `/api/photos/google/imports/${imp.id}`, kevin)).import
     expect(polled.status).toBe('picking')
+  })
+
+  it('explains how to fix a disabled Picker API instead of a bare 502', async () => {
+    pickerDisabled = true
+    try {
+      const res = await call('POST', '/api/photos/google/imports', kevin, { album: 'Beach' })
+      expect(res.statusCode).toBe(502)
+      expect(json(res)).toMatchObject({
+        error: 'PickerApiDisabled',
+        enableUrl: 'https://console.developers.google.com/apis/api/photospicker.googleapis.com/overview?project=123',
+      })
+      expect(json(res).message).toMatch(/Photos Picker API/)
+    } finally {
+      pickerDisabled = false
+    }
   })
 
   it('requires an album name', async () => {

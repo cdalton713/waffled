@@ -72,3 +72,12 @@ real domain, or `http://localhost`. A LAN IP address or a `.local` name is refus
 
 On iPhone and iPad the same controls live under **Settings → Display & Kiosk** (source
 **Mix**) and the Photos screen's **Google Photos** button.
+
+## Troubleshooting
+
+- **"The Google Photos Picker API is turned off in your Google Cloud project"** — enable the
+  **Photos Picker API** on the project that owns your OAuth client (the dialog links straight to
+  it). It can take a few minutes to take effect; then try the import again.
+- **Settings says Google Photos is "not set up"** — the server is missing `GOOGLE_CLIENT_ID`,
+  `GOOGLE_CLIENT_SECRET`, `GOOGLE_PHOTOS_REDIRECT_URI` or `TOKEN_ENCRYPTION_KEY`. Restart the
+  api after setting them.

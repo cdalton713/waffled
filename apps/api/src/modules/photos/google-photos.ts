@@ -21,6 +21,7 @@ import {
   googlePhotosConfigured,
   listPickedMediaItems,
   photosGrant,
+  PickerApiDisabledError,
   PickerSessionGoneError,
   refreshAccessToken,
 } from '../../integrations/google'
@@ -326,6 +327,13 @@ export function registerGooglePhotosRoutes(api: Api): void {
     try {
       session = await createPickerSession(await accessTokenFor(account))
     } catch (err) {
+      if (err instanceof PickerApiDisabledError) {
+        return res.status(502).json({
+          error: 'PickerApiDisabled',
+          message: 'The Google Photos Picker API is turned off in your Google Cloud project. Enable it, wait a few minutes, then try again.',
+          enableUrl: err.enableUrl,
+        })
+      }
       console.error('google photos session failed', err)
       return res.status(502).json({ error: 'UpstreamError', message: 'Google Photos did not start a picker session. Try reconnecting.' })
     }

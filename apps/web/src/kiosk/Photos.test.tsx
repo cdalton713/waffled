@@ -254,4 +254,27 @@ describe('Photos home (family wall)', () => {
     await screen.findByText('Beach day')
     expect(screen.queryByRole('button', { name: /Google Photos/ })).not.toBeInTheDocument()
   })
+
+  it('shows the server reason and an enable link when the Picker API is off', async () => {
+    mockApi({ photos: [beach] })
+    const base = globalThis.fetch as unknown as (u: string, i?: { method?: string; body?: string }) => Promise<unknown>
+    globalThis.fetch = vi.fn(async (url: string, init?: { method?: string; body?: string }) => {
+      const u = String(url)
+      if (u.includes('/api/photos/google/status')) return { ok: true, status: 200, json: async () => ({ configured: true, account: { id: 'a1', email: null, connectedAt: '' }, imports: [] }) }
+      if (u.endsWith('/api/photos/google/imports') && init?.method === 'POST') {
+        return { ok: false, status: 502, json: async () => ({ error: 'PickerApiDisabled', message: 'The Google Photos Picker API is turned off in your Google Cloud project.', enableUrl: 'https://console.developers.google.com/apis/x' }) }
+      }
+      return base(u, init)
+    }) as unknown as typeof fetch
+    const open = vi.spyOn(window, 'open').mockReturnValue({ location: { href: '' }, close: vi.fn() } as unknown as Window)
+
+    renderHome()
+    fireEvent.click(await screen.findByRole('button', { name: /Google Photos/ }))
+    fireEvent.change(await screen.findByRole('combobox'), { target: { value: 'Lake Day' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Open Google Photos' }))
+
+    expect(await screen.findByText(/Picker API is turned off/)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Enable it in Google Cloud/ })).toHaveAttribute('href', 'https://console.developers.google.com/apis/x')
+    open.mockRestore()
+  })
 })

@@ -347,8 +347,29 @@ function toSession(d: Record<string, unknown>): PickerSession {
   }
 }
 
+// The Picker API is off in the admin's Cloud project — the most common setup miss.
+export class PickerApiDisabledError extends Error {
+  constructor(readonly enableUrl: string | null) {
+    super('The Google Photos Picker API is not enabled for this Google Cloud project')
+    this.name = 'PickerApiDisabledError'
+  }
+}
+
 export async function createPickerSession(accessToken: string): Promise<PickerSession> {
-  return toSession(await writeJson('POST', `${config.google.pickerApiBase}/sessions`, accessToken, {}))
+  const res = await fetch(`${config.google.pickerApiBase}/sessions`, {
+    method: 'POST',
+    headers: { authorization: `Bearer ${accessToken}`, 'content-type': 'application/json' },
+    body: '{}',
+  })
+  if (!res.ok) {
+    const text = await res.text().catch(() => '')
+    if (res.status === 403 && text.includes('SERVICE_DISABLED')) {
+      const url = /"activationUrl":\s*"([^"]+)"/.exec(text)?.[1] ?? null
+      throw new PickerApiDisabledError(url)
+    }
+    throw new Error(`sessions.create -> ${res.status} ${text}`)
+  }
+  return toSession((await res.json()) as Record<string, unknown>)
 }
 
 export async function getPickerSession(accessToken: string, sessionId: string): Promise<PickerSession> {

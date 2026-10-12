@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { googlePhotosApi, useGoogleImport } from '../../lib/api'
+import { ApiSendError } from '../../lib/api/client'
 import { AlbumPicker } from './AlbumPicker'
 
 // Import from Google Photos into one album. Google's picker opens in its own tab
@@ -17,7 +18,7 @@ export function GooglePhotosImportModal({
   const [album, setAlbum] = useState('')
   const [importId, setImportId] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
-  const [err, setErr] = useState<string | null>(null)
+  const [err, setErr] = useState<{ message: string; enableUrl?: string } | null>(null)
   const imp = useGoogleImport(importId)
 
   useEffect(() => {
@@ -40,7 +41,12 @@ export function GooglePhotosImportModal({
       setImportId(created.id)
     } catch (ex) {
       tab?.close()
-      setErr(ex instanceof Error ? ex.message : 'Could not open Google Photos')
+      if (ex instanceof ApiSendError && ex.body?.message) {
+        const enableUrl = typeof ex.body.enableUrl === 'string' ? ex.body.enableUrl : undefined
+        setErr({ message: ex.body.message, enableUrl })
+      } else {
+        setErr({ message: ex instanceof Error ? ex.message : 'Could not open Google Photos' })
+      }
     } finally {
       setBusy(false)
     }
@@ -64,7 +70,17 @@ export function GooglePhotosImportModal({
                 <input className="field" placeholder="e.g. Beach 2024" value={album} onChange={(e) => setAlbum(e.target.value)} autoFocus />
               )}
             </label>
-            {err && <div className="tiny" style={{ color: 'var(--danger)', fontWeight: 700, marginBottom: 12 }}>{err}</div>}
+            {err && (
+              <div className="tiny" style={{ color: 'var(--danger)', fontWeight: 700, marginBottom: 12 }}>
+                {err.message}
+                {err.enableUrl && (
+                  <>
+                    {' '}
+                    <a href={err.enableUrl} target="_blank" rel="noreferrer">Enable it in Google Cloud ↗</a>
+                  </>
+                )}
+              </div>
+            )}
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
               <button type="button" className="btn btn-ghost" onClick={onClose}>Cancel</button>
               <button type="submit" className="btn btn-primary" disabled={!album.trim() || busy}>Open Google Photos</button>
