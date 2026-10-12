@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { api, kioskApi, usePhotos, useWeather, useHousehold, useGooglePhotosStatus, type DisplayConfig, type Photo } from '../lib/api'
+import { Editable } from '../lib/viewOnly'
+import { api, kioskApi, usePhotos, useWeather, useHousehold, type DisplayConfig, type Photo } from '../lib/api'
 import { Icon } from './icons'
 import { useTopbarRight } from './topbar-slot'
 import { PhotoAdd } from './components/PhotoAdd'
@@ -153,9 +154,11 @@ export function Photos() {
         </div>
       ) : (
         <div className="tb-right">
-          <button type="button" className="pill" style={{ cursor: 'pointer' }} onClick={() => setSelectMode(true)} disabled={photos.length === 0}>
-            Select
-          </button>
+          <Editable>
+            <button type="button" className="pill" style={{ cursor: 'pointer' }} onClick={() => setSelectMode(true)} disabled={photos.length === 0}>
+              Select
+            </button>
+          </Editable>
           <button type="button" className="pill" style={{ cursor: 'pointer' }} onClick={() => setSaver({ album: albumFilter })} disabled={photos.length === 0}>
             🖼️ Play{albumFilter ? ` “${albumFilter}”` : ''}
           </button>

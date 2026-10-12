@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Editable, isViewOnly } from '../lib/viewOnly'
 import { useNavigate, useParams } from 'react-router'
 import { useTopbarFull } from './topbar-slot'
 import { usePersonOverview, useConversions, usePersons, useHousehold, useGoalLists, can, personsApi, rewardsApi, fmtGoalNum, useWaffledBiteDevice, type OverviewGoal, type CategoryBalance, type ShopReward, type SavingToward, type OverviewCurrency, type StreakSummary, type PlanningFocus } from '../lib/api'
@@ -266,7 +267,7 @@ export function PersonProfile() {
             </button>
           ))}
         </div>
-        {canCreateForThisPerson && (
+        {canCreateForThisPerson && !isViewOnly() && (
           <button className="pill btn-primary" style={{ color: 'var(--on-accent)', border: 0, marginLeft: 'auto', flex: 'none', cursor: 'pointer' }} onClick={() => navigate(newGoalHref)}>
             ＋ New goal{data?.person.name ? ` for ${data.person.name}` : ''}
           </button>
@@ -357,7 +358,7 @@ export function PersonProfile() {
           <div className="card-h" style={{ marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
             <span>Wallet &amp; chores</span>
             {canAward && (
-              <button type="button" className="pp-trade" style={{ marginLeft: 'auto' }} onClick={() => setAwarding(true)}>⭐ Award stars</button>
+              <Editable><button type="button" className="pp-trade" style={{ marginLeft: 'auto' }} onClick={() => setAwarding(true)}>⭐ Award stars</button></Editable>
             )}
             {conversions.length > 0 && (
               <button type="button" className="pp-trade" style={{ marginLeft: canAward ? 0 : 'auto' }} onClick={() => setTrading(true)}>⇄ Trade</button>

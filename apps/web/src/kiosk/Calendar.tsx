@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useViewOnly } from '../lib/viewOnly'
 import { useNavigate, useSearchParams } from 'react-router'
 import { Icon } from './icons'
 import { EventModal } from './components/EventModal'
@@ -151,6 +152,9 @@ export function Calendar() {
     setAnchor(d)
     setView('day')
   }
+  // Kiosk mode: tapping an empty slot no longer opens the new-event form.
+  const viewOnly = useViewOnly()
+  const openCreate = (m: { date: string; time?: string }) => { if (!viewOnly) setModal(m) }
   const navLabel = view === 'month' ? 'month' : view === 'day' || view === 'people' ? 'day' : 'week'
 
   // The view toggle + period nav live in the topbar's right slot (replacing the
@@ -230,7 +234,7 @@ export function Calendar() {
             // view, where each is listed as its own (tappable) chip so all are reachable.
             cds.length > 1 ? jumpToDay(new Date(`${cds[0].date}T12:00:00`)) : openCountdown(cds[0])
           }
-          onCreateOnDay={(date) => setModal({ date })}
+          onCreateOnDay={(date) => openCreate({ date })}
           onMore={(date) => jumpToDay(new Date(`${date}T12:00:00`))}
         />
       )}
@@ -242,7 +246,7 @@ export function Calendar() {
           countdownsByDate={countdownsByDate}
           onOpenEvent={openEvent}
           onOpenCountdown={openCountdown}
-          onCreate={(date, time) => setModal({ date, time })}
+          onCreate={(date, time) => openCreate({ date, time })}
           onPickDay={(d) => jumpToDay(d)}
         />
       )}
@@ -254,7 +258,7 @@ export function Calendar() {
           countdownsByDate={countdownsByDate}
           onOpenEvent={openEvent}
           onOpenCountdown={openCountdown}
-          onCreate={(date, time) => setModal({ date, time })}
+          onCreate={(date, time) => openCreate({ date, time })}
         />
       )}
       {view === 'people' && (
@@ -265,11 +269,11 @@ export function Calendar() {
           loading={personsLoading}
           tz={tz}
           onOpenEvent={openEvent}
-          onCreate={(date, time) => setModal({ date, time })}
+          onCreate={(date, time) => openCreate({ date, time })}
         />
       )}
       {view === 'agenda' && (
-        <AgendaView events={events} tz={tz} onOpenEvent={openEvent} onPickDate={jumpToWeek} onCreate={(date) => setModal({ date })} />
+        <AgendaView events={events} tz={tz} onOpenEvent={openEvent} onPickDate={jumpToWeek} onCreate={(date) => openCreate({ date })} />
       )}
 
       {modal && (

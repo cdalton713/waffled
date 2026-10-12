@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { setViewOnly } from '../../lib/viewOnly'
 import { MemoryRouter, useLocation } from 'react-router'
 import { CountdownsCard } from './CountdownsCard'
 
@@ -31,6 +32,16 @@ function renderCard() {
 }
 
 describe('CountdownsCard', () => {
+  it('Kiosk mode hides + Add but keeps the countdowns', async () => {
+    mockCountdowns()
+    setViewOnly(true)
+    try {
+      renderCard()
+      expect(await screen.findByText('School play')).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: '+ Add' })).toBeNull()
+    } finally { setViewOnly(false) }
+  })
+
   it('opens an event-sourced countdown at its event detail', async () => {
     mockCountdowns()
     renderCard()

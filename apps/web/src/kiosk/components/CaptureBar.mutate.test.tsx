@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { setViewOnly } from '../../lib/viewOnly'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import type { ParsedIntent } from '../../lib/capture/parse'
 
@@ -54,6 +55,14 @@ beforeEach(() => {
 })
 
 describe('CaptureBar — Tier 2 mutate picker', () => {
+  it('renders nothing in Kiosk mode', () => {
+    setViewOnly(true)
+    try {
+      const { container } = render(<CaptureBar />)
+      expect(container).toBeEmptyDOMElement()
+    } finally { setViewOnly(false) }
+  })
+
   it('renders candidate chips and commits the picked id (2+ candidates)', async () => {
     resolve.mockResolvedValue({ intent: mutateIntent('complete', 'chore', 'trash chore'), via: 'anthropic' })
     resolveCandidates.mockResolvedValue({

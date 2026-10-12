@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
+import { Editable, useViewOnly } from '../lib/viewOnly'
 import { Icon } from './icons'
 import { ListsModal } from './components/ListsModal'
 import { ListItemModal } from './components/ListItemModal'
@@ -355,6 +356,7 @@ export function Lists() {
   const [templateModal, setTemplateModal] = useState<{ id: string; name: string; emoji: string | null } | null>(null)
   const [confirmDel, setConfirmDel] = useState(false)
   const [draft, setDraft] = useState('')
+  const viewOnly = useViewOnly()
   const addingRef = useRef(false)
   const addInputRef = useRef<HTMLInputElement>(null)
   const [filterPerson, setFilterPerson] = useState<string | null>(null)
@@ -474,10 +476,12 @@ export function Lists() {
   useTopbarRight(
     () => (
       <>
-        <button type="button" className="pill btn-primary topbar-new" onClick={() => setItemModal({ item: null })}>
-          <Icon name="plus" />
-          <span>Add item</span>
-        </button>
+        <Editable>
+          <button type="button" className="pill btn-primary topbar-new" onClick={() => setItemModal({ item: null })}>
+            <Icon name="plus" />
+            <span>Add item</span>
+          </button>
+        </Editable>
       </>
     ),
     []
@@ -736,12 +740,14 @@ export function Lists() {
             <div className="tiny muted" style={{ padding: '4px 8px', fontWeight: 600 }}>No lists yet.</div>
           )}
         </div>
-        <button type="button" className="btn btn-ghost lists-new" onClick={() => setCreating(true)}>
-          <Icon name="plus" />
-          New list
-        </button>
+        <Editable>
+          <button type="button" className="btn btn-ghost lists-new" onClick={() => setCreating(true)}>
+            <Icon name="plus" />
+            New list
+          </button>
+        </Editable>
 
-        {templates.length > 0 && (
+        {templates.length > 0 && !viewOnly && (
           <>
             <div className="lists-rail-label lists-rail-tpl">TEMPLATES</div>
             <div className="lists-rail-items">
@@ -896,6 +902,7 @@ export function Lists() {
                 : 'Tap the box to check off · tap an item to edit · tap an avatar to assign'}
             </div>
 
+            {!viewOnly && (<>
             <form className="ai-bar lists-addbar" onSubmit={onAddSubmit}>
               <div className="ai-spark" aria-hidden>
                 <Icon name="spark" />
@@ -928,6 +935,7 @@ export function Lists() {
                 </button>
               ))}
             </div>
+            </>)}
 
             {selecting && (
               <div className="lists-bulkbar" role="toolbar" aria-label="Bulk edit selected items">

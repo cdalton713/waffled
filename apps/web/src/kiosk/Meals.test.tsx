@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
+import { setViewOnly } from '../lib/viewOnly'
 import { MemoryRouter, Routes, Route } from 'react-router'
 import { Meals } from './Meals'
 import { TopbarSlotProvider, useTopbarSlots } from './topbar-slot'
@@ -92,6 +93,18 @@ function renderMeals() {
 }
 
 describe('Meals weekly planner', () => {
+  it('Kiosk mode hides Plan my week and the empty-slot add buttons', async () => {
+    mockApi({ entries: [entry(wed, 'dinner', ravioli)], recipes: [ravioli, tacos, pancakes] })
+    setViewOnly(true)
+    try {
+      renderMeals()
+      expect(await screen.findByText('Ravioli & Sausage Bake')).toBeInTheDocument()
+      expect(screen.queryByText('Plan my week')).toBeNull()
+      expect(screen.queryAllByRole('button', { name: /^Add /i })).toHaveLength(0)
+      expect(screen.getByText('Explore recipes')).toBeInTheDocument()
+    } finally { setViewOnly(false) }
+  })
+
   it('renders the day header, meal rows, planned cells and empty +', async () => {
     mockApi({
       entries: [

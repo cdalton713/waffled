@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
+import { Editable } from '../../lib/viewOnly'
 import { useNavigate } from 'react-router'
 import { Icon } from '../icons'
 import { useTopbarFull } from '../topbar-slot'
@@ -785,11 +786,13 @@ export function GroceryBoard({ onBack }: { onBack: () => void }) {
           )}
         </div>
 
-        <form className="ai-bar grocery-add" onSubmit={onAdd}>
-          <div className="ai-spark" aria-hidden><Icon name="spark" /></div>
-          <input ref={addRef} value={draft} onChange={(e) => setDraft(e.target.value)} placeholder={'Add to groceries… “bananas and oat milk”'} aria-label="Add to groceries" />
-          <div className="mic" aria-hidden><Icon name="mic" /></div>
-        </form>
+        <Editable>
+          <form className="ai-bar grocery-add" onSubmit={onAdd}>
+            <div className="ai-spark" aria-hidden><Icon name="spark" /></div>
+            <input ref={addRef} value={draft} onChange={(e) => setDraft(e.target.value)} placeholder={'Add to groceries… “bananas and oat milk”'} aria-label="Add to groceries" />
+            <div className="mic" aria-hidden><Icon name="mic" /></div>
+          </form>
+        </Editable>
 
         {board.items.length === 0 ? (
           <div className="muted" style={{ padding: '24px 2px', fontWeight: 600 }}>

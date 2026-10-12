@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Editable, useViewOnly } from '../lib/viewOnly'
 import { useNavigate, useSearchParams } from 'react-router'
 import { useTopbarFull } from './topbar-slot'
 import { MultiSelect } from './components/MultiSelect'
@@ -46,6 +47,7 @@ const SORTS: Array<{ key: string; label: string }> = [
 // against the plate name — that throws away exactly the matches the server found.
 export function RecipesLibrary() {
   const navigate = useNavigate()
+  const viewOnly = useViewOnly()
   const { recipes, loading, error } = useRecipes()
   const recent = useRecentRecipes()
   const [params] = useSearchParams()
@@ -130,16 +132,16 @@ export function RecipesLibrary() {
         {/* The only in-app way to start an empty plate. Deliberately the bare route
             with no id: the builder creates the meal lazily on the first dish, so
             abandoning this screen leaves no orphan behind. */}
-        <button className="pill" style={{ marginLeft: 'auto', cursor: 'pointer' }} onClick={() => navigate('/meals/build')}>＋ New meal</button>
+        <Editable><button className="pill" style={{ marginLeft: 'auto', cursor: 'pointer' }} onClick={() => navigate('/meals/build')}>＋ New meal</button></Editable>
         {/* ONE primary on the screen. With an empty library the whole page is a call
             to add the first recipe, so the header's copy of that button would be the
             second — which is what made the old empty state read as a mistake. */}
-        {!libraryEmpty && (
+        {!libraryEmpty && !viewOnly && (
           <button className="pill btn-primary" style={{ color: 'var(--on-accent)', border: 0, cursor: 'pointer' }} onClick={() => navigate('/meals/recipe/new')}>＋ New recipe</button>
         )}
       </div>
     ),
-    [navigate, libraryEmpty]
+    [navigate, libraryEmpty, viewOnly]
   )
 
   if (libraryEmpty) {
@@ -154,9 +156,11 @@ export function RecipesLibrary() {
             Add your first and it turns up everywhere it&apos;s useful — the meal planner, the
             grocery list, Cook Mode.
           </div>
-          <button type="button" className="btn btn-primary" onClick={() => navigate('/meals/recipe/new')}>
-            ＋ New recipe
-          </button>
+          <Editable>
+            <button type="button" className="btn btn-primary" onClick={() => navigate('/meals/recipe/new')}>
+              ＋ New recipe
+            </button>
+          </Editable>
         </div>
       </div>
     )

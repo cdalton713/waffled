@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
+import { setViewOnly } from '../lib/viewOnly'
 import { MemoryRouter } from 'react-router'
 import { Goals } from './Goals'
 
@@ -90,6 +91,17 @@ function renderHome() {
 }
 
 describe('Goals home (goal-lists model)', () => {
+  it('Kiosk mode hides New goal and New goal list', async () => {
+    mockApi({ lists: [familyList], goals: [featured, moreGoal] })
+    setViewOnly(true)
+    try {
+      renderHome()
+      expect(await screen.findByText('1,000 Hours Outside')).toBeInTheDocument()
+      expect(screen.queryByText('New goal')).toBeNull()
+      expect(screen.queryByText(/New goal list/)).toBeNull()
+    } finally { setViewOnly(false) }
+  })
+
   it('renders the list rail, list header, featured hero and more goals', async () => {
     mockApi({ lists: [familyList], goals: [featured, moreGoal] })
     renderHome()

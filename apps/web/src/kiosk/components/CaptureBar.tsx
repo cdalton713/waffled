@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
+import { useViewOnly } from '../../lib/viewOnly'
 import { createPortal } from 'react-dom'
 import { Icon } from '../icons'
 import { usePersons, useHousehold, api, countdownsApi, pantryApi, can, localToday, emit, emitHouseholdChanged, type Topic, type Person, type ListSummary, type Candidate } from '../../lib/api'
@@ -535,7 +536,12 @@ function CandidatePicker({ intent, state, chosenId, onPick, onCommit, busy }: {
   )
 }
 
+// Kiosk mode hides the capture bar on every screen in one place.
 export function CaptureBar() {
+  return useViewOnly() ? null : <CaptureBarInner />
+}
+
+function CaptureBarInner() {
   const { persons } = usePersons()
   // The current viewer's admin state gates the `person` (add-a-member) commit —
   // creating a household member is an adminRoute, so non-admins get a graceful

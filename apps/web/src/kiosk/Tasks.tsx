@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { Editable } from '../lib/viewOnly'
 import { useSearchParams } from 'react-router'
 import { Icon, Check } from './icons'
 import { ChoreModal, type ChoreDraft } from './components/ChoreModal'
@@ -234,10 +235,12 @@ export function Tasks() {
           </div>
         )}
         {tab === 'chores' && (
-          <button type="button" className="pill" style={{ cursor: 'pointer' }} onClick={() => setModal({})}>
-            <Icon name="plus" />
-            <span>New chore</span>
-          </button>
+          <Editable>
+            <button type="button" className="pill" style={{ cursor: 'pointer' }} onClick={() => setModal({})}>
+              <Icon name="plus" />
+              <span>New chore</span>
+            </button>
+          </Editable>
         )}
       </div>
 

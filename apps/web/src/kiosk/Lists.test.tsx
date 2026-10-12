@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
+import { setViewOnly } from '../lib/viewOnly'
 import { MemoryRouter } from 'react-router'
 import { Lists } from './Lists'
 import { ListsModal } from './components/ListsModal'
@@ -102,6 +103,20 @@ async function exitBoard() {
 }
 
 describe('Lists screen', () => {
+  it('Kiosk mode hides the add bars, Add item and New list but keeps the items', async () => {
+    mockApi({ lists: [grocery, packing], items: packItems })
+    setViewOnly(true)
+    try {
+      renderScreen()
+      await exitBoard()
+      expect(await screen.findByText('Grocery')).toBeInTheDocument()
+      await waitFor(() => expect(screen.getByText('2 items · 1 done')).toBeInTheDocument())
+      expect(screen.queryByLabelText('Add to this list')).toBeNull()
+      expect(screen.queryByText('New list')).toBeNull()
+      expect(screen.queryByText('Add item')).toBeNull()
+    } finally { setViewOnly(false) }
+  })
+
   it('renders the sidebar, header, summary, suggestions, and sectioned items', async () => {
     mockApi({ lists: [grocery, packing], items: packItems })
     renderScreen()

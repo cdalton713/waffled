@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useViewOnly } from '../../lib/viewOnly'
 import { rewardsApi, useRewardsHub, useHousehold, usePersonOverview, can, type Reward, type Currency } from '../../lib/api'
 import { SpotAwardModal } from './SpotAwardModal'
 import '../../styles/shop.css'
@@ -37,6 +38,7 @@ export function RewardsPanel() {
   // Capability-gated: manage = add/edit/delete + archived; approve = redemption
   // queue; grant = spot-award stars. Members who can't manage still shop & redeem.
   const canManage = can(person, 'reward.manage')
+  const viewOnly = useViewOnly()
   const canApprove = can(person, 'reward.approve')
   const canGrant = can(person, 'reward.grant')
 
@@ -224,7 +226,7 @@ export function RewardsPanel() {
       )}
 
       {/* catalog manage row */}
-      {canManage && (
+      {canManage && !viewOnly && (
         <div className="shop-manage">
           <button type="button" className="btn btn-ghost shop-sm" onClick={() => setAdding(true)}>＋ Add reward</button>
         </div>
@@ -239,7 +241,7 @@ export function RewardsPanel() {
               ? 'Add something the kids can save up for — movie night, extra screen time, a trip to the park.'
               : 'Once a parent adds rewards, they’ll show up here to save toward.'}
           </div>
-          {canManage && (
+          {canManage && !viewOnly && (
             <button type="button" className="btn btn-primary" onClick={() => setAdding(true)}>＋ Add a reward</button>
           )}
         </div>

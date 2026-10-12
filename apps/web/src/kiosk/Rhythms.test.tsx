@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
+import { setViewOnly } from '../lib/viewOnly'
 import { MemoryRouter } from 'react-router'
 import { Rhythms } from './Rhythms'
 
@@ -119,6 +120,16 @@ beforeEach(() => {
 afterEach(() => vi.useRealTimers())
 
 describe('Rhythms screen', () => {
+  it('Kiosk mode hides New rhythm', async () => {
+    mockApi([filter, temple])
+    setViewOnly(true)
+    try {
+      renderScreen()
+      expect(await screen.findByText('Air filter')).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'New rhythm' })).toBeNull()
+    } finally { setViewOnly(false) }
+  })
+
   it('lists both shapes, spelling out the Postgres interval', async () => {
     mockApi([filter, temple])
     renderScreen()

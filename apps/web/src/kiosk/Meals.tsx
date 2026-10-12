@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { Editable, useViewOnly } from '../lib/viewOnly'
 import { useNavigate } from 'react-router'
 import { Icon } from './icons'
 import { PlanWeek } from './components/PlanWeek'
@@ -76,6 +77,8 @@ function PlannedCell({ entry, mealType, slotKey, onOpen, onRemove }: { entry: We
 }
 
 function AddCell({ onAdd, label, slotKey }: { onAdd: () => void; label: string; slotKey: string }) {
+  // Kiosk mode keeps the grid's shape but drops the tap-to-plan target.
+  if (useViewOnly()) return <div className="meals-cell" data-slot={slotKey} />
   return (
     <div className="meals-cell meals-add" data-slot={slotKey} onClick={onAdd} role="button" tabIndex={0} aria-label={label}>
       <Icon name="plus" />
@@ -454,10 +457,12 @@ export function Meals() {
           <Icon name="recipes" />
           <span>Explore recipes</span>
         </button>
-        <button type="button" className="btn btn-ai" style={{ fontSize: 14, padding: '10px 18px' }} onClick={() => (view === 'month' ? setPlanningMonth(true) : setPlanning(true))}>
-          <Icon name="spark" />
-          {view === 'month' ? 'Plan my month' : 'Plan my week'}
-        </button>
+        <Editable>
+          <button type="button" className="btn btn-ai" style={{ fontSize: 14, padding: '10px 18px' }} onClick={() => (view === 'month' ? setPlanningMonth(true) : setPlanning(true))}>
+            <Icon name="spark" />
+            {view === 'month' ? 'Plan my month' : 'Plan my week'}
+          </button>
+        </Editable>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 10, alignItems: 'center' }}>
           <button type="button" className="pill meals-nav" aria-label={view === 'month' ? 'Previous month' : 'Previous week'} onClick={() => step(-1)}>
             <Icon name="cl" />

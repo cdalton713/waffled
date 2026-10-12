@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType } from 'react'
+import { Editable, isViewOnly } from '../lib/viewOnly'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
 import {
   useWeeklyPlanning,
@@ -450,9 +451,11 @@ export function WeeklyPlanning() {
   // a note for the next session comes up. It parks with no session and no tag. The composer
   // renders at the screen root, outside the footers, so their button rules can't reach it.
   const parkBetween = (
-    <button type="button" className="btn btn-ghost wp-park-between" disabled={busy} onClick={() => setParkingBetween(true)}>
-      📌 Park a note
-    </button>
+    <Editable>
+      <button type="button" className="btn btn-ghost wp-park-between" disabled={busy} onClick={() => setParkingBetween(true)}>
+        📌 Park a note
+      </button>
+    </Editable>
   )
   const parkBetweenComposer = parkingBetween && (
     <ParkNoteComposer
@@ -629,7 +632,7 @@ export function WeeklyPlanning() {
 
       <div className="wp-foot">
         <button type="button" className="wp-skip" disabled={busy} onClick={() => answer('skipped')}>Skip this step</button>
-        {current && !OWN_PARK_BAR.has(current.key) && (
+        {current && !OWN_PARK_BAR.has(current.key) && !isViewOnly() && (
           <button type="button" className="wp-skip wp-park-open" disabled={busy} onClick={() => setParking(true)}>
             📌 Park a note
           </button>

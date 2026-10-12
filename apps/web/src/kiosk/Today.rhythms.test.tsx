@@ -1,4 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react'
+import { setViewOnly } from '../lib/viewOnly'
+import { TopbarSlotProvider, useTopbarSlots } from './topbar-slot'
+function RightSlot() { return <>{useTopbarSlots().right}</> }
 import { MemoryRouter } from 'react-router'
 import { Today } from './Today'
 
@@ -51,6 +54,16 @@ function renderToday() {
 }
 
 describe('Today — the rhythms card is gated on the module', () => {
+  it('Kiosk mode hides Customize', async () => {
+    mockHousehold({ rhythms: true })
+    setViewOnly(true)
+    try {
+      render(<MemoryRouter><TopbarSlotProvider><RightSlot /><Today /></TopbarSlotProvider></MemoryRouter>)
+      expect(await screen.findByText('Temple visit')).toBeInTheDocument()
+      expect(screen.queryByText(/Customize/)).toBeNull()
+    } finally { setViewOnly(false) }
+  })
+
   it('shows the card when the module is on', async () => {
     mockHousehold({ rhythms: true })
     renderToday()

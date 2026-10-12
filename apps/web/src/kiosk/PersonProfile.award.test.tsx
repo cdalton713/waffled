@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react'
+import { setViewOnly } from '../lib/viewOnly'
 import { MemoryRouter, Routes, Route } from 'react-router'
 import { PersonProfile } from './PersonProfile'
 
@@ -44,6 +45,16 @@ function renderProfile() {
 }
 
 describe('PersonProfile spot-award gating', () => {
+  it('Kiosk mode hides Award stars even for a reward.grant holder', async () => {
+    mockApi(me('p3', ['reward.grant']))
+    setViewOnly(true)
+    try {
+      renderProfile()
+      expect((await screen.findAllByText(/Wally|Lottie|Kevin/)).length).toBeGreaterThan(0)
+      expect(screen.queryByRole('button', { name: /award stars/i })).toBeNull()
+    } finally { setViewOnly(false) }
+  })
+
   it('shows the Award stars button to a reward.grant holder', async () => {
     mockApi(me('p3', ['reward.grant']))
     renderProfile()

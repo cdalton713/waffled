@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
+import { setViewOnly } from '../lib/viewOnly'
 import { MemoryRouter } from 'react-router'
 import type { ReactElement } from 'react'
 import { Tasks } from './Tasks'
@@ -55,6 +56,17 @@ function mockInstances(initial: Inst[], persons: Array<{ id: string; name: strin
 }
 
 describe('Tasks screen', () => {
+  it('Kiosk mode hides New chore but keeps check-off', async () => {
+    mockInstances([{ id: '1', choreTitle: 'Feed dog', emoji: '🐶', personId: 'p1', personName: 'Wally', status: 'pending', rewardAmount: 2 }])
+    setViewOnly(true)
+    try {
+      renderTasks(<Tasks />)
+      expect(await screen.findByText(/Feed dog/)).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /Complete Feed dog/ })).toBeInTheDocument()
+      expect(screen.queryByText('New chore')).toBeNull()
+    } finally { setViewOnly(false) }
+  })
+
   it('lists chores grouped by person and completes one', async () => {
     mockInstances([
       { id: '1', choreTitle: 'Feed dog', emoji: '🐶', personId: 'p1', personName: 'Wally', status: 'pending', rewardAmount: 2 },
