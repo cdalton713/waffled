@@ -295,7 +295,7 @@ export function Photos() {
       </div>
 
       {adding && <PhotoAdd onClose={() => setAdding(false)} onAdded={refetch} albums={albums} />}
-      {googleOpen && <GooglePhotosImportModal albums={albums} onClose={() => setGoogleOpen(false)} onImported={refetch} />}
+      {googleOpen && <GooglePhotosImportModal albums={albums} onClose={() => setGoogleOpen(false)} onImported={() => refetch()} />}
       {detail && (
         <PhotoDetail
           photo={detail}

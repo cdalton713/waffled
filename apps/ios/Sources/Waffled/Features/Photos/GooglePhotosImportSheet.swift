@@ -6,7 +6,7 @@ import SwiftUI
 /// `GooglePhotosImportModal.tsx`.
 struct GooglePhotosImportSheet: View {
     var albums: [String] = []
-    var onImported: () -> Void = {}
+    var onImported: (_ album: String) -> Void = { _ in }
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
@@ -100,7 +100,7 @@ struct GooglePhotosImportSheet: View {
             try? await Task.sleep(for: .seconds(3))
             guard !Task.isCancelled, let next = try? await api.googlePhotosImport(id: id) else { continue }
             current = next
-            if next.status == "done" { onImported() }
+            if next.status == "done" { onImported(next.album) }
         }
     }
 

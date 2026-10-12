@@ -13,6 +13,7 @@ import { ColorPicker, COLOR_SWATCHES } from './components/ColorPicker'
 import { SettingCard } from './components/SettingCard'
 import { ConfirmDialog } from './components/ConfirmDialog'
 import { Screensaver, screensaverPhotos } from './components/Screensaver'
+import { GooglePhotosImportModal } from './components/GooglePhotosImportModal'
 import '../styles/settings.css'
 
 // `admin` tabs are only shown to admins, so nobody is offered options they can't use.
@@ -3157,11 +3158,12 @@ const PHOTO_SOURCE_OPTS: Array<{ key: DisplayConfig['photoSource']; label: strin
 ]
 const INTERVAL_OPTS = [5, 10, 20, 30]
 
-// Connect/disconnect the household's Google Photos account. Importing itself lives
-// on the Photos screen (GooglePhotosImport), next to the albums it fills.
-function GooglePhotosRow() {
+// Connect/disconnect the household's Google Photos account, and import an album
+// straight into the screensaver mix (the Photos screen has the same import).
+function GooglePhotosRow({ albums, onImported }: { albums: string[]; onImported: (album: string) => void }) {
   const { status, refetch } = useGooglePhotosStatus()
   const [busy, setBusy] = useState(false)
+  const [importing, setImporting] = useState(false)
   const [err, setErr] = useState<string | null>(null)
   if (!status) return null
   async function connect() {
@@ -3187,15 +3189,19 @@ function GooglePhotosRow() {
   const sub = !status.configured
     ? 'Not set up on this server yet — see the Google Photos guide in the docs.'
     : status.account
-      ? `Connected as ${status.account.email ?? 'Google account'}. Import albums from the Photos screen.`
+      ? `Connected as ${status.account.email ?? 'Google account'}. Each album you import joins the screensaver mix.`
       : 'Bring photos in from Google Photos as albums, then mix them here.'
   return (
     <SettingRow icon="🌈" title="Google Photos" sub={err ?? sub}>
       {status.account ? (
-        <button type="button" className="btn btn-ghost" disabled={busy} onClick={() => disconnect(status.account!.id)}>Disconnect</button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button type="button" className="btn btn-primary" disabled={busy} onClick={() => setImporting(true)}>Import album</button>
+          <button type="button" className="btn btn-ghost" disabled={busy} onClick={() => disconnect(status.account!.id)}>Disconnect</button>
+        </div>
       ) : (
         <button type="button" className="btn btn-primary" disabled={busy || !status.configured} onClick={connect}>Connect Google Photos</button>
       )}
+      {importing && <GooglePhotosImportModal albums={albums} onClose={() => setImporting(false)} onImported={onImported} />}
     </SettingRow>
   )
 }
@@ -3210,7 +3216,7 @@ function DisplayKioskPanel() {
   const dirtyRef = useRef(false)
   const wx = useWeather()
   const { events } = useEventsToday()
-  const { photos } = usePhotos()
+  const { photos, refetch: refetchPhotos } = usePhotos()
   const { household } = useHousehold()
   const nextEvent = events.find((e) => new Date(e.startsAt).getTime() > Date.now()) ?? null
   // Distinct album names (a photo's `memory`), for the "Specific album" picker.
@@ -3225,6 +3231,13 @@ function DisplayKioskPanel() {
 
   function update(patch: Partial<DisplayConfig>) {
     setCfg((c) => (c ? { ...c, ...patch } : c))
+    dirtyRef.current = true
+  }
+  function addToMix(album: string) {
+    refetchPhotos()
+    setCfg((c) =>
+      c ? { ...c, photoSource: 'albums', photoAlbums: c.photoAlbums.includes(album) ? c.photoAlbums : [...c.photoAlbums, album] } : c,
+    )
     dirtyRef.current = true
   }
   function updateDim(patch: Partial<DisplayConfig['nightDim']>) {
@@ -3320,7 +3333,7 @@ function DisplayKioskPanel() {
                           className={cfg.photoSource === o.key ? 'on' : ''}
                           style={{ cursor: o.key.startsWith('album') && albums.length === 0 ? 'not-allowed' : 'pointer' }}
                           disabled={o.key.startsWith('album') && albums.length === 0}
-                          title={o.key.startsWith('album') && albums.length === 0 ? 'No albums yet — group photos into a memory first.' : undefined}
+                          title={o.key.startsWith('album') && albums.length === 0 ? 'No albums yet — import one from Google Photos below, or group photos into an album.' : undefined}
                           onClick={() => update({ photoSource: o.key })}
                         >
                           {o.label}
@@ -3362,7 +3375,7 @@ function DisplayKioskPanel() {
                     </span>
                   </div>
                 )}
-                <GooglePhotosRow />
+                <GooglePhotosRow albums={albums} onImported={addToMix} />
 
                 <SettingRow icon="⏱️" title="Transition speed" sub="Seconds each photo stays on screen.">
                   <select

@@ -43,6 +43,7 @@ struct DisplayKioskSettingsView: View {
     @State private var googleStatus: WaffledAPI.GooglePhotosStatus?
     @State private var googleBusy = false
     @State private var googleLauncher = OAuthLauncher()
+    @State private var showGoogleImport = false
 
     /// The device-level "make this a shared kiosk" card only makes sense on an iPad,
     /// and only a parent can flip it.
@@ -550,9 +551,12 @@ struct DisplayKioskSettingsView: View {
         HStack(spacing: 12) {
             rowLabel("Google Photos", !g.configured
                      ? "Not set up on this server yet — see the Google Photos guide in the docs."
-                     : g.account.map { "Connected as \($0.email ?? "Google account"). Import albums from Photos." }
+                     : g.account.map { "Connected as \($0.email ?? "Google account"). Each album you import joins the Mix." }
                        ?? "Bring photos in from Google Photos as albums, then mix them here.")
             if let account = g.account {
+                Button("Import") { showGoogleImport = true }
+                    .font(.system(size: 14, weight: .bold)).foregroundStyle(WF.primary)
+                    .disabled(googleBusy)
                 Button("Disconnect") { Task { await disconnectGoogle(account.id) } }
                     .font(.system(size: 14, weight: .semibold)).foregroundStyle(WF.danger)
                     .disabled(googleBusy)
@@ -563,6 +567,19 @@ struct DisplayKioskSettingsView: View {
             }
         }
         .padding(.vertical, 14)
+        .sheet(isPresented: $showGoogleImport) {
+            GooglePhotosImportSheet(albums: albumChoices) { album in
+                Task { await addToMix(album) }
+            }
+        }
+    }
+
+    /// A freshly imported album joins the screensaver mix straight away.
+    private func addToMix(_ album: String) async {
+        previewPhotos = (try? await api.photos()) ?? previewPhotos
+        cfg?.photoSource = "albums"
+        if cfg?.photoAlbums.contains(album) == false { cfg?.photoAlbums.append(album) }
+        dirty = true
     }
 
     private func connectGoogle() async {

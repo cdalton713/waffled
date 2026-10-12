@@ -250,6 +250,55 @@ describe('Settings screen', () => {
     expect(connects[0]).toEqual({ redirectTo: 'http://localhost/settings' })
   })
 
+  it('imports a Google Photos album from settings and adds it to the screensaver mix', async () => {
+    const puts: Array<Record<string, unknown>> = []
+    let photos: unknown[] = []
+    let polls = 0
+    const imp = { id: 'imp1', album: 'Beach 2024', sessionId: 's1', pickerUri: 'https://photos.google.com/picker/s1', expireTime: null, importedCount: 0, skippedCount: 0, error: null, createdAt: '' }
+    globalThis.fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      const u = String(url)
+      const ok = (body: unknown) => ({ ok: true, status: 200, json: async () => body })
+      if (u.includes('/api/kiosk/display')) {
+        if (init?.method === 'PUT') {
+          const body = JSON.parse(String(init.body)) as Record<string, unknown>
+          puts.push(body)
+          return ok(body)
+        }
+        return ok({ ...displayConfig, photoAlbums: [] })
+      }
+      if (u.includes('/api/photos/google/status')) return ok({ configured: true, account: { id: 'a1', email: 'k@example.com', connectedAt: '' }, imports: [] })
+      if (u.endsWith('/api/photos/google/imports') && init?.method === 'POST') return { ok: true, status: 201, json: async () => ({ import: { ...imp, status: 'picking' } }) }
+      if (u.includes('/api/photos/google/imports/imp1')) {
+        polls++
+        if (polls < 2) return ok({ import: { ...imp, status: 'picking' } })
+        photos = [{ ...samplePhotos[0], id: 'g1', memory: 'Beach 2024' }]
+        return ok({ import: { ...imp, status: 'done', importedCount: 1 } })
+      }
+      if (u.includes('/api/photos')) return ok({ photos })
+      if (u.includes('/api/household/settings')) return ok({ household, members })
+      if (u.includes('/api/household')) return ok({ provisioned: true, household, person: members[0] })
+      if (u.includes('/api/persons')) return ok({ persons: [] })
+      if (u.includes('/api/events')) return ok({ events: [] })
+      return { ok: false, status: 404, json: async () => ({}) }
+    }) as unknown as typeof fetch
+    const open = vi.spyOn(window, 'open').mockReturnValue({ location: { href: '' }, close: vi.fn() } as unknown as Window)
+
+    renderSettings()
+    await screen.findByText('Kevin')
+    fireEvent.click(screen.getByText('Display & Kiosk'))
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Import album' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Import from Google Photos' })
+    // No albums yet → a plain name field, not an empty dropdown.
+    expect(within(dialog).queryByRole('combobox')).not.toBeInTheDocument()
+    fireEvent.change(within(dialog).getByPlaceholderText('e.g. Beach 2024'), { target: { value: 'Beach 2024' } })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Open Google Photos' }))
+
+    await waitFor(() => expect(puts.at(-1)).toMatchObject({ photoSource: 'albums', photoAlbums: ['Beach 2024'] }), { timeout: 6000 })
+    expect(await screen.findByRole('button', { name: 'Beach 2024', pressed: true })).toBeInTheDocument()
+    open.mockRestore()
+  }, 12_000)
+
   it('renders the permissions grid with a Manage goals column and toggles it', async () => {
     const puts: PermissionMatrix[] = []
     const emptyRow = { 'chore.manage': false, 'chore.approve': false, 'reward.manage': false, 'reward.approve': false, 'reward.grant': false, 'goal.manage': false, 'planning.manage': false }

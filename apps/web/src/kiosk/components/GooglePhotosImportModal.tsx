@@ -12,7 +12,7 @@ export function GooglePhotosImportModal({
 }: {
   albums: string[]
   onClose: () => void
-  onImported: () => void
+  onImported: (album: string) => void
 }) {
   const [album, setAlbum] = useState('')
   const [importId, setImportId] = useState<string | null>(null)
@@ -21,7 +21,7 @@ export function GooglePhotosImportModal({
   const imp = useGoogleImport(importId)
 
   useEffect(() => {
-    if (imp?.status === 'done') onImported()
+    if (imp?.status === 'done') onImported(imp.album)
   }, [imp?.status]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function start(e: FormEvent) {
@@ -48,17 +48,21 @@ export function GooglePhotosImportModal({
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 420 }}>
+      <div className="modal-card" role="dialog" aria-label="Import from Google Photos" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 420 }}>
         <button type="button" className="modal-close" aria-label="Close" onClick={onClose}>×</button>
         <div className="wf-serif" style={{ fontSize: 19, fontWeight: 600, marginBottom: 6 }}>Import from Google Photos</div>
         {!imp ? (
           <form onSubmit={start}>
             <div className="tiny muted" style={{ marginBottom: 14, fontWeight: 600 }}>
-              Choose the Waffled album, then pick photos in Google Photos. You can browse inside your Google albums while picking.
+              Name the album these photos go into here. Your Google albums appear in the next step, inside Google Photos, where you can open one and select its photos.
             </div>
             <label className="ap-field-label" style={{ marginBottom: 18 }}>
-              Album
-              <AlbumPicker value={album} onChange={setAlbum} albums={albums} />
+              Waffled album
+              {albums.length > 0 ? (
+                <AlbumPicker value={album} onChange={setAlbum} albums={albums} />
+              ) : (
+                <input className="field" placeholder="e.g. Beach 2024" value={album} onChange={(e) => setAlbum(e.target.value)} autoFocus />
+              )}
             </label>
             {err && <div className="tiny" style={{ color: 'var(--danger)', fontWeight: 700, marginBottom: 12 }}>{err}</div>}
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>

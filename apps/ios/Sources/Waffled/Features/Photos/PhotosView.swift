@@ -119,7 +119,7 @@ struct PhotosView: View {
             PhotoAddSheet(albums: model.albums, onDone: { Task { await model.load() } })
         }
         .sheet(isPresented: $showGoogle) {
-            GooglePhotosImportSheet(albums: model.albums, onImported: { Task { await model.load() } })
+            GooglePhotosImportSheet(albums: model.albums, onImported: { _ in Task { await model.load() } })
         }
     }
 
