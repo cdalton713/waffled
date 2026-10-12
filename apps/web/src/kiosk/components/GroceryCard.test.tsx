@@ -47,6 +47,7 @@ describe('GroceryCard', () => {
       render(<GroceryCard />)
       expect(await screen.findByText('Milk')).toBeInTheDocument()
       expect(screen.queryByLabelText('Add grocery item')).toBeNull()
+      expect(screen.queryByRole('button', { name: 'Remove Milk' })).toBeNull()
     } finally { setViewOnly(false) }
   })
 

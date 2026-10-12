@@ -101,6 +101,7 @@ describe('Meals weekly planner', () => {
       expect(await screen.findByText('Ravioli & Sausage Bake')).toBeInTheDocument()
       expect(screen.queryByText('Plan my week')).toBeNull()
       expect(screen.queryAllByRole('button', { name: /^Add /i })).toHaveLength(0)
+      expect(screen.queryByRole('button', { name: /^Remove / })).toBeNull()
       expect(screen.getByText('Explore recipes')).toBeInTheDocument()
     } finally { setViewOnly(false) }
   })

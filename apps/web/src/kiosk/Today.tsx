@@ -277,7 +277,7 @@ export function Today() {
 
   return (
     <div className={`today-wrap ${editing ? 'today-editing' : ''}`}>
-      <GettingStartedBar />
+      <Editable><GettingStartedBar /></Editable>
       {(showChores || rewardsEnabled(household)) && <ApprovalsBar />}
       {moduleEnabled(household, 'goals') && <GoalRecapBar />}
 

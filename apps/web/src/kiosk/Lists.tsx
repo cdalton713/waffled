@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
-import { Editable, useViewOnly } from '../lib/viewOnly'
+import { Editable, isViewOnly, useViewOnly } from '../lib/viewOnly'
 import { Icon } from './icons'
 import { ListsModal } from './components/ListsModal'
 import { ListItemModal } from './components/ListItemModal'
@@ -194,7 +194,7 @@ function ItemRow({
       </div>
       {/* × delete on the far right — hidden while selecting so a stray tap can't
           delete an item the user meant to pick. */}
-      {!selecting && (
+      {!selecting && !isViewOnly() && (
         <button type="button" className="litem-act litem-del" aria-label={`Delete ${item.name}`} onClick={() => onDelete(item)}>×</button>
       )}
     </div>

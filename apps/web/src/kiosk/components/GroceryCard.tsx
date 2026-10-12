@@ -69,6 +69,7 @@ export function GroceryCard() {
                 {item.name}
               </span>
             </button>
+            {!viewOnly && (
             <button
               type="button"
               className="gitem-del"
@@ -77,6 +78,7 @@ export function GroceryCard() {
             >
               ×
             </button>
+            )}
           </div>
         ))}
       </div>

@@ -61,6 +61,7 @@ describe('Today — the rhythms card is gated on the module', () => {
       render(<MemoryRouter><TopbarSlotProvider><RightSlot /><Today /></TopbarSlotProvider></MemoryRouter>)
       expect(await screen.findByText('Temple visit')).toBeInTheDocument()
       expect(screen.queryByText(/Customize/)).toBeNull()
+      expect(screen.queryByText('Getting started')).toBeNull()
     } finally { setViewOnly(false) }
   })
 

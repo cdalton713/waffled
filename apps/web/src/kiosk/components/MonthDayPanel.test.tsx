@@ -1,7 +1,18 @@
+import { setViewOnly } from '../../lib/viewOnly'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MonthDayPanel } from './MonthDayPanel'
 
 describe('MonthDayPanel', () => {
+  it('Kiosk mode drops the add button and the tap-to-add hint', () => {
+    setViewOnly(true)
+    try {
+      render(<MonthDayPanel day="2026-09-15" events={[]} tz="UTC" onOpenEvent={() => {}} onCreate={() => {}} />)
+      expect(screen.getByText('Nothing scheduled')).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Add an event on this day' })).toBeNull()
+      expect(screen.queryByText('Tap to add an event')).toBeNull()
+    } finally { setViewOnly(false) }
+  })
+
   // A text "＋" is a fullwidth glyph with its own side bearing, so it sat off-centre in the round
   // button; the icon is drawn on the button's own 24-unit grid.
   it('draws its add button with the plus icon, not a text glyph', () => {

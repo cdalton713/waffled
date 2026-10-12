@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { Editable, useViewOnly } from '../../lib/viewOnly'
 import type { AgendaEvent } from '../../lib/api'
 import { useEventColor } from '../../lib/event-color'
 import { Icon } from '../icons'
@@ -34,6 +35,7 @@ export function MonthDayPanel({
   onOpenEvent: (e: AgendaEvent) => void
   onCreate: (date: string) => void
 }) {
+  const viewOnly = useViewOnly()
   const colorOf = useEventColor('#A6A29B')
   const now = new Date()
   const todayKey = ymd(now)
@@ -58,20 +60,22 @@ export function MonthDayPanel({
           <div className="wf-serif cal-day-rel">{relLabel(day, todayKey)}</div>
           <div className="muted cal-day-date">{fullDate}</div>
         </div>
-        <button
-          type="button"
-          className="ag-group-add cal-day-add"
-          title={`Add an event on ${fullDate}`}
-          aria-label="Add an event on this day"
-          onClick={() => onCreate(day)}
-        >
-          <Icon name="plus" />
-        </button>
+        <Editable>
+          <button
+            type="button"
+            className="ag-group-add cal-day-add"
+            title={`Add an event on ${fullDate}`}
+            aria-label="Add an event on this day"
+            onClick={() => onCreate(day)}
+          >
+            <Icon name="plus" />
+          </button>
+        </Editable>
       </div>
       {dayEvents.length === 0 ? (
         <button type="button" className="cal-day-empty" onClick={() => onCreate(day)}>
           <span className="cal-day-empty-t">Nothing scheduled</span>
-          <span className="muted">Tap to add an event</span>
+          {!viewOnly && <span className="muted">Tap to add an event</span>}
         </button>
       ) : (
         <div className="cal-day-list">

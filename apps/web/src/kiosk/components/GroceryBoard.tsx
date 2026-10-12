@@ -247,10 +247,12 @@ function ItemRow({
       </span>
       {item.store && <span className="gstore" title={`Store: ${item.store}`}>🏬 {item.store}</span>}
       {item.quantity && <span className="gqty">{item.quantity}</span>}
-      <span className="gitem-acts" onClick={(e) => e.stopPropagation()}>
-        <button type="button" className="gact" title="Edit" onClick={() => { setName(item.name); setQty(item.quantityInput ?? item.quantity ?? ''); setSec(item.section ?? ''); setStore(item.store ?? ''); setEditing(true) }}>✎</button>
-        <button type="button" className="gact" title="Remove" onClick={onDelete}>🗑</button>
-      </span>
+      <Editable>
+        <span className="gitem-acts" onClick={(e) => e.stopPropagation()}>
+          <button type="button" className="gact" title="Edit" onClick={() => { setName(item.name); setQty(item.quantityInput ?? item.quantity ?? ''); setSec(item.section ?? ''); setStore(item.store ?? ''); setEditing(true) }}>✎</button>
+          <button type="button" className="gact" title="Remove" onClick={onDelete}>🗑</button>
+        </span>
+      </Editable>
     </div>
   )
 }
@@ -952,7 +954,7 @@ export function GroceryBoard({ onBack }: { onBack: () => void }) {
         <div className="card grocery-railcard">
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
             <div className="card-h">Pantry check</div>
-            <button type="button" className="pill" style={{ marginLeft: 'auto', cursor: 'pointer' }} onClick={() => setEditStaples(true)}>☼ Edit staples</button>
+            <Editable><button type="button" className="pill" style={{ marginLeft: 'auto', cursor: 'pointer' }} onClick={() => setEditStaples(true)}>☼ Edit staples</button></Editable>
           </div>
           <div className="tiny muted" style={{ fontWeight: 600, marginBottom: 10 }}>
             These staples are assumed in the house, so they’re left off the list. Tap one to add it anyway.

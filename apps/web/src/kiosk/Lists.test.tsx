@@ -114,6 +114,7 @@ describe('Lists screen', () => {
       expect(screen.queryByLabelText('Add to this list')).toBeNull()
       expect(screen.queryByText('New list')).toBeNull()
       expect(screen.queryByText('Add item')).toBeNull()
+      expect(screen.queryAllByRole('button', { name: /^Delete / })).toHaveLength(0)
     } finally { setViewOnly(false) }
   })
 

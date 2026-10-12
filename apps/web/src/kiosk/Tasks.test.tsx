@@ -64,6 +64,7 @@ describe('Tasks screen', () => {
       expect(await screen.findByText(/Feed dog/)).toBeInTheDocument()
       expect(screen.getByRole('button', { name: /Complete Feed dog/ })).toBeInTheDocument()
       expect(screen.queryByText('New chore')).toBeNull()
+      expect(screen.queryByText('Add chore')).toBeNull()
     } finally { setViewOnly(false) }
   })
 

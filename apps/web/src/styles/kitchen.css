@@ -93,9 +93,12 @@
 
 /* ===== rail — dark basil, bigger targets ======================== */
 :root[data-palette="kitchen"] .wf-kiosk { grid-template-columns: 112px 1fr; }
-:root[data-palette="kitchen"] .rail { gap: 4px; padding: 16px 0 12px; }
+:root[data-palette="kitchen"] .rail { gap: 2px; padding: 14px 0 10px; }
+/* The taller items overflow the rail with every module on; without this the logo
+   (an img at height:100%) is what flex shrinks to nothing. */
+:root[data-palette="kitchen"] .rail > * { flex-shrink: 0; }
 :root[data-palette="kitchen"] .rail-item {
-  width: 92px; min-height: 64px; padding: 10px 0 8px; border-radius: 18px;
+  width: 92px; min-height: 56px; padding: 8px 0 6px; border-radius: 18px;
   color: var(--rail-ink); font-size: 13px; font-weight: 700; justify-content: center;
 }
 :root[data-palette="kitchen"] .rail-item svg { width: 26px; height: 26px; stroke-width: 2.1; }
@@ -121,7 +124,7 @@
 :root[data-palette="kitchen"] .btn { min-height: 48px; font-size: 16px; padding: 12px 22px; border-radius: 16px; }
 :root[data-palette="kitchen"] .pill { min-height: 48px; font-size: 16px; border-radius: 16px; }
 :root[data-palette="kitchen"] .seg { border-radius: 16px; padding: 4px; }
-:root[data-palette="kitchen"] .seg button { min-height: 44px; font-size: 16px; font-weight: 700; padding: 8px 18px; border-radius: 12px; }
+:root[data-palette="kitchen"] .seg button { min-height: 44px; font-size: 16px; font-weight: 700; padding: 8px 14px; border-radius: 12px; white-space: nowrap; }
 :root[data-palette="kitchen"] .seg button.on { background: var(--ink); color: var(--card); box-shadow: none; }
 :root[data-palette="kitchen"] .icon-btn { width: 48px; height: 48px; border-radius: 16px; }
 :root[data-palette="kitchen"] .toggle { width: 56px; height: 34px; }

@@ -59,6 +59,7 @@ function PlannedCell({ entry, mealType, slotKey, onOpen, onRemove }: { entry: We
           {entry.cook.avatarEmoji ?? '🧑‍🍳'}
         </div>
       )}
+      <Editable>
       <button
         type="button"
         className="meal-remove"
@@ -71,6 +72,7 @@ function PlannedCell({ entry, mealType, slotKey, onOpen, onRemove }: { entry: We
       >
         ×
       </button>
+      </Editable>
       <div className="meal-t">{title}</div>
     </div>
   )
@@ -166,6 +168,7 @@ function monthStartOf(d: Date): Date {
 
 export function Meals() {
   const navigate = useNavigate()
+  const viewOnly = useViewOnly()
   // Which day the household starts its week on. Sunday until the household resolves —
   // that's what this screen always assumed, so a Sunday household never sees a shift
   // and a Monday one settles into place as soon as the setting arrives.
@@ -474,7 +477,7 @@ export function Meals() {
         </div>
       </div>
       <div className="meals-hint">
-        {view === 'month' ? 'Dinners for the month · tap a night to add or open a recipe · drag a meal onto another day to swap' : "Tap a meal for the recipe · tap + to add one · drag a meal to another slot to swap"}
+        {viewOnly ? 'Tap a meal for the recipe' : view === 'month' ? 'Dinners for the month · tap a night to add or open a recipe · drag a meal onto another day to swap' : "Tap a meal for the recipe · tap + to add one · drag a meal to another slot to swap"}
       </div>
 
       {view === 'month' ? (
@@ -577,6 +580,7 @@ function MonthCell({
         <div className="mm-meal" title={title ?? undefined}>
           <span className="mm-emoji">{emoji}</span>
           <span className="mm-title">{title}</span>
+          <Editable>
           <button
             type="button"
             className="mm-remove"
@@ -588,6 +592,7 @@ function MonthCell({
           >
             ×
           </button>
+          </Editable>
         </div>
       ) : (
         inMonth && <div className="mm-add"><Icon name="plus" /></div>

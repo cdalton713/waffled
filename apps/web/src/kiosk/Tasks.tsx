@@ -400,10 +400,12 @@ export function Tasks() {
                 )
               })}
               </div>
-              <button type="button" className="chore-add" onClick={() => setModal({ personId: g.key === 'unassigned' ? null : g.key })}>
-                <Icon name="plus" />
-                Add chore
-              </button>
+              <Editable>
+                <button type="button" className="chore-add" onClick={() => setModal({ personId: g.key === 'unassigned' ? null : g.key })}>
+                  <Icon name="plus" />
+                  Add chore
+                </button>
+              </Editable>
             </div>
           )
         })}
