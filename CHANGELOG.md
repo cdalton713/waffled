@@ -22,6 +22,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   last synced, with a **Re-sync** button to pull in photos added to Google since then.
   Disconnecting removes the imported photos. Works on web, the kiosk, iPhone and iPad.
 
+- **Kitchen theme for a wall tablet.** A new look tuned for a 10.1" tablet read from across
+  the kitchen: a cool tile background, a dark basil rail, a tomato accent, the highly legible
+  Atkinson Hyperlegible typeface, a bigger clock and larger touch targets. Pick **Kitchen** or
+  **Kitchen night** in Settings → Appearance or Display & Kiosk; it's saved per device.
+- **Kiosk mode.** A per-device switch in Settings → Display & Kiosk that hides everything used
+  to create or edit (the capture bar, Customize, New/Add buttons, empty meal slots, add bars,
+  Scan, Plan my week, Spot award, Edit recipe, row edit/delete) so the content gets the room.
+  Checking things off, timers, approvals, "I did it" and cook mode keep working. Web and kiosk
+  only.
 - **Choose the typeface on each screen.** Settings → Appearance and Display & Kiosk now have a
   Typeface picker that shows each option as a real clock, heading and line of text, so you choose
   by reading. Pick **Classic** (the theme's own fonts), **Clear** (Lexend, easiest from across
@@ -32,6 +41,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 ### Fixed
+
+- **Kiosk mode hides Add photos again.** The Photos screen's **Add photos** button had come back
+  on kiosk-mode screens.
 
 ## [0.15.3] - 2026-10-07
 
