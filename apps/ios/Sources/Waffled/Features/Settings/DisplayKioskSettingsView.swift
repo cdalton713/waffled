@@ -39,6 +39,11 @@ struct DisplayKioskSettingsView: View {
 
     private let api = WaffledAPI()
 
+    // Google Photos connection (admin-only status; nil when unavailable).
+    @State private var googleStatus: WaffledAPI.GooglePhotosStatus?
+    @State private var googleBusy = false
+    @State private var googleLauncher = OAuthLauncher()
+
     /// The device-level "make this a shared kiosk" card only makes sense on an iPad,
     /// and only a parent can flip it.
     private var showsDeviceCard: Bool { DeviceExperience.current == .kiosk && sync.isParent }
@@ -345,6 +350,7 @@ struct DisplayKioskSettingsView: View {
                             Text("All").tag("all")
                             Text("Favorites").tag("favorites")
                             Text("Album").tag("album")
+                            Text("Mix").tag("albums")
                         }
                         .pickerStyle(.segmented).labelsHidden()
                     }
@@ -360,6 +366,37 @@ struct DisplayKioskSettingsView: View {
                                 }
                             }
                         }
+                    }
+                    if cfg?.photoSource == "albums" {
+                        divider
+                        VStack(alignment: .leading, spacing: 4) {
+                            rowLabel("Albums to mix", albumChoices.isEmpty
+                                     ? "No albums yet — import from Google Photos or tag photos with an album."
+                                     : "Plays a random mix of the albums you tick. None ticked plays every photo.")
+                            ForEach(albumChoices, id: \.self) { a in
+                                let on = cfg?.photoAlbums.contains(a) ?? false
+                                Button {
+                                    if on { cfg?.photoAlbums.removeAll { $0 == a } } else { cfg?.photoAlbums.append(a) }
+                                    dirty = true
+                                } label: {
+                                    HStack {
+                                        Text(a).font(.system(size: 15, weight: .medium)).foregroundStyle(WF.ink)
+                                        Spacer()
+                                        Image(systemName: on ? "checkmark.circle.fill" : "circle")
+                                            .foregroundStyle(on ? WF.primary : WF.ink3)
+                                    }
+                                    .padding(.vertical, 8)
+                                    .contentShape(Rectangle())
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityAddTraits(on ? .isSelected : [])
+                            }
+                        }
+                        .padding(.vertical, 14)
+                    }
+                    if let g = googleStatus {
+                        divider
+                        googlePhotosRow(g)
                     }
                     divider
                     menuRow("Transition speed", value: secondsLabel(cfg?.photoInterval ?? 8)) {
@@ -461,6 +498,7 @@ struct DisplayKioskSettingsView: View {
         catch { loadFailed = true }
         previewWeather = try? await wxF
         previewPhotos = (try? await photosF) ?? []
+        googleStatus = try? await api.googlePhotosStatus()
         if sync.isParent { await loadDevices() }
     }
 
@@ -504,6 +542,44 @@ struct DisplayKioskSettingsView: View {
     private static func formatTime(_ date: Date) -> String {
         let c = Cal.current.dateComponents([.hour, .minute], from: date)
         return String(format: "%02d:%02d", c.hour ?? 0, c.minute ?? 0)
+    }
+
+    // MARK: Google Photos
+
+    private func googlePhotosRow(_ g: WaffledAPI.GooglePhotosStatus) -> some View {
+        HStack(spacing: 12) {
+            rowLabel("Google Photos", !g.configured
+                     ? "Not set up on this server yet — see the Google Photos guide in the docs."
+                     : g.account.map { "Connected as \($0.email ?? "Google account"). Import albums from Photos." }
+                       ?? "Bring photos in from Google Photos as albums, then mix them here.")
+            if let account = g.account {
+                Button("Disconnect") { Task { await disconnectGoogle(account.id) } }
+                    .font(.system(size: 14, weight: .semibold)).foregroundStyle(WF.danger)
+                    .disabled(googleBusy)
+            } else if g.configured {
+                Button("Connect") { Task { await connectGoogle() } }
+                    .font(.system(size: 14, weight: .bold)).foregroundStyle(WF.primary)
+                    .disabled(googleBusy)
+            }
+        }
+        .padding(.vertical, 14)
+    }
+
+    private func connectGoogle() async {
+        googleBusy = true
+        defer { googleBusy = false }
+        guard let urlStr = try? await api.connectGooglePhotosURL(redirectTo: "waffled://google-photos-connected"),
+              let url = URL(string: urlStr) else { return }
+        if await googleLauncher.start(url: url, scheme: "waffled") {
+            googleStatus = try? await api.googlePhotosStatus()
+        }
+    }
+
+    private func disconnectGoogle(_ accountId: String) async {
+        googleBusy = true
+        defer { googleBusy = false }
+        try? await api.disconnectGooglePhotos(accountId: accountId)
+        googleStatus = try? await api.googlePhotosStatus()
     }
 
     // MARK: building blocks (mirrors NotificationsSettingsView)
