@@ -207,6 +207,49 @@ describe('Settings screen', () => {
     await waitFor(() => expect(puts.some((p) => p.photoInterval === 30)).toBe(true))
   })
 
+  it('picks several albums for the screensaver and connects Google Photos', async () => {
+    const puts: Array<Record<string, unknown>> = []
+    const connects: unknown[] = []
+    globalThis.fetch = vi.fn(async (url: string, init?: RequestInit) => {
+      const u = String(url)
+      const ok = (body: unknown) => ({ ok: true, status: 200, json: async () => body })
+      if (u.includes('/api/kiosk/display')) {
+        if (init?.method === 'PUT') {
+          const body = JSON.parse(String(init.body)) as Record<string, unknown>
+          puts.push(body)
+          return ok(body)
+        }
+        return ok({ ...displayConfig, photoAlbums: [] })
+      }
+      if (u.includes('/api/photos/google/connect')) {
+        connects.push(JSON.parse(String(init?.body)))
+        return ok({ url: 'https://accounts.google.com/o/oauth2/v2/auth?x=1' })
+      }
+      if (u.includes('/api/photos/google/status')) return ok({ configured: true, account: null, imports: [] })
+      if (u.includes('/api/photos')) return ok({ photos: samplePhotos })
+      if (u.includes('/api/household/settings')) return ok({ household, members })
+      if (u.includes('/api/household')) return ok({ provisioned: true, household, person: members[0] })
+      if (u.includes('/api/persons')) return ok({ persons: [] })
+      if (u.includes('/api/events')) return ok({ events: [] })
+      return { ok: false, status: 404, json: async () => ({}) }
+    }) as unknown as typeof fetch
+    const assign = vi.fn()
+    Object.defineProperty(window, 'location', { configurable: true, value: { ...window.location, assign, href: 'http://localhost/settings' } })
+
+    renderSettings()
+    await screen.findByText('Kevin')
+    fireEvent.click(screen.getByText('Display & Kiosk'))
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Several albums' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Lake Day', pressed: false }))
+    fireEvent.click(screen.getByRole('button', { name: 'Birthday', pressed: false }))
+    await waitFor(() => expect(puts.at(-1)).toMatchObject({ photoSource: 'albums', photoAlbums: ['Lake Day', 'Birthday'] }))
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Connect Google Photos' }))
+    await waitFor(() => expect(assign).toHaveBeenCalledWith('https://accounts.google.com/o/oauth2/v2/auth?x=1'))
+    expect(connects[0]).toEqual({ redirectTo: 'http://localhost/settings' })
+  })
+
   it('renders the permissions grid with a Manage goals column and toggles it', async () => {
     const puts: PermissionMatrix[] = []
     const emptyRow = { 'chore.manage': false, 'chore.approve': false, 'reward.manage': false, 'reward.approve': false, 'reward.grant': false, 'goal.manage': false, 'planning.manage': false }
