@@ -10,6 +10,10 @@
   "scripts": {
     "build": "node esbuild.config.mjs",
     "typecheck": "tsc --noEmit",
+    "lint": "oxlint --config ../../.oxlintrc.json .",
+    "lint:fix": "oxlint --config ../../.oxlintrc.json --fix .",
+    "format": "oxfmt --config ../../.oxfmtrc.json --write .",
+    "format:check": "oxfmt --config ../../.oxfmtrc.json --check .",
     "dev": "tsx watch src/server.ts",
     "start": "node dist/server.js",
     "token": "tsx scripts/mint-token.ts",
@@ -46,9 +50,11 @@
     "@types/node": "^20.14.0",
     "@types/pg": "^8.11.10",
     "esbuild": "^0.24.0",
+    "oxfmt": "^0.72.0",
+    "oxlint": "^1.87.0",
     "testcontainers": "^10.13.0",
     "tsx": "^4.19.0",
-    "typescript": "^5.6.0",
+    "typescript": "^7.0.2",
     "vitest": "^2.1.0"
   },
   "overrides": {

@@ -54,11 +54,33 @@ Run the checks for the relevant app before opening a PR — CI runs all of it.
 # API — vitest + Testcontainers integration (needs Docker running)
 cd apps/api && npm test
 cd apps/api && npm run typecheck
+cd apps/api && npm run lint
 
 # Web — vitest / jsdom
 cd apps/web && npm test
 cd apps/web && npm run typecheck
+cd apps/web && npm run lint
 ```
+
+API and web typechecks use **TypeScript 7**, the native Go compiler. The command
+remains `tsc`.
+
+All four JavaScript packages (`apps/api`, `apps/web`, `website/home`, and
+`website/docs`) provide these commands:
+
+```bash
+npm run lint          # Oxlint: report problems without changing files
+npm run lint:fix      # Oxlint: apply automatic fixes
+npm run format:check  # Oxfmt: check formatting without changing files
+npm run format        # Oxfmt: format files in this package
+```
+
+Shared settings live in `.oxlintrc.json` and `.oxfmtrc.json` at the repository
+root. Generated output and lockfiles are excluded from formatting. Formatting
+uses single quotes, no semicolons, and a 100-column line width; import sorting is
+disabled. Existing formatting differences are reported by `format:check`.
+CI and the pre-push hook run lint for the API and web app; formatting remains a
+manual check until those differences are fixed.
 
 For iOS, run the Swift Testing suite:
 
@@ -107,7 +129,7 @@ are expected to follow the `CODE_OF_CONDUCT.md`.
 - **`.github/workflows/ci.yml`** runs on PRs and on push to `main`. API tests
   run on Node 20 to match production; web checks run on Node 24 to match the
   browser toolchain. Separate jobs cover migration hygiene, CLI tests,
-  typechecking, web tests, API integration tests, and API Docker E2E.
+  typechecking and lint, web tests, API integration tests, and API Docker E2E.
 - **`.github/workflows/publish-images.yml`** runs **only on `v*` tags** (or
   manual dispatch). It builds three multi-arch (amd64 + arm64) GHCR images —
   `waffled-api`, `waffled-caddy` (which bakes the web SPA), and `waffled-backup`

@@ -28,6 +28,8 @@ on:
     paths:
       - 'apps/api/**'
       - 'apps/web/**'
+      - '.oxlintrc.json'
+      - '.oxfmtrc.json'
       - 'waffled'
       - 'tests/**'
       - '.github/workflows/ci.yml'
@@ -36,6 +38,8 @@ on:
     paths:
       - 'apps/api/**'
       - 'apps/web/**'
+      - '.oxlintrc.json'
+      - '.oxfmtrc.json'
       - 'waffled'
       - 'tests/**'
       - '.github/workflows/ci.yml'
@@ -105,7 +109,7 @@ jobs:
         run: npm audit --omit=dev --audit-level=moderate
 
   typecheck:
-    name: Typecheck (api + web)
+    name: Typecheck and lint (api + web)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -129,6 +133,10 @@ jobs:
         working-directory: apps/api
         run: npm run typecheck        # tsc --noEmit
 
+      - name: Lint api
+        working-directory: apps/api
+        run: npm run lint
+
       - name: Install web deps
         working-directory: apps/web
         run: npm ci
@@ -136,6 +144,10 @@ jobs:
       - name: Typecheck web
         working-directory: apps/web
         run: npm run typecheck        # tsc -b --noEmit
+
+      - name: Lint web
+        working-directory: apps/web
+        run: npm run lint
 
   web-tests:
     name: Web tests (vitest / jsdom)

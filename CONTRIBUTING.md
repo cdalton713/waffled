@@ -13,8 +13,11 @@ Quick version:
   `infra/compose/.env` with generated secrets), `./waffled web` for Vite HMR. Requires
   **Docker** and **Node 24** for source development (the API container itself
   remains on Node 20).
-- Run the checks before opening a PR: `cd apps/api && npm test && npm run typecheck`, and the
+- Run the checks before opening a PR: `cd apps/api && npm test && npm run typecheck && npm run lint`, and the
   same in `apps/web`. For iOS, `xcodebuild test -project Waffled.xcodeproj -scheme Waffled`.
+- API and web typechecks use TypeScript 7, the Go compiler (`tsc`). Run `npm run format`
+  or `npm run format:check` in any JavaScript package to use Oxfmt. Shared Oxlint and
+  Oxfmt settings live in `.oxlintrc.json` and `.oxfmtrc.json` at the repository root.
 - Use conventional-commit messages with a scope; keep PRs focused; add tests for behavior
   changes; log user-facing changes in `CHANGELOG.md` under `[Unreleased]`.
 - Security issues: see [`SECURITY.md`](SECURITY.md) — report those **privately**, not as public

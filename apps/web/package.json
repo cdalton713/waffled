@@ -12,6 +12,10 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit",
+    "lint": "oxlint --config ../../.oxlintrc.json .",
+    "lint:fix": "oxlint --config ../../.oxlintrc.json --fix .",
+    "format": "oxfmt --config ../../.oxfmtrc.json --write .",
+    "format:check": "oxfmt --config ../../.oxfmtrc.json --check .",
     "test": "vitest run",
     "test:browser": "playwright test"
   },
@@ -48,8 +52,10 @@
     "@vitejs/plugin-react": "^4.3.2",
     "axe-core": "^4.12.1",
     "jsdom": "^25.0.1",
+    "oxfmt": "^0.72.0",
+    "oxlint": "^1.87.0",
     "tailwindcss": "^4.3.3",
-    "typescript": "^5.6.2",
+    "typescript": "^7.0.2",
     "vite": "^5.4.8",
     "vitest": "^2.1.2"
   }

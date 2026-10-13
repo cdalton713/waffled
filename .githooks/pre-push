@@ -37,6 +37,8 @@ run() { # <label> <dir> <cmd...>
 
 run "typecheck (web)" apps/web npm run --silent typecheck
 run "typecheck (api)" apps/api npm run --silent typecheck
+run "lint (web)"      apps/web npm run --silent lint
+run "lint (api)"      apps/api npm run --silent lint
 run "web tests"       apps/web npm test --silent
 
 if [ "$fail" -ne 0 ]; then
