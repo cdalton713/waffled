@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { useOnline, useSustainedOffline } from '../../lib/pwa'
 import { probeServerNow, useServerReachability } from '../../lib/api/reachability'
+import { Button } from '@/components/ui/button'
+import { DataIcon } from '@/components/ui/data-icon'
+
+
 
 // One copy, two surfaces: this strip and the AuthGate's pre-login screen.
 export const UNREACHABLE_HEADLINE = 'Can’t reach the Waffled server'
@@ -66,17 +70,17 @@ export function ServerUnreachableBanner() {
   if (!deviceOnline) {
     return (
       <div className="unreachable-banner" role="status" ref={ref}>
-        <span className="unreachable-line">⚡ {DEVICE_OFFLINE_LINE}</span>
+        <span className="unreachable-line"><><DataIcon value={"⚡"} kind="general" />{" "}</>{DEVICE_OFFLINE_LINE}</span>
       </div>
     )
   }
 
   return (
     <div className="unreachable-banner" role="status" ref={ref}>
-      <span className="unreachable-line">⚠️ {UNREACHABLE_HEADLINE} — it may be stopped or asleep. Retrying…</span>
-      <button type="button" className="btn btn-ghost unreachable-retry" onClick={() => void retry()} disabled={checking}>
+      <span className="unreachable-line"><><DataIcon value={"⚠️"} kind="general" />{" "}</>{UNREACHABLE_HEADLINE} — it may be stopped or asleep. Retrying…</span>
+      <Button variant="unstyled" type="button" className="btn btn-ghost unreachable-retry" onClick={() => void retry()} disabled={checking}>
         {checking ? 'Checking…' : 'Retry'}
-      </button>
+      </Button>
       <span className="unreachable-hint">{UNREACHABLE_HINT}</span>
     </div>
   )

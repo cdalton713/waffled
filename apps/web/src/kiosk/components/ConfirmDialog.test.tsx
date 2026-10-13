@@ -21,7 +21,8 @@ it('submits a trimmed prompt once while a save is pending', async () => {
   const form = dialog.querySelector('form')!
   fireEvent.submit(form)
   fireEvent.submit(form)
-  expect(onConfirm).toHaveBeenCalledExactlyOnceWith('Packing')
+  expect(onConfirm).toHaveBeenCalledOnce()
+  expect(onConfirm).toHaveBeenCalledWith('Packing')
   expect(screen.getByRole('button', { name: 'Working…' })).toBeDisabled()
   finish()
   await waitFor(() => expect(screen.getByRole('button', { name: 'Confirm' })).toBeEnabled())

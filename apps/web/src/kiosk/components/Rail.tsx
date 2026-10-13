@@ -3,6 +3,10 @@ import { Icon } from '../icons'
 import { SCREENS, SETTINGS, type Screen } from '../nav'
 import { isKioskMode, authApi, useHousehold } from '../../lib/api'
 import { moduleEnabled } from '../../lib/modules'
+import { Button } from '@/components/ui/button'
+import { DataIcon } from '@/components/ui/data-icon'
+
+
 
 function railClass({ isActive }: { isActive: boolean }) {
   return `rail-item ${isActive ? 'on' : ''}`
@@ -18,16 +22,16 @@ function RailAccount({ onNavigate }: { onNavigate?: () => void }) {
       className="rail-switch-av"
       style={{ background: person?.colorHex ? `${person.colorHex}22` : 'var(--panel)' }}
     >
-      {person?.avatarEmoji ?? '🙂'}
+      {<DataIcon value={person?.avatarEmoji ?? '🙂'} kind="person" />}
     </span>
   )
 
   if (isKioskMode()) {
     return (
-      <button className="rail-switch" onClick={() => { onNavigate?.(); void authApi.logout() }} title="Switch profile">
+      <Button variant="unstyled" className="rail-switch" onClick={() => { onNavigate?.(); void authApi.logout() }} title="Switch profile">
         {avatar}
         <span className="rail-switch-label">Switch</span>
-      </button>
+      </Button>
     )
   }
 

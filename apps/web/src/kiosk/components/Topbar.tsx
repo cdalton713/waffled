@@ -3,6 +3,10 @@ import { useTopbarSlots } from '../topbar-slot'
 import { useHousehold, useWeather, type Weather } from '../../lib/api'
 import { applyEventStyle, eventStyle } from '../../lib/display'
 import { CaptureBar } from './CaptureBar'
+import { Button } from '@/components/ui/button'
+import { DataIcon } from '@/components/ui/data-icon'
+
+
 
 // Weather widget with a hover/tap popover that says where the reading comes from.
 function WeatherWidget({ wx }: { wx: Weather }) {
@@ -18,7 +22,7 @@ function WeatherWidget({ wx }: { wx: Weather }) {
   }, [open])
   return (
     <div className="tb-wx-wrap" ref={ref}>
-      <button
+      <Button variant="unstyled"
         type="button"
         className="tb-wx"
         aria-label="Weather details"
@@ -27,15 +31,15 @@ function WeatherWidget({ wx }: { wx: Weather }) {
           setOpen((o) => !o)
         }}
       >
-        <span aria-hidden="true">{wx.emoji}</span>
+        <span aria-hidden="true">{<DataIcon value={wx.emoji} kind="general" />}</span>
         {wx.tempF}°
-      </button>
+      </Button>
       <div className={`tb-wx-pop ${open ? 'open' : ''}`} role="tooltip">
         <div className="tb-wx-pop-t">
-          {wx.emoji} {wx.tempF}°{wx.label ? ` · ${wx.label}` : ''}
+          {<DataIcon value={wx.emoji} kind="general" />} {wx.tempF}°{wx.label ? ` · ${wx.label}` : ''}
         </div>
         <div className="tb-wx-pop-s">{wx.location ? `Weather for ${wx.location}` : 'Weather'}</div>
-        <div className="tb-wx-pop-s muted">via Open-Meteo · change in Settings → Location</div>
+        <div className="tb-wx-pop-s muted"><>{"via Open-Meteo · change in Settings "}<DataIcon value={"→"} kind="general" />{" Location"}</></div>
       </div>
     </div>
   )

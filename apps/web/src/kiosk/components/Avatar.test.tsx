@@ -7,7 +7,8 @@ describe('PersonAv', () => {
   it('tints from the stored hex and names the person for a hover', () => {
     render(<PersonAv person={wally} />)
     const av = screen.getByTitle('Wally')
-    expect(av.textContent).toBe('🐢')
+    expect(screen.getByRole('img', { name: 'Wally' }).tagName.toLowerCase()).toBe('svg')
+    expect(av.textContent).toBe('')
     expect(av.className).toContain('av')
     // jsdom normalises `#hex22` to rgba; the 0.133 alpha IS the `22` suffix.
     expect(av.style.background).toContain('rgba(37, 163, 104')
@@ -16,7 +17,7 @@ describe('PersonAv', () => {
   // A person with no colour or emoji still has to render as a face rather than a hole.
   it('falls back to the neutral tint and a plain face', () => {
     render(<PersonAv person={{ personId: 'p2', name: null, avatarEmoji: null, colorHex: null }} />)
-    const av = screen.getByText('🙂')
+    const av = screen.getByRole('img', { name: 'Person' }).parentElement!
     expect(av.style.background).toContain('rgba(166, 162, 155')
     expect(av.getAttribute('title')).toBeNull()
   })

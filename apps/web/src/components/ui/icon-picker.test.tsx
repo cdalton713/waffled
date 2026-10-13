@@ -22,6 +22,7 @@ it('shows Lucide choices and sends the compatible value only after selection', (
   render(<IconPicker value={null} onValueChange={onValueChange} aria-label="Recipe icon" />)
   fireEvent.click(screen.getByRole('button', { name: 'Recipe icon' }))
   fireEvent.click(screen.getByRole('button', { name: 'Cooking' }))
-  expect(onValueChange).toHaveBeenCalledExactlyOnceWith('🍽️')
+  expect(onValueChange).toHaveBeenCalledOnce()
+  expect(onValueChange).toHaveBeenCalledWith('🍽️')
   expect(screen.queryByRole('dialog', { name: 'Choose an icon' })).not.toBeInTheDocument()
 })

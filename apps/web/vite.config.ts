@@ -4,6 +4,7 @@ import { resolve, sep } from 'node:path'
 import { defineConfig, type Plugin, type ProxyOptions } from 'vite'
 import { configDefaults } from 'vitest/config'
 import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
 import { buildId, stampServiceWorker } from './sw-stamp'
 
 // Stamp the built sw.js with this build's identity. sw.js lives in public/ and is
@@ -99,7 +100,8 @@ const apiProxy: Record<string, ProxyOptions> = {
 }
 
 export default defineConfig({
-  plugins: [react(), stampServiceWorkerPlugin(), devMediaPlugin()],
+  plugins: [react(), tailwindcss(), stampServiceWorkerPlugin(), devMediaPlugin()],
+  resolve: { alias: { '@': resolve(__dirname, './src') } },
   // @powersync/web ships its own SQLite WASM + worker; pre-bundling breaks them,
   // so exclude it from Vite's dep optimizer (PowerSync's documented Vite setup).
   optimizeDeps: { exclude: ['@powersync/web'] },

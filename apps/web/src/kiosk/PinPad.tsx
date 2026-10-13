@@ -3,6 +3,10 @@
 // lockout (429, with a countdown hint) via KioskClaimError.
 import { useState } from 'react'
 import { kioskApi, KioskClaimError, type KioskProfile } from '../lib/api'
+import { Button } from '@/components/ui/button'
+import { DataIcon } from '@/components/ui/data-icon'
+
+
 
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'del', '0', 'ok']
 
@@ -46,7 +50,7 @@ export function PinPad({ profile, onCancel }: { profile: KioskProfile; onCancel:
     <div className="kp-screen">
       <div className="kp-head">
         <span className="kp-av kp-av-lg" style={{ background: profile.colorHex ? `${profile.colorHex}22` : 'var(--panel)' }}>
-          {profile.avatarEmoji ?? '🙂'}
+          {<DataIcon value={profile.avatarEmoji ?? '🙂'} kind="person" />}
         </span>
         <div className="kp-title wf-serif">{profile.name}’s PIN</div>
         <div className="kp-dots" aria-label={`${pin.length} digits entered`}>
@@ -60,19 +64,17 @@ export function PinPad({ profile, onCancel }: { profile: KioskProfile; onCancel:
       </div>
       <div className="kp-pad">
         {KEYS.map((k) => (
-          <button
+          <Button variant="unstyled"
             key={k}
             className={`kp-key ${k === 'ok' ? 'kp-key-ok' : ''} ${k === 'del' ? 'kp-key-del' : ''}`}
             onClick={() => press(k)}
             disabled={busy || (k === 'ok' && pin.length < 4)}
           >
-            {k === 'del' ? '⌫' : k === 'ok' ? '✓' : k}
-          </button>
+            {k === 'del' ? '⌫' : k === 'ok' ? <><DataIcon value={"✓"} kind="general" /></> : k}
+          </Button>
         ))}
       </div>
-      <button className="kp-cancel" onClick={onCancel} disabled={busy}>
-        ← Back to profiles
-      </button>
+      <Button variant="unstyled" className="kp-cancel" onClick={onCancel} disabled={busy}><>{"\n        "}<DataIcon value={"←"} kind="general" />{" Back to profiles\n      "}</></Button>
     </div>
   )
 }

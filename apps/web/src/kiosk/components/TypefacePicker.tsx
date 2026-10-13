@@ -1,6 +1,8 @@
 import type { KeyboardEvent } from 'react'
 import { Check } from '../icons'
 import type { Typeface } from '../../lib/theme'
+import { Button } from '@/components/ui/button'
+
 
 // Mirrors the TypefacePicker in the Waffled Claude Design system. Each option draws
 // its specimen in its own typeface (.tp-opt[data-tp] in styles/typefaces.css), so
@@ -49,7 +51,7 @@ export function TypefacePicker({
       {list.map((t, i) => {
         const on = t.id === value
         return (
-          <button
+          <Button variant="unstyled"
             key={t.id}
             type="button"
             role="radio"
@@ -69,7 +71,7 @@ export function TypefacePicker({
               {on && <span className="tp-tick" aria-hidden="true"><Check size={14} /></span>}
             </span>
             {!compact && <span className="tp-note">{t.note}</span>}
-          </button>
+          </Button>
         )
       })}
     </div>

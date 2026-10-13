@@ -1,4 +1,6 @@
-// Static family avatars from the design; real persons come from /api/persons.
+import { DataIcon } from '@/components/ui/data-icon'
+
+// Stored symbols remain compatible with other clients; this UI renders Lucide.
 export const AVATARS: Record<string, string> = {
   kevin: '🐻',
   kelly: '🦊',
@@ -7,7 +9,7 @@ export const AVATARS: Record<string, string> = {
 }
 
 export function Avatar({ person, size = 'md' }: { person: string; size?: 'sm' | 'md' | 'lg' }) {
-  return <div className={`av ${person} ${size}`}>{AVATARS[person]}</div>
+  return <div className={`av ${person} ${size}`}><DataIcon value={AVATARS[person]} kind="person" label={person} /></div>
 }
 
 type AvSize = 'sm' | 'md' | 'lg'
@@ -35,7 +37,7 @@ export function PersonAv({ person, size = 'sm' }: { person: AvPerson; size?: AvS
       style={{ background: avTint(person.colorHex) }}
       title={person.name ?? undefined}
     >
-      {person.avatarEmoji ?? '🙂'}
+      <DataIcon value={person.avatarEmoji} kind="person" label={person.name ?? 'Person'} />
     </div>
   )
 }

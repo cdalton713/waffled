@@ -1,0 +1,59 @@
+@layer theme, base, components, utilities;
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+@custom-variant kitchen (&:where([data-palette='kitchen'], [data-palette='kitchen'] *));
+
+@theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--ink);
+  --color-card: var(--card);
+  --color-card-foreground: var(--ink);
+  --color-popover: var(--card);
+  --color-popover-foreground: var(--ink);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--on-accent);
+  --color-secondary: var(--panel);
+  --color-secondary-foreground: var(--ink);
+  --color-muted: var(--panel);
+  --color-muted-foreground: var(--ink-3);
+  --color-accent: var(--primary-t);
+  --color-accent-foreground: var(--ink);
+  --color-destructive: var(--danger);
+  --color-border: var(--hair);
+  --color-input: var(--control-line);
+  --color-ring: var(--primary);
+  --font-sans: var(--sans);
+  --font-serif: var(--serif);
+  --radius-sm: var(--r-xs);
+  --radius-md: var(--r-sm);
+  --radius-lg: var(--r-md);
+  --radius-xl: var(--r-lg);
+  --radius-2xl: var(--r-xl);
+  --breakpoint-phone: 721px;
+  --breakpoint-wide: 1101px;
+}
+
+[data-slot='dialog-content'] {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100% - 48px);
+  z-index: 50;
+}
+
+@media (max-width: 720px) {
+  [data-slot='dialog-content'] { width: calc(100% - 24px); }
+}
+
+:root[data-palette='kitchen'] [data-slot='button']:not([data-variant='unstyled']) {
+  min-height: 48px;
+  font-size: 16px;
+  border-radius: 16px;
+}
+
+@media (max-width: 720px) {
+  :root[data-palette='kitchen'] [data-slot='button']:not([data-variant='unstyled']) { white-space: nowrap; }
+}

@@ -5,6 +5,10 @@ import { useEffect, useState } from 'react'
 import { kioskApi, type KioskProfile } from '../lib/api'
 import { PinPad } from './PinPad'
 import '../styles/kiosk-profiles.css'
+import { Button } from '@/components/ui/button'
+import { DataIcon } from '@/components/ui/data-icon'
+
+
 
 export function ProfilePicker() {
   const [profiles, setProfiles] = useState<KioskProfile[] | null>(null)
@@ -65,19 +69,19 @@ export function ProfilePicker() {
       {error && <div className="kp-error">{error}</div>}
       <div className="kp-grid">
         {(profiles ?? []).map((p) => (
-          <button key={p.id} className="kp-tile" onClick={() => pick(p)} disabled={!!busyId} aria-label={p.name}>
+          <Button variant="unstyled" key={p.id} className="kp-tile" onClick={() => pick(p)} disabled={!!busyId} aria-label={p.name}>
             <span className="kp-av" style={{ background: p.colorHex ? `${p.colorHex}22` : 'var(--panel)' }}>
-              {p.avatarEmoji ?? '🙂'}
+              {<DataIcon value={p.avatarEmoji ?? '🙂'} kind="person" />}
             </span>
             <span className="kp-name">
               {p.name}
-              {p.hasPin && <span className="kp-lock" title="PIN protected"> 🔒</span>}
+              {p.hasPin && <span className="kp-lock" title="PIN protected"><>{" "}<DataIcon value={"🔒"} kind="person" /></></span>}
             </span>
-          </button>
+          </Button>
         ))}
         {profiles && profiles.length === 0 && <div className="kp-empty">No profiles are shown on the kiosk yet.</div>}
       </div>
-      {deviceLabel && <div className="kp-device">🖥️ {deviceLabel}</div>}
+      {deviceLabel && <div className="kp-device"><><DataIcon value={"🖥️"} kind="person" />{" "}</>{deviceLabel}</div>}
     </div>
   )
 }

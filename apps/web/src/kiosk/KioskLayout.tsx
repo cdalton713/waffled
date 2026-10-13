@@ -10,6 +10,8 @@ import { TopbarSlotProvider } from './topbar-slot'
 import { Icon } from './icons'
 import { activeScreen } from './nav'
 import '../styles/kiosk-profiles.css'
+import { Button } from '@/components/ui/button'
+
 
 // The persistent kiosk chrome (responsive, fills the viewport). The active
 // screen renders in the Outlet and can fill the topbar's right slot. (Idle /
@@ -41,7 +43,7 @@ export function KioskLayout() {
             <img src="/logo.png" alt="" />
             <span>{active?.label ?? 'Waffled'}</span>
           </Link>
-          <button
+          <Button variant="unstyled"
             ref={triggerRef}
             type="button"
             className="mobile-menu-button"
@@ -51,9 +53,9 @@ export function KioskLayout() {
             onClick={() => setNavOpen((open) => !open)}
           >
             <Icon name={navOpen ? 'close' : 'menu'} />
-          </button>
+          </Button>
         </header>
-        <button
+        <Button variant="unstyled"
           type="button"
           className={`mobile-nav-scrim${navOpen ? ' open' : ''}`}
           aria-label="Close navigation"
