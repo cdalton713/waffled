@@ -22,6 +22,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   last synced, with a **Re-sync** button to pull in photos added to Google since then.
   Disconnecting removes the imported photos. Works on web, the kiosk, iPhone and iPad.
 
+- **Choose the typeface on each screen.** Settings → Appearance and Display & Kiosk now have a
+  Typeface picker that shows each option as a real clock, heading and line of text, so you choose
+  by reading. Pick **Classic** (the theme's own fonts), **Clear** (Lexend, easiest from across
+  the room), **Hyperlegible** (Atkinson Hyperlegible Next, for low vision), **Friendly** (Nunito)
+  or **Early reader** (Andika, letters shaped the way kids learn to write). It changes the whole
+  app, is saved per device, and the fonts ship with Waffled so it works offline. Web and kiosk only.
+
 ### Changed
 
 ### Fixed
