@@ -176,6 +176,11 @@
   @apply [min-height:44px];
   @apply [border-radius:var(--r-sm)];
 }
+/* Compact controls the base styles draw at 36–37px. */
+:root[data-palette='night-pantry'] .ob-btn,
+:root[data-palette='night-pantry'] .chores-card-row {
+  @apply [min-height:44px];
+}
 :root[data-palette='night-pantry'] .icon-btn {
   @apply [border-radius:var(--r-sm)];
 }

@@ -69,6 +69,20 @@ describe.each([
   })
 })
 
+describe('night-pantry.css touch targets', () => {
+  // Compact controls that render under 44px in the base styles (found in QA on Today).
+  it.each(['.ob-btn', '.chores-card-row'])('gives %s a 44px minimum height', (cls) => {
+    let min: string | undefined
+    root.walkRules((rule) => {
+      if (rule.selector.includes(cls))
+        rule.walkDecls('min-height', (d) => {
+          min = d.value
+        })
+    })
+    expect(min).toBe('44px')
+  })
+})
+
 describe('night-pantry.css on a phone', () => {
   const SHELL = /\.(wf-kiosk|rail|rail-item|topbar|tb-date|tb-time)\b/
   const LAYOUT = /^(grid-template-columns|width|height|min-height|padding|gap|font-size)$/
