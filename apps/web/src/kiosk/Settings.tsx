@@ -5859,6 +5859,18 @@ const THEMES: Array<{
     mode: 'dark',
     colors: { bg: '#0E1410', card: '#1C2620', line: '#E0533B', rail: '#0A0F0C' },
   },
+  {
+    label: 'Night Pantry day',
+    palette: 'night-pantry',
+    mode: 'light',
+    colors: { bg: '#F4F1E8', card: '#FFFFFF', line: '#F2C14E', rail: '#EAE6DA' },
+  },
+  {
+    label: 'Night Pantry',
+    palette: 'night-pantry',
+    mode: 'dark',
+    colors: { bg: '#0E1916', card: '#15241F', line: '#F2C14E', rail: '#0A1311' },
+  },
 ]
 
 // Shared by Appearance and Display & Kiosk. Picking a card pins both the palette and

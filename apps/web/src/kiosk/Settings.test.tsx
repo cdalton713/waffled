@@ -269,6 +269,22 @@ describe('Settings screen', () => {
     expect(document.documentElement.getAttribute('data-theme')).toBe('light')
   })
 
+  it('Appearance offers Night Pantry, dark by default with a day variant', async () => {
+    mockApi()
+    localStorage.clear()
+    renderSettings()
+    await screen.findByText('Kevin')
+    await selectOption(screen.getByLabelText('Settings section'), 'Appearance')
+
+    fireEvent.click(screen.getByRole('button', { name: /^Night Pantry$/ }))
+    expect(document.documentElement.getAttribute('data-palette')).toBe('night-pantry')
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
+
+    fireEvent.click(screen.getByRole('button', { name: /^Night Pantry day/ }))
+    expect(document.documentElement.getAttribute('data-palette')).toBe('night-pantry')
+    expect(document.documentElement.getAttribute('data-theme')).toBe('light')
+  })
+
   it('Display & Kiosk has the theme picker and a per-device Kiosk mode switch', async () => {
     mockApi()
     localStorage.clear()
