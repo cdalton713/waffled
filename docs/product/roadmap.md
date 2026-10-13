@@ -143,7 +143,7 @@ Legend: ✅ done · 🟡 partial / in progress · 🚧 planned · ⛔ dropped (s
   below.)*
 - **Lists & groceries** — multi-lists, auto-built aisle board, quantity merge, pantry
   staples, live cross-surface refresh **plus cross-device refresh** (foreground + ~20s poll,
-  since lists aren't on PowerSync), **item attribution** ("added by …" / from a meal plan
+  on iOS; web/kiosk lists now sync live through PowerSync), **item attribution** ("added by …" / from a meal plan
   or recipe), **add any recipe's ingredients from its page** — now with a **pick-specific
   picker** (add all or just what you need) — (no meal-plan entry needed; these survive the
   weekly rebuild), **assign a store to an item + a By-store board view** (free-text

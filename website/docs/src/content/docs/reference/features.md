@@ -245,7 +245,7 @@ quarter. Deliberately **not** goals: goals are about follow-through, a rhythm is
 | **Saved order** — drag items into an order that sticks across reloads and devices | ✅ | ❌ | ❌ | ✅ Done on web/kiosk (iPhone/iPad planned) — `PUT /api/lists/:id/order`. Web: drop an item onto another to place it before it |
 | **Offline lists** — read and edit lists and the grocery board with no connection; live updates from other devices | ✅ | ❌ | ❌ | ✅ Web/kiosk via PowerSync (`lists` + `list_items` replicated, mig 0113; uploads through `/api/powersync/crud`). The grocery board overlays replica items on the last server-built board, cached per week. iOS still uses REST + a ~20 s poll |
 | **Import from AnyList** — lists, items, the Pantry list and recipes with photos | — | — | — | ✅ Done — `./waffled admin import-anylist` (re-runnable, `--dry-run`); see [Move from AnyList](/guides/import-from-anylist/) |
-| **Cross-device list refresh** — a family member's edit on another device shows up without a manual reload | ✅ | ✅ | ✅ | ✅ Done — lists aren't on PowerSync (only the calendar is), so both clients refetch a list on app/tab foreground and poll ~20s while it's on screen (silent; iOS skips while editing/multi-selecting). Not instant push — up to ~20s |
+| **Cross-device list refresh** — a family member's edit on another device shows up without a manual reload | ✅ | ✅ | ✅ | ✅ Done — on web/kiosk lists sync through PowerSync, so another device's edit appears live (see **Offline lists**). iOS still refetches a list on foreground and polls ~20s while it's on screen (silent; skips while editing/multi-selecting) |
 
 ## Meals & recipes
 
