@@ -67,7 +67,7 @@
   padding: 12px 13px; cursor: pointer;
   transition: border-color .14s, color .14s, background .14s;
 }
-.wpt-add-tile:hover:not(:disabled) { border-color: var(--person-3); color: var(--person-3); background: var(--person-3-t); }
+.wpt-add-tile:hover:not(:disabled) { border-color: var(--person-3); color: var(--person-3-tx); background: var(--person-3-t); }
 .wpt-add-tile:disabled { cursor: default; opacity: 0.6; }
 .wpt-add-tile svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round; }
 
@@ -100,7 +100,7 @@
    the fact being stated. */
 .wpt-chip-set { font: inherit; font-size: 11.5px; font-weight: 800; font-family: var(--sans); border: 0; cursor: pointer; }
 .wpt-chip-set.is-unset { border: 1px dashed var(--hair); }
-.wpt-chip-set:hover:not(:disabled) { color: var(--person-3); border-color: var(--person-3); }
+.wpt-chip-set:hover:not(:disabled) { color: var(--person-3-tx); border-color: var(--person-3); }
 .wpt-chip-set:disabled { cursor: default; opacity: 0.6; }
 
 /* ── The columns ────────────────────────────────────────────────────────────── */
@@ -129,7 +129,7 @@
 }
 
 /* Done sits beside the day chip as its own chip, tinted so it reads as an action. */
-.wpt-done { cursor: pointer; border: 0; background: var(--success-t, var(--panel)); color: var(--success, var(--ink)); font-weight: 750; }
+.wpt-done { cursor: pointer; border: 0; background: var(--success-t, var(--panel)); color: var(--success-tx, var(--ink)); font-weight: 750; }
 .wpt-done:disabled { opacity: .5; cursor: default; }
 .wpt-note { font-size: 12.5px; font-weight: 650; color: var(--ink-2); background: var(--panel); border-radius: var(--r-md); padding: 8px 12px; }
 
@@ -137,4 +137,4 @@
 .wpt-rhythms { display: flex; flex-direction: column; gap: 8px; }
 .wpt-rhythm { display: flex; align-items: center; gap: 8px; background: var(--card); border: 1px solid var(--hair-2); border-radius: var(--r-md); padding: 10px 12px; }
 .wpt-rhythm .t { flex: 1; min-width: 0; font-weight: 650; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.wpt-chip.is-late { color: var(--danger, var(--ink)); }
+.wpt-chip.is-late { color: var(--danger-tx, var(--ink)); }

@@ -136,5 +136,5 @@ a.wpr-row:hover { background: var(--panel); border-radius: var(--r-md); }
 }
 
 /* Last week's targets: met reads as good news, short stays quiet. */
-.wpr-n.is-met { color: var(--success, var(--ink-2)); }
+.wpr-n.is-met { color: var(--success-tx, var(--ink-2)); }
 .wpr-n.is-short { color: var(--ink-3); }

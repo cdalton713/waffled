@@ -82,7 +82,7 @@
 .wpg-pace { font-weight: 700; }
 .wpg-pace.ok { color: var(--person-3-tx); }
 .wpg-pace.flat { color: var(--ink-2); }
-.wpg-pace.behind { color: var(--danger); }
+.wpg-pace.behind { color: var(--danger-tx); }
 
 .wpg-none { background: var(--card-2); }
 .wpg-none.on { background: var(--primary-t); }
@@ -94,7 +94,7 @@
   padding-top: 12px; border-top: 1px solid var(--hair-2);
 }
 .wpg-verdict.has { color: var(--ink); }
-.wpg-verdict-s { color: var(--gold); }
+.wpg-verdict-s { color: var(--gold-d); }
 
 .wpg-new { align-self: flex-start; }
 

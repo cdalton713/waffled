@@ -16,7 +16,7 @@
 
   --ink:   #16201A;
   --ink-2: #4D5852;
-  --ink-3: #8A948D;
+  --ink-3: #606963;
 
   --hair:  rgba(22,32,26,0.10);
   --hair-2:rgba(22,32,26,0.05);
@@ -26,9 +26,9 @@
   --primary:   #C93A24;
   --primary-d: #A82F1C;
   --primary-t: #F6DDD7;
-  --gold:      #F7C548;
+  --gold: #B97A0B;
   --gold-t:    #FDF1CC;
-  --gold-d:    #8A6A0A;
+  --gold-d: #81630B;
   --success:   #2F6B4F;  --success-t: #DCEAE2;
 
   --person-1:  #2F6FD6;  --person-1-t:  #E2EBFA;  --person-1-tx: #1E4FA0;
@@ -36,7 +36,7 @@
   --person-3:  #2F7A52;  --person-3-t:  #DDEDE4;  --person-3-tx: #1F5A3B;
   --person-4:  #7A52D6;  --person-4-t:  #ECE5FA;  --person-4-tx: #5A35B0;
 
-  --control-track: #C5CBC3;
+  --control-track: #91968F;
 
   --r-lg: 24px; --r-xl: 32px;
   --sh-1: 0 1px 2px rgba(22,32,26,.06);
@@ -53,6 +53,12 @@
   --rail-ink:    #B9C4BC;
   --rail-on:     #2A362F;
   --rail-on-ink: #FFFFFF;
+
+  --success-tx: #2F6B4F;
+  --danger-tx: #BD3628;
+  --info-tx: #0A63CF;
+  --warn: #94590D;
+  --control-line: #7F8581;
 }
 
 :root[data-palette="kitchen"][data-theme="dark"] {
@@ -64,29 +70,36 @@
 
   --ink:   #E9EEE9;
   --ink-2: #A9B5AD;
-  --ink-3: #6F8077;
+  --ink-3: #7D8E85;
 
   --hair:  rgba(233,238,233,.10);
   --hair-2:rgba(233,238,233,.06);
   --line:  rgba(233,238,233,.20);
 
-  --primary:   #E0533B;
-  --primary-d: #EB6A53;
+  --primary: #D2462E;
+  --primary-d: #F6745D;
   --primary-t: rgba(224,83,59,.20);
   --gold-t:    rgba(247,197,72,.18);  --gold-d: #F7C548;
-  --success:   #4FA37A;  --success-t: rgba(79,163,122,.20);
+  --success: #2F855E;  --success-t: rgba(79,163,122,.20);
 
   --person-1-t: rgba(47,111,214,.22);  --person-1-tx: #7FA8F0;
   --person-2-t: rgba(201,69,124,.22);  --person-2-tx: #EB8DB4;
   --person-3-t: rgba(47,122,82,.24);   --person-3-tx: #6CC296;
   --person-4-t: rgba(122,82,214,.24);  --person-4-tx: #B9A3F5;
 
-  --control-track: rgba(233,238,233,.16);
+  --control-track: #66706A;
   --sh-1: 0 1px 2px rgba(0,0,0,.45);
   --sh-2: 0 2px 10px rgba(0,0,0,.5);
 
   --rail-ink: #8FA096;
   --rail-on:  #1F2B24;
+
+  --warn: #E8A13E;
+  --gold: #F7C548;
+  --success-tx: #60B38A;
+  --danger-tx: #F8705F;
+  --info-tx: #559FFE;
+  --control-line: #66706B;
 }
 
 /* ===== type ==================================================== */

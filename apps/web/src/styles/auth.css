@@ -71,7 +71,7 @@
   font-size: 15px;
   padding: 11px 13px;
   border-radius: var(--r-md);
-  border: 1px solid var(--hair);
+  border: 1px solid var(--control-line);
   background: var(--card-2);
   color: var(--ink);
   width: 100%;
@@ -89,7 +89,7 @@
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 16%, transparent);
 }
 .auth-error {
-  color: var(--primary);
+  color: var(--primary-d);
   font-size: 13px;
   font-weight: 600;
   margin-top: 10px;

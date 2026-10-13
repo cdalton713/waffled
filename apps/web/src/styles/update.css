@@ -6,7 +6,7 @@
   background: linear-gradient(150deg, #f2a93c, var(--primary));
   display: grid; place-items: center; font-size: 30px; box-shadow: var(--sh-1);
 }
-.upd-eyebrow { margin-top: 16px; font-size: 12px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: var(--primary); }
+.upd-eyebrow { margin-top: 16px; font-size: 12px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: var(--primary-d); }
 .upd-title { font-size: 26px; font-weight: 600; margin: 6px 0 0; color: var(--ink); text-wrap: balance; }
 .upd-ver { margin-top: 4px; font-size: 13.5px; color: var(--ink-3); font-weight: 600; }
 

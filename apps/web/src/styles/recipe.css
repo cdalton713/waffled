@@ -237,7 +237,7 @@
   padding: 4px 10px;
   border-radius: 999px;
   background: var(--person-3-t);
-  color: var(--success);
+  color: var(--success-tx);
 }
 /* per-step timer chip in the Method (read view) */
 .rd-step-timer {
@@ -271,7 +271,7 @@
   line-height: 1;
 }
 .rd-fav.on svg {
-  fill: var(--primary);
+  fill: var(--primary-d);
   stroke: none;
 }
 
@@ -550,7 +550,7 @@
   font-size: 15px;
   padding: 11px 16px;
   border-radius: 999px;
-  border: 1px solid var(--hair);
+  border: 1px solid var(--control-line);
   background: var(--card);
   color: var(--ink);
 }
@@ -625,8 +625,8 @@
   filter: brightness(0.95);
 }
 .rd-tag.coll {
-  background: var(--person-1-t);
-  color: var(--info);
+  background: var(--info-t);
+  color: var(--info-tx);
 }
 .rd-tag.diet {
   background: var(--person-4-t);
@@ -634,7 +634,7 @@
 }
 .rd-tag.veg {
   background: var(--person-3-t);
-  color: var(--success);
+  color: var(--success-tx);
   text-transform: none;
 }
 .rd-tag.soft {
@@ -701,7 +701,7 @@
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%231D1D1F' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></svg>");
 }
 .recipes-filter.on {
-  background: var(--ink);
+  background-color: var(--ink);
   color: var(--on-inverse);
   border-color: var(--ink);
 }
@@ -834,7 +834,7 @@
   line-height: 1.5;
   padding: 11px 13px;
   border-radius: var(--r-md);
-  border: 1px solid var(--hair);
+  border: 1px solid var(--control-line);
   background: var(--card-2);
   color: var(--ink);
 }
@@ -859,7 +859,7 @@
 }
 /* A REAL pantry match, unlike the "likely on hand" staple guess above it — coloured to
    match the grocery board's .gpantry badge and the Pantry screen's chips. */
-.ring-inpantry { color: var(--success); }
+.ring-inpantry { color: var(--success-tx); }
 .ring-row.subbed .ring-name { color: var(--ink); font-weight: 600; }
 .ring-sub-btn {
   flex: none;
@@ -874,7 +874,7 @@
   opacity: 0.55;
 }
 .ring-sub-btn:hover { opacity: 1; }
-.ring-row.subbed .ring-sub-btn { opacity: 1; border-color: var(--person-3); color: var(--person-3); }
+.ring-row.subbed .ring-sub-btn { opacity: 1; border-color: var(--person-3); color: var(--person-3-tx); }
 .ring-row.editing { gap: 10px; padding: 10px 0; }
 .ring-sub-input {
   flex: 1;
@@ -904,7 +904,7 @@
   margin-top: 9px;
   font-size: 13.5px;
   font-weight: 600;
-  color: var(--success);
+  color: var(--success-tx);
   background: var(--person-3-t);
   padding: 8px 12px;
   border-radius: var(--r-md);
@@ -921,7 +921,7 @@
   padding: 2px 0;
   cursor: pointer;
 }
-.rd-step-addnote:hover { color: var(--person-3); }
+.rd-step-addnote:hover { color: var(--person-3-tx); }
 .rd-step-noteedit { margin-top: 9px; }
 .rd-step-noteedit textarea {
   width: 100%;
@@ -933,7 +933,7 @@
   line-height: 1.45;
   padding: 9px 11px;
   border-radius: var(--r-md);
-  border: 1px solid var(--hair);
+  border: 1px solid var(--control-line);
   background: var(--card-2);
   color: var(--ink);
 }
@@ -958,7 +958,7 @@
   font-size: 14.5px;
   padding: 9px 12px;
   border-radius: var(--r-md);
-  border: 1px solid var(--hair);
+  border: 1px solid var(--control-line);
   background: var(--card-2);
   color: var(--ink);
 }
@@ -978,7 +978,7 @@
   align-items: center;
   padding: 8px;
   border-radius: var(--r-md);
-  border: 1px solid var(--hair);
+  border: 1px solid var(--control-line);
   background: var(--card-2);
 }
 .cz-chip {
@@ -1001,6 +1001,16 @@
   font-size: 13px;
   line-height: 1;
   cursor: pointer;
+}
+/* Chips sit on a fixed pastel fill (the color prop), so text stays dark in dark mode. */
+:root[data-theme="dark"] .cz-chip:not(.src),
+.dark .cz-chip:not(.src) {
+  color: var(--on-inverse);
+}
+:root[data-theme="dark"] .cz-chip:not(.src) button,
+.dark .cz-chip:not(.src) button {
+  background: rgba(0, 0, 0, .08);
+  color: rgba(29, 29, 31, .7);
 }
 .cz-chips input {
   flex: 1;
@@ -1040,7 +1050,7 @@
 .re-paste { margin-bottom: 16px; }
 .re-paste-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
 .re-paste-input { width: 100%; font-size: 13.5px; line-height: 1.55; padding: 12px 14px;
-  border-radius: var(--r-md); border: 1px solid var(--hair); background: var(--card-2); color: var(--ink);
+  border-radius: var(--r-md); border: 1px solid var(--control-line); background: var(--card-2); color: var(--ink);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace; resize: vertical; }
 
 /* label-over-input field (mirrors the customize modal's .cz-f: one box, no nesting) */
@@ -1050,7 +1060,7 @@
 }
 .re-f input {
   width: 100%; font: inherit; font-size: 15px; padding: 10px 12px;
-  border-radius: var(--r-md); border: 1px solid var(--hair); background: var(--card-2); color: var(--ink);
+  border-radius: var(--r-md); border: 1px solid var(--control-line); background: var(--card-2); color: var(--ink);
 }
 .re-f input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--ring); }
 
@@ -1139,7 +1149,7 @@
 .re-sec-opt:hover, .re-sec-opt.on { background: var(--panel); }
 .re-ing-row input {
   width: 100%; font: inherit; font-size: 14px; padding: 9px 11px; border-radius: var(--r-md);
-  border: 1px solid var(--hair); background: var(--card-2); color: var(--ink);
+  border: 1px solid var(--control-line); background: var(--card-2); color: var(--ink);
 }
 .re-ing-row input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--ring); }
 .re-ing-dragging { opacity: 0.45; }
@@ -1152,7 +1162,7 @@
   border: 0; background: transparent; color: var(--ink-3); cursor: pointer; font-size: 18px;
   width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center;
 }
-.re-ing-x:hover { background: var(--panel); color: var(--danger); }
+.re-ing-x:hover { background: var(--danger-t); color: var(--danger-tx); }
 .re-ing-actions { display: flex; align-items: center; gap: 12px; margin-top: 14px; }
 .re-add-ing {
   font: inherit; font-size: 14px; font-weight: 800; padding: 11px 18px; border-radius: 999px;
@@ -1171,7 +1181,7 @@
 .re-step-body { flex: 1; display: flex; flex-direction: column; gap: 8px; }
 .re-step-body > textarea {
   width: 100%; font: inherit; font-size: 14.5px; line-height: 1.5; padding: 9px 12px; border-radius: var(--r-md);
-  border: 1px solid var(--hair); background: var(--card-2); color: var(--ink); resize: vertical;
+  border: 1px solid var(--control-line); background: var(--card-2); color: var(--ink); resize: vertical;
 }
 .re-step-body > textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--ring); }
 
@@ -1215,12 +1225,12 @@
 .re-timer-add:hover { border-color: var(--primary); color: var(--ink-2); }
 .re-timer-pill { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 800;
   padding: 6px 9px 6px 13px; border-radius: 999px; background: var(--primary); color: var(--on-accent); line-height: 1; }
-.re-timer-time { border: 0; background: transparent; color: var(--on-accent); font: inherit; font-weight: 800; cursor: pointer; padding: 0; }
-.re-timer-x { border: 0; background: rgba(255,255,255,0.28); color: var(--on-accent); width: 18px; height: 18px; border-radius: 50%;
+.re-timer-time { border: 0; background: transparent; color: var(--on-media); font: inherit; font-weight: 800; cursor: pointer; padding: 0; }
+.re-timer-x { border: 0; background: rgba(255,255,255,0.28); color: var(--on-media); width: 18px; height: 18px; border-radius: 50%;
   font-size: 13px; line-height: 1; cursor: pointer; display: grid; place-items: center; }
 .re-timer-edit { display: inline-flex; align-items: center; gap: 6px; padding: 5px 8px; border-radius: 999px;
   border: 1px solid var(--primary); background: var(--card); }
-.re-timer-ic { color: var(--primary); }
+.re-timer-ic { color: var(--primary-d); }
 .re-timer-num { width: 48px; font: inherit; font-size: 13px; font-weight: 700; text-align: center; padding: 4px 6px;
   border-radius: 7px; border: 1px solid var(--hair); background: var(--panel); color: var(--ink); }
 .re-timer-num:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px var(--ring); }
@@ -1241,7 +1251,7 @@
   box-shadow: 0 1px 2px rgba(0,0,0,0.04); display: grid; place-items: center; }
 .re-step-ctl button:hover:not(:disabled) { border-color: var(--primary); color: var(--ink); }
 .re-step-ctl button:disabled { opacity: 0.3; cursor: default; }
-.re-step-ctl .re-del { color: var(--danger); }
+.re-step-ctl .re-del { color: var(--danger-tx); }
 
 /* ingredient-row controls (reorder / remove) — compact inline on a single-line row */
 .re-row-ctl { display: flex; gap: 4px; align-items: center; }
@@ -1249,7 +1259,7 @@
   background: var(--card); color: var(--ink-2); cursor: pointer; font-size: 14px; font-weight: 700; }
 .re-row-ctl button:hover:not(:disabled) { background: var(--panel); }
 .re-row-ctl button:disabled { opacity: 0.3; cursor: default; }
-.re-row-ctl .re-del { color: var(--danger); }
+.re-row-ctl .re-del { color: var(--danger-tx); }
 
 /* photo: URL field + upload button + inline preview */
 .re-image { display: flex; flex-direction: column; gap: 8px; }
@@ -1261,7 +1271,7 @@
 
 .re-actions { display: flex; align-items: center; gap: 12px; margin-top: 22px; }
 .re-actions-right { margin-left: auto; display: flex; gap: 10px; }
-.re-delete-btn { color: var(--danger); cursor: pointer; }
+.re-delete-btn { color: var(--danger-tx); cursor: pointer; }
 
 @media (max-width: 760px) {
   .re-meta-grid { grid-template-columns: repeat(2, 1fr); }

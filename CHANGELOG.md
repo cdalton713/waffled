@@ -40,6 +40,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Easier-to-read colours everywhere.** The palette is retuned so text meets WCAG AA contrast
+  in light and dark mode, in the default and Kitchen themes. Coral, blue, green and gold are a
+  little deeper. Coloured text and links use darker text shades of each accent. Secondary and
+  placeholder text is darker. Input, select and toggle outlines are now clearly visible.
+  White text on accent buttons stays white in dark mode. Selects in forms get the same chevron
+  as the filter pills.
+
 ### Fixed
 
 - **Kiosk mode hides Add photos again.** The Photos screen's **Add photos** button had come back

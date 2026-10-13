@@ -47,7 +47,7 @@
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--person-3);
+  color: var(--person-3-tx);
 }
 .cm-instruction {
   font-size: 40px;
@@ -102,7 +102,7 @@
 .cm-note {
   font-size: 17px;
   font-weight: 600;
-  color: var(--success);
+  color: var(--success-tx);
   background: var(--person-3-t);
   padding: 12px 16px;
   border-radius: var(--r-lg);
@@ -359,7 +359,7 @@
   animation: cm-timer-flash 0.8s steps(1, end) infinite;
 }
 .cm-timer-firing .cm-timer-time {
-  color: var(--primary);
+  color: var(--primary-d);
 }
 @keyframes cm-timer-flash {
   0% { background: var(--card); }
@@ -405,12 +405,12 @@
 }
 .cm-alarm-label { font-weight: 800; font-size: 16px; color: var(--ink); text-align: left; }
 /* the ringing dish, above the step — an alarm you can't attribute is useless */
-.cm-alarm-dish { display: block; font-size: 18px; color: var(--primary); }
+.cm-alarm-dish { display: block; font-size: 18px; color: var(--primary-d); }
 .cm-alarm-actions { display: flex; gap: 8px; flex: none; }
 .cm-alarm-jump, .cm-alarm-snooze, .cm-alarm-dismiss {
   font: inherit; font-size: 14px; font-weight: 800; padding: 10px 16px; border-radius: 999px; cursor: pointer;
 }
-.cm-alarm-jump { border: 1px solid var(--primary); background: var(--card); color: var(--primary); }
+.cm-alarm-jump { border: 1px solid var(--primary); background: var(--card); color: var(--primary-d); }
 .cm-alarm-jump:hover { background: var(--person-3-t); }
 .cm-alarm-snooze { border: 1px solid var(--hair); background: var(--card); color: var(--ink); }
 .cm-alarm-snooze:hover { border-color: var(--primary); }
@@ -497,7 +497,7 @@
   background: var(--person-3-t);
 }
 .cm-tab-done:not(.cm-tab-on) .cm-tab-prog {
-  color: var(--success);
+  color: var(--success-tx);
 }
 /* the done screen centers everything — keep the tab strip full-width up top */
 .cm-done .cm-tabs {

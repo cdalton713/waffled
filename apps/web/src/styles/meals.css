@@ -107,7 +107,7 @@
 .mm-cell.mm-out { background: transparent; border-color: transparent; cursor: default; }
 .mm-cell.mm-out .mm-date { opacity: 0.3; }
 .mm-cell.mm-today { border-color: var(--primary); }
-.mm-cell.mm-today .mm-date { color: var(--primary); font-weight: 800; }
+.mm-cell.mm-today .mm-date { color: var(--primary-d); font-weight: 800; }
 .mm-date { font-size: 12px; font-weight: 700; color: var(--ink-2); }
 .mm-meal { display: flex; align-items: flex-start; gap: 5px; flex: 1; min-width: 0; }
 .mm-emoji { font-size: 15px; line-height: 1.25; flex: none; }
@@ -241,7 +241,7 @@
 }
 .meals-add:hover {
   border-color: var(--primary);
-  color: var(--primary);
+  color: var(--primary-d);
   box-shadow: none;
 }
 .meals-add svg {
@@ -449,8 +449,8 @@
   height: 22px;
   border: 0;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.7);
-  color: var(--ink-2);
+  background: var(--gloss);
+  color: var(--ink);
   font-size: 16px;
   line-height: 1;
   cursor: pointer;
@@ -462,7 +462,7 @@
 .meal-remove:hover {
   opacity: 1;
   background: var(--card);
-  color: var(--primary);
+  color: var(--primary-d);
 }
 
 /* ===== Plan my week (full-screen) ===== */
@@ -805,8 +805,8 @@
   margin-top: 7px;
   padding: 3px 10px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--info) 12%, transparent);
-  color: var(--info);
+  background: var(--info-t);
+  color: var(--info-tx);
   font-size: 12px;
   font-weight: 700;
 }

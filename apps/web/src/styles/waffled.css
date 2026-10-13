@@ -20,8 +20,8 @@
 
   /* ink — three levels only */
   --ink:   #1D1D1F;   /* primary text */
-  --ink-2: #6B6B70;   /* secondary text */
-  --ink-3: #A6A29B;   /* muted / placeholder (absorbs --muted, #8A8276, #9A958C) */
+  --ink-2: #57575C;   /* secondary text */
+  --ink-3: #706C66;   /* muted / placeholder (absorbs --muted, #8A8276, #9A958C) */
 
   /* borders & lines — alpha-based so they sit on any surface */
   --hair:  rgba(40,33,24,0.08);   /* default hairline */
@@ -29,13 +29,13 @@
   --line:  rgba(40,33,24,0.18);   /* strong border */
 
   /* brand */
-  --primary:   #EC6049;   /* coral — the only primary action color */
-  --primary-d: #D84A33;   /* pressed / hover */
+  --primary:   #D14731;   /* coral — the only primary action color */
+  --primary-d: #BF311A;   /* pressed / hover */
   --primary-t: #F3E2D8;   /* primary tint / hover bg */
-  --gold:      #F3A93B;   /* stars & rewards ONLY — not warnings */
+  --gold:      #C28219;   /* stars & rewards ONLY — not warnings */
   --gold-t:    #FDECD6;   /* pale-gold tint (chip fills) */
-  --gold-d:    #B07D1C;   /* readable gold-brown text on the gold tint */
-  --ai:        #8C74E8;   /* violet — AI accent (lighter in light mode) */
+  --gold-d:    #916407;   /* readable gold-brown text on the gold tint */
+  --ai:        #7D64D6;   /* violet — AI accent (lighter in light mode) */
   --ai-2:      #A48CF0;   /* AI gradient end */
   --ai-d:      #6A3FC4;   /* AI text-on-tint (readable on the light tint) */
   --ai-t:      #EFEAFC;   /* AI tint bg */
@@ -44,19 +44,21 @@
      per-person identity colors AND reused as the goal-category palette. Named by
      slot, NOT by person: a real member's color lives in persons.color_hex; these
      are the fallback/demo palette. (Slots: 1 blue · 2 pink · 3 green · 4 purple.) */
-  --person-1:  #2F7FED;  --person-1-t:  #E7F0FE;   /* blue */
-  --person-2:  #E0548B;  --person-2-t:  #FCE9F1;   /* pink */
-  --person-3:  #25A368;  --person-3-t:  #E4F5EC;   /* green — same value as --success */
-  --person-4:  #8A5CF0;  --person-4-t:  #F0E9FD;   /* purple */
+  --person-1:  #2274E1;  --person-1-t:  #E7F0FE;   /* blue */
+  --person-2:  #CC417A;  --person-2-t:  #FCE9F1;   /* pink */
+  --person-3:  #128754;  --person-3-t:  #E4F5EC;   /* green — same value as --success */
+  --person-4:  #8758EC;  --person-4-t:  #F0E9FD;   /* purple */
   /* readable text/icon color for a label sitting ON its own -t tint (darker than
      the base in light; brightened in dark so it stays legible on the wash). */
   --person-1-tx: #1559b8;  --person-2-tx: #b22f66;  --person-3-tx: #167a4a;  --person-4-tx: #6a3fc4;
 
   /* status / semantic (base for text/icons/borders, -t tint for fills/chips) */
-  --success:   #25A368;  --success-t: #E4F5EC;  /* done / positive (absorbs 5 greens) */
+  --success:   #128754;  --success-t: #E4F5EC;  /* done / positive (absorbs 5 greens) */
   --danger:    #C0392B;  --danger-t:  #FBE3E1;  /* error / delete / overdue */
-  --warn:      #C77A1A;  --warn-t:    #FDF2DD;  /* warning amber — distinct from --gold */
-  --info:      #2F7FED;  --info-t:    #E7F0FE;  /* info / secondary accent (== --person-1) */
+  --warn:      #9D5E0A;  --warn-t:    #FDF2DD;  /* warning amber — distinct from --gold */
+  --info:      #2274E1;  --info-t:    #E7F0FE;  /* info / secondary accent (== --person-1) */
+  /* text/icon variants of the status fills, readable on card, bg and the -t tint */
+  --success-tx: #0D7C4C;  --danger-tx: #BF382A;  --info-tx: #156AD6;
 
   /* on-color: text/icons that sit ON a brand-colored fill (coral button, today
      pill, badges) — white in both themes, but named so it lives in one place. */
@@ -64,6 +66,8 @@
   /* text on an INVERTED fill (background: var(--ink) — a dark button in light
      mode, a light button in dark mode). Flips opposite the canvas. */
   --on-inverse: #FFFFFF;
+  /* text on photos, scrims, toasts and deep hero gradients; white in both themes. */
+  --on-media: #FFFFFF;
 
   /* coral focus-ring glow (derived from --primary so it tracks the brand). */
   --ring: color-mix(in srgb, var(--primary) 14%, transparent);
@@ -74,7 +78,8 @@
   --overlay-hover:  rgba(0,0,0,.05);       /* subtle row / item hover wash */
   --gloss:          rgba(255,255,255,.85); /* frosted / light inset on a colored surface */
   --on-color-track: rgba(255,255,255,.22); /* progress track sitting on a colored card */
-  --control-track:  #D8D2C8;               /* neutral off-state track (e.g. toggle) */
+  --control-line:   #8C8A86;               /* form-control border (inputs, selects); 3:1 on card */
+  --control-track:  #9A948B;               /* neutral off-state track (e.g. toggle) */
   --viewer-bg:      #14110C;               /* media / image viewer backdrop (dark both modes) */
   --on-dark:        #CFC9C0;               /* muted text on an always-dark surface (viewer) */
 
@@ -135,7 +140,7 @@
   /* ink — warm off-white */
   --ink:   #F3EEE4;
   --ink-2: #ADA69A;
-  --ink-3: #726B5E;
+  --ink-3: #8E877A;
 
   /* borders — white alphas */
   --hair:  rgba(255,255,255,.10);
@@ -143,7 +148,7 @@
   --line:  rgba(255,255,255,.18);
 
   /* brand — hues fixed; tint + text-on-tint retuned for dark */
-  --primary-d: #F0745F;
+  --primary-d: #F17560;
   --primary-t: rgba(236,96,73,.18);
   --ai:        #6E56CF;   /* darker, richer "pop" in dark mode (fills/buttons) */
   --ai-2:      #8C74E8;
@@ -159,11 +164,13 @@
   --person-1-tx: #6BA6FF;  --person-2-tx: #EC7FAE;  --person-3-tx: #34B87A;  --person-4-tx: #B9A3F5;
 
   /* status — brightened for contrast on dark */
-  --success:   #34B87A;  --success-t: rgba(37,163,104,.20);
-  --danger:    #E15B4C;  --danger-t:  rgba(224,91,76,.18);
+  --success:   #0E8654;  --success-t: rgba(37,163,104,.20);
+  --danger:    #CD493B;  --danger-t:  rgba(224,91,76,.18);
   --warn:      #E8A13E;  --warn-t:    rgba(232,161,62,.18);
-  --info:      #4C9BFF;  --info-t:    rgba(47,127,237,.20);
-  /* gold chip tint/text retune for dark (base --gold stays #F3A93B) */
+  --info:      #2576D7;  --info-t:    rgba(47,127,237,.20);
+  --success-tx: #34B87A;  --danger-tx: #F66E5E;  --info-tx: #4C9BFF;
+  /* gold brightens back for dark; chip tint/text retune with it */
+  --gold:      #F3A93B;
   --gold-t:    rgba(243,169,59,.18);  --gold-d: #F3B75C;
 
   /* shadows deepen */
@@ -179,7 +186,8 @@
   --scrim:         rgba(0,0,0,.62);
   --overlay-hover: rgba(255,255,255,.05);
   --gloss:         rgba(255,255,255,.14);
-  --control-track: rgba(255,255,255,.16);
+  --control-track: #6D6A64;
+  --control-line:  #6E6A63;
   /* --g-ai / --g-warm carry foreground TEXT/ICON tokens that flip light, so these
      two gradients must flip too (the food-tile --g-* stay fixed — fixed white text
      on a brand hue). --on-accent, --on-color-track, --viewer-bg unchanged. */
@@ -342,7 +350,7 @@
   border-top: 1px solid var(--hair-2); }
 .cap-empty-hint { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--hair-2); }
 .cap-go { width: 34px; height: 34px; flex: none; border: 0; border-radius: 999px; cursor: pointer;
-  background: linear-gradient(135deg, var(--ai-2), var(--ai)); color: var(--on-accent); font-size: 16px;
+  background: linear-gradient(135deg, var(--ai), var(--ai-d)); color: var(--on-accent); font-size: 16px;
   font-weight: 700; display: grid; place-items: center; line-height: 1; }
 .cap-go:disabled { opacity: .4; cursor: default; }
 .cap-panel { position: absolute; top: calc(100% + 8px); left: 0; right: 0; z-index: 40;
@@ -352,7 +360,7 @@
 .cap-icon { width: 38px; height: 38px; flex: none; border-radius: 12px; background: var(--panel);
   display: grid; place-items: center; font-size: 20px; }
 .cap-kind { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em;
-  color: var(--person-4); display: flex; align-items: center; gap: 8px; }
+  color: var(--person-4-tx); display: flex; align-items: center; gap: 8px; }
 .cap-via { font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--ink-3);
   font-size: 10.5px; }
 .cap-primary { font-size: 15px; font-weight: 700; color: var(--ink); white-space: nowrap;
@@ -363,7 +371,7 @@
   background: var(--panel); border-radius: 999px; padding: 4px 10px; }
 .cap-flash { font-size: 14px; font-weight: 600; }
 .cap-flash.ok { color: var(--ink); }
-.cap-flash.err { color: var(--danger); }
+.cap-flash.err { color: var(--danger-tx); }
 
 /* inline edit of the parsed result (fix the text / re-route the type) */
 .cap-preview.editing { align-items: flex-start; }
@@ -372,7 +380,7 @@
 .cap-edit-pencil { font-size: 12px; color: var(--ink-3); opacity: 0; transition: opacity .12s ease; flex: none; }
 .cap-primary-btn:hover .cap-edit-pencil { opacity: 1; }
 .cap-edit { display: flex; flex-direction: column; gap: 8px; }
-.cap-edit-input, .cap-edit-sub { font: inherit; color: var(--ink); border: 1px solid var(--hair);
+.cap-edit-input, .cap-edit-sub { font: inherit; color: var(--ink); border: 1px solid var(--control-line);
   border-radius: 8px; background: var(--card-2); padding: 7px 10px; width: 100%; }
 .cap-edit-input { font-size: 15px; font-weight: 700; }
 .cap-edit-sub { font-size: 13.5px; font-weight: 600; }
@@ -398,7 +406,7 @@
 .cap-edit-mini[type="time"] { min-width: 116px; flex: none; }
 .cap-stars { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700; color: var(--ink-3); }
 .cap-stars input { width: 56px; font: inherit; font-size: 14px; font-weight: 700; color: var(--ink);
-  border: 1px solid var(--hair); border-radius: 8px; background: var(--card-2); padding: 6px 8px; }
+  border: 1px solid var(--control-line); border-radius: 8px; background: var(--card-2); padding: 6px 8px; }
 select.cap-edit-sub { cursor: pointer; }
 .cap-thinking .cap-icon { color: var(--ai-d); }
 /* "The model read this differently" — offer its alternative without imposing it. */
@@ -446,7 +454,7 @@ select.cap-edit-sub { cursor: pointer; }
 /* countdown badge — anticipation marker on the target day (events, standalone, birthdays) */
 .cal-cd { position: absolute; top: 5px; right: 5px; display: inline-flex; align-items: center; gap: 3px;
   font-size: 10.5px; font-weight: 800; padding: 2px 6px; border-radius: 999px;
-  background: var(--primary-t); color: var(--primary); pointer-events: none; }
+  background: var(--primary-t); color: var(--primary-d); pointer-events: none; }
 /* Tappable variant: re-enable clicks (the base badge is click-through so the day
    cell handles taps) so tapping the countdown opens its editor instead. */
 .cal-cd.link { pointer-events: auto; cursor: pointer; }
@@ -494,7 +502,7 @@ select.cap-edit-sub { cursor: pointer; }
    readable ink for the `--ink-3` fill above. */
 :root[data-ev-style="solid"] .ev-tint {
   background: var(--ev, var(--ink-3));
-  color: var(--ev-on, #000000);
+  color: var(--ev-on, #FFFFFF);
 }
 :root[data-ev-style="solid"][data-theme="dark"] .ev-tint,
 :root[data-ev-style="solid"] .dark .ev-tint {
@@ -511,7 +519,7 @@ select.cap-edit-sub { cursor: pointer; }
   place-items: center; font-size: 15px; line-height: 1; }
 .chore-ava.grabs { background: var(--ai-t); }
 .chore-head .badge { margin-left: auto; display: inline-flex; align-items: center; gap: 4px;
-  font-size: 13px; font-weight: 700; color: var(--gold); background: var(--warn-t); padding: 3px 9px;
+  font-size: 13px; font-weight: 700; color: var(--gold-d); background: var(--warn-t); padding: 3px 9px;
   border-radius: 999px; }
 .chore-head .badge svg { width: 13px; height: 13px; fill: var(--gold); }
 .chore { background: var(--card-2); border: 1px solid var(--hair-2); border-radius: var(--r-md);
@@ -519,8 +527,8 @@ select.cap-edit-sub { cursor: pointer; }
 .chore .body { flex: 1; min-width: 0; }
 .chore .t { font-size: 15px; font-weight: 600; }
 .chore .meta { font-size: 12.5px; color: var(--ink-2); margin-top: 2px; }
-.chore .meta.late { color: var(--primary); font-weight: 600; }
-.chore .star { font-size: 11.5px; color: var(--gold); font-weight: 700; margin-top: 4px;
+.chore .meta.late { color: var(--primary-d); font-weight: 600; }
+.chore .star { font-size: 11.5px; color: var(--gold-d); font-weight: 700; margin-top: 4px;
   display: inline-flex; align-items: center; gap: 3px; }
 .chore .star svg { width: 12px; height: 12px; fill: var(--gold); }
 .tick { width: 26px; height: 26px; border-radius: 999px; border: 2px solid var(--hair);
@@ -533,7 +541,7 @@ select.cap-edit-sub { cursor: pointer; }
   padding: 11px; border-radius: var(--r-md); border: 2px dashed var(--hair); background: transparent;
   color: var(--ink-3); font-size: 14px; font-weight: 700; cursor: pointer; font-family: var(--sans);
   transition: border-color .14s, color .14s, background .14s; }
-.chore-add:hover { border-color: var(--person-3); color: var(--person-3); background: var(--person-3-t); }
+.chore-add:hover { border-color: var(--person-3); color: var(--person-3-tx); background: var(--person-3-t); }
 .chore-add svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round; }
 .chore.is-new { animation: wf-newchore .42s cubic-bezier(.22,.9,.36,1); }
 @keyframes wf-newchore { 0%{opacity:0;transform:translateY(-8px) scale(.96)} 100%{opacity:1;transform:none} }
@@ -558,7 +566,7 @@ select.cap-edit-sub { cursor: pointer; }
 .btn { border: 0; font: inherit; font-weight: 700; font-size: 15px; border-radius: 999px;
   padding: 12px 22px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
 .btn-primary { background: var(--primary); color: var(--on-accent); box-shadow: var(--sh-1); }
-.btn-ai { background: linear-gradient(135deg, var(--ai-2), var(--ai)); color: var(--on-accent); }
+.btn-ai { background: linear-gradient(135deg, var(--ai), var(--ai-d)); color: var(--on-accent); }
 .btn-ghost { background: var(--panel); color: var(--ink); }
 .btn svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2;
   stroke-linecap: round; stroke-linejoin: round; }
@@ -578,7 +586,7 @@ select.cap-edit-sub { cursor: pointer; }
   font-size: 10.5px; font-weight: 600; flex: 1; }
 .ios-tab svg { width: 25px; height: 25px; stroke: currentColor; fill: none; stroke-width: 1.8;
   stroke-linecap: round; stroke-linejoin: round; }
-.ios-tab.on { color: var(--primary); }
+.ios-tab.on { color: var(--primary-d); }
 .ios-home-ind { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
   width: 134px; height: 5px; border-radius: 999px; background: var(--ink); opacity: .85; }
 .ios-body { position: absolute; top: 50px; bottom: 86px; left: 0; right: 0; overflow: hidden;
@@ -600,8 +608,8 @@ select.cap-edit-sub { cursor: pointer; }
 .rc-fav { position: absolute; top: 10px; right: 10px; width: 30px; height: 30px; border-radius: 999px;
   background: var(--gloss); backdrop-filter: blur(6px); display: grid; place-items: center; }
 .rc-fav svg { width: 16px; height: 16px; }
-.rc-when { position: absolute; left: 10px; bottom: 10px; font-size: 11px; font-weight: 700; color: var(--on-accent);
-  background: var(--scrim); backdrop-filter: blur(4px); padding: 4px 10px; border-radius: 999px; }
+.rc-when { position: absolute; left: 10px; bottom: 10px; font-size: 11px; font-weight: 700; color: var(--on-media);
+  background: rgba(0, 0, 0, .58); backdrop-filter: blur(4px); padding: 4px 10px; border-radius: 999px; }
 .rc-b { padding: 13px 15px 15px; display: flex; flex-direction: column; flex: 1; }
 .rc-t { font-family: var(--serif); font-size: 18px; font-weight: 600; letter-spacing: -.015em;
   line-height: 1.15; margin-bottom: 5px; }
@@ -609,7 +617,7 @@ select.cap-edit-sub { cursor: pointer; }
 .rc-tags { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
 .tag { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: var(--panel);
   color: var(--ink-2); white-space: nowrap; }
-.tag.veg { background: var(--person-3-t); color: var(--success); }
+.tag.veg { background: var(--person-3-t); color: var(--success-tx); }
 .tag.fav { background: var(--gold-t); color: var(--gold-d); }
 
 /* image gradient placeholders (food) */
@@ -661,7 +669,7 @@ select.cap-edit-sub { cursor: pointer; }
 .constraint .cl { font-size: 14px; font-weight: 600; color: var(--ink-2); flex: 1; }
 .constraint .cv { font-size: 14px; font-weight: 700; color: var(--ink); }
 .use-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700;
-  background: var(--person-3-t); color: var(--success); padding: 5px 11px; border-radius: 999px; }
+  background: var(--person-3-t); color: var(--success-tx); padding: 5px 11px; border-radius: 999px; }
 
 /* ===== grocery list ============================================ */
 .aisle-h { display: flex; align-items: center; gap: 10px; margin: 4px 0 8px; }
@@ -750,7 +758,7 @@ select.cap-edit-sub { cursor: pointer; }
 .ph-tile { border-radius: var(--r-lg); overflow: hidden; position: relative; display: grid; place-items: center;
   font-size: 46px; box-shadow: var(--sh-1); }
 .ph-tile.wide { grid-column: span 2; } .ph-tile.tall { grid-row: span 2; }
-.ph-cap { position: absolute; left: 12px; bottom: 11px; color: var(--on-accent); font-size: 12.5px; font-weight: 700;
+.ph-cap { position: absolute; left: 12px; bottom: 11px; color: var(--on-media); font-size: 12.5px; font-weight: 700;
   text-shadow: 0 1px 5px rgba(0,0,0,.45); }
 .ph-tile .heart { position: absolute; top: 11px; right: 12px; font-size: 16px; }
 
@@ -778,7 +786,7 @@ select.cap-edit-sub { cursor: pointer; }
 .gicon { width: 36px; height: 36px; border-radius: 999px; background: var(--card); border: 1px solid var(--hair);
   display: grid; place-items: center; font-weight: 800; font-size: 17px; font-family: var(--serif); flex: none; }
 .dotbox { width: 14px; height: 14px; border-radius: 5px; flex: none; }
-.synced { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; color: var(--person-3); }
+.synced { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; color: var(--person-3-tx); }
 .synced::before { content: ""; width: 7px; height: 7px; border-radius: 99px; background: var(--person-3); }
 .field { background: var(--card-2); border: 1px solid var(--hair); border-radius: var(--r-md);
   padding: 13px 15px; font-size: 16px; font-weight: 600; }
@@ -806,8 +814,8 @@ select.cap-edit-sub { cursor: pointer; }
 .jar .jfill { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(var(--gold),#eeb24f); }
 .jar .jlbl { position: absolute; inset: 0; display: grid; place-items: center; font-weight: 800; font-size: 20px; color: var(--ink); }
 .jar-lid { width: 138px; height: 14px; border-radius: 8px; background: var(--ink); margin: 0 auto 0; }
-.level-badge { width: 66px; height: 66px; border-radius: 999px; background: linear-gradient(135deg,var(--person-4),#a47bf5);
-  color: var(--on-accent); display: grid; place-items: center; font-family: var(--serif); font-size: 26px; font-weight: 700;
+.level-badge { width: 66px; height: 66px; border-radius: 999px; background: linear-gradient(135deg,#8758ec,#885dd5);
+  color: var(--on-media); display: grid; place-items: center; font-family: var(--serif); font-size: 26px; font-weight: 700;
   box-shadow: var(--sh-2); flex: none; }
 .xp { height: 13px; border-radius: 99px; background: var(--panel); overflow: hidden; }
 .xp > div { height: 100%; border-radius: 99px; background: linear-gradient(90deg,var(--person-4),#a47bf5); }
@@ -830,7 +838,7 @@ select.cap-edit-sub { cursor: pointer; }
 .streak-pill { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 800;
   color: var(--warn); background: var(--warn-t); padding: 3px 9px; border-radius: 999px; }
 /* big family challenge */
-.challenge { background: linear-gradient(135deg,#2f7d4f,#3a9b62); color: var(--on-accent); border-radius: var(--r-xl);
+.challenge { background: linear-gradient(135deg,#2f7d4f,#21874f); color: var(--on-media); border-radius: var(--r-xl);
   padding: 26px 30px; position: relative; overflow: hidden; }
 .challenge::after { content: ""; position: absolute; right: -40px; top: -40px; width: 220px; height: 220px;
   border-radius: 999px; background: rgba(255,255,255,.08); }
@@ -847,13 +855,13 @@ select.cap-edit-sub { cursor: pointer; }
 .mnode .mdot2 { width: 36px; height: 36px; border-radius: 999px; background: var(--panel); display: grid;
   place-items: center; font-size: 17px; border: 3px solid var(--card); box-shadow: 0 0 0 1px var(--hair); }
 .mnode.done .mdot2 { background: var(--person-3); color: var(--on-accent); box-shadow: none; border-color: var(--card); }
-.mnode.now .mdot2 { background: var(--gold); color: var(--on-accent); box-shadow: 0 0 0 4px var(--warn-t); }
+.mnode.now .mdot2 { background: var(--gold); color: #1d1d1f; box-shadow: 0 0 0 4px var(--warn-t); }
 .mnode .ml { font-size: 11.5px; font-weight: 800; }
 .mnode .mr { font-size: 10.5px; color: var(--ink-3); font-weight: 600; }
 .logrow { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--hair-2); }
 .logrow .lwhen { font-size: 12.5px; font-weight: 700; color: var(--ink-2); width: 58px; }
 .logrow .lwhat { flex: 1; font-size: 14.5px; font-weight: 600; }
-.logrow .lamt { font-size: 13.5px; font-weight: 800; color: var(--person-3); }
+.logrow .lamt { font-size: 13.5px; font-weight: 800; color: var(--person-3-tx); }
 /* whole-person balance — category mini rings */
 .balance { display: flex; gap: 14px; justify-content: space-between; }
 .bcat { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1; }
@@ -884,7 +892,7 @@ select.cap-edit-sub { cursor: pointer; }
 /* toast */
 #wf-toasts { position: fixed; left: 50%; bottom: 34px; transform: translateX(-50%); z-index: 9000;
   display: flex; flex-direction: column; gap: 9px; align-items: center; pointer-events: none; }
-.wf-toast { background: rgba(28,26,24,.94); color: var(--on-accent); font-family: var(--sans); font-size: 15px;
+.wf-toast { background: rgba(28,26,24,.94); color: var(--on-media); font-family: var(--sans); font-size: 15px;
   font-weight: 600; padding: 13px 20px; border-radius: 999px; box-shadow: 0 16px 44px rgba(0,0,0,.34);
   letter-spacing: -.01em; opacity: 0; transform: translateY(14px) scale(.96); transition: all .32s cubic-bezier(.22,.61,.36,1); max-width: 460px; }
 .wf-toast.in { opacity: 1; transform: translateY(0) scale(1); }
@@ -913,7 +921,7 @@ select.cap-edit-sub { cursor: pointer; }
   background: var(--g-ai); }
 #wf-modal .am-spark svg { width: 21px; height: 21px; fill: var(--ai-d); }
 #wf-modal .am-t { font-family: var(--serif); font-size: 22px; font-weight: 600; letter-spacing: -.02em; }
-#wf-modal .am-input { width: 100%; border: 2px solid var(--hair); border-radius: 14px; padding: 15px 16px;
+#wf-modal .am-input { width: 100%; border: 2px solid var(--control-line); border-radius: 14px; padding: 15px 16px;
   font-size: 17px; font-weight: 500; font-family: var(--sans); color: var(--ink); outline: none;
   background: var(--card-2); transition: border-color .15s; box-sizing: border-box; }
 #wf-modal .am-input:focus { border-color: var(--ai); background: var(--card); }

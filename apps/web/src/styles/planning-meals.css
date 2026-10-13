@@ -81,11 +81,11 @@
 .wpm-dish.empty .wpm-dish-t { font-weight: 600; color: var(--ink-3); text-align: center; }
 
 .wpm-dish.auto { background: var(--success-t); border-color: transparent; }
-.wpm-dish.auto .wpm-dish-c { color: var(--success); }
+.wpm-dish.auto .wpm-dish-c { color: var(--success-tx); }
 .wpm-auto {
   position: absolute; top: 10px; right: 10px;
   font-size: 10px; font-weight: 750; letter-spacing: 0.01em;
-  color: var(--success); background: var(--card); border-radius: 999px; padding: 2px 7px;
+  color: var(--success-tx); background: var(--card); border-radius: 999px; padding: 2px 7px;
 }
 
 .wpm-dish.out { background: var(--panel); border-color: transparent; }
@@ -120,7 +120,7 @@
 .wpm-gro-rows { display: flex; flex-direction: column; max-height: min(60vh, 520px); overflow-y: auto; }
 .wpm-gitem { width: 100%; border: 0; text-align: left; font: inherit; color: var(--ink); }
 .wpm-gro-cart { margin: 6px 0 8px; }
-.wpm-gro-err { margin: 0; font-size: 12.5px; font-weight: 650; color: var(--danger); }
+.wpm-gro-err { margin: 0; font-size: 12.5px; font-weight: 650; color: var(--danger-tx); }
 
 .wpm-picks { display: flex; flex-wrap: wrap; gap: 7px; }
 .wpm-pick {
@@ -133,7 +133,7 @@
 .wpm-pick.on { background: var(--primary-t); border-color: var(--primary); color: var(--ink); }
 
 .wpm-note { font-size: 12.5px; font-weight: 600; color: var(--ink-3); padding: 0 2px; }
-.wpm-note-bad { color: var(--danger); }
+.wpm-note-bad { color: var(--danger-tx); }
 
 /* ── The footer control ─────────────────────────────────────────────────────── */
 .wpm-act { flex: none; white-space: nowrap; }

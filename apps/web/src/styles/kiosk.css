@@ -409,7 +409,7 @@ body {
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--person-4);
+  color: var(--person-4-tx);
   background: color-mix(in srgb, var(--person-4) 14%, transparent);
   padding: 2px 6px;
   border-radius: 999px;
@@ -423,7 +423,7 @@ body {
   cursor: pointer;
   padding: 4px 6px;
 }
-.today-reset:hover { color: var(--primary); }
+.today-reset:hover { color: var(--primary-d); }
 
 /* Edit-mode card: a drag bar on top, the card itself made non-interactive so a
    stray tap doesn't fire a card action mid-rearrange. */
@@ -485,7 +485,7 @@ body {
 .gs-pickrow.on { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 8%, var(--card)); }
 .gs-pickrow-emoji { font-size: 20px; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 11px; background: var(--panel); flex: none; }
 .gs-pickrow-t { font-size: 15px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.gs-pickrow-check { color: var(--primary); font-weight: 900; font-size: 16px; flex: none; }
+.gs-pickrow-check { color: var(--primary-d); font-weight: 900; font-size: 16px; flex: none; }
 
 .today-card-bar:active { cursor: grabbing; }
 .today-card-grip { font-size: 15px; color: var(--ink-3); }
@@ -505,7 +505,7 @@ body {
   flex: none; border: 0; background: none; cursor: pointer; padding: 0 2px;
   font-size: 19px; line-height: 1; color: var(--ink-3); border-radius: 6px;
 }
-.today-card-hide:hover { color: var(--danger); }
+.today-card-hide:hover { color: var(--danger-tx); }
 /* Tray of hidden cards under the board (edit mode) — tap a chip to add it back. */
 .today-hidden-tray {
   margin: 20px 30px 0; padding: 14px 16px;
@@ -523,9 +523,9 @@ body {
   padding: 7px 13px; font-size: 13px; font-weight: 700; color: var(--ink-2); cursor: pointer;
   transition: border-color .12s, color .12s;
 }
-.today-hidden-chip:hover { border-color: var(--primary); color: var(--primary); }
+.today-hidden-chip:hover { border-color: var(--primary); color: var(--primary-d); }
 .today-hidden-chip .plus { font-size: 15px; font-weight: 900; color: var(--ink-3); }
-.today-hidden-chip:hover .plus { color: var(--primary); }
+.today-hidden-chip:hover .plus { color: var(--primary-d); }
 .today-col-empty {
   border: 1.5px dashed var(--hair);
   border-radius: var(--r-lg);
@@ -615,7 +615,7 @@ body {
   font-size: 15px;
   padding: 9px 12px;
   border-radius: var(--r-sm);
-  border: 1px solid var(--hair);
+  border: 1px solid var(--control-line);
   background: var(--card-2);
   color: var(--ink);
 }
@@ -631,6 +631,33 @@ body {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 3px var(--ring);
+}
+/* Selects: no native arrow; the same chevron as the filter pills. */
+select.field,
+.field select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 40px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B6B70' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  cursor: pointer;
+}
+:root[data-theme="dark"] select.field,
+:root[data-theme="dark"] .field select,
+.dark select.field,
+.dark .field select {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ADA69A' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></svg>");
+}
+/* Contrast: controls styled as .field get the 3:1 control border; placeholders read at ink-3. */
+input.field,
+select.field,
+textarea.field {
+  border-color: var(--control-line);
+}
+:where(.wf) ::placeholder {
+  color: var(--ink-3);
+  opacity: 1;
 }
 .field-row {
   display: flex;
@@ -653,14 +680,14 @@ body {
 .ew-pill { border: 1px solid var(--hair); background: var(--card-2); color: var(--ink); font: inherit;
   font-size: 15px; font-weight: 650; font-variant-numeric: tabular-nums; padding: 7px 14px;
   border-radius: 999px; cursor: pointer; }
-.ew-pill.on { border-color: var(--primary); color: var(--primary); box-shadow: 0 0 0 3px var(--ring); }
+.ew-pill.on { border-color: var(--primary); color: var(--primary-d); box-shadow: 0 0 0 3px var(--ring); }
 .ew-picker { margin-top: 10px; max-width: 320px; }
 .ew-times { margin-top: 10px; max-width: 200px; max-height: 220px; overflow-y: auto; position: relative;
   background: var(--card-2); border: 1px solid var(--hair); border-radius: var(--r-sm); }
 .ew-time { display: block; width: 100%; text-align: left; border: 0; background: none; font: inherit;
   font-size: 14px; padding: 7px 12px; color: var(--ink); cursor: pointer; }
 .ew-time:hover { background: var(--panel); }
-.ew-time.on { color: var(--primary); font-weight: 700; }
+.ew-time.on { color: var(--primary-d); font-weight: 700; }
 
 /* Stepper's typable value — a +/- pair alone can only land on multiples of
    its step, so the number itself is directly editable too. */
@@ -671,7 +698,7 @@ body {
   font-weight: 700;
   padding: 6px 4px;
   border-radius: var(--r-sm);
-  border: 1px solid var(--hair);
+  border: 1px solid var(--control-line);
   background: var(--card-2);
   color: var(--ink);
 }
@@ -818,7 +845,7 @@ body {
 .tasks-datenav .dn-rel {
   font-size: 11.5px;
   font-weight: 600;
-  color: var(--person-4);
+  color: var(--person-4-tx);
 }
 .tasks-datenav .dn-today {
   margin-left: 4px;
@@ -904,7 +931,7 @@ button.tick {
 }
 .gitem-del:hover {
   background: var(--panel);
-  color: var(--primary);
+  color: var(--primary-d);
 }
 
 /* ===== placeholder screens (not yet built) ===== */
@@ -966,14 +993,14 @@ button.tick {
 }
 .rw-bal-name { font-weight: 700; font-size: 14.5px; }
 .rw-bal-coins { display: flex; flex-wrap: wrap; gap: 4px 10px; margin-top: 1px; }
-.rw-coin { display: inline-flex; align-items: center; gap: 4px; font-weight: 800; font-size: 14px; color: var(--person-4); }
+.rw-coin { display: inline-flex; align-items: center; gap: 4px; font-weight: 800; font-size: 14px; color: var(--person-4-tx); }
 .rw-coin-sym { font-size: 13px; }
 /* trade (currency conversions) — modal summary, shared across surfaces */
 .rw-trade-summary { display: flex; align-items: center; gap: 10px; margin-top: 14px; padding: 12px 14px;
   border-radius: var(--r-md); background: var(--panel); font-weight: 800; }
 .rw-trade-summary .conv-arrow { color: var(--ink-3); font-weight: 800; }
-.rw-trade-give { color: var(--primary); }
-.rw-trade-get { color: var(--success); }
+.rw-trade-give { color: var(--primary-d); }
+.rw-trade-get { color: var(--success-tx); }
 
 /* currency picker (Add reward) */
 .rw-cur-pick { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
@@ -981,7 +1008,7 @@ button.tick {
   font: inherit; font-size: 13px; font-weight: 700; padding: 7px 12px; border-radius: 999px;
   border: 1px solid var(--hair); background: var(--card-2); color: var(--ink-2); cursor: pointer;
 }
-.rw-cur-chip.on { border-color: var(--person-3); color: var(--person-3); }
+.rw-cur-chip.on { border-color: var(--person-3); color: var(--person-3-tx); }
 /* A choice that exists but isn't available yet — dimmed and inert, so it reads
    as "not ready" rather than as a control that quietly does nothing. */
 .rw-cur-chip:disabled { opacity: 0.45; cursor: not-allowed; }
@@ -1010,7 +1037,7 @@ button.tick {
 .rw-appr-name { font-weight: 700; }
 .rw-appr-reward { font-weight: 700; }
 .rw-appr-when { font-weight: 600; color: var(--ink-3); }
-.rw-appr-cost { display: inline-flex; align-items: center; gap: 4px; margin-left: 8px; font-weight: 800; color: var(--person-4); }
+.rw-appr-cost { display: inline-flex; align-items: center; gap: 4px; margin-left: 8px; font-weight: 800; color: var(--person-4-tx); }
 .rw-appr-actions { display: flex; gap: 8px; }
 .rw-appr-actions .pill { cursor: pointer; }
 
@@ -1051,7 +1078,7 @@ button.tick {
 .rw-del:hover { opacity: 1; }
 .rw-card-emo { font-size: 38px; }
 .rw-card-title { font-weight: 700; font-size: 15px; }
-.rw-card-cost { display: flex; align-items: center; gap: 5px; font-weight: 800; color: var(--person-4); font-size: 14px; }
+.rw-card-cost { display: flex; align-items: center; gap: 5px; font-weight: 800; color: var(--person-4-tx); font-size: 14px; }
 .rw-redeem {
   margin-top: 6px; font: inherit; font-size: 13.5px; font-weight: 700;
   padding: 8px 18px; border-radius: 999px; border: 0;
@@ -1196,12 +1223,12 @@ button.tick {
 }
 /* carried-forward one-off that's past its due date — a subtle nudge, not an alarm */
 .chore-overdue {
-  margin-left: 8px; font-size: 11px; font-weight: 800; color: var(--danger);
+  margin-left: 8px; font-size: 11px; font-weight: 800; color: var(--danger-tx);
   background: var(--danger-t); padding: 2px 7px; border-radius: 999px; white-space: nowrap;
 }
 /* future-dated one-off already on the list — a calm "not yet due" hint */
 .chore-upcoming {
-  margin-left: 8px; font-size: 11px; font-weight: 800; color: var(--info);
+  margin-left: 8px; font-size: 11px; font-weight: 800; color: var(--info-tx);
   background: var(--info-t); padding: 2px 7px; border-radius: 999px; white-space: nowrap;
 }
 
@@ -1320,13 +1347,13 @@ button.tick {
 .cd-main { flex: 1; min-width: 0; }
 .cd-title { font-size: 16px; font-weight: 600; }
 .cd-days { flex: none; font-size: 15px; font-weight: 800; color: var(--ink-2); }
-.cd-days.soon { color: var(--primary); }
+.cd-days.soon { color: var(--primary-d); }
 .cd-x { flex: none; border: 0; background: none; cursor: pointer; font-size: 20px; line-height: 1; color: var(--ink-3); padding: 2px 4px; opacity: 0; transition: opacity .12s; }
 .cd-row:hover .cd-x { opacity: 1; }
 .cd-form { display: flex; flex-direction: column; gap: 12px; }
 .cd-form label { display: flex; flex-direction: column; gap: 5px; }
 .cd-form label span { font-size: 12.5px; font-weight: 700; color: var(--ink-2); }
-.cd-form input { font: inherit; font-size: 14px; padding: 9px 11px; border-radius: 10px; border: 1px solid var(--hair); background: var(--card-2); color: var(--ink); }
+.cd-form input { font: inherit; font-size: 14px; padding: 9px 11px; border-radius: 10px; border: 1px solid var(--control-line); background: var(--card-2); color: var(--ink); }
 .cd-form-row { display: flex; gap: 10px; }
 .cd-card .pill.primary { color: var(--on-accent); background: var(--primary); border-color: transparent; }
 
