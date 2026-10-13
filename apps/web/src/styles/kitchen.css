@@ -107,33 +107,42 @@
 :root[data-palette="kitchen"] .wf-serif { letter-spacing: -0.02em; font-weight: 800; }
 
 /* ===== rail — dark basil, bigger targets ======================== */
-:root[data-palette="kitchen"] .wf-kiosk { grid-template-columns: 112px 1fr; }
-:root[data-palette="kitchen"] .rail { gap: 2px; padding: 14px 0 10px; }
+/* Shell sizing is tablet-only: at ≤720px kiosk.css turns the rail into a drawer
+   and the topbar into a phone header, and these would rebuild the tablet grid. */
+@media (min-width: 721px) {
+  :root[data-palette="kitchen"] .wf-kiosk { grid-template-columns: 112px 1fr; }
+  :root[data-palette="kitchen"] .rail { gap: 2px; padding: 14px 0 10px; }
+  :root[data-palette="kitchen"] .rail-item {
+    width: 92px; min-height: 56px; padding: 8px 0 6px; border-radius: 18px;
+    font-size: 13px; justify-content: center;
+  }
+  :root[data-palette="kitchen"] .rail-item svg { width: 26px; height: 26px; }
+  :root[data-palette="kitchen"] .rail-switch { font-size: 13px; }
+  :root[data-palette="kitchen"] .rail-switch-av { width: 44px; height: 44px; border-radius: 50%; font-size: 22px; }
+
+  /* topbar — a clock you can read from the sink */
+  :root[data-palette="kitchen"] .topbar { padding: 20px 26px 12px; }
+  :root[data-palette="kitchen"] .tb-date { font-size: 34px; }
+  :root[data-palette="kitchen"] .tb-time { font-size: 34px; }
+  :root[data-palette="kitchen"] .tb-wx { font-size: 22px; }
+}
 /* The taller items overflow the rail with every module on; without this the logo
    (an img at height:100%) is what flex shrinks to nothing. */
 :root[data-palette="kitchen"] .rail > * { flex-shrink: 0; }
-:root[data-palette="kitchen"] .rail-item {
-  width: 92px; min-height: 56px; padding: 8px 0 6px; border-radius: 18px;
-  color: var(--rail-ink); font-size: 13px; font-weight: 700; justify-content: center;
-}
-:root[data-palette="kitchen"] .rail-item svg { width: 26px; height: 26px; stroke-width: 2.1; }
+:root[data-palette="kitchen"] .rail-item { color: var(--rail-ink); font-weight: 700; }
+:root[data-palette="kitchen"] .rail-item svg { stroke-width: 2.1; }
 :root[data-palette="kitchen"] .rail-item:hover { background: rgba(255,255,255,.06); color: var(--rail-on-ink); }
 :root[data-palette="kitchen"] .rail-item.on,
 :root[data-palette="kitchen"] .rail-item.on:hover {
   background: var(--rail-on); color: var(--rail-on-ink); box-shadow: inset 4px 0 0 var(--primary);
 }
-:root[data-palette="kitchen"] .rail-switch { color: var(--rail-ink); font-size: 13px; }
+:root[data-palette="kitchen"] .rail-switch { color: var(--rail-ink); }
 :root[data-palette="kitchen"] .rail-switch:hover { color: var(--rail-on-ink); }
-:root[data-palette="kitchen"] .rail-switch-av { width: 44px; height: 44px; border-radius: 50%; font-size: 22px; }
-
-/* ===== topbar — a clock you can read from the sink ============== */
-:root[data-palette="kitchen"] .topbar { padding: 20px 26px 12px; }
-:root[data-palette="kitchen"] .tb-date { font-size: 34px; }
 :root[data-palette="kitchen"] .tb-time {
-  font-family: var(--serif); font-size: 34px; font-weight: 800; color: var(--ink);
+  font-family: var(--serif); font-weight: 800; color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
-:root[data-palette="kitchen"] .tb-wx { font-size: 22px; font-weight: 700; }
+:root[data-palette="kitchen"] .tb-wx { font-weight: 700; }
 
 /* ===== touch targets (≥48px) ==================================== */
 :root[data-palette="kitchen"] .btn { min-height: 48px; font-size: 16px; padding: 12px 22px; border-radius: 16px; }
