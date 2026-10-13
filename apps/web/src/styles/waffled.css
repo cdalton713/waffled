@@ -686,7 +686,9 @@ select.cap-edit-sub { cursor: pointer; }
 .gitem .gfor { display: flex; gap: 3px; }
 .gitem .gdot { width: 8px; height: 8px; border-radius: 999px; }
 
-/* scrollbars hidden inside frames */
+/* Theme scrollbars; frames can opt out with .noscroll. */
+* { scrollbar-width: thin; scrollbar-color: var(--ink-3) transparent; }
+.noscroll { scrollbar-width: none; }
 .noscroll::-webkit-scrollbar { display: none; }
 
 /* ===== calendar · week view ==================================== */
