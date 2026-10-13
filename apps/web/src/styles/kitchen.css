@@ -44,8 +44,10 @@
 
   /* Atkinson Hyperlegible is built for low-vision legibility — the point of a
      screen read from the stove. Headings (.wf-serif) get Bricolage Grotesque. */
-  --sans:  "Atkinson Hyperlegible", system-ui, sans-serif;
-  --serif: "Bricolage Grotesque Variable", "Bricolage Grotesque", system-ui, sans-serif;
+  --font-sans:  "Atkinson Hyperlegible", system-ui, sans-serif;
+  --font-serif: "Bricolage Grotesque Variable", "Bricolage Grotesque", system-ui, sans-serif;
+  --sans:  var(--font-sans);
+  --serif: var(--font-serif);
 
   /* Rail stays dark in both modes, so it has its own ink. */
   --rail-ink:    #B9C4BC;

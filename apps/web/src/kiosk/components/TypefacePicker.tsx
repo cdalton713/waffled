@@ -6,7 +6,7 @@ import type { Typeface } from '../../lib/theme'
 // its specimen in its own typeface (.tp-opt[data-tp] in styles/typefaces.css), so
 // people choose by reading, not by name. It only reports a choice; lib/theme applies it.
 export const TYPEFACES: ReadonlyArray<{ id: Typeface; label: string; family: string; note: string }> = [
-  { id: 'classic', label: 'Classic', family: 'System fonts', note: "The theme's own fonts: the device's system text with New York headings." },
+  { id: 'classic', label: 'Classic', family: 'Bricolage Grotesque + Atkinson Hyperlegible', note: "The palette's own fonts. On Kitchen: Bricolage Grotesque headings with Atkinson Hyperlegible text." },
   { id: 'clear', label: 'Clear', family: 'Lexend', note: 'Lexend. Wide letters and a tall x-height, built for reading fluency; the easiest to read from across the room.' },
   { id: 'hyperlegible', label: 'Hyperlegible', family: 'Atkinson Hyperlegible Next', note: 'Atkinson Hyperlegible Next. Every letter shaped to be told apart (I l 1, 0 O, rn m), for low vision and quick glances.' },
   { id: 'friendly', label: 'Friendly', family: 'Nunito', note: 'Nunito. Rounded, warm and open; heavy weights stay clear for headings and the clock.' },

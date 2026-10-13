@@ -26,12 +26,18 @@
     "PriorityFlag": "src/kiosk/components/priority.tsx",
     "MealCard": "src/kiosk/components/MealCard.tsx",
     "MealCardBadge": "src/kiosk/components/MealCard.tsx",
+    "TypefacePicker": "src/kiosk/components/TypefacePicker.tsx",
     "WaffledRoot": ".design-sync/general/WaffledRoot.tsx"
   },
   "extraFonts": [
     "node_modules/@fontsource/atkinson-hyperlegible/400.css",
     "node_modules/@fontsource/atkinson-hyperlegible/700.css",
-    "node_modules/@fontsource-variable/bricolage-grotesque/index.css"
+    "node_modules/@fontsource-variable/bricolage-grotesque/index.css",
+    "node_modules/@fontsource-variable/lexend/index.css",
+    "node_modules/@fontsource-variable/atkinson-hyperlegible-next/index.css",
+    "node_modules/@fontsource-variable/nunito/index.css",
+    "node_modules/@fontsource/andika/400.css",
+    "node_modules/@fontsource/andika/700.css"
   ],
   "overrides": {
     "ConfirmDialog": {
@@ -56,6 +62,10 @@
     },
     "SettingCard": {
       "cardMode": "column"
+    },
+    "TypefacePicker": {
+      "cardMode": "column",
+      "viewport": "1100x900"
     }
   },
   "provider": {
@@ -82,7 +92,8 @@
     "CookTabs": ".design-sync/groups/Meals.md",
     "PriorityFlag": ".design-sync/groups/Status.md",
     "RhythmMark": ".design-sync/groups/Status.md",
-    "Placeholder": ".design-sync/groups/Status.md"
+    "Placeholder": ".design-sync/groups/Status.md",
+    "TypefacePicker": ".design-sync/groups/Forms.md"
   },
   "srcDir": "src/kiosk",
   "readmeHeader": ".design-sync/conventions.md",

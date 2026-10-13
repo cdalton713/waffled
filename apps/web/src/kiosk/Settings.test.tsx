@@ -206,6 +206,32 @@ describe('Settings screen', () => {
     expect(localStorage.getItem('waffled.kiosk.viewOnly')).toBeNull()
   })
 
+  it('Display & Kiosk has a per-device typeface picker that restyles the whole app', async () => {
+    mockApi()
+    localStorage.clear()
+    document.documentElement.removeAttribute('data-typeface')
+    renderSettings()
+    await screen.findByText('Kevin')
+    fireEvent.click(screen.getByText('Display & Kiosk'))
+
+    const group = await screen.findByRole('radiogroup', { name: 'Typeface' })
+    expect(within(group).getByRole('radio', { name: /Classic/ })).toHaveAttribute('aria-checked', 'true')
+    fireEvent.click(within(group).getByRole('radio', { name: /Clear/ }))
+    expect(document.documentElement.getAttribute('data-typeface')).toBe('clear')
+    expect(localStorage.getItem('waffled:typeface')).toBe('clear')
+    expect(within(group).getByRole('radio', { name: /Clear/ })).toHaveAttribute('aria-checked', 'true')
+  })
+
+  it('Appearance has the same typeface picker', async () => {
+    mockApi()
+    localStorage.clear()
+    renderSettings()
+    await screen.findByText('Kevin')
+    fireEvent.change(screen.getByLabelText('Settings section'), { target: { value: 'appearance' } })
+    fireEvent.click(within(screen.getByRole('radiogroup', { name: 'Typeface' })).getByRole('radio', { name: /Friendly/ }))
+    expect(document.documentElement.getAttribute('data-typeface')).toBe('friendly')
+  })
+
   it('saves screensaver photo-source / interval / shuffle changes', async () => {
     const puts: Array<Record<string, unknown>> = []
     globalThis.fetch = vi.fn(async (url: string, init?: RequestInit) => {
@@ -240,32 +266,6 @@ describe('Settings screen', () => {
     const speed = screen.getByDisplayValue('10 seconds') as HTMLSelectElement
     fireEvent.change(speed, { target: { value: '30' } })
     await waitFor(() => expect(puts.some((p) => p.photoInterval === 30)).toBe(true))
-  })
-
-  it('Display & Kiosk has a per-device typeface picker that restyles the whole app', async () => {
-    mockApi()
-    localStorage.clear()
-    document.documentElement.removeAttribute('data-typeface')
-    renderSettings()
-    await screen.findByText('Kevin')
-    fireEvent.click(screen.getByText('Display & Kiosk'))
-
-    const group = await screen.findByRole('radiogroup', { name: 'Typeface' })
-    expect(within(group).getByRole('radio', { name: /Classic/ })).toHaveAttribute('aria-checked', 'true')
-    fireEvent.click(within(group).getByRole('radio', { name: /Clear/ }))
-    expect(document.documentElement.getAttribute('data-typeface')).toBe('clear')
-    expect(localStorage.getItem('waffled:typeface')).toBe('clear')
-    expect(within(group).getByRole('radio', { name: /Clear/ })).toHaveAttribute('aria-checked', 'true')
-  })
-
-  it('Appearance has the same typeface picker', async () => {
-    mockApi()
-    localStorage.clear()
-    renderSettings()
-    await screen.findByText('Kevin')
-    fireEvent.change(screen.getByLabelText('Settings section'), { target: { value: 'appearance' } })
-    fireEvent.click(within(screen.getByRole('radiogroup', { name: 'Typeface' })).getByRole('radio', { name: /Friendly/ }))
-    expect(document.documentElement.getAttribute('data-typeface')).toBe('friendly')
   })
 
   it('picks several albums for the screensaver and connects Google Photos', async () => {

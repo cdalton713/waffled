@@ -22,7 +22,8 @@ Run every converter command from `apps/web/` (the config home is `apps/web/.desi
 - Groups come from `docsMap` -> `.design-sync/groups/<Group>.md` category stubs.
   `srcDir: src/kiosk` makes `components/` the (generic) path segment. Without it,
   every card lands in a `kiosk` group.
-- Fonts come from `@fontsource` CSS via `extraFonts` (Atkinson 400/700, Bricolage variable).
+- Fonts come from `@fontsource` CSS via `extraFonts` (Atkinson 400/700, Bricolage variable, plus
+  the typeface sets: Lexend, Atkinson Hyperlegible Next, Nunito variable, Andika 400/700).
 
 ## Preview gotchas
 - `.modal-overlay` is `position: fixed`. Overlay previews wrap it in a

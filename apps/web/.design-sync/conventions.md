@@ -20,6 +20,10 @@ const { WaffledRoot } = window.Waffled
   palette: green accents, Atkinson Hyperlegible body, Bricolage Grotesque headings,
   48px touch targets). Use `kitchen` for anything meant for the kitchen tablet.
 - `theme`: `"light"` | `"dark"`. `kiosk`: adds `.wf-kiosk` (full-height rail + content grid).
+- `typeface`: `"classic"` (default, the palette's own fonts) | `"clear"` (Lexend) | `"hyperlegible"`
+  (Atkinson Hyperlegible Next) | `"friendly"` (Nunito) | `"early-reader"` (Andika). Stamped on `<html>` as
+  `data-typeface`; it swaps `--sans` and `--serif`, so always set type through those. Let people choose with
+  `TypefacePicker`.
 - Page background is `var(--bg)`; content sits on `var(--card)` surfaces.
 
 ## 2. Styling idiom: classes + tokens, never raw controls

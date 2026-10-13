@@ -1,7 +1,7 @@
 // Curated design-sync entry: the data-free, presentational components the Claude
 // Design agent may build with. Data-bound screens stay out (they need PowerSync).
 // Every app stylesheet ships, in app order with kitchen.css last (its palette
-// overrides must win), so the full class vocabulary resolves in designs.
+// overrides must win, then typefaces.css), so the full class vocabulary resolves in designs.
 import '../src/styles/waffled.css'
 import '../src/styles/kiosk.css'
 import '../src/styles/calendar.css'
@@ -34,6 +34,7 @@ import '../src/styles/settings.css'
 import '../src/styles/shop.css'
 import '../src/styles/update.css'
 import '../src/styles/kitchen.css'
+import '../src/styles/typefaces.css'
 
 export { Icon, Star, Check } from '../src/kiosk/icons'
 export { Avatar, PersonAv, AvatarStack } from '../src/kiosk/components/Avatar'
@@ -50,4 +51,6 @@ export { MealBuilderBar } from '../src/kiosk/components/MealBuilderBar'
 export { PriorityFlag } from '../src/kiosk/components/priority'
 export { RhythmMark } from '../src/kiosk/components/RhythmMark'
 export { MealCard, MealCardBadge } from '../src/kiosk/components/MealCard'
+export { TypefacePicker, TYPEFACES } from '../src/kiosk/components/TypefacePicker'
+export type { Typeface } from '../src/lib/theme'
 export { WaffledRoot } from './general/WaffledRoot'
