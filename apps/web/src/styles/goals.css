@@ -466,6 +466,11 @@ button.goal-listhead-link:hover {
 .ge-create { font: inherit; font-size: 14.5px; font-weight: 700; color: var(--on-accent); background: var(--primary); border: 0; cursor: pointer; padding: 10px 20px; border-radius: 999px; box-shadow: var(--sh-1); transition: opacity .15s, transform .1s; }
 .ge-create:disabled { opacity: .4; cursor: default; }
 .ge-create:not(:disabled):active { transform: scale(.97); }
+@media (max-width: 720px) {
+  .ge-title { font-size: 24px; white-space: nowrap; }
+  .ge-topbar { gap: 8px; }
+  .ge-topbar button { white-space: nowrap; }
+}
 .gc-form {
   display: flex;
   flex-direction: column;

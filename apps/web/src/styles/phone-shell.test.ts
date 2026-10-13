@@ -56,4 +56,9 @@ describe('phone layout', () => {
   it('wraps the Goals list header so its actions drop below the title', () => {
     expect(phoneDecl('.goal-listhead', 'flex-wrap', 'goals.css')).toBe('wrap')
   })
+
+  it('keeps the goal editor header on one line', () => {
+    expect(phoneDecl('.ge-title', 'font-size', 'goals.css')).toBe('24px')
+    expect(phoneDecl('.ge-topbar button', 'white-space', 'goals.css')).toBe('nowrap')
+  })
 })
