@@ -77,4 +77,10 @@ describe('phone layout', () => {
     expect(phoneDecl('.mb-plate', 'max-height', 'mealbuilder.css')).toBe('none')
     expect(phoneDecl('.mb-body', 'padding', 'mealbuilder.css')).toBe('0 16px 16px')
   })
+
+  it('keeps the recipe editor action buttons on one line', () => {
+    expect(phoneDecl('.re-add-ing', 'white-space', 'recipe.css')).toBe('nowrap')
+    expect(phoneDecl('.re-paste-bar .pill', 'white-space', 'recipe.css')).toBe('nowrap')
+    expect(phoneDecl('.re-add-section', 'white-space', 'recipe.css')).toBe('nowrap')
+  })
 })
