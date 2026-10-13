@@ -8,7 +8,7 @@ import { SyncHealthBanner } from './components/SyncHealthBanner'
 import { UpdateModal } from './components/UpdateModal'
 import { TopbarSlotProvider } from './topbar-slot'
 import { Icon } from './icons'
-import { SCREENS, SETTINGS } from './nav'
+import { activeScreen } from './nav'
 import '../styles/kiosk-profiles.css'
 
 // The persistent kiosk chrome (responsive, fills the viewport). The active
@@ -18,9 +18,7 @@ export function KioskLayout() {
   const [navOpen, setNavOpen] = useState(false)
   const triggerRef = useRef<HTMLButtonElement>(null)
   const location = useLocation()
-  const active = [...SCREENS, SETTINGS]
-    .filter((screen) => screen.path === '/' ? location.pathname === '/' : location.pathname.startsWith(screen.path))
-    .sort((a, b) => b.path.length - a.path.length)[0]
+  const active = activeScreen(location.pathname)
 
   useEffect(() => setNavOpen(false), [location.pathname])
   useEffect(() => {
