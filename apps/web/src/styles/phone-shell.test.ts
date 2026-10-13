@@ -66,4 +66,9 @@ describe('phone layout', () => {
     expect(phoneDecl('.pp-topbar', 'flex-wrap', 'overview.css')).toBe('wrap')
     expect(phoneDecl('.pp-topbar .pp-switch', 'flex-basis', 'overview.css')).toBe('100%')
   })
+
+  it('fits the Meals week grid and its gutters to a phone', () => {
+    expect(phoneDecl('.meals-grid', 'grid-template-columns', 'meals.css')).toBe('22px repeat(7, minmax(0, 1fr))')
+    expect(phoneDecl('.meals-screen', 'padding', 'meals.css')).toBe('0 16px 20px')
+  })
 })

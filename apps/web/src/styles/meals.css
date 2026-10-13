@@ -913,3 +913,15 @@
     justify-content: center;
   }
 }
+
+/* Phone: the week grid shrinks to the screen — seven ~43px days beside a slim label gutter. */
+@media (max-width: 720px) {
+  .meals-screen { padding: 0 16px 20px; }
+  .meals-grid { grid-template-columns: 22px repeat(7, minmax(0, 1fr)); gap: 4px; }
+  .meals-dow .dow { font-size: 13px; }
+  .meals-dow .date { font-size: 11px; }
+  .meals-rowlabel span { font-size: 12px; }
+  .meals-cell { padding: 6px 3px; border-radius: 12px; }
+  .meals-cell .meal-t { font-size: 11px; -webkit-line-clamp: 4; }
+  .meals-cell .meal-cook { top: 3px; right: 3px; width: 18px; height: 18px; font-size: 10px; }
+}
