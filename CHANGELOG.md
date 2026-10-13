@@ -69,6 +69,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The web app fits a phone, including in the Kitchen theme.** On an iPhone-sized screen,
+  Kitchen no longer brings back the tablet's side rail, so every page gets the phone header
+  and menu. Calendar, Meals, Lists, Pantry, Tasks, Goals, the meal builder, the recipe editor,
+  person profiles, Photos and Settings now fit the screen without sideways scrolling, clipped
+  buttons or squeezed labels. Settings rows drop wide controls below their label.
+- **Permissions show all seven columns.** In Settings → Family & People, **Set up planning**
+  had wrapped onto its own line on every screen size.
+- **Sign-in screens use the app's fonts.** The sign-in and device-pairing screens showed the
+  browser's default serif.
+- **Smaller visual fixes.** The Reward Shop uses Kitchen colours instead of a fixed violet.
+  Star balances on Family and profiles are readable on dark cards. Pantry Staples chips in
+  Settings are styled even before you open Lists. Day view no longer shows the date twice.
+  The phone header names Family on a person's profile.
 - **Kiosk mode hides Add photos again.** The Photos screen's **Add photos** button had come back
   on kiosk-mode screens.
 
