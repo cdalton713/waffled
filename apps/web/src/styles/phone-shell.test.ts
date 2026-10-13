@@ -118,6 +118,14 @@ describe('settings.css hand-rolled rows', () => {
   })
 })
 
+describe('pantry.css on a phone', () => {
+  it('gives the search its own row and wraps the items header', () => {
+    expect(phoneDecl('.pl-head', 'flex-wrap', 'pantry.css')).toBe('wrap')
+    expect(phoneDecl('.pl-search', 'flex', 'pantry.css')).toBe('1 1 100%')
+    expect(phoneDecl('.pl-main-head', 'flex-wrap', 'pantry.css')).toBe('wrap')
+  })
+})
+
 describe('settings.css SSO form', () => {
   it('wraps a long redirect URI instead of spilling past the card', () => {
     const root = postcss.parse(readFileSync(join(__dirname, 'settings.css'), 'utf8'))

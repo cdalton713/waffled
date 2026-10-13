@@ -512,3 +512,13 @@
 .cc-foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
 .cc-foot .pill { cursor: pointer; }
 .cc-foot .pill.primary { color: var(--on-accent); background: var(--person-3); border-color: transparent; }
+
+/* Phone: search drops to its own row; the items header wraps its sort toggle. */
+@media (max-width: 720px) {
+  .pl-head { flex-wrap: wrap; padding: 16px 16px 12px; }
+  .pl-head-actions { margin-left: auto; }
+  .pl-search { order: 3; flex: 1 1 100%; }
+  .pl-main-head { flex-wrap: wrap; }
+  .pl-main-title { white-space: nowrap; }
+  .pl-sort { margin-left: 0; }
+}
