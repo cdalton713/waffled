@@ -1,6 +1,6 @@
 ---
 title: Appearance & dark mode
-description: Choose Classic or Kitchen, light or dark, Match system, and a typeface — saved per device.
+description: Choose Classic, Kitchen or Night Pantry, light or dark, Match system, and a typeface — saved per device.
 ---
 
 Waffled ships with a **warm dark theme** alongside the original light one. Pick how it looks
@@ -11,8 +11,11 @@ from **Settings → Appearance**.
 - **Classic dark** — a *warm* dark: soft charcoals rather than cold black-and-blue.
 - **Kitchen** — built for a wall tablet (see below).
 - **Kitchen night** — the Kitchen look on a deep green-black, for evenings.
+- **Night Pantry day** — warm oat background, white cards and a butter-yellow accent (see below).
+- **Night Pantry** — the same look on a deep green-black, the way it was designed to be seen.
 - **Match system** — follow your device's own light/dark setting automatically, including when
-  it flips on a schedule (e.g. sundown). It keeps whichever palette (Classic or Kitchen) you picked.
+  it flips on a schedule (e.g. sundown). It keeps whichever palette (Classic, Kitchen or Night
+  Pantry) you picked.
 
 ## The Kitchen theme
 Kitchen is tuned for a 10.1" tablet (1280×800) on the counter, read from the stove or the sink:
@@ -25,6 +28,16 @@ Kitchen is tuned for a 10.1" tablet (1280×800) on the counter, read from the st
 
 The fonts ship with Waffled, so the theme works on a tablet with no internet access. Pair it with
 [Kiosk mode](/features/kiosk/#kiosk-mode) to hide the editing controls on a wall display.
+
+## The Night Pantry theme
+Night Pantry is a calmer, darker look that works on the counter tablet and on a phone:
+
+- A **deep green-black** background (or **warm oat** in Night Pantry day) with rounder cards.
+- A **butter-yellow** accent for the main action and the selected screen. Text on yellow is
+  always dark, so the green, red and blue buttons use medium shades that dark text reads on too.
+- **Bricolage Grotesque** headings over **Atkinson Hyperlegible** body text, the same fonts as
+  Kitchen.
+- Buttons are at least **44px** tall on a phone and **48px** on the tablet.
 
 The choice **saves on that device only** and applies **instantly** — no reload, no server
 round-trip. Set it once on the kitchen kiosk and once on your phone; they're independent.
@@ -65,7 +78,7 @@ keeping the accent hues fixed is what makes the app still feel like Waffled with
 | iPhone / iPad | ✅ |
 
 Dark mode is available on the web, the kitchen kiosk display, and the iPhone/iPad app. The
-**Kitchen** palettes are **web and kiosk only** for now. The phone
+**Kitchen** and **Night Pantry** palettes are **web and kiosk only** for now. The phone
 and iPad mirror the exact same warm-dark palette and the same **Settings → Appearance** control
 (Light / Dark / Match system, saved per device), so a screen reads the same with the lights off on
 your phone as it does on the wall.

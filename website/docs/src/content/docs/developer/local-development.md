@@ -85,6 +85,14 @@ pnpm run build      # tsc -b && vite build
 The **web app and the kiosk are the same build** — the kiosk is a layout / PWA
 mode of the web app, not a separate bundle.
 
+The dev server proxies `/api` to `http://localhost:3000`. To run a second copy beside
+one that already uses those ports, start the api with another `PORT` and point the web
+server at it:
+
+```bash
+WAFFLED_DEV_API_URL=http://localhost:3300 pnpm exec vite --port 5275 --strictPort
+```
+
 ## Pointing the iOS simulator at your local stack
 
 Launch the iOS app with these simulator child-environment variables so it talks

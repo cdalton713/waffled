@@ -15,6 +15,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Night Pantry theme** (web and kiosk). A new look in Settings → Appearance and Display &
+  Kiosk: a deep green-black background with a butter-yellow accent, rounder cards and
+  Bricolage Grotesque headings, plus a warm oat **Night Pantry day** version. Buttons are at
+  least 44px tall on a phone, and every text color is checked for readability in both modes.
+  See [Appearance](/features/appearance/#the-night-pantry-theme).
+
 - **Move from AnyList.** `./waffled admin import-anylist` copies an AnyList account into
   Waffled: the grocery list's items, every other list, the Pantry list (as pantry items) and
   recipes with their photos. Crossed-off items come across as history, so suggestions know what
