@@ -264,6 +264,10 @@ button.goal-listhead-link:hover {
   .goals-home {
     padding: 2px 16px 20px;
   }
+  .goal-listhead {
+    flex-wrap: wrap;
+    row-gap: 10px;
+  }
 }
 
 /* ===== Create-a-goal (full screen, "Create a goal / reporting setup") ===== */

@@ -52,4 +52,8 @@ describe('phone layout', () => {
     expect(phoneDecl('.tasks-head > .card-h', 'flex-basis')).toBe('100%')
     expect(phoneDecl('.tasks-datenav', 'padding')).toBe('0 16px 10px')
   })
+
+  it('wraps the Goals list header so its actions drop below the title', () => {
+    expect(phoneDecl('.goal-listhead', 'flex-wrap', 'goals.css')).toBe('wrap')
+  })
 })
