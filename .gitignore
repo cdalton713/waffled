@@ -54,3 +54,7 @@ postgres/data/
 apps/api/.local/media/
 
 .idea/material_theme_project_new.xml
+
+# local design-system export and sync tools
+/apps/web/ds-bundle/
+/apps/web/.ds-sync/
