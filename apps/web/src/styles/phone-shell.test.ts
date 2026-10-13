@@ -9,7 +9,9 @@ function phoneDecl(selector: string, prop: string, file = 'kiosk.css'): string |
   const root = postcss.parse(readFileSync(join(__dirname, file), 'utf8'))
   let value: string | undefined
   root.walkAtRules('media', (m: AtRule) => {
-    if (!/max-width:\s*720px/.test(m.params)) return
+    // Any max-width breakpoint at or above 720px also applies at phone width.
+    const bp = /max-width:\s*(\d+)px/.exec(m.params)
+    if (!bp || Number(bp[1]) < 720) return
     m.walkRules((r) => {
       if (!r.selectors.includes(selector)) return
       r.walkDecls(prop, (d) => { value = d.value })
@@ -101,5 +103,49 @@ describe('phone layout', () => {
   it('uses the phone gutter on Photos', () => {
     expect(phoneDecl('.photos-wall-scroll', 'padding', 'photos.css')).toBe('0 16px 20px')
     expect(phoneDecl('.ph-empty', 'padding', 'photos.css')).toBe('32px 0')
+  })
+
+  it('wraps a settings row so a wide control drops under its label', () => {
+    expect(phoneDecl('.set-row2', 'flex-wrap', 'settings.css')).toBe('wrap')
+    expect(phoneDecl('.set-row2-b', 'flex', 'settings.css')).toBe('1 1 130px')
+  })
+})
+
+describe('settings.css hand-rolled rows', () => {
+  it('gives a row control its own full-width line on a phone, its segment scrolling', () => {
+    expect(phoneDecl('.set-row2-ctl', 'flex', 'settings.css')).toBe('1 1 100%')
+    expect(phoneDecl('.set-row2-ctl .seg', 'overflow-x', 'settings.css')).toBe('auto')
+  })
+})
+
+describe('settings.css SSO form', () => {
+  it('wraps a long redirect URI instead of spilling past the card', () => {
+    const root = postcss.parse(readFileSync(join(__dirname, 'settings.css'), 'utf8'))
+    let wrap: string | undefined
+    root.walkRules('.sec-form code', (r) => r.walkDecls('overflow-wrap', (d) => { wrap = d.value }))
+    expect(wrap).toBe('anywhere')
+  })
+})
+
+describe('settings.css sticky section picker', () => {
+  it('sticks flush to the scroller, cancelling the screen top padding', () => {
+    expect(phoneDecl('.set-mobile-nav', 'top', 'settings.css')).toBe('-6px')
+  })
+})
+
+describe('settings.css permission grid', () => {
+  it('hyphenates the narrow column headers on a phone', () => {
+    expect(phoneDecl('.perm-cap', 'hyphens', 'settings.css')).toBe('auto')
+  })
+
+  it('adds a column per permission instead of hard-coding six', () => {
+    const root = postcss.parse(readFileSync(join(__dirname, 'settings.css'), 'utf8'))
+    const decls: Record<string, string> = {}
+    root.walkRules('.perm-row', (r) => {
+      if (r.parent?.type === 'root') r.walkDecls((d) => { decls[d.prop] = d.value })
+    })
+    expect(decls['grid-template-columns']).toBe('1.2fr')
+    expect(decls['grid-auto-flow']).toBe('column')
+    expect(decls['grid-auto-columns']).toBe('minmax(0, 1fr)')
   })
 })

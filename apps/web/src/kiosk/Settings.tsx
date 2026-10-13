@@ -18,6 +18,7 @@ import { Screensaver, screensaverPhotos } from './components/Screensaver'
 import { GooglePhotosImportModal } from './components/GooglePhotosImportModal'
 import '../styles/settings.css'
 import '../styles/pantry.css'
+import '../styles/grocery.css'
 
 // `admin` tabs are only shown to admins, so nobody is offered options they can't use.
 // Three tiers: Account (you) · Family (shared config an admin sets) · System (self-host).
@@ -104,7 +105,7 @@ function SettingRow({ icon, title, sub, children }: { icon: string; title: strin
   return (
     <div className="set-row2">
       <div className="set-ic2">{icon}</div>
-      <div style={{ flex: 1 }}>
+      <div className="set-row2-b">
         <div className="set-row2-t">{title}</div>
         {sub && <div className="tiny muted" style={{ fontWeight: 600 }}>{sub}</div>}
       </div>
@@ -3368,11 +3369,11 @@ function DisplayKioskPanel() {
             </SettingRow>
             <div className="set-row2">
               <div className="set-ic2">🖼️</div>
-              <div style={{ flex: 1 }}>
+              <div className="set-row2-b">
                 <div className="set-row2-t">What it shows</div>
                 <div className="tiny muted" style={{ fontWeight: 600 }}>“Photos + clock” is a photo slideshow with the clock, weather &amp; next event overlaid. Photos need a signed-in profile; the picker always shows the clock.</div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div className="set-row2-ctl" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <div className="seg" style={{ width: 'fit-content' }}>
                   {CONTENT_OPTS.map((o) => (
                     <button type="button" key={o.key} className={cfg.content === o.key ? 'on' : ''} style={{ cursor: 'pointer' }} onClick={() => update({ content: o.key })}>{o.label}</button>
@@ -3389,11 +3390,11 @@ function DisplayKioskPanel() {
               <>
                 <div className="set-row2">
                   <div className="set-ic2">📷</div>
-                  <div style={{ flex: 1 }}>
+                  <div className="set-row2-b">
                     <div className="set-row2-t">Photo source</div>
                     <div className="tiny muted" style={{ fontWeight: 600 }}>Which photos the slideshow plays.</div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                  <div className="set-row2-ctl" style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                     <div className="seg" style={{ width: 'fit-content' }}>
                       {PHOTO_SOURCE_OPTS.map((o) => (
                         <button
