@@ -138,7 +138,6 @@ function ItemRow({
       >
         <PriorityFlag priority={item.priority} />
         <span className="lnm-text">{item.name}</span>
-        {item.note && <span className="gattr">📝 {item.note}</span>}
         {addedBy?.name && (
           <span className="gattr gattr-by">
             {addedBy.avatarEmoji && (
@@ -153,6 +152,7 @@ function ItemRow({
             added by {addedBy.name}
           </span>
         )}
+        {item.note && <span className="gattr lnote">📝 {item.note}</span>}
       </button>
       {item.quantity ? <span className="lqty">{item.quantity}</span> : null}
       <div className="litem-assign" style={{ position: 'relative' }}>

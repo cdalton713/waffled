@@ -24,7 +24,7 @@ export function RecentItemsModal({ listId, onClose, onAdded }: { listId: string;
       <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 440 }}>
         <button type="button" className="modal-close" aria-label="Close" onClick={onClose}>×</button>
         <div className="wf-serif" style={{ fontSize: 20, fontWeight: 600, marginBottom: 4 }}>Recently crossed off</div>
-        <div className="tiny muted" style={{ fontWeight: 600, marginBottom: 14 }}>Tap + to put something back on the list.</div>
+        <div className="tiny muted" style={{ fontWeight: 600, marginBottom: 14 }}>Tap Add to put something back on the list.</div>
         {items === null ? (
           <div className="tiny muted">Loading…</div>
         ) : items.length === 0 ? (
@@ -39,7 +39,7 @@ export function RecentItemsModal({ listId, onClose, onAdded }: { listId: string;
                 </span>
                 {i.quantity && <span className="gqty">{i.quantity}</span>}
                 <span className="gitem-acts">
-                  <button type="button" className="gact" aria-label={`Add ${i.name} back`} title="Add back" onClick={() => readd(i)}>+</button>
+                  <button type="button" className="pill" style={{ cursor: 'pointer' }} aria-label={`Add ${i.name} back`} onClick={() => readd(i)}>＋ Add</button>
                 </span>
               </div>
             ))}
