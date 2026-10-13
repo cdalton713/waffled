@@ -61,4 +61,9 @@ describe('phone layout', () => {
     expect(phoneDecl('.ge-title', 'font-size', 'goals.css')).toBe('24px')
     expect(phoneDecl('.ge-topbar button', 'white-space', 'goals.css')).toBe('nowrap')
   })
+
+  it('puts the profile person switcher on its own row', () => {
+    expect(phoneDecl('.pp-topbar', 'flex-wrap', 'overview.css')).toBe('wrap')
+    expect(phoneDecl('.pp-topbar .pp-switch', 'flex-basis', 'overview.css')).toBe('100%')
+  })
 })
