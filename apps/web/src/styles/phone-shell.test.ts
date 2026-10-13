@@ -45,4 +45,11 @@ describe('phone layout', () => {
     expect(phoneDecl('.cal-grid', 'grid-template-columns')).toBe('repeat(7, minmax(0, 1fr))')
     expect(phoneDecl('.cal-month', 'grid-template-columns', 'calendar.css')).toBe('minmax(0, 1fr)')
   })
+
+  it('gives the Tasks header phone gutters and wraps its title onto its own row', () => {
+    expect(phoneDecl('.tasks-head', 'flex-wrap')).toBe('wrap')
+    expect(phoneDecl('.tasks-head', 'padding')).toBe('6px 16px 8px')
+    expect(phoneDecl('.tasks-head > .card-h', 'flex-basis')).toBe('100%')
+    expect(phoneDecl('.tasks-datenav', 'padding')).toBe('0 16px 10px')
+  })
 })

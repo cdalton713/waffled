@@ -907,6 +907,16 @@ button.tick {
   .tasks-screen {
     padding: 6px 16px 22px;
   }
+  .tasks-head {
+    flex-wrap: wrap;
+    padding: 6px 16px 8px;
+  }
+  .tasks-head > .card-h {
+    flex-basis: 100%;
+  }
+  .tasks-datenav {
+    padding: 0 16px 10px;
+  }
 }
 
 /* ===== grocery checkbox ===== */
