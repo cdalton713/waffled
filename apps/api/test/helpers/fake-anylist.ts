@@ -34,7 +34,9 @@ export function seedUserData(): PbUserData {
           { identifier: 'item-tent', listId: 'list-camping', name: 'Tent stakes', checked: false, category: 'Gear' },
         ] },
         { identifier: 'list-groceries', name: 'Groceries', items: [
-          { identifier: 'item-milk', listId: 'list-groceries', name: 'Milk', checked: false, deprecatedQuantity: '1 gal', details: 'the blue cap one', category: 'Dairy' },
+          { identifier: 'item-milk', listId: 'list-groceries', name: 'Milk', checked: false, deprecatedQuantity: '1 gal', details: 'the blue cap one', category: 'dairy' },
+          { identifier: 'item-chips', listId: 'list-groceries', name: 'Chips', checked: false, category: 'snacks' },
+          { identifier: 'item-foil', listId: 'list-groceries', name: 'Foil', checked: false, category: 'other' },
           { identifier: 'item-eggs', listId: 'list-groceries', name: 'Eggs', checked: true, quantityPb: { rawQuantity: '12' } },
           { identifier: 'item-blank', listId: 'list-groceries', name: '   ', checked: false },
         ] },
@@ -43,7 +45,11 @@ export function seedUserData(): PbUserData {
           { identifier: 'item-flour', listId: 'list-pantry', name: 'Flour', checked: true },
         ] },
       ],
-      listResponses: [{ listId: 'list-groceries', categoryGroupResponses: [{ categoryGroup: { identifier: 'g1', categories: [{ identifier: 'c-dairy', name: 'Dairy', systemCategory: 'dairy', sortIndex: 1 }] } }] }],
+      listResponses: [{ listId: 'list-groceries', categoryGroupResponses: [{ categoryGroup: { identifier: 'g1', categories: [
+        { identifier: 'c-dairy', name: 'Dairy', systemCategory: 'dairy', sortIndex: 1 },
+        { identifier: 'c-snacks', name: 'Snacks', systemCategory: 'snacks', sortIndex: 2 },
+        { identifier: 'c-other', name: 'Other', systemCategory: 'other', sortIndex: 3 },
+      ] } }] }],
     },
     recipeDataResponse: {
       recipeDataId: 'rd-1',

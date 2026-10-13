@@ -20,10 +20,12 @@
 //   regenerate-powersync-key
 //   list-households
 //   delete-household --id <uuid> [--force] [--yes]
+//   import-anylist   [--email <e> --password <pw>] [--household <uuid>] [--grocery <list>] [--pantry <list>] [--dry-run]
 import { createInterface } from 'node:readline'
 import { generateKeyPairSync, randomBytes } from 'node:crypto'
 import { query, getPool, closePool } from '../src/platform/db'
 import { setPersonLogin } from '../src/modules/auth/auth'
+import { importAnyList as runAnyListImport } from '../src/integrations/anylist/import'
 
 // ── tiny arg parser ───────────────────────────────────────────────────────────
 // Read argv live (not a captured copy) so tests can set process.argv per call.
@@ -413,6 +415,42 @@ async function listAccounts(): Promise<void> {
   console.log()
 }
 
+// Copy an AnyList account (lists, items, the Pantry list, recipes + photos) into the
+// household. Safe to re-run: only new AnyList records are added.
+async function importAnyList(): Promise<void> {
+  let householdId = flag('household')
+  if (!householdId) {
+    const { rows } = await query<{ id: string; name: string }>('select id, name from households where deleted_at is null order by created_at')
+    if (rows.length !== 1) die(`Pick a household with --household <uuid>: ${rows.map((r) => `${r.name} (${r.id})`).join(', ') || 'none set up yet'}`)
+    householdId = rows[0].id
+  }
+  const { rows: [actor] } = await query<{ id: string }>(
+    `select p.id from persons p join households h on h.id = p.household_id
+      where p.household_id = $1 and p.deleted_at is null and p.is_admin
+      order by (h.owner_person_id = p.id) desc, p.created_at limit 1`, [householdId])
+  if (!actor) die('That household has no admin to import as.')
+  const report = await runAnyListImport({
+    householdId,
+    personId: actor.id,
+    email: flag('email') ?? process.env.ANYLIST_EMAIL,
+    password: flag('password') ?? process.env.ANYLIST_PASSWORD,
+    groceryList: flag('grocery'),
+    pantryList: flag('pantry'),
+    dryRun: has('dry-run'),
+  })
+  const row = (label: string, t: { created: number; skipped: number }) =>
+    console.log(`  ${label.padEnd(14)} ${t.created} new, ${t.skipped} already imported`)
+  console.log(report.dryRun ? warn('Dry run — nothing was written.') : ok('✓ AnyList import finished.'))
+  console.log(`  Grocery list   ${report.groceryList ?? c.dim + 'none found (use --grocery)' + c.reset}`)
+  console.log(`  Pantry list    ${report.pantryList ?? c.dim + 'none found (use --pantry)' + c.reset}`)
+  row('Lists', report.lists)
+  row('Items', report.items)
+  row('Pantry items', report.pantry)
+  row('Recipes', report.recipes)
+  if (report.photosMissing) console.log(warn(`  ${report.photosMissing} recipe photo(s) could not be downloaded.`))
+  if (report.pantryModuleEnabled) console.log(`  Turned on the Pantry module.`)
+}
+
 function help(): void {
   console.log(`${c.bold}Waffled admin — operator / break-glass commands${c.reset}
 ${c.dim}Run as: ./waffled admin <command> [flags]${c.reset}
@@ -436,12 +474,15 @@ ${c.dim}Run as: ./waffled admin <command> [flags]${c.reset}
   ${c.bold}list-households${c.reset}                     households with member + login counts
   ${c.bold}delete-household${c.reset} --id <uuid> [--force] [--yes]
                                      permanently delete a household + ALL its data
+  ${c.bold}import-anylist${c.reset} [--email <e> --password <pw>] [--household <uuid>] [--grocery <list>] [--pantry <list>] [--dry-run]
+                                     copy AnyList lists, items, pantry + recipes into Waffled
+                                     (safe to re-run; only new records are added)
 
 ${c.dim}Destructive commands prompt for confirmation (or pass --yes).
 Break-glass: set AUTH_FORCE_PASSWORD=1 in the api env + restart to force password login.${c.reset}`)
 }
 
-export const _cmds = { listMembers, resetPassword, makeAdmin, setInstallationOwner, passwordLogin, clearCalendarError, pruneSessions, regeneratePowerSyncKey, listHouseholds, deleteHousehold, addMember, listAccounts }
+export const _cmds = { listMembers, resetPassword, makeAdmin, setInstallationOwner, passwordLogin, clearCalendarError, pruneSessions, regeneratePowerSyncKey, listHouseholds, deleteHousehold, addMember, listAccounts, importAnyList }
 
 async function main(): Promise<void> {
   const command = args()[0] ?? 'help'
@@ -459,6 +500,7 @@ async function main(): Promise<void> {
     case 'delete-household': await deleteHousehold(); break
     case 'add-member': await addMember(); break
     case 'list-accounts': await listAccounts(); break
+    case 'import-anylist': await importAnyList(); break
     case 'help': case '-h': case '--help': help(); break
     default: process.stderr.write(err(`Unknown command: ${command}`) + '\n\n'); help(); process.exitCode = 1
   }

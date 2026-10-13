@@ -113,8 +113,8 @@ function offPatches(b: Record<string, unknown>, opts: { includeUnset?: boolean }
 }
 
 // Build + run the INSERT for a new item from a (validated) request body. Shared by
-// POST /api/pantry and the scan upsert.
-async function insertItem(householdId: string, b: Record<string, unknown>): Promise<PantryRow> {
+// POST /api/pantry, the scan upsert and the AnyList importer (hence exported).
+export async function insertPantryItem(householdId: string, b: Record<string, unknown>): Promise<PantryRow> {
   const cols = ['household_id', 'name', 'amount', 'unit', 'location', 'expires_on', 'note']
   const vals: unknown[] = [
     householdId,
@@ -334,7 +334,7 @@ export function registerPantryRoutes(api: Api): void {
     if (b.expiresOn != null && b.expiresOn !== '' && !DATE_RE.test(String(b.expiresOn))) {
       return res.status(400).json({ error: 'BadRequest', message: 'expiresOn must be YYYY-MM-DD' })
     }
-    const row = await insertItem(tenant.householdId, { ...b, name })
+    const row = await insertPantryItem(tenant.householdId, { ...b, name })
     return res.status(201).json({ item: present(row) })
   }))
 
@@ -377,7 +377,7 @@ export function registerPantryRoutes(api: Api): void {
     }
     // Store the resolved amount, so a blank one lands as "1" rather than an empty
     // amount the next scan would have to guess at.
-    const row = await insertItem(tenant.householdId, { ...b, name, amount: newAmount })
+    const row = await insertPantryItem(tenant.householdId, { ...b, name, amount: newAmount })
     return res.status(201).json({ item: present(row), incremented: false })
   }))
 
