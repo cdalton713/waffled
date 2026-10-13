@@ -4,10 +4,11 @@
 
 FROM node:24-alpine AS web
 WORKDIR /app
-COPY apps/web/package.json apps/web/package-lock.json* ./
-RUN npm ci || npm install
+COPY apps/web/package.json apps/web/pnpm-lock.yaml apps/web/pnpm-workspace.yaml ./
+RUN npm install --global "$(node -p "require('./package.json').packageManager")" && \
+    pnpm install --frozen-lockfile
 COPY apps/web/ ./
-RUN npm run build
+RUN pnpm run build
 
 FROM caddy:2
 COPY --from=web /app/dist /srv

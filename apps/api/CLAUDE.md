@@ -10,7 +10,7 @@ Folder-scoped notes; loads when working under `apps/api`. See the repo-root
 adding one, look at the highest existing number and use the next; if a parallel branch has
 already claimed it by the time you rebase/merge, **renumber yours** to the next free slot.
 Two files sharing a number is a mistake — the CI **Migration hygiene**
-job (`npm run check:migrations`) fails the PR on any new collision, so it can't merge.
+job (`pnpm run check:migrations`) fails the PR on any new collision, so it can't merge.
 
 **`0079` is already duplicated on `main`, on purpose — leave it alone.**
 `0079_goal_target_basis.sql` and `0079_recipe_ingest_photos.sql` were born on parallel

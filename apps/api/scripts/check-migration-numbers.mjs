@@ -7,7 +7,7 @@
 // that applied one but not the other used to wedge. This check keeps NEW collisions out
 // so numbering stays a reliable, gap-free sequence.
 //
-// Run: `npm run check:migrations` (also runs in CI on any apps/api change).
+// Run: `pnpm run check:migrations` (also runs in CI on any apps/api change).
 import { readdirSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'

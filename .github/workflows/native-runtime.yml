@@ -54,7 +54,7 @@
 # *that* Node's bundled npm/npx for everything else, including `npx pnpm@11.0.9` for the
 # PowerSync build. So this job does NOT run actions/setup-node or install pnpm: doing so
 # would set up tooling build.sh never consults (it always prepends the bundled Node's own
-# bin/ to PATH before calling npm/npx — see npm_build() and the pnpm() helper in build.sh)
+# bin/ to PATH before calling npm/npx — see pnpm_build() and the pnpm() helper in build.sh)
 # and would misleadingly suggest the runner's system Node is load-bearing when it is not.
 # Confirmed by running fetch/build/verify locally with no pnpm on PATH and only the bundled
 # Node reachable — see the PR description for the dry-run transcript.
@@ -138,7 +138,7 @@ jobs:
     # fetch_powersync does a fresh `git clone` + `pnpm install --frozen-lockfile` (619 MB
     # unpacked) + `pnpm build:production` + the prod prune, on top of the Node/Postgres/Caddy
     # downloads (README "Network cost": ~0.5-1 GB, ~5 min on a fast link) and a networked
-    # `npm ci` for api + web. macos-15 standard runners are ~3 cores and slower than the dev
+    # `pnpm install --frozen-lockfile` for api + web. macos-15 standard runners are ~3 cores and slower than the dev
     # Mac this was measured on, and the 36k-file/587 MB verify walk is I/O bound.
     #
     # The Phase 3 steps turn out to be the cheap end of this job — measured on a warm run
@@ -215,7 +215,7 @@ jobs:
 
       - name: Bundle build
         env:
-          WAFFLED_BUNDLE_NPM_CI: '1'
+          WAFFLED_BUNDLE_PNPM_INSTALL: '1'
         run: infra/native/bundle/build.sh build "$RUNNER_TEMP/runtime"
 
       - name: Bundle verify

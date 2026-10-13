@@ -1,0 +1,8 @@
+packages:
+  - .
+onlyBuiltDependencies:
+  - cpu-features
+  - esbuild
+  - fsevents
+  - protobufjs
+  - ssh2

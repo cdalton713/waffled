@@ -18,7 +18,8 @@
 # Env: WAFFLED_BUNDLE_CACHE (default ~/Library/Caches/WaffledBundle), WAFFLED_BUNDLE_SEED
 # (default ~/Library/Caches/WaffledSpike — an optional second cache dir to copy downloads
 # from, e.g. a previous machine's; unset or missing = no seeding), WAFFLED_BUNDLE_NO_NETWORK=1
-# (fail instead of downloading anything), WAFFLED_BUNDLE_NPM_CI=1 (force `npm ci` for api + web).
+# (fail instead of downloading anything), WAFFLED_BUNDLE_PNPM_INSTALL=1 (force a frozen
+# pnpm install for api + web; WAFFLED_BUNDLE_NPM_CI remains an accepted alias).
 #
 # bash 3.2-clean (macOS /bin/bash): no associative arrays, no ${x,,}, no mapfile.
 set -euo pipefail
@@ -328,17 +329,21 @@ build_runtime() {
   ok "waffled-runtime $(api_version) ($(hsize "$out"))"
 }
 
-npm_build() { # npm_build <app dir> — npm ci (if needed) + npm run build with the bundled node
+pnpm_build() { # pnpm_build <app dir> — use the app's pinned pnpm with the bundled node
   ( cd "$1" && export PATH="$NODE_HOME/bin:$PATH"
-    if [ ! -d node_modules ] || [ "${WAFFLED_BUNDLE_NPM_CI:-0}" = 1 ]; then
-      say "  · npm ci"; npm ci --no-audit --no-fund >/dev/null 2>&1 || die "npm ci failed in $1"
+    local spec
+    spec="$("$BUILD_NODE" -p "require('./package.json').packageManager")"
+    if [ ! -f node_modules/.modules.yaml ] || [ "${WAFFLED_BUNDLE_PNPM_INSTALL:-${WAFFLED_BUNDLE_NPM_CI:-0}}" = 1 ]; then
+      say "  · pnpm install --frozen-lockfile"
+      CI=true npx --yes "$spec" install --frozen-lockfile >/dev/null 2>&1 || die "pnpm install failed in $1"
     fi
-    say "  · npm run build"; npm run build >/dev/null 2>&1 || die "npm run build failed in $1" )
+    say "  · pnpm run build"
+    npx --yes "$spec" run build >/dev/null 2>&1 || die "pnpm run build failed in $1" )
 }
 build_api() {
   local src="$ROOT/apps/api" out="$1/api"
   say "→ api → api/ (esbuild bundle + migrations)"
-  npm_build "$src"
+  pnpm_build "$src"
   [ -f "$src/dist/server.js" ] || die "apps/api build produced no dist/server.js"
   mkdir -p "$out/dist"
   # dist/ minus what has no meaning natively: lambda.js (AWS handler) and otel.js (the
@@ -364,7 +369,7 @@ web_version() { sed -n -E 's/^ *"version": *"([^"]+)".*/\1/p' "$ROOT/apps/web/pa
 build_web() {
   local src="$ROOT/apps/web" out="$1/web"
   say "→ web → web/ (vite build)"
-  npm_build "$src"
+  pnpm_build "$src"
   [ -f "$src/dist/index.html" ] || die "apps/web build produced no dist/index.html"
   cp -R "$src/dist" "$out"
   ok "web $(web_version) ($(hsize "$out"))"

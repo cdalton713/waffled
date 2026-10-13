@@ -31,8 +31,8 @@ apps/api/
 ## Running
 
 ```bash
-just test          # or: cd apps/api && npm test
-cd apps/api && npm run test:watch
+just test          # or: cd apps/api && pnpm test
+cd apps/api && pnpm run test:watch
 ```
 
 ## Patterns established in `apps/api`

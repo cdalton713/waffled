@@ -72,7 +72,7 @@ ports picked on first run and then kept, and Caddy is what other devices on the 
 
 ## Repo layout
 
-Waffled is a monorepo, but **not** npm workspaces — `apps/api` and `apps/web` each own their
+Waffled is a monorepo with separate pnpm projects — `apps/api` and `apps/web` each own their
 `package.json` and lockfile.
 
 | Path | What's there |

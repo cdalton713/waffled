@@ -7,7 +7,7 @@ It's the canonical source and is published to GitHub Pages by
 [`.github/workflows/docs.yml`](../../.github/workflows/docs.yml).
 
 To work on the docs: edit the Markdown under `website/docs/src/content/docs/`, then
-`cd website && npm run build` (or `npm run dev` for a live preview).
+`cd website/docs && pnpm run build` (or `pnpm run dev` for a live preview).
 
 This folder now retains only:
 

@@ -14,8 +14,8 @@
 // Or run it on the host against any stack's DATABASE_URL (like import-recipes.ts):
 //
 //   cd apps/api
-//   WAFFLED_ALLOW_DEMO_SEED=1 DATABASE_URL=postgres://waffled:<pw>@localhost:5532/waffled npx tsx scripts/seed-demo.ts base
-//   WAFFLED_ALLOW_DEMO_SEED=1 DATABASE_URL=… npx tsx scripts/seed-demo.ts meals
+//   WAFFLED_ALLOW_DEMO_SEED=1 DATABASE_URL=postgres://waffled:<pw>@localhost:5532/waffled pnpm exec tsx scripts/seed-demo.ts base
+//   WAFFLED_ALLOW_DEMO_SEED=1 DATABASE_URL=… pnpm exec tsx scripts/seed-demo.ts meals
 //
 // `base`  — household, 4 people (Jerry+Kramer adults, George+Elaine kids), modules,
 //           currencies, rewards + kid jars, chores + star ledger, goals + logs,
@@ -445,7 +445,7 @@ export async function main() {
     console.log('✅ goals reseeded — 1 family group (2 shared goals) + 4 individual lists')
   }
   else {
-    console.error('usage: seed-demo <base|meals|goals>  (e.g. `node dist/seed-demo.js base` in-container, or `npx tsx scripts/seed-demo.ts base` on the host)')
+    console.error('usage: seed-demo <base|meals|goals>  (e.g. `node dist/seed-demo.js base` in-container, or `pnpm exec tsx scripts/seed-demo.ts base` on the host)')
     process.exit(1)
   }
   await closePool()

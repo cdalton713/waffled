@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test'
 
 // Runs the same specs against the real Docker stack instead of Vite's preview
-// server: `npx playwright test -c playwright.stack.config.ts`.
+// server: `pnpm exec playwright test -c playwright.stack.config.ts`.
 //
 // Worth having as its own config because the two servers differ in ways this app
 // is sensitive to. Caddy serves the SPA with `try_files {path} /index.html`, so a

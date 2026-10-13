@@ -646,7 +646,7 @@ release_project_checks() {
 
   for dir in apps/api apps/web website/docs; do
     if [ ! -d "$ROOT/$dir/node_modules" ]; then
-      echo "${c_red}$dir/node_modules is missing. Run 'npm ci' in $dir before releasing.${c_reset}"
+      echo "${c_red}$dir/node_modules is missing. Run 'pnpm install --frozen-lockfile' in $dir before releasing.${c_reset}"
       fail=1
     fi
   done
@@ -697,12 +697,12 @@ release_project_checks() {
   # Provider credentials in an operator's shell must not change test expectations
   # or allow an integration test to reach a real external AI service.
   lane_docker() {
-    run_release_api_step "API tests" npm test --silent || true
-    run_release_api_step "API Docker e2e" npm run --silent test:e2e || true
+    run_release_api_step "API tests" pnpm --silent test || true
+    run_release_api_step "API Docker e2e" pnpm --silent run test:e2e || true
   }
 
   lane_web() {
-    run_release_step "web tests" "$ROOT/apps/web" npm test --silent || true
+    run_release_step "web tests" "$ROOT/apps/web" pnpm --silent test || true
   }
 
   # `web typecheck` (tsc -b --noEmit) and `web production build` (tsc -b && vite build)
@@ -710,12 +710,12 @@ release_project_checks() {
   # ordered against each other — split across lanes they raced on that file.
   lane_misc() {
     run_release_step "CLI tests" "$ROOT" bash tests/waffled.test.sh || true
-    run_release_step "migration numbering" "$ROOT/apps/api" npm run --silent check:migrations || true
-    run_release_step "API typecheck" "$ROOT/apps/api" npm run --silent typecheck || true
-    run_release_step "API build" "$ROOT/apps/api" npm run --silent build || true
-    run_release_step "documentation build" "$ROOT/website/docs" npm run --silent build || true
-    run_release_step "web typecheck" "$ROOT/apps/web" npm run --silent typecheck || true
-    run_release_step "web production build" "$ROOT/apps/web" npm run --silent build || true
+    run_release_step "migration numbering" "$ROOT/apps/api" pnpm --silent run check:migrations || true
+    run_release_step "API typecheck" "$ROOT/apps/api" pnpm --silent run typecheck || true
+    run_release_step "API build" "$ROOT/apps/api" pnpm --silent run build || true
+    run_release_step "documentation build" "$ROOT/website/docs" pnpm --silent run build || true
+    run_release_step "web typecheck" "$ROOT/apps/web" pnpm --silent run typecheck || true
+    run_release_step "web production build" "$ROOT/apps/web" pnpm --silent run build || true
   }
 
   # Playwright is the other load-sensitive participant: retries are off, its timeouts are
@@ -725,7 +725,7 @@ release_project_checks() {
   # tsconfig.tsbuildinfo. So it joins iOS in the isolated phase instead.
   lane_browser() {
     if package_has_script "$ROOT/apps/web/package.json" test:browser; then
-      run_release_step "browser smoke tests" "$ROOT/apps/web" npm run --silent test:browser || true
+      run_release_step "browser smoke tests" "$ROOT/apps/web" pnpm --silent run test:browser || true
     fi
   }
 
@@ -1146,7 +1146,7 @@ case "$cmd" in
     pg_user="$(env_val POSTGRES_USER)"; pg_pass="$(env_val POSTGRES_PASSWORD)"
     pg_db="$(env_val POSTGRES_DB)"; pg_port="$(env_val POSTGRES_PORT)"; pg_port="${pg_port:-5432}"
     echo "${c_dim}Applying migrations…${c_reset}"
-    ( cd "$ROOT/apps/api" && DATABASE_URL="postgres://$pg_user:$pg_pass@localhost:$pg_port/$pg_db" npm run migrate )
+    ( cd "$ROOT/apps/api" && DATABASE_URL="postgres://$pg_user:$pg_pass@localhost:$pg_port/$pg_db" pnpm run migrate )
     ;;
   backup)
     # Run, list, or verify dumps via the backup sidecar. It has pg_dump, the
@@ -1309,7 +1309,7 @@ case "$cmd" in
     ;;
   web)
     # Vite dev server with HMR on :5173 (separate from the stack's :8080 build).
-    ( cd "$ROOT/apps/web" && npm run dev ) ;;
+    ( cd "$ROOT/apps/web" && pnpm run dev ) ;;
   release)
     # Cut a release: bump EVERY place a version lives, in ONE commit, then tag it.
     # Run this LOCALLY (with your own git creds) — the pushed tag then triggers
@@ -1377,8 +1377,8 @@ case "$cmd" in
       esac
     done
     echo "${c_dim}Bumping to ${ver}…${c_reset}"
-    ( cd "$ROOT/apps/api" && npm version "$ver" --no-git-tag-version --allow-same-version >/dev/null )
-    ( cd "$ROOT/apps/web" && npm version "$ver" --no-git-tag-version --allow-same-version >/dev/null )
+    ( cd "$ROOT/apps/api" && pnpm version "$ver" --no-git-tag-version --allow-same-version >/dev/null )
+    ( cd "$ROOT/apps/web" && pnpm version "$ver" --no-git-tag-version --allow-same-version >/dev/null )
     bump_line "$ROOT/infra/compose/.env.example" "s/^WAFFLED_VERSION=.*/WAFFLED_VERSION=$ver/"
     bump_line "$ROOT/apps/ios/project.yml" "s/^([[:space:]]*MARKETING_VERSION:[[:space:]]*).*/\\1\"$ver\"/"
     bump_line "$ROOT/apps/mac/project.yml" "s/^([[:space:]]*MARKETING_VERSION:[[:space:]]*).*/\\1\"$ver\"/"
