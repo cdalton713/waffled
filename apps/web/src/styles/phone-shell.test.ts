@@ -128,6 +128,15 @@ describe('pantry.css on a phone', () => {
   })
 })
 
+describe('auth.css pairing code', () => {
+  it('lets the six code boxes shrink (no intrinsic input width floor)', () => {
+    const root = postcss.parse(readFileSync(join(__dirname, 'auth.css'), 'utf8'))
+    let width: string | undefined
+    root.walkRules('.pair-box', (r) => r.walkDecls('width', (d) => { width = d.value }))
+    expect(width).toBe('0')
+  })
+})
+
 describe('settings.css SSO form', () => {
   it('wraps a long redirect URI instead of spilling past the card', () => {
     const root = postcss.parse(readFileSync(join(__dirname, 'settings.css'), 'utf8'))

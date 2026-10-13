@@ -144,6 +144,8 @@
 }
 .pair-box {
   flex: 1;
+  /* An input's intrinsic width would otherwise set the auth card's minimum. */
+  width: 0;
   min-width: 0;
   height: 60px;
   text-align: center;
