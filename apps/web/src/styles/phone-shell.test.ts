@@ -97,4 +97,9 @@ describe('phone layout', () => {
     expect(phoneDecl('.lists-grid', 'grid-template-columns', 'lists.css')).toBe('minmax(0, 1fr)')
     expect(phoneDecl('.lists-addbar .lists-addbar-sec', 'max-width', 'lists.css')).toBe('112px')
   })
+
+  it('uses the phone gutter on Photos', () => {
+    expect(phoneDecl('.photos-wall-scroll', 'padding', 'photos.css')).toBe('0 16px 20px')
+    expect(phoneDecl('.ph-empty', 'padding', 'photos.css')).toBe('32px 0')
+  })
 })

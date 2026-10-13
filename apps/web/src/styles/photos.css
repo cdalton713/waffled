@@ -174,3 +174,8 @@
   backdrop-filter: blur(8px); padding: 10px 16px; border-radius: 999px; }
 
 .ph-empty { padding: 40px 30px; color: var(--ink-2); font-weight: 600; }
+
+@media (max-width: 720px) {
+  .photos-wall-scroll { padding: 0 16px 20px; }
+  .ph-empty { padding: 32px 0; }
+}
