@@ -84,3 +84,14 @@ describe('AuthGate accessibility', () => {
     await expectNoAxeViolations(container)
   }, 30_000)
 })
+
+describe('AuthGate typography', () => {
+  // The app's font stack is scoped to .wf; the sign-in screen renders outside the
+  // kiosk shell, so without it the browser default serif shows through.
+  it('renders the sign-in screen inside the .wf design-system scope', async () => {
+    mocks.status.mockResolvedValue({ initialized: true, methods: ['password'] })
+    renderGate()
+    const email = await screen.findByRole('textbox', { name: 'Email' })
+    expect(email.closest('.auth-screen')).toHaveClass('wf')
+  })
+})

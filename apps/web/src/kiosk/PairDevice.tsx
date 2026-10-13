@@ -71,7 +71,7 @@ function CodeStep({ onPaired, onCancel }: { onPaired: () => void; onCancel: () =
   }, [code])
 
   return (
-    <div className="auth-screen">
+    <div className="auth-screen wf">
       <div className="auth-card">
         <img className="auth-logo-img" src="/logo.png" alt="Waffled" width={96} height={96} />
         <div className="auth-title wf-serif">Set up this device</div>
@@ -125,7 +125,7 @@ function NameStep() {
   }
 
   return (
-    <div className="auth-screen">
+    <div className="auth-screen wf">
       <div className="auth-card">
         <img className="auth-logo-img" src="/logo.png" alt="Waffled" width={96} height={96} />
         <div className="auth-title wf-serif">Name this kiosk</div>

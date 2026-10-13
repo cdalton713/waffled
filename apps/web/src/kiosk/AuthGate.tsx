@@ -94,7 +94,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
   if (phase === 'login') return <LoginScreen status={status} oidcError={oidcError} />
   if (phase === 'unreachable') return <UnreachableScreen onAnswered={backToLoading} />
   return (
-    <div className="auth-screen">
+    <div className="auth-screen wf">
       <div className="auth-loading">Loading…</div>
     </div>
   )
@@ -107,7 +107,7 @@ const submitError = (err: unknown) => (isUnansweredError(err) ? SUBMIT_UNREACHAB
 
 function AuthShell({ title, sub, children }: { title: string; sub: string; children: ReactNode }) {
   return (
-    <div className="auth-screen">
+    <div className="auth-screen wf">
       <div className="auth-card">
         <img className="auth-logo-img" src="/logo.png" alt="Waffled" width={96} height={96} />
         <div className="auth-title wf-serif">{title}</div>
