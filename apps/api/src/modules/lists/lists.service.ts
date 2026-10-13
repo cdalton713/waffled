@@ -1268,6 +1268,41 @@ export async function listStores(householdId: string): Promise<string[]> {
   return rows.map((r) => r.store)
 }
 
+// Crossed-off items on a list, newest first and one per name — including ones already
+// cleared away — minus anything back on the list. The "buy it again" shelf.
+export async function recentlyCrossedOff(householdId: string, listId: string, limit = 20): Promise<ListItemRow[]> {
+  const { rows } = await query<ListItemRow>(
+    `select * from (
+       select distinct on (lower(btrim(i.name))) i.*
+         from list_items i
+        where i.household_id = $1 and i.list_id = $2 and i.checked and i.checked_at is not null
+        order by lower(btrim(i.name)), i.checked_at desc
+     ) latest
+     where not exists (
+       select 1 from list_items live
+        where live.household_id = $1 and live.list_id = $2 and live.deleted_at is null and not live.checked
+          and lower(btrim(live.name)) = lower(btrim(latest.name)))
+     order by checked_at desc
+     limit $3`,
+    [householdId, listId, limit]
+  )
+  return rows
+}
+
+// Put a crossed-off item back: uncheck it if it is still on the list, otherwise add a
+// fresh copy (same quantity, note, section, store). null when no such item.
+export async function readdItem(tenant: Tenant, id: string): Promise<{ item: ListItemRow; created: boolean } | null> {
+  const { rows: [old] } = await query<ListItemRow & { list_id: string; deleted_at: Date | null }>(
+    'select * from list_items where household_id = $1 and id = $2', [tenant.householdId, id])
+  if (!old) return null
+  if (!old.deleted_at) return { item: (await setItemChecked(tenant, id, false))!, created: false }
+  const item = await addItem(tenant, old.list_id, {
+    name: old.name, quantity: old.quantity, note: old.note, category: old.category, store: old.store,
+    assignedTo: old.assigned_to, priority: old.priority,
+  })
+  return { item, created: true }
+}
+
 // Add-bar suggestions: names the household has put on any list before (crossed-off and
 // cleared ones included), most-used first, then AnyList's public catalog. With no query,
 // the most-bought names. Anything already unchecked on `listId` is left out.

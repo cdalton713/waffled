@@ -6,6 +6,7 @@ import { useTopbarFull } from '../topbar-slot'
 import { groceryApi, mealBuilderApi, useGroceryBoard, type GroceryBoardItem, type GroceryMealDish } from '../../lib/api'
 import { StaplesModal } from './StaplesModal'
 import { ShareListModal } from './ShareListModal'
+import { RecentItemsModal } from './RecentItemsModal'
 // The canonical aisle walking order lives with the share formatter, which needs
 // the same order to group the shared text the way the board reads top-to-bottom.
 import { AISLE_ORDER } from './share-list'
@@ -352,6 +353,7 @@ export function GroceryBoard({ onBack }: { onBack: () => void }) {
   const [storeSuggestions, setStoreSuggestions] = useState<string[]>([])
   const [draft, setDraft] = useState('')
   const [editStaples, setEditStaples] = useState(false)
+  const [showRecent, setShowRecent] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
   const [recent, setRecent] = useState<Set<string>>(new Set()) // just-checked, still lingering in the active list
   const [showDone, setShowDone] = useState(false)
@@ -391,6 +393,11 @@ export function GroceryBoard({ onBack }: { onBack: () => void }) {
       <div style={{ display: 'flex', alignItems: 'center', width: '100%', gap: 14 }}>
         <button className="pill" style={{ cursor: 'pointer' }} onClick={onBack}>‹ Lists</button>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
+          <Editable>
+            <button className="pill" style={{ cursor: 'pointer' }} title="Recently crossed off — add something back" onClick={() => setShowRecent(true)}>
+              ↺ Recent
+            </button>
+          </Editable>
           <button
             className="pill"
             style={{ cursor: 'pointer' }}
@@ -983,6 +990,9 @@ export function GroceryBoard({ onBack }: { onBack: () => void }) {
       </div>
 
       {editStaples && <StaplesModal staples={board.staples} onClose={() => setEditStaples(false)} onChanged={refetch} />}
+      {showRecent && board && (
+        <RecentItemsModal listId={board.list.id} onClose={() => setShowRecent(false)} onAdded={refetch} />
+      )}
       {sharing && (
         <ShareListModal
           items={board.items.map((i) => ({

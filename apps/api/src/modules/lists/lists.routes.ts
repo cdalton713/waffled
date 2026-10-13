@@ -19,6 +19,8 @@ import {
   bulkPatchItems,
   listStores,
   suggestItemNames,
+  recentlyCrossedOff,
+  readdItem,
   autoClearCheckedItems,
   clearCompletedItems,
   addRecipeToGrocery,
@@ -168,6 +170,14 @@ export function registerListRoutes(api: Api): void {
     return { list: presentList(list), items: items.map(presentListItem) }
   }))
 
+  // Recently crossed-off items on a list (cleared ones included), for one-tap re-adding.
+  api.get('/api/lists/:id/recent', tenantRoute(async (tenant, req: Request, res: Response) => {
+    const id = req.params.id ?? ''
+    if (!UUID_RE.test(id)) return res.status(404).json({ error: 'NotFound', message: 'list not found' })
+    if (!(await getList(tenant.householdId, id))) return res.status(404).json({ error: 'NotFound', message: 'list not found' })
+    return { items: (await recentlyCrossedOff(tenant.householdId, id)).map(presentListItem) }
+  }))
+
   // Clear a custom list's Completed section now (soft-delete its checked items).
   api.post('/api/lists/:id/clear-completed', tenantRoute(async (tenant, req: Request, res: Response) => {
     const id = req.params.id ?? ''
@@ -277,6 +287,15 @@ export function registerListRoutes(api: Api): void {
     const item = await patchItem(tenant, id, body)
     if (!item) return res.status(404).json({ error: 'NotFound', message: 'item not found' })
     return { item: presentListItem(item) }
+  }))
+
+  // Put a crossed-off item back on its list (unchecks it, or re-adds a cleared one).
+  api.post('/api/list-items/:id/readd', tenantRoute(async (tenant, req: Request, res: Response) => {
+    const id = req.params.id ?? ''
+    if (!UUID_RE.test(id)) return res.status(404).json({ error: 'NotFound', message: 'item not found' })
+    const result = await readdItem(tenant, id)
+    if (!result) return res.status(404).json({ error: 'NotFound', message: 'item not found' })
+    return res.status(result.created ? 201 : 200).json({ item: presentListItem(result.item) })
   }))
 
   // Remove an item (soft-delete).

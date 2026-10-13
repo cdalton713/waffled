@@ -22,6 +22,7 @@ import { useTopbarRight } from './topbar-slot'
 import '../styles/lists.css'
 import { CHECK } from './components/CheckGlyph'
 import { ItemAutocomplete, useItemSuggest } from './components/ItemAutocomplete'
+import { RecentItemsModal } from './components/RecentItemsModal'
 
 
 
@@ -370,6 +371,7 @@ export function Lists() {
   const [itemModal, setItemModal] = useState<{ item: ListItem | null } | null>(null)
   // "Share list" — the same phone handoff the grocery board offers, for any list.
   const [sharing, setSharing] = useState(false)
+  const [showRecent, setShowRecent] = useState(false)
   const [groceryOpen, setGroceryOpen] = useState(false)
   // Just-checked items lingering in place during the undo grace window.
   const [recent, setRecent] = useState<Set<string>>(new Set())
@@ -883,6 +885,11 @@ export function Lists() {
                     <button type="button" onClick={() => { setEditingList({ id: selected.id, name: selected.name, emoji: selected.emoji }); setActionsMenu(false) }}>
                       <span aria-hidden>✎</span> {isTemplate ? 'Rename template' : 'Rename'}
                     </button>
+                    {!isTemplate && !viewOnly && (
+                      <button type="button" onClick={() => { setShowRecent(true); setActionsMenu(false) }}>
+                        <span aria-hidden>↺</span> Recently crossed off
+                      </button>
+                    )}
                     {/* Only worth offering while something is still outstanding. */}
                     {hasUnchecked && (
                       <button type="button" onClick={() => { setSharing(true); setActionsMenu(false) }}>
@@ -1157,6 +1164,9 @@ export function Lists() {
             setGroceryOpen(false)
           }}
         />
+      )}
+      {showRecent && selected && (
+        <RecentItemsModal listId={selected.id} onClose={() => setShowRecent(false)} onAdded={() => { refetchItems(); refetchLists() }} />
       )}
       {sharing && (
         <ShareListModal

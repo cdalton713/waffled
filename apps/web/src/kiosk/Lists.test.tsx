@@ -34,6 +34,8 @@ function mockApi(opts: { lists?: unknown[]; items?: unknown[]; sent?: Sent[]; cr
     const body = init?.body ? JSON.parse(init.body) : undefined
     opts.sent?.push({ method, url: u, body })
     if (u.includes('/api/persons')) return { ok: true, json: async () => ({ persons }) }
+    if (/\/api\/lists\/[^/]+\/recent$/.test(u)) return { ok: true, json: async () => ({ items: [{ id: 'old', name: 'Bug spray', quantity: null, checked: true, checkedAt: '2026-05-01T00:00:00Z', section: 'Gear', sortOrder: 0, assignee: null }] }) }
+    if (/\/api\/list-items\/[^/]+\/readd$/.test(u)) return { ok: true, json: async () => ({ item: { id: 'old', name: 'Bug spray', quantity: null, checked: false, checkedAt: null, section: 'Gear', sortOrder: 0, assignee: null } }) }
     // add-bar autocomplete + "suggests" chips (must precede the list-detail regex)
     if (u.includes('/api/lists/suggestions')) {
       const q = new URL(u, 'http://x').searchParams.get('q')
@@ -623,5 +625,18 @@ describe('Lists screen — item notes', () => {
     renderScreen()
     await exitBoard()
     expect(await screen.findByText(/SPF 50, not spray/)).toBeInTheDocument()
+  })
+})
+
+describe('Lists screen — recently crossed off', () => {
+  it('re-adds an item from the Recently crossed off panel in the ⋯ menu', async () => {
+    const sent: Sent[] = []
+    mockApi({ lists: [grocery, packing], items: packItems, sent })
+    renderScreen()
+    await exitBoard()
+    fireEvent.click(await screen.findByRole('button', { name: 'More actions' }))
+    fireEvent.click(await screen.findByRole('button', { name: /Recently crossed off/i }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Add Bug spray back' }))
+    await waitFor(() => expect(sent.some((s) => s.method === 'POST' && s.url.endsWith('/api/list-items/old/readd'))).toBe(true))
   })
 })

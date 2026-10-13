@@ -142,3 +142,43 @@ describe('remembered sections', () => {
     expect(await add('Mystery thing')).toBeNull()
   })
 })
+
+describe('recently crossed off', () => {
+  let listId = ''
+  beforeAll(async () => {
+    listId = await newList('Recent')
+    const add = async (name: string, extra: Record<string, unknown> = {}) =>
+      (await json(call('POST', `/api/lists/${listId}/items`, { name, ...extra }))).item
+    const cross = async (id: string) => call('PATCH', `/api/list-items/${id}`, { checked: true })
+    const apples = await add('Apples', { quantity: '6', note: 'honeycrisp', category: 'Fruit' })
+    await cross(apples.id)
+    await call('POST', `/api/lists/${listId}/clear-completed`)
+    const bread = await add('Bread')
+    await cross(bread.id)
+    const apples2 = await add('apples')
+    await cross(apples2.id)
+    await add('Bread') // back on the list, so not "recent"
+  })
+
+  it('lists crossed-off items newest first, one per name, skipping what is on the list', async () => {
+    const res = await json(call('GET', `/api/lists/${listId}/recent`))
+    expect(res.items.map((i: { name: string }) => i.name)).toEqual(['apples'])
+  })
+
+  it('re-adds a cleared item with its quantity, note and section', async () => {
+    const { rows } = await (await import('../src/platform/db')).query<{ id: string }>(
+      `select id from list_items where list_id = $1 and name = 'Apples' and deleted_at is not null`, [listId])
+    const res = await call('POST', `/api/list-items/${rows[0].id}/readd`)
+    expect(res.statusCode).toBe(201)
+    expect(JSON.parse(res.body).item).toMatchObject({ name: 'Apples', quantity: '6', note: 'honeycrisp', section: 'Fruit', checked: false })
+  })
+
+  it('re-adding a still-visible crossed-off item just unchecks it', async () => {
+    const recent = (await json(call('GET', `/api/lists/${listId}/recent`))).items
+    expect(recent).toEqual([])
+    const detail = await json(call('GET', `/api/lists/${listId}`))
+    const crossed = detail.items.find((i: { name: string; checked: boolean }) => i.name === 'apples' && i.checked)
+    const res = await json(call('POST', `/api/list-items/${crossed.id}/readd`))
+    expect(res.item).toMatchObject({ id: crossed.id, checked: false })
+  })
+})

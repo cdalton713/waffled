@@ -776,3 +776,23 @@ describe('GroceryBoard add-bar suggestions', () => {
     expect(sent.find((s) => s.url.includes('suggestions?q=ban'))?.url).toContain('listId=g')
   })
 })
+
+describe('GroceryBoard recently crossed off', () => {
+  it('opens the panel from the top bar and re-adds an item', async () => {
+    const sent: Array<{ method: string; url: string }> = []
+    globalThis.fetch = vi.fn(async (url: string, init?: { method?: string }) => {
+      const u = String(url)
+      sent.push({ method: init?.method ?? 'GET', url: u })
+      if (u.includes('/api/lists/grocery/board')) {
+        return ok({ list: { id: 'g', name: 'Grocery', emoji: '🛒', listType: 'grocery', isAutoBuilt: true, sortMode: 'manual', itemCount: 1 }, weekStart: '2026-06-07', meals: [], items: [manualItem], staples: [] })
+      }
+      if (u.endsWith('/api/lists/g/recent')) return ok({ items: [{ ...manualItem, id: 'old', name: 'Oat milk', checked: true }] })
+      if (u.endsWith('/api/list-items/old/readd')) return ok({ item: { ...manualItem, id: 'old', name: 'Oat milk' } })
+      return ok({ suggestions: [], stores: [] })
+    }) as unknown as typeof fetch
+    renderBoard()
+    fireEvent.click(await screen.findByRole('button', { name: /Recent/ }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Add Oat milk back' }))
+    await waitFor(() => expect(sent.some((s) => s.method === 'POST' && s.url.endsWith('/readd'))).toBe(true))
+  })
+})
