@@ -34,6 +34,7 @@
     "luxon": "^3.7.2",
     "node-pg-migrate": "^8.0.4",
     "pg": "^8.13.0",
+    "protobufjs": "^7.6.6",
     "rrule": "^2.8.1"
   },
   "devDependencies": {
