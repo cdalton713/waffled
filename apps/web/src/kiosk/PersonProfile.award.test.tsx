@@ -61,6 +61,12 @@ describe('PersonProfile spot-award gating', () => {
     expect(await screen.findByRole('button', { name: /award stars/i })).toBeInTheDocument()
   })
 
+  it('blends the currency colour toward ink so the balance reads on any card', async () => {
+    mockApi(me('p3', ['reward.grant']))
+    renderProfile()
+    expect(await screen.findByText('⭐ 3')).toHaveStyle({ color: 'color-mix(in srgb, #f2b01e 60%, var(--ink))' })
+  })
+
   it('hides the Award stars button from someone without reward.grant', async () => {
     mockApi(me('p3', []))
     renderProfile()

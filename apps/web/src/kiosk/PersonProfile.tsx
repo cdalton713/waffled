@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Editable, isViewOnly } from '../lib/viewOnly'
+import { inkTint } from '../lib/ink-tint'
 import { useNavigate, useParams } from 'react-router'
 import { useTopbarFull } from './topbar-slot'
 import { usePersonOverview, useConversions, usePersons, useHousehold, useGoalLists, can, personsApi, rewardsApi, fmtGoalNum, useWaffledBiteDevice, type OverviewGoal, type CategoryBalance, type ShopReward, type SavingToward, type OverviewCurrency, type StreakSummary, type PlanningFocus } from '../lib/api'
@@ -252,7 +253,7 @@ export function PersonProfile() {
 
   useTopbarFull(
     () => (
-      <div style={{ display: 'flex', alignItems: 'center', width: '100%', gap: 12, minWidth: 0 }}>
+      <div className="pp-topbar" style={{ display: 'flex', alignItems: 'center', width: '100%', gap: 12, minWidth: 0 }}>
         <button className="pill" style={{ cursor: 'pointer', flex: 'none' }} onClick={() => navigate('/family')}>‹ Family</button>
         <div className="seg pp-switch" style={{ minWidth: 0, overflowX: 'auto' }}>
           <button className="" style={{ cursor: 'pointer' }} onClick={() => navigate('/family')}>Everyone</button>
@@ -369,7 +370,7 @@ export function PersonProfile() {
             {data.balances.map((b) => {
               const c = symOf(b.currency)
               return (
-                <span key={b.currency} className="pp-wallet-cur" style={{ color: c?.color ?? 'var(--ink)' }}>
+                <span key={b.currency} className="pp-wallet-cur" style={{ color: inkTint(c?.color) }}>
                   {c?.symbol ?? '⭐'} {b.balance}
                 </span>
               )
