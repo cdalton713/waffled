@@ -44,6 +44,17 @@ describe('kitchen.css on a phone', () => {
   })
 })
 
+describe('kitchen.css buttons on a phone', () => {
+  it('keeps a Kitchen button label on one line', () => {
+    let ws: string | undefined
+    root.walkAtRules('media', (m) => {
+      if (!/max-width:\s*720px/.test(m.params)) return
+      m.walkRules((r) => { if (r.selector.endsWith(' .btn')) r.walkDecls('white-space', (d) => { ws = d.value }) })
+    })
+    expect(ws).toBe('nowrap')
+  })
+})
+
 describe('kitchen.css re-skins hard-coded classic colours', () => {
   const kitchenRule = (sel: string) => {
     let found = false

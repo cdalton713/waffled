@@ -152,6 +152,7 @@
 :root[data-palette="kitchen"] .seg button.on { background: var(--ink); color: var(--card); box-shadow: none; }
 @media (max-width: 720px) {
   :root[data-palette="kitchen"] .seg button { padding: 8px; }
+  :root[data-palette="kitchen"] .btn { white-space: nowrap; }
 }
 :root[data-palette="kitchen"] .icon-btn { width: 48px; height: 48px; border-radius: 16px; }
 :root[data-palette="kitchen"] .toggle { width: 56px; height: 34px; }
