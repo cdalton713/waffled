@@ -1268,6 +1268,20 @@ export async function listStores(householdId: string): Promise<string[]> {
   return rows.map((r) => r.store)
 }
 
+// Save a hand-dragged order: each id's position becomes its sort_order. Every id must
+// be a live item on this list (false otherwise, and nothing changes).
+export async function reorderItems(householdId: string, listId: string, ids: string[]): Promise<boolean> {
+  const { rowCount } = await query(
+    `update list_items i set sort_order = o.pos - 1
+       from unnest($3::uuid[]) with ordinality as o(id, pos)
+      where i.id = o.id and i.household_id = $1 and i.list_id = $2 and i.deleted_at is null
+        and (select count(*) from list_items x
+              where x.id = any($3::uuid[]) and x.household_id = $1 and x.list_id = $2 and x.deleted_at is null) = cardinality($3::uuid[])`,
+    [householdId, listId, ids]
+  )
+  return rowCount === ids.length
+}
+
 // Crossed-off items on a list, newest first and one per name — including ones already
 // cleared away — minus anything back on the list. The "buy it again" shelf.
 export async function recentlyCrossedOff(householdId: string, listId: string, limit = 20): Promise<ListItemRow[]> {

@@ -67,6 +67,7 @@ function ItemRow({
   onDelete,
   onDragStart,
   onDragEnd,
+  onDropOnto,
   selecting,
   selected,
   onSelect,
@@ -79,6 +80,8 @@ function ItemRow({
   onDelete: (item: ListItem) => void
   onDragStart?: (item: ListItem) => void
   onDragEnd?: () => void
+  // Something dragged was dropped on this row: place it just before this item.
+  onDropOnto?: (target: ListItem) => void
   selecting?: boolean
   selected?: boolean
   onSelect?: (item: ListItem) => void
@@ -95,6 +98,8 @@ function ItemRow({
       draggable={!!onDragStart && !selecting}
       onDragStart={onDragStart && !selecting ? () => onDragStart(item) : undefined}
       onDragEnd={onDragEnd}
+      onDragOver={onDropOnto ? (e) => e.preventDefault() : undefined}
+      onDrop={onDropOnto ? (e) => { e.stopPropagation(); onDropOnto(item) } : undefined}
     >
       {/* In select mode the row shows ONLY the square selection box — the round
           completion checkbox is hidden so a tap can't accidentally check an item
@@ -531,6 +536,25 @@ export function Lists() {
     try {
       const updated = await groceryApi.patchListItem(id, { section: target })
       setItems((prev) => prev.map((i) => (i.id === id ? updated : i)))
+    } catch {
+      setItems(snapshot)
+    }
+  }
+
+  // Drop a dragged item just before `target` (taking target's section), then save the
+  // whole list's order so it survives a reload and shows the same on every device.
+  async function moveBefore(id: string, target: ListItem) {
+    const item = items.find((i) => i.id === id)
+    if (!item || id === target.id || !selected) return
+    const moved = { ...item, section: target.section ?? null }
+    const rest = items.filter((i) => i.id !== id)
+    const next = [...rest.slice(0, rest.findIndex((i) => i.id === target.id)), moved, ...rest.slice(rest.findIndex((i) => i.id === target.id))]
+      .map((i, idx) => ({ ...i, sortOrder: idx }))
+    const snapshot = items
+    setItems(next)
+    try {
+      if ((item.section ?? null) !== moved.section) await groceryApi.patchListItem(id, { section: moved.section })
+      await groceryApi.reorderItems(selected.id, next.map((i) => i.id))
     } catch {
       setItems(snapshot)
     }
@@ -1079,6 +1103,12 @@ export function Lists() {
                                 onDelete={remove}
                                 onDragStart={(i) => { dragId.current = i.id }}
                                 onDragEnd={() => { dragId.current = null; setDragOverKey(null) }}
+                                onDropOnto={(target) => {
+                                  const id = dragId.current
+                                  dragId.current = null
+                                  setDragOverKey(null)
+                                  if (id) moveBefore(id, target)
+                                }}
                                 selecting={selecting}
                                 selected={selectedItems.has(it.id)}
                                 onSelect={toggleItemSelected}

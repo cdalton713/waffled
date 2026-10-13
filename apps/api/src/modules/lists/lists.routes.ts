@@ -20,6 +20,7 @@ import {
   listStores,
   suggestItemNames,
   recentlyCrossedOff,
+  reorderItems,
   readdItem,
   autoClearCheckedItems,
   clearCompletedItems,
@@ -168,6 +169,21 @@ export function registerListRoutes(api: Api): void {
     await autoClearCheckedItems(tenant.householdId, id)
     const items = await listItems(tenant.householdId, id)
     return { list: presentList(list), items: items.map(presentListItem) }
+  }))
+
+  // Save the order items were dragged into (body: { ids: [...] } in display order).
+  api.put('/api/lists/:id/order', tenantRoute(async (tenant, req: Request, res: Response) => {
+    const id = req.params.id ?? ''
+    if (!UUID_RE.test(id)) return res.status(404).json({ error: 'NotFound', message: 'list not found' })
+    const ids = ((req.body ?? {}) as { ids?: unknown }).ids
+    if (!Array.isArray(ids) || ids.length === 0 || ids.length > 2000 || !ids.every((x) => typeof x === 'string' && UUID_RE.test(x)) || new Set(ids).size !== ids.length) {
+      return res.status(400).json({ error: 'BadRequest', message: 'ids must be a list of item ids' })
+    }
+    if (!(await getList(tenant.householdId, id))) return res.status(404).json({ error: 'NotFound', message: 'list not found' })
+    if (!(await reorderItems(tenant.householdId, id, ids as string[]))) {
+      return res.status(400).json({ error: 'BadRequest', message: 'every id must be an item on this list' })
+    }
+    return { ok: true }
   }))
 
   // Recently crossed-off items on a list (cleared ones included), for one-tap re-adding.

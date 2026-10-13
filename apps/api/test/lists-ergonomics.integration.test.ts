@@ -182,3 +182,24 @@ describe('recently crossed off', () => {
     expect(res.item).toMatchObject({ id: crossed.id, checked: false })
   })
 })
+
+describe('saved order', () => {
+  it('keeps the order items are dragged into, and new items go last', async () => {
+    const listId = await newList('Order')
+    const ids: string[] = []
+    for (const name of ['A', 'B', 'C']) ids.push((await json(call('POST', `/api/lists/${listId}/items`, { name }))).item.id)
+    const res = await call('PUT', `/api/lists/${listId}/order`, { ids: [ids[2], ids[0], ids[1]] })
+    expect(res.statusCode).toBe(200)
+    await call('POST', `/api/lists/${listId}/items`, { name: 'D' })
+    const names = (await json(call('GET', `/api/lists/${listId}`))).items.map((i: { name: string }) => i.name)
+    expect(names).toEqual(['C', 'A', 'B', 'D'])
+  })
+
+  it('rejects ids that are not on the list', async () => {
+    const listId = await newList('Order2')
+    const other = await newList('Other2')
+    const foreign = (await json(call('POST', `/api/lists/${other}/items`, { name: 'X' }))).item.id
+    expect((await call('PUT', `/api/lists/${listId}/order`, { ids: [foreign] })).statusCode).toBe(400)
+    expect((await call('PUT', `/api/lists/${listId}/order`, { ids: 'nope' })).statusCode).toBe(400)
+  })
+})

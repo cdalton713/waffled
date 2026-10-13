@@ -165,6 +165,8 @@ export const groceryApi = {
   // The household's previously-used store names (most-used first) — quick-select for
   // a grocery item's store field.
   stores: () => apiGet<{ stores: string[] }>('/api/lists/stores').then((r) => r.stores),
+  // Save a hand-dragged order (every item id on the list, in display order).
+  reorderItems: (listId: string, ids: string[]) => apiSend<{ ok: true }>('PUT', `/api/lists/${listId}/order`, { ids }).then(tap('grocery')),
   // Crossed-off items on a list (cleared ones included), newest first, one per name.
   recentItems: (listId: string) => apiGet<{ items: ListItem[] }>(`/api/lists/${listId}/recent`).then((r) => r.items),
   // Put a crossed-off item back: unchecks it, or re-adds a cleared one.
