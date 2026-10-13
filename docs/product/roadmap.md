@@ -154,6 +154,8 @@ Legend: ✅ done · 🟡 partial / in progress · 🚧 planned · ⛔ dropped (s
   history, then a grocery catalog), **remembered sections**, **recently crossed off** with
   one-tap re-add, **item notes** and a **saved drag order**; plus **offline lists on web/kiosk**
   through PowerSync and a one-shot **AnyList importer** (`./waffled admin import-anylist`).
+  **Still to do on iOS:** notes, suggestions, recently crossed off, saved order and offline
+  lists (a compile-only start sits on the `native-lists-ios` branch; its tests haven't run).
 - **Meal Builder** — build one meal out of several recipes and treat it as one
   thing: name a plate, add recipes under Main / Sides / Dessert, meal-level servings,
   **a cook per dish**, and an optional "keep in library" that makes it reusable (saved

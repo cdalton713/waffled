@@ -18,11 +18,11 @@ Lists is where "things to buy or do" live — shared custom lists you build by h
 - 🥫 **"You already have this"** — with [Pantry](/features/pantry/) on, any row matching something on your shelves gets a badge showing what it found and how much of it ("Chicken breast: 3"). The row **stays on the list**: we can tell that you have chicken, not whether you have *enough*, so this is a nudge to check the shelf rather than a decision made for you. See [Pantry-aware shopping](#pantry-aware-shopping).
 - 🎯 **Re-aisle an item** — section chips in its editor move it, and an **Auto** chip clears the override.
 - ✅ **Check off / add / delete** — everything persists, with attribution ("added by {name}" or "🍽 from meal plan"), and the grocery build honors recipe substitutions.
-- ⌨️ **Suggestions as you type** — the add bar suggests names you've added before (most-used first), then common grocery items; tap one to add it. "Waffled suggests" offers your most-bought items that aren't on the list.
+- ⌨️ **Suggestions as you type** *(web and kiosk)* — the add bar suggests names you've added before (most-used first), then common grocery items; tap one to add it. "Waffled suggests" offers your most-bought items that aren't on the list.
 - 🧭 **Remembers where things go** — add an item without a section and it goes back where you filed it last time on that list. New grocery items get an aisle from a grocery catalog, so "beef jerky" lands in Snacks rather than Other.
-- 📝 **Notes** — give any item a note ("the blue cap one", "organic if they have it"); it shows under the name.
-- ↺ **Recently crossed off** — a list's ⋯ menu (or **↺ Recent** on the grocery board) shows what you've crossed off lately, including items already cleared; tap **+** to put one back with its quantity, note and section.
-- ↕️ **Your order sticks** — drag an item onto another to place it just before it (taking that item's section); the order is saved, so it survives a reload and matches on every device.
+- 📝 **Notes** *(web and kiosk)* — give any item a note ("the blue cap one", "organic if they have it"); it shows under the name.
+- ↺ **Recently crossed off** *(web and kiosk)* — a list's ⋯ menu (or **↺ Recent** on the grocery board) shows what you've crossed off lately, including items already cleared; tap **+** to put one back with its quantity, note and section.
+- ↕️ **Your order sticks** *(web and kiosk)* — drag an item onto another to place it just before it (taking that item's section); the order is saved, so it survives a reload and matches on every device.
 - 📶 **Live and offline on web and the kiosk** — lists and the grocery board load from the device, change the moment someone else edits them, and keep working with no connection. See [Offline](#offline).
 - 📤 **Share list** — hand any list to any phone: an aisle-grouped text list (quantities included) via share sheet, clipboard, or a QR code a phone camera grabs — no app, no account. See [Taking a list with you](#taking-a-list-with-you).
 - 🔄 **Live cross-surface refresh** — Today, Lists, and Rewards stay in sync through the in-app refresh bus.
@@ -130,7 +130,7 @@ which never reach the auto-built list in the first place.
 | iPhone | ✅ |
 | iPad | ✅ |
 
-Every surface builds, checks, and edits lists; **iPad** uses a master/detail layout with the list rail beside the items. The pantry badge and the picker's pre-uncheck work on all three.
+Every surface builds, checks, and edits lists. Suggestions, notes, Recently crossed off, saved order and offline use are on web and the kiosk for now; iPhone and iPad get remembered sections (they're decided by the server) but not the rest yet. **iPad** uses a master/detail layout with the list rail beside the items. The pantry badge and the picker's pre-uncheck work on all three.
 
 ## Settings
 
