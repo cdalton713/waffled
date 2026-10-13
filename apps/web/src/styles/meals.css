@@ -1,41 +1,43 @@
+@reference './ui.css';
+
 /* Meals — weekly planner grid. Co-located with kiosk/Meals.tsx (Meals agent).
    Reuses waffled.css tokens; only the planner-specific layout lives here. */
 
 .meals-screen {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  padding: 0 30px 24px;
+  @apply [flex:1];
+  @apply flex;
+  @apply flex-col;
+  @apply [min-height:0];
+  @apply [padding:0_30px_24px];
 }
 
 /* In-page controls (moved off the topbar so the capture bar can live there). */
 .meals-head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  padding: 8px 2px 6px;
+  @apply flex;
+  @apply items-center;
+  @apply [gap:10px];
+  @apply flex-wrap;
+  @apply [padding:8px_2px_6px];
 }
 .meals-head .pill {
-  cursor: pointer;
+  @apply cursor-pointer;
 }
 
 .meals-hint {
-  font-size: 14px;
-  color: var(--ink-2);
-  font-weight: 500;
-  margin: 2px 2px 10px;
+  @apply [font-size:14px];
+  @apply [color:var(--ink-2)];
+  @apply font-medium;
+  @apply [margin:2px_2px_10px];
 }
 
 /* The grid: a slim label gutter + 7 day columns. */
 .meals-grid {
-  flex: 1;
-  display: grid;
-  grid-template-columns: 30px repeat(7, 1fr);
-  grid-template-rows: auto repeat(4, 1fr);
-  gap: 10px;
-  min-height: 0;
+  @apply [flex:1];
+  @apply grid;
+  @apply [grid-template-columns:30px_repeat(7,_1fr)];
+  @apply [grid-template-rows:auto_repeat(4,_1fr)];
+  @apply [gap:10px];
+  @apply [min-height:0];
 }
 
 /* ===== Drag-to-swap on the meal grids (month + week) ===== */
@@ -43,283 +45,329 @@
    scrolling out from under it. */
 .meals-cell[data-planned],
 .mm-cell[data-planned] {
-  touch-action: none;
+  @apply [touch-action:none];
 }
-.slot-dragging { opacity: 0.4; }
+.slot-dragging {
+  @apply [opacity:0.4];
+}
 .slot-drop {
-  outline: 2px dashed var(--primary);
-  outline-offset: -2px;
+  @apply [outline:2px_dashed_var(--primary)];
+  @apply [outline-offset:-2px];
   background: color-mix(in srgb, var(--primary) 10%, var(--card)) !important;
 }
 .grid-drag-ghost {
-  position: fixed;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  z-index: 9999;
-  background: var(--card);
-  border: 1px solid var(--hair);
-  box-shadow: var(--sh-2);
-  border-radius: 999px;
-  padding: 7px 14px;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--ink);
-  white-space: nowrap;
-  max-width: 240px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  @apply fixed;
+  @apply [transform:translate(-50%,_-50%)];
+  @apply pointer-events-none;
+  @apply [z-index:9999];
+  @apply [background:var(--card)];
+  @apply [border:1px_solid_var(--hair)];
+  @apply [box-shadow:var(--sh-2)];
+  @apply [border-radius:999px];
+  @apply [padding:7px_14px];
+  @apply [font-size:13px];
+  @apply font-bold;
+  @apply [color:var(--ink)];
+  @apply whitespace-nowrap;
+  @apply [max-width:240px];
+  @apply overflow-hidden;
+  @apply [text-overflow:ellipsis];
 }
 
 /* ===== Month view (dinners only) ===== */
 .meals-month {
-  flex: 1;
-  min-height: 0;
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  grid-auto-rows: minmax(72px, 1fr);
-  gap: 8px;
-  align-content: start;
-  overflow-y: auto;
+  @apply [flex:1];
+  @apply [min-height:0];
+  @apply grid;
+  @apply [grid-template-columns:repeat(7,_minmax(0,_1fr))];
+  @apply [grid-auto-rows:minmax(72px,_1fr)];
+  @apply [gap:8px];
+  @apply [align-content:start];
+  @apply overflow-y-auto;
 }
 .mm-dow {
-  font-size: 11.5px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--ink-3);
-  text-align: center;
-  padding: 0 0 2px;
+  @apply [font-size:11.5px];
+  @apply font-extrabold;
+  @apply [text-transform:uppercase];
+  @apply [letter-spacing:0.04em];
+  @apply [color:var(--ink-3)];
+  @apply text-center;
+  @apply [padding:0_0_2px];
 }
 .mm-cell {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  min-width: 0;
-  padding: 6px 8px 7px;
-  border: 1px solid var(--hair-2);
-  border-radius: var(--r-md);
-  background: var(--card);
-  cursor: pointer;
-  transition: box-shadow 0.12s ease;
+  @apply relative;
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:3px];
+  @apply [min-width:0];
+  @apply [padding:6px_8px_7px];
+  @apply [border:1px_solid_var(--hair-2)];
+  @apply [border-radius:var(--r-md)];
+  @apply [background:var(--card)];
+  @apply cursor-pointer;
+  @apply [transition:box-shadow_0.12s_ease];
 }
-.mm-cell:hover { box-shadow: var(--sh-1); }
-.mm-cell.mm-out { background: transparent; border-color: transparent; cursor: default; }
-.mm-cell.mm-out .mm-date { opacity: 0.3; }
-.mm-cell.mm-today { border-color: var(--primary); }
-.mm-cell.mm-today .mm-date { color: var(--primary-d); font-weight: 800; }
-.mm-date { font-size: 12px; font-weight: 700; color: var(--ink-2); }
-.mm-meal { display: flex; align-items: flex-start; gap: 5px; flex: 1; min-width: 0; }
-.mm-emoji { font-size: 15px; line-height: 1.25; flex: none; }
+.mm-cell:hover {
+  @apply [box-shadow:var(--sh-1)];
+}
+.mm-cell.mm-out {
+  @apply [background:transparent];
+  @apply [border-color:transparent];
+  @apply cursor-default;
+}
+.mm-cell.mm-out .mm-date {
+  @apply [opacity:0.3];
+}
+.mm-cell.mm-today {
+  @apply [border-color:var(--primary)];
+}
+.mm-cell.mm-today .mm-date {
+  @apply [color:var(--primary-d)];
+  @apply font-extrabold;
+}
+.mm-date {
+  @apply [font-size:12px];
+  @apply font-bold;
+  @apply [color:var(--ink-2)];
+}
+.mm-meal {
+  @apply flex;
+  @apply items-start;
+  @apply [gap:5px];
+  @apply [flex:1];
+  @apply [min-width:0];
+}
+.mm-emoji {
+  @apply [font-size:15px];
+  @apply [line-height:1.25];
+  @apply [flex:none];
+}
 .mm-title {
-  font-size: 12.5px;
-  font-weight: 600;
-  line-height: 1.2;
-  min-width: 0;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
+  @apply [font-size:12.5px];
+  @apply font-semibold;
+  @apply [line-height:1.2];
+  @apply [min-width:0];
+  @apply overflow-hidden;
+  @apply [display:-webkit-box];
+  @apply [-webkit-line-clamp:3];
+  @apply [-webkit-box-orient:vertical];
 }
 .mm-remove {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  width: 18px;
-  height: 18px;
-  border: 0;
-  border-radius: 999px;
-  background: var(--card-2);
-  color: var(--ink-3);
-  font-size: 13px;
-  line-height: 1;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.12s ease;
+  @apply absolute;
+  @apply [top:5px];
+  @apply [right:5px];
+  @apply [width:18px];
+  @apply [height:18px];
+  @apply [border:0];
+  @apply [border-radius:999px];
+  @apply [background:var(--card-2)];
+  @apply [color:var(--ink-3)];
+  @apply [font-size:13px];
+  @apply [line-height:1];
+  @apply cursor-pointer;
+  @apply [opacity:0];
+  @apply [transition:opacity_0.12s_ease];
 }
-.mm-cell:hover .mm-remove { opacity: 0.85; }
-.mm-add { flex: 1; display: grid; place-items: center; opacity: 0; transition: opacity 0.12s ease; }
-.mm-cell:hover .mm-add { opacity: 0.5; }
-.mm-add svg { width: 18px; height: 18px; stroke: var(--ink-3); fill: none; stroke-width: 2.4; stroke-linecap: round; }
+.mm-cell:hover .mm-remove {
+  @apply [opacity:0.85];
+}
+.mm-add {
+  @apply [flex:1];
+  @apply grid;
+  @apply [place-items:center];
+  @apply [opacity:0];
+  @apply [transition:opacity_0.12s_ease];
+}
+.mm-cell:hover .mm-add {
+  @apply [opacity:0.5];
+}
+.mm-add svg {
+  @apply [width:18px];
+  @apply [height:18px];
+  @apply [stroke:var(--ink-3)];
+  @apply [fill:none];
+  @apply [stroke-width:2.4];
+  @apply [stroke-linecap:round];
+}
 
 .meals-dow {
-  text-align: center;
-  align-self: end;
-  padding-bottom: 6px;
+  @apply text-center;
+  @apply [align-self:end];
+  @apply [padding-bottom:6px];
 }
 .meals-dow .dow {
-  font-family: var(--serif);
-  font-size: 19px;
-  font-weight: 600;
-  color: var(--ink-2);
-  letter-spacing: -0.01em;
+  @apply [font-family:var(--serif)];
+  @apply [font-size:19px];
+  @apply font-semibold;
+  @apply [color:var(--ink-2)];
+  @apply [letter-spacing:-0.01em];
 }
 .meals-dow .date {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ink-3);
-  margin-top: 1px;
+  @apply [font-size:13px];
+  @apply font-semibold;
+  @apply [color:var(--ink-3)];
+  @apply [margin-top:1px];
 }
 
 /* Rotated row labels (Breakfast / Lunch / Dinner / Snack) in the gutter. */
 .meals-rowlabel {
-  display: grid;
-  place-items: center;
+  @apply grid;
+  @apply [place-items:center];
 }
 .meals-rowlabel span {
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
-  font-family: var(--serif);
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--ink-2);
-  letter-spacing: 0.01em;
+  @apply [writing-mode:vertical-rl];
+  @apply [transform:rotate(180deg)];
+  @apply [font-family:var(--serif)];
+  @apply [font-size:15px];
+  @apply font-semibold;
+  @apply [color:var(--ink-2)];
+  @apply [letter-spacing:0.01em];
 }
 
 /* A planned slot. Tinted by meal type, title centered, cook avatar top-right. */
 .meals-cell {
-  position: relative;
-  border-radius: var(--r-lg);
-  display: grid;
-  place-items: center;
-  text-align: center;
-  padding: 14px 12px;
-  cursor: pointer;
-  min-height: 0;
-  border: 1px solid transparent;
-  transition: box-shadow 0.12s ease, transform 0.12s ease;
+  @apply relative;
+  @apply [border-radius:var(--r-lg)];
+  @apply grid;
+  @apply [place-items:center];
+  @apply text-center;
+  @apply [padding:14px_12px];
+  @apply cursor-pointer;
+  @apply [min-height:0];
+  @apply [border:1px_solid_transparent];
+  @apply [transition:box-shadow_0.12s_ease,_transform_0.12s_ease];
 }
 .meals-cell:hover {
-  box-shadow: var(--sh-2);
+  @apply [box-shadow:var(--sh-2)];
 }
 .meals-cell .meal-t {
-  font-size: 15px;
-  font-weight: 600;
-  line-height: 1.25;
-  color: var(--ink);
+  @apply [font-size:15px];
+  @apply font-semibold;
+  @apply [line-height:1.25];
+  @apply [color:var(--ink)];
   /* Long recipe titles clamp inside the cell instead of bleeding into neighboring days. */
-  max-width: 100%;
-  overflow-wrap: anywhere;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  @apply [max-width:100%];
+  @apply [overflow-wrap:anywhere];
+  @apply [display:-webkit-box];
+  @apply [-webkit-line-clamp:3];
+  @apply [-webkit-box-orient:vertical];
+  @apply overflow-hidden;
 }
 .meals-cell .meal-cook {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 26px;
-  height: 26px;
-  border-radius: 999px;
-  display: grid;
-  place-items: center;
-  font-size: 14px;
-  box-shadow: var(--sh-1);
-  background: var(--card);
+  @apply absolute;
+  @apply [top:8px];
+  @apply [right:8px];
+  @apply [width:26px];
+  @apply [height:26px];
+  @apply [border-radius:999px];
+  @apply grid;
+  @apply [place-items:center];
+  @apply [font-size:14px];
+  @apply [box-shadow:var(--sh-1)];
+  @apply [background:var(--card)];
 }
 
 .meals-cell.breakfast {
-  background: var(--person-3-t);
+  @apply [background:var(--person-3-t)];
 }
 .meals-cell.lunch {
-  background: var(--person-2-t);
+  @apply [background:var(--person-2-t)];
 }
 .meals-cell.dinner {
-  background: var(--person-4-t);
+  @apply [background:var(--person-4-t)];
 }
 .meals-cell.snack {
-  background: var(--warn-t);
+  @apply [background:var(--warn-t)];
 }
 
 /* Empty slot — dashed "+" tap target. */
 .meals-add {
-  border: 1.5px dashed var(--hair);
-  background: transparent;
-  color: var(--ink-3);
-  font-weight: 400;
+  @apply [border:1.5px_dashed_var(--hair)];
+  @apply [background:transparent];
+  @apply [color:var(--ink-3)];
+  @apply font-normal;
 }
 .meals-add:hover {
-  border-color: var(--primary);
-  color: var(--primary-d);
-  box-shadow: none;
+  @apply [border-color:var(--primary)];
+  @apply [color:var(--primary-d)];
+  @apply [box-shadow:none];
 }
 .meals-add svg {
-  width: 22px;
-  height: 22px;
-  stroke: currentColor;
-  fill: none;
-  stroke-width: 1.8;
-  stroke-linecap: round;
+  @apply [width:22px];
+  @apply [height:22px];
+  @apply [stroke:currentColor];
+  @apply [fill:none];
+  @apply [stroke-width:1.8];
+  @apply [stroke-linecap:round];
 }
 
 /* Topbar week-nav arrow buttons (round, like .icon-btn but compact). */
 .meals-nav {
-  width: 40px;
-  height: 40px;
-  padding: 0;
-  border-radius: 999px;
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-  transition: background 0.12s;
+  @apply [width:40px];
+  @apply [height:40px];
+  @apply [padding:0];
+  @apply [border-radius:999px];
+  @apply grid;
+  @apply [place-items:center];
+  @apply cursor-pointer;
+  @apply [transition:background_0.12s];
 }
 .meals-nav:hover {
-  background: var(--panel);
+  @apply [background:var(--panel)];
 }
 /* the rest of the Meals topbar controls are interactive too */
 .kiosk-main .topbar .tb-right .pill,
 .kiosk-main .topbar .tb-right .btn,
 .kiosk-main .topbar .tb-right .seg button {
-  cursor: pointer;
+  @apply cursor-pointer;
 }
 .meals-nav svg {
-  width: 18px;
-  height: 18px;
-  stroke: var(--ink);
-  fill: none;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+  @apply [width:18px];
+  @apply [height:18px];
+  @apply [stroke:var(--ink)];
+  @apply [fill:none];
+  @apply [stroke-width:2];
+  @apply [stroke-linecap:round];
+  @apply [stroke-linejoin:round];
 }
 
 /* ---- Recipe picker ----
    Takes over the main column (topbar replaced via useTopbarFull). */
 .meals-picker {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  padding-top: 4px;
+  @apply [flex:1];
+  @apply flex;
+  @apply flex-col;
+  @apply [min-height:0];
+  @apply [padding-top:4px];
 }
 
 .picker-grid {
-  flex: 1;
-  overflow-y: auto;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-auto-rows: min-content;
-  gap: 16px;
-  align-content: start;
-  padding: 0 30px 24px;
+  @apply [flex:1];
+  @apply overflow-y-auto;
+  @apply grid;
+  @apply [grid-template-columns:repeat(4,_1fr)];
+  @apply [grid-auto-rows:min-content];
+  @apply [gap:16px];
+  @apply [align-content:start];
+  @apply [padding:0_30px_24px];
 }
 .picker-search {
-  padding: 0 30px 10px;
-  display: flex;
-  gap: 10px;
-  align-items: center;
+  @apply [padding:0_30px_10px];
+  @apply flex;
+  @apply [gap:10px];
+  @apply items-center;
 }
 .picker-new {
-  flex: none;
-  white-space: nowrap;
+  @apply [flex:none];
+  @apply whitespace-nowrap;
 }
 /* The full recipe editor, hosted over the picker. A tall screen, so the card takes most of
    the viewport and scrolls inside itself. */
 .picker-new-card {
-  width: min(920px, 94vw);
-  max-width: none;
-  max-height: 90vh;
-  overflow-y: auto;
+  @apply [width:min(920px,_94vw)];
+  @apply [max-width:none];
+  @apply [max-height:90vh];
+  @apply overflow-y-auto;
 }
 /* The Meal Builder's own body, hosted over the picker. The builder is a full SCREEN: it sizes
    itself to its container, scrolls its two columns, and pins its stat bar to the bottom edge.
@@ -331,400 +379,439 @@
    implicit column sizes to the item's MAX-CONTENT and the wide builder centres inside a
    column wider than the screen. Pin the column to the viewport. */
 .picker-plate-overlay {
-  grid-template-columns: minmax(0, 1fr);
+  @apply [grid-template-columns:minmax(0,_1fr)];
 }
 .picker-plate-card {
-  padding-bottom: 0;
-  overflow: hidden;
-  justify-self: center;
+  @apply [padding-bottom:0];
+  @apply overflow-hidden;
+  @apply [justify-self:center];
 }
 .picker-plate-card .mb-shell {
-  height: auto;
-  max-height: min(72vh, 700px);
+  @apply [height:auto];
+  @apply [max-height:min(72vh,_700px)];
 }
 .picker-plate-card .mb-head {
-  padding: 0 0 10px;
+  @apply [padding:0_0_10px];
 }
 .picker-plate-card .mb-body {
-  padding: 0 0 14px;
-  overflow-y: auto;
+  @apply [padding:0_0_14px];
+  @apply overflow-y-auto;
 }
 .picker-plate-card .mb-bar {
-  margin: 0 -30px;
-  border-radius: 0 0 22px 22px;
+  @apply [margin:0_-30px];
+  @apply [border-radius:0_0_22px_22px];
 }
 /* On a phone the bar wraps to four rows and eats the plate it is describing. Give the card a
    sheet's height, tighten the bar, and drop the two stats that are a READ rather than a
    control — they are still on the builder screen, where there's room. */
 @media (max-width: 700px) {
   .picker-plate-card {
-    width: min(96vw, 560px);
+    @apply [width:min(96vw,_560px)];
   }
   .picker-plate-card .mb-shell {
-    height: 84vh;
-    max-height: 84vh;
+    @apply [height:84vh];
+    @apply [max-height:84vh];
   }
   .picker-plate-card .mb-bar {
-    gap: 8px 16px;
-    padding: 11px 30px 13px;
+    @apply [gap:8px_16px];
+    @apply [padding:11px_30px_13px];
   }
   .picker-plate-card .mb-bar-time,
   .picker-plate-card .mb-bar-grocery {
-    display: none;
+    @apply hidden;
   }
   .picker-plate-card .mb-bar-actions {
-    flex: 1 1 auto;
-    justify-content: flex-end;
+    @apply [flex:1_1_auto];
+    @apply justify-end;
   }
 }
 
 .picker-new-h {
-  font-size: 20px;
-  font-weight: 600;
-  margin-bottom: 12px;
+  @apply [font-size:20px];
+  @apply font-semibold;
+  @apply [margin-bottom:12px];
 }
 .picker-filters {
-  padding: 0 30px 12px;
-  display: flex;
-  gap: 8px;
-  align-items: center;
+  @apply [padding:0_30px_12px];
+  @apply flex;
+  @apply [gap:8px];
+  @apply items-center;
 }
 .picker-filters .mp-filter {
-  font-size: 13.5px;
-  padding: 8px 16px;
-  cursor: pointer;
+  @apply [font-size:13.5px];
+  @apply [padding:8px_16px];
+  @apply cursor-pointer;
 }
 .picker-filters .mp-filter.on {
-  background: var(--ink);
-  color: var(--on-inverse);
+  @apply [background:var(--ink)];
+  @apply [color:var(--on-inverse)];
 }
 .picker-count {
-  margin-left: auto;
-  font-weight: 600;
+  @apply [margin-left:auto];
+  @apply font-semibold;
 }
 .mp-card {
-  cursor: pointer;
-  padding: 0;
-  border: 0;
-  text-align: left;
-  font: inherit;
-  width: 100%;
+  @apply cursor-pointer;
+  @apply [padding:0];
+  @apply [border:0];
+  @apply text-left;
+  @apply [font:inherit];
+  @apply [width:100%];
 }
 .mp-card .rc-img {
-  height: 104px;
-  font-size: 38px;
+  @apply [height:104px];
+  @apply [font-size:38px];
 }
 .picker-empty {
-  grid-column: 1 / -1;
-  padding: 24px 2px;
-  font-weight: 600;
+  @apply [grid-column:1_/_-1];
+  @apply [padding:24px_2px];
+  @apply font-semibold;
 }
 
 /* recipe picker card actions (preview + select) */
 .mp-card {
-  cursor: pointer;
-  text-align: left;
+  @apply cursor-pointer;
+  @apply text-left;
 }
 .mp-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 12px;
+  @apply flex;
+  @apply [gap:8px];
+  @apply [margin-top:12px];
 }
 .mp-actions .pill {
-  cursor: pointer;
-  padding: 7px 14px;
-  font-size: 13.5px;
+  @apply cursor-pointer;
+  @apply [padding:7px_14px];
+  @apply [font-size:13.5px];
 }
 .mp-select {
-  color: var(--on-accent);
-  border: 0;
+  @apply [color:var(--on-accent)];
+  @apply [border:0];
 }
 
 /* remove (×) on a planned cell — always visible for touch (no hover needed) */
 .meal-remove {
-  position: absolute;
-  top: 6px;
-  left: 6px;
-  width: 22px;
-  height: 22px;
-  border: 0;
-  border-radius: 999px;
-  background: var(--gloss);
-  color: var(--ink);
-  font-size: 16px;
-  line-height: 1;
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  opacity: 0.55;
-  transition: opacity 0.12s, background 0.12s, color 0.12s;
+  @apply absolute;
+  @apply [top:6px];
+  @apply [left:6px];
+  @apply [width:22px];
+  @apply [height:22px];
+  @apply [border:0];
+  @apply [border-radius:999px];
+  @apply [background:var(--gloss)];
+  @apply [color:var(--ink)];
+  @apply [font-size:16px];
+  @apply [line-height:1];
+  @apply cursor-pointer;
+  @apply grid;
+  @apply [place-items:center];
+  @apply [opacity:0.55];
+  @apply [transition:opacity_0.12s,_background_0.12s,_color_0.12s];
 }
 .meal-remove:hover {
-  opacity: 1;
-  background: var(--card);
-  color: var(--primary-d);
+  @apply [opacity:1];
+  @apply [background:var(--card)];
+  @apply [color:var(--primary-d)];
 }
 
 /* ===== Plan my week (full-screen) ===== */
 .plan-screen {
-  position: relative;
-  display: grid;
-  grid-template-columns: 380px 1fr;
-  gap: 40px;
-  align-items: start;
-  height: 100%;
-  overflow: hidden;
-  padding: 6px 30px 0;
+  @apply relative;
+  @apply grid;
+  @apply [grid-template-columns:380px_1fr];
+  @apply [gap:40px];
+  @apply [align-items:start];
+  @apply [height:100%];
+  @apply overflow-hidden;
+  @apply [padding:6px_30px_0];
 }
 .plan-title {
-  font-size: 30px;
-  font-weight: 600;
-  line-height: 1.1;
+  @apply [font-size:30px];
+  @apply font-semibold;
+  @apply [line-height:1.1];
 }
 .plan-sub {
-  margin-top: 4px;
-  margin-bottom: 4px;
-  max-width: 360px;
+  @apply [margin-top:4px];
+  @apply [margin-bottom:4px];
+  @apply [max-width:360px];
 }
 .plan-config {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  overflow-y: auto;
-  max-height: 100%;
-  padding: 2px 6px 24px 2px;
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:14px];
+  @apply overflow-y-auto;
+  @apply [max-height:100%];
+  @apply [padding:2px_6px_24px_2px];
 }
 .plan-config .flabel {
-  margin: 6px 2px 0;
+  @apply [margin:6px_2px_0];
 }
 .seg-plantype {
-  display: flex;
-  width: 100%;
+  @apply flex;
+  @apply [width:100%];
 }
 .seg-plantype button {
-  flex: 1;
+  @apply [flex:1];
 }
 .plan-days {
-  display: flex;
-  gap: 8px;
+  @apply flex;
+  @apply [gap:8px];
 }
 .plan-day-chip {
-  flex: 1;
-  aspect-ratio: 1;
-  border: 0;
-  border-radius: 12px;
-  background: var(--panel);
-  color: var(--ink-2);
-  font: inherit;
-  font-weight: 700;
-  font-size: 15px;
-  cursor: pointer;
+  @apply [flex:1];
+  @apply [aspect-ratio:1];
+  @apply [border:0];
+  @apply [border-radius:12px];
+  @apply [background:var(--panel)];
+  @apply [color:var(--ink-2)];
+  @apply [font:inherit];
+  @apply font-bold;
+  @apply [font-size:15px];
+  @apply cursor-pointer;
 }
 .plan-day-chip.on {
-  background: var(--primary);
-  color: var(--on-accent);
+  @apply [background:var(--primary)];
+  @apply [color:var(--on-accent)];
 }
 .plan-card {
-  background: var(--card);
-  border-radius: var(--r-lg);
-  box-shadow: var(--sh-1);
-  padding: 16px 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  @apply [background:var(--card)];
+  @apply [border-radius:var(--r-lg)];
+  @apply [box-shadow:var(--sh-1)];
+  @apply [padding:16px_18px];
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:10px];
 }
 .plan-card .tiny {
-  font-weight: 700;
+  @apply font-bold;
 }
 /* Inside a plan card it's a single row — drop waffled.css's divider/padding so there's no
    orphan line under "Cooking for". */
 .plan-card .constraint {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 2px 0;
-  border-bottom: 0;
+  @apply flex;
+  @apply items-center;
+  @apply justify-between;
+  @apply [gap:10px];
+  @apply [padding:2px_0];
+  @apply [border-bottom:0];
 }
 .constraint .cl {
-  font-size: 14px;
-  font-weight: 650;
-  color: var(--ink);
+  @apply [font-size:14px];
+  @apply [font-weight:650];
+  @apply [color:var(--ink)];
 }
 
 /* "Library is smaller than the month" nudge in the month planner. */
 .plan-lib-hint {
-  background: color-mix(in srgb, var(--gold) 14%, var(--card));
-  border: 1px solid color-mix(in srgb, var(--gold) 35%, transparent);
-  border-radius: var(--r-md);
-  padding: 9px 12px;
-  font-weight: 600;
-  line-height: 1.4;
-  color: var(--ink-2);
+  @apply [background:color-mix(in_srgb,_var(--gold)_14%,_var(--card))];
+  @apply [border:1px_solid_color-mix(in_srgb,_var(--gold)_35%,_transparent)];
+  @apply [border-radius:var(--r-md)];
+  @apply [padding:9px_12px];
+  @apply font-semibold;
+  @apply [line-height:1.4];
+  @apply [color:var(--ink-2)];
 }
 
 /* ===== Plan-my-month extra guardrails ===== */
 .pm-toggle {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  font-size: 14px;
-  font-weight: 650;
-  color: var(--ink);
-  cursor: pointer;
+  @apply flex;
+  @apply items-center;
+  @apply [gap:9px];
+  @apply [font-size:14px];
+  @apply [font-weight:650];
+  @apply [color:var(--ink)];
+  @apply cursor-pointer;
 }
-.pm-toggle input { width: 17px; height: 17px; accent-color: var(--primary); cursor: pointer; }
-.pm-themes { display: flex; flex-direction: column; gap: 7px; }
-.pm-theme-row { display: flex; align-items: center; gap: 10px; }
-.pm-theme-dow { width: 38px; font-size: 13px; font-weight: 700; color: var(--ink-2); }
-.pm-theme-row .sel { flex: 1; }
-.pm-week { margin-bottom: 6px; }
+.pm-toggle input {
+  @apply [width:17px];
+  @apply [height:17px];
+  @apply [accent-color:var(--primary)];
+  @apply cursor-pointer;
+}
+.pm-themes {
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:7px];
+}
+.pm-theme-row {
+  @apply flex;
+  @apply items-center;
+  @apply [gap:10px];
+}
+.pm-theme-dow {
+  @apply [width:38px];
+  @apply [font-size:13px];
+  @apply font-bold;
+  @apply [color:var(--ink-2)];
+}
+.pm-theme-row .sel {
+  @apply [flex:1];
+}
+.pm-week {
+  @apply [margin-bottom:6px];
+}
 /* "was planned" tag on nights that were already on the calendar. */
 .pm-tag {
-  margin-left: 8px;
-  font-size: 10px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--ink-3);
-  background: var(--panel);
-  padding: 2px 6px;
-  border-radius: 999px;
-  vertical-align: middle;
+  @apply [margin-left:8px];
+  @apply [font-size:10px];
+  @apply font-extrabold;
+  @apply [text-transform:uppercase];
+  @apply [letter-spacing:0.04em];
+  @apply [color:var(--ink-3)];
+  @apply [background:var(--panel)];
+  @apply [padding:2px_6px];
+  @apply [border-radius:999px];
+  @apply [vertical-align:middle];
 }
 /* Drag-to-swap: a grip handle on each night; drag onto another night to swap. */
 .pm-grip {
-  flex: none;
-  align-self: center;
-  border: 0;
-  background: none;
-  color: var(--ink-3);
-  font-size: 16px;
-  line-height: 1;
-  padding: 4px 4px;
-  margin-right: 2px;
-  cursor: grab;
-  opacity: 0.45;
-  touch-action: none;
-  transition: opacity 0.12s ease;
+  @apply [flex:none];
+  @apply [align-self:center];
+  @apply [border:0];
+  @apply [background:none];
+  @apply [color:var(--ink-3)];
+  @apply [font-size:16px];
+  @apply [line-height:1];
+  @apply [padding:4px_4px];
+  @apply [margin-right:2px];
+  @apply [cursor:grab];
+  @apply [opacity:0.45];
+  @apply [touch-action:none];
+  @apply [transition:opacity_0.12s_ease];
 }
-.plan-day:hover .pm-grip { opacity: 0.8; }
-.pm-grip:hover { opacity: 1; }
-.pm-grip:active { cursor: grabbing; }
-.plan-day.pm-drop { outline: 2px dashed var(--primary); outline-offset: -2px; background: color-mix(in srgb, var(--primary) 8%, var(--card)); }
-.plan-day.pm-dragging { opacity: 0.5; }
+.plan-day:hover .pm-grip {
+  @apply [opacity:0.8];
+}
+.pm-grip:hover {
+  @apply [opacity:1];
+}
+.pm-grip:active {
+  @apply [cursor:grabbing];
+}
+.plan-day.pm-drop {
+  @apply [outline:2px_dashed_var(--primary)];
+  @apply [outline-offset:-2px];
+  @apply [background:color-mix(in_srgb,_var(--primary)_8%,_var(--card))];
+}
+.plan-day.pm-dragging {
+  @apply [opacity:0.5];
+}
 .pm-drag-ghost {
-  position: fixed;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  z-index: 9999;
-  background: var(--card);
-  border: 1px solid var(--hair);
-  box-shadow: var(--sh-2);
-  border-radius: 999px;
-  padding: 8px 15px;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--ink);
-  white-space: nowrap;
-  max-width: 280px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  @apply fixed;
+  @apply [transform:translate(-50%,_-50%)];
+  @apply pointer-events-none;
+  @apply [z-index:9999];
+  @apply [background:var(--card)];
+  @apply [border:1px_solid_var(--hair)];
+  @apply [box-shadow:var(--sh-2)];
+  @apply [border-radius:999px];
+  @apply [padding:8px_15px];
+  @apply [font-size:13px];
+  @apply font-bold;
+  @apply [color:var(--ink)];
+  @apply whitespace-nowrap;
+  @apply [max-width:280px];
+  @apply overflow-hidden;
+  @apply [text-overflow:ellipsis];
 }
-.pm-week-h { font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; margin: 10px 2px 6px; }
+.pm-week-h {
+  @apply font-extrabold;
+  @apply [text-transform:uppercase];
+  @apply [letter-spacing:0.04em];
+  @apply [margin:10px_2px_6px];
+}
 .use-up-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
+  @apply flex;
+  @apply flex-wrap;
+  @apply [gap:8px];
+  @apply items-center;
 }
 .use-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 11px;
-  border-radius: 999px;
-  background: var(--panel);
-  font-size: 13px;
-  font-weight: 650;
+  @apply inline-flex;
+  @apply items-center;
+  @apply [gap:6px];
+  @apply [padding:5px_11px];
+  @apply [border-radius:999px];
+  @apply [background:var(--panel)];
+  @apply [font-size:13px];
+  @apply [font-weight:650];
 }
 .use-chip b {
-  cursor: pointer;
-  color: var(--ink-3);
-  font-weight: 700;
+  @apply cursor-pointer;
+  @apply [color:var(--ink-3)];
+  @apply font-bold;
 }
 .use-add-input {
-  border: 0;
-  background: var(--panel);
-  border-radius: 999px;
-  padding: 6px 12px;
-  font: inherit;
-  font-size: 13px;
-  font-weight: 650;
-  width: 88px;
+  @apply [border:0];
+  @apply [background:var(--panel)];
+  @apply [border-radius:999px];
+  @apply [padding:6px_12px];
+  @apply [font:inherit];
+  @apply [font-size:13px];
+  @apply [font-weight:650];
+  @apply [width:88px];
 }
 /* Wider variant for inputs whose placeholder shows an example (e.g. "+ e.g. Thai green curry"). */
 .use-add-input.wide {
-  width: 190px;
+  @apply [width:190px];
 }
 .plan-keep {
-  border: 0;
-  background: var(--panel);
-  border-radius: 12px;
-  padding: 10px 12px;
-  font: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  resize: vertical;
-  color: var(--ink);
+  @apply [border:0];
+  @apply [background:var(--panel)];
+  @apply [border-radius:12px];
+  @apply [padding:10px_12px];
+  @apply [font:inherit];
+  @apply [font-size:13px];
+  @apply font-semibold;
+  @apply [resize:vertical];
+  @apply [color:var(--ink)];
 }
 
 /* right pane */
 .plan-results {
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  max-height: 100%;
-  padding: 2px 4px 24px 0;
+  @apply flex;
+  @apply flex-col;
+  @apply overflow-y-auto;
+  @apply [max-height:100%];
+  @apply [padding:2px_4px_24px_0];
 }
 .plan-results-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
+  @apply flex;
+  @apply items-center;
+  @apply justify-between;
+  @apply [margin-bottom:10px];
 }
 .plan-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:12px];
 }
 .plan-day {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  background: var(--card);
-  border-radius: var(--r-lg);
-  box-shadow: var(--sh-1);
-  border: 2px solid transparent;
-  padding: 12px 16px;
+  @apply relative;
+  @apply flex;
+  @apply items-center;
+  @apply [gap:16px];
+  @apply [background:var(--card)];
+  @apply [border-radius:var(--r-lg)];
+  @apply [box-shadow:var(--sh-1)];
+  @apply [border:2px_solid_transparent];
+  @apply [padding:12px_16px];
 }
 
 /* loading bits */
 .spinner {
-  display: inline-block;
-  vertical-align: middle;
-  width: 16px;
-  height: 16px;
-  border: 2.5px solid var(--hair);
-  border-top-color: var(--primary);
-  border-radius: 50%;
-  animation: waffled-spin 0.7s linear infinite;
+  @apply inline-block;
+  @apply [vertical-align:middle];
+  @apply [width:16px];
+  @apply [height:16px];
+  @apply [border:2.5px_solid_var(--hair)];
+  @apply [border-top-color:var(--primary)];
+  @apply [border-radius:50%];
+  @apply [animation:waffled-spin_0.7s_linear_infinite];
 }
 .spinner.lg {
-  width: 40px;
-  height: 40px;
-  border-width: 4px;
+  @apply [width:40px];
+  @apply [height:40px];
+  @apply [border-width:4px];
 }
 @keyframes waffled-spin {
   to {
@@ -732,196 +819,219 @@
   }
 }
 .pd-loading {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  display: grid;
-  place-items: center;
-  border-radius: var(--r-lg);
-  background: color-mix(in srgb, var(--card) 72%, transparent);
+  @apply absolute;
+  @apply [inset:0];
+  @apply [z-index:2];
+  @apply grid;
+  @apply [place-items:center];
+  @apply [border-radius:var(--r-lg)];
+  @apply [background:color-mix(in_srgb,_var(--card)_72%,_transparent)];
 }
 .plan-empty {
-  flex: 1;
-  min-height: 280px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 40px 20px;
-  gap: 2px;
+  @apply [flex:1];
+  @apply [min-height:280px];
+  @apply flex;
+  @apply flex-col;
+  @apply items-center;
+  @apply justify-center;
+  @apply text-center;
+  @apply [padding:40px_20px];
+  @apply [gap:2px];
 }
 .plan-empty-emoji {
-  font-size: 44px;
-  margin-bottom: 8px;
+  @apply [font-size:44px];
+  @apply [margin-bottom:8px];
 }
 .plan-day.locked {
-  border-color: var(--info);
+  @apply [border-color:var(--info)];
 }
 .pd-day {
-  width: 52px;
-  flex: none;
-  text-align: center;
+  @apply [width:52px];
+  @apply [flex:none];
+  @apply text-center;
 }
 .pd-dow {
-  font-size: 13px;
-  font-weight: 800;
-  color: var(--ink);
+  @apply [font-size:13px];
+  @apply font-extrabold;
+  @apply [color:var(--ink)];
 }
 .pd-dt {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--ink-3);
+  @apply [font-size:12px];
+  @apply font-semibold;
+  @apply [color:var(--ink-3)];
 }
 .pd-img {
-  width: 56px;
-  height: 56px;
-  flex: none;
-  border-radius: 14px;
-  display: grid;
-  place-items: center;
-  font-size: 30px;
-  background: linear-gradient(135deg, #f3ead9, #e9dcc4);
+  @apply [width:56px];
+  @apply [height:56px];
+  @apply [flex:none];
+  @apply [border-radius:14px];
+  @apply grid;
+  @apply [place-items:center];
+  @apply [font-size:30px];
+  @apply [background:linear-gradient(135deg,_#f3ead9,_#e9dcc4)];
 }
 .pd-b {
-  flex: 1;
-  min-width: 0;
+  @apply [flex:1];
+  @apply [min-width:0];
 }
 .pd-t {
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--ink);
+  @apply [font-size:17px];
+  @apply font-bold;
+  @apply [color:var(--ink)];
 }
 .pd-m {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ink-3);
-  margin-top: 1px;
+  @apply [font-size:13px];
+  @apply font-semibold;
+  @apply [color:var(--ink-3)];
+  @apply [margin-top:1px];
 }
 .plan-day .reason {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  margin-top: 7px;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: var(--info-t);
-  color: var(--info-tx);
-  font-size: 12px;
-  font-weight: 700;
+  @apply inline-flex;
+  @apply items-center;
+  @apply [gap:5px];
+  @apply [margin-top:7px];
+  @apply [padding:3px_10px];
+  @apply [border-radius:999px];
+  @apply [background:var(--info-t)];
+  @apply [color:var(--info-tx)];
+  @apply [font-size:12px];
+  @apply font-bold;
 }
 .plan-day .reason svg {
-  width: 13px;
-  height: 13px;
+  @apply [width:13px];
+  @apply [height:13px];
 }
 .pd-act {
-  display: flex;
-  gap: 8px;
-  flex: none;
+  @apply flex;
+  @apply [gap:8px];
+  @apply [flex:none];
 }
 .pd-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: 11px;
-  border: 0;
-  background: var(--panel);
-  font-size: 17px;
-  cursor: pointer;
-  display: grid;
-  place-items: center;
+  @apply [width:38px];
+  @apply [height:38px];
+  @apply [border-radius:11px];
+  @apply [border:0];
+  @apply [background:var(--panel)];
+  @apply [font-size:17px];
+  @apply cursor-pointer;
+  @apply grid;
+  @apply [place-items:center];
 }
 .pd-icon.on {
-  background: color-mix(in srgb, var(--info) 16%, transparent);
+  @apply [background:color-mix(in_srgb,_var(--info)_16%,_transparent)];
 }
 .plan-foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-top: 18px;
-  padding: 16px;
-  background: var(--card);
-  border-radius: var(--r-lg);
-  box-shadow: var(--sh-1);
+  @apply flex;
+  @apply items-center;
+  @apply justify-between;
+  @apply [gap:16px];
+  @apply [margin-top:18px];
+  @apply [padding:16px];
+  @apply [background:var(--card)];
+  @apply [border-radius:var(--r-lg)];
+  @apply [box-shadow:var(--sh-1)];
 }
 
 .pd-main {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex: 1;
-  min-width: 0;
+  @apply flex;
+  @apply items-center;
+  @apply [gap:16px];
+  @apply [flex:1];
+  @apply [min-width:0];
 }
 .pd-main.clickable {
-  cursor: pointer;
+  @apply cursor-pointer;
 }
 .pd-main.clickable:hover .pd-t {
-  text-decoration: underline;
+  @apply [text-decoration:underline];
 }
 
 /* manual swap: full-cover overlay hosting the shared recipe browser */
 .plan-pick-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 40;
-  background: var(--bg);
-  display: flex;
-  flex-direction: column;
-  padding: 6px 30px 0;
-  overflow: hidden;
+  @apply absolute;
+  @apply [inset:0];
+  @apply [z-index:40];
+  @apply [background:var(--bg)];
+  @apply flex;
+  @apply flex-col;
+  @apply [padding:6px_30px_0];
+  @apply overflow-hidden;
 }
 .plan-pick-head {
-  display: flex;
-  align-items: center;
-  margin-bottom: 12px;
-  flex: none;
+  @apply flex;
+  @apply items-center;
+  @apply [margin-bottom:12px];
+  @apply [flex:none];
 }
 .plan-pick-overlay .meals-picker {
-  flex: 1;
-  min-height: 0;
+  @apply [flex:1];
+  @apply [min-height:0];
 }
 
 /* Narrow / mobile: stack the two panes and let the whole screen scroll. */
 @media (max-width: 860px) {
   .plan-screen {
-    grid-template-columns: 1fr;
-    overflow-y: auto;
-    padding: 6px 16px 16px;
-    gap: 18px;
+    @apply [grid-template-columns:1fr];
+    @apply overflow-y-auto;
+    @apply [padding:6px_16px_16px];
+    @apply [gap:18px];
   }
   .plan-config,
   .plan-results {
-    overflow: visible;
-    max-height: none;
-    padding: 0;
+    @apply [overflow:visible];
+    @apply [max-height:none];
+    @apply [padding:0];
   }
   .plan-day {
-    gap: 12px;
-    padding: 12px;
+    @apply [gap:12px];
+    @apply [padding:12px];
   }
   .pd-img {
-    width: 48px;
-    height: 48px;
-    font-size: 26px;
+    @apply [width:48px];
+    @apply [height:48px];
+    @apply [font-size:26px];
   }
   .plan-foot {
-    flex-direction: column;
-    align-items: stretch;
+    @apply flex-col;
+    @apply items-stretch;
   }
   .plan-foot .btn {
-    width: 100%;
-    justify-content: center;
+    @apply [width:100%];
+    @apply justify-center;
   }
 }
 
 /* Phone: the week grid shrinks to the screen — seven ~43px days beside a slim label gutter. */
 @media (max-width: 720px) {
-  .meals-screen { padding: 0 16px 20px; }
-  .meals-grid { grid-template-columns: 22px repeat(7, minmax(0, 1fr)); gap: 4px; }
-  .meals-dow .dow { font-size: 13px; }
-  .meals-dow .date { font-size: 11px; }
-  .meals-rowlabel span { font-size: 12px; }
-  .meals-cell { padding: 6px 3px; border-radius: 12px; }
-  .meals-cell .meal-t { font-size: 11px; -webkit-line-clamp: 4; }
-  .meals-cell .meal-cook { top: 3px; right: 3px; width: 18px; height: 18px; font-size: 10px; }
+  .meals-screen {
+    @apply [padding:0_16px_20px];
+  }
+  .meals-grid {
+    @apply [grid-template-columns:22px_repeat(7,_minmax(0,_1fr))];
+    @apply [gap:4px];
+  }
+  .meals-dow .dow {
+    @apply [font-size:13px];
+  }
+  .meals-dow .date {
+    @apply [font-size:11px];
+  }
+  .meals-rowlabel span {
+    @apply [font-size:12px];
+  }
+  .meals-cell {
+    @apply [padding:6px_3px];
+    @apply [border-radius:12px];
+  }
+  .meals-cell .meal-t {
+    @apply [font-size:11px];
+    @apply [-webkit-line-clamp:4];
+  }
+  .meals-cell .meal-cook {
+    @apply [top:3px];
+    @apply [right:3px];
+    @apply [width:18px];
+    @apply [height:18px];
+    @apply [font-size:10px];
+  }
 }

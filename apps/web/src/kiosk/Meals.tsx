@@ -19,6 +19,8 @@ import {
 } from '../lib/api'
 import { isEatingOut, isLeftovers, isTryNew } from './components/MealsColumn'
 import '../styles/meals.css'
+import { Button } from '@/components/ui/button'
+import { DataIcon } from '@/components/ui/data-icon'
 
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 // The weekday headings, read from whichever day the household starts its week on.
@@ -46,32 +48,54 @@ function addDays(d: Date, n: number): Date {
   return x
 }
 
-function PlannedCell({ entry, mealType, slotKey, onOpen, onRemove }: { entry: WeekEntry; mealType: MealType; slotKey: string; onOpen: () => void; onRemove: () => void }) {
+function PlannedCell({
+  entry,
+  mealType,
+  slotKey,
+  onOpen,
+  onRemove,
+}: {
+  entry: WeekEntry
+  mealType: MealType
+  slotKey: string
+  onOpen: () => void
+  onRemove: () => void
+}) {
   const title = entry.recipe?.title ?? entry.title ?? 'Planned'
   return (
-    <div className={`meals-cell ${mealType}`} data-slot={slotKey} data-planned="1" onClick={onOpen} role="button" tabIndex={0} aria-label={`${MEAL_LABEL[mealType]}: ${title}`}>
+    <div
+      className={`meals-cell ${mealType}`}
+      data-meal-slot=""
+      data-slot={slotKey}
+      data-planned="1"
+      onClick={onOpen}
+      role="button"
+      tabIndex={0}
+      aria-label={`${MEAL_LABEL[mealType]}: ${title}`}
+    >
       {entry.cook && (
         <div
           className="meal-cook"
           style={{ background: entry.cook.colorHex ? `${entry.cook.colorHex}22` : undefined }}
           title={entry.cook.name ? `Cooking: ${entry.cook.name}` : 'Cooking'}
         >
-          {entry.cook.avatarEmoji ?? '🧑‍🍳'}
+          <DataIcon value={entry.cook.avatarEmoji ?? '🧑‍🍳'} kind="person" />
         </div>
       )}
       <Editable>
-      <button
-        type="button"
-        className="meal-remove"
-        aria-label={`Remove ${title}`}
-        title="Remove from this day"
-        onClick={(e) => {
-          e.stopPropagation()
-          onRemove()
-        }}
-      >
-        ×
-      </button>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="meal-remove"
+          aria-label={`Remove ${title}`}
+          title="Remove from this day"
+          onClick={(e) => {
+            e.stopPropagation()
+            onRemove()
+          }}
+        >
+          <DataIcon value={'×'} kind="meal" />
+        </Button>
       </Editable>
       <div className="meal-t">{title}</div>
     </div>
@@ -80,9 +104,17 @@ function PlannedCell({ entry, mealType, slotKey, onOpen, onRemove }: { entry: We
 
 function AddCell({ onAdd, label, slotKey }: { onAdd: () => void; label: string; slotKey: string }) {
   // Kiosk mode keeps the grid's shape but drops the tap-to-plan target.
-  if (useViewOnly()) return <div className="meals-cell" data-slot={slotKey} />
+  if (useViewOnly()) return <div className="meals-cell" data-meal-slot="" data-slot={slotKey} />
   return (
-    <div className="meals-cell meals-add" data-slot={slotKey} onClick={onAdd} role="button" tabIndex={0} aria-label={label}>
+    <div
+      className="meals-cell meals-add"
+      data-meal-slot=""
+      data-slot={slotKey}
+      onClick={onAdd}
+      role="button"
+      tabIndex={0}
+      aria-label={label}
+    >
       <Icon name="plus" />
     </div>
   )
@@ -123,7 +155,11 @@ function MealPicker({
   useTopbarFull(
     () => (
       <>
-        <div className="pill" onClick={onClose} style={{ padding: '9px 14px 9px 11px', cursor: 'pointer' }}>
+        <div
+          className="pill"
+          onClick={onClose}
+          style={{ padding: '9px 14px 9px 11px', cursor: 'pointer' }}
+        >
           <Icon name="cl" />
           Meals
         </div>
@@ -142,7 +178,7 @@ function MealPicker({
         </div>
       </>
     ),
-    [slot, dayLabel]
+    [slot, dayLabel],
   )
 
   return (
@@ -178,7 +214,11 @@ export function Meals() {
   // One anchor date; the week view reads its week, the month view its month.
   const [anchor, setAnchor] = useState<Date>(() => new Date())
   const [filter, setFilter] = useState<'all' | 'dinner'>('all')
-  const [picking, setPicking] = useState<{ date: string; mealType: MealType; dayLabel: string } | null>(null)
+  const [picking, setPicking] = useState<{
+    date: string
+    mealType: MealType
+    dayLabel: string
+  } | null>(null)
   const [planning, setPlanning] = useState(false)
   const [planningMonth, setPlanningMonth] = useState(false)
   // "Plan from pantry" (from the Pantry screen) seeds the planner with use-up items.
@@ -187,7 +227,15 @@ export function Meals() {
     const raw = sessionStorage.getItem('waffled.planUseUp')
     if (raw) {
       sessionStorage.removeItem('waffled.planUseUp')
-      try { const items = JSON.parse(raw); if (Array.isArray(items) && items.length) { setSeedUseUp(items); setPlanning(true) } } catch { /* ignore */ }
+      try {
+        const items = JSON.parse(raw)
+        if (Array.isArray(items) && items.length) {
+          setSeedUseUp(items)
+          setPlanning(true)
+        }
+      } catch {
+        /* ignore */
+      }
     }
   }, [])
 
@@ -208,8 +256,14 @@ export function Meals() {
   const { entries, refetch, mutate } = useMealsWeek(fetchStart, fetchDays)
   const { recipes, loading: recipesLoading } = useRecipes()
 
-  const days = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(weekStartD, i)), [weekStartD])
-  const monthCells = useMemo(() => Array.from({ length: 42 }, (_, i) => addDays(gridStartD, i)), [gridStartD])
+  const days = useMemo(
+    () => Array.from({ length: 7 }, (_, i) => addDays(weekStartD, i)),
+    [weekStartD],
+  )
+  const monthCells = useMemo(
+    () => Array.from({ length: 42 }, (_, i) => addDays(gridStartD, i)),
+    [gridStartD],
+  )
 
   // entries keyed by `${date}|${mealType}`.
   const bySlot = useMemo(() => {
@@ -256,7 +310,11 @@ export function Meals() {
 
   async function planTrySomething() {
     if (!picking) return
-    await api.planSlot({ date: picking.date, mealType: picking.mealType, title: 'Try something new' })
+    await api.planSlot({
+      date: picking.date,
+      mealType: picking.mealType,
+      title: 'Try something new',
+    })
     setPicking(null)
     refetch()
   }
@@ -294,11 +352,21 @@ export function Meals() {
 
   // `quiet` writes don't tap the refetch bus (used for the first of the two swap
   // writes so the half-swapped state never flashes).
-  async function putSlot(date: string, mealType: string, entry: WeekEntry | undefined, quiet = false) {
+  async function putSlot(
+    date: string,
+    mealType: string,
+    entry: WeekEntry | undefined,
+    quiet = false,
+  ) {
     if (entry) {
       const slot = entry.recipeId
         ? { date, mealType, recipeId: entry.recipeId, cookPersonId: entry.cook?.personId ?? null }
-        : { date, mealType, title: entry.title ?? 'Planned', cookPersonId: entry.cook?.personId ?? null }
+        : {
+            date,
+            mealType,
+            title: entry.title ?? 'Planned',
+            cookPersonId: entry.cook?.personId ?? null,
+          }
       await (quiet ? api.planSlotQuiet : api.planSlot)(slot)
     } else {
       await (quiet ? api.clearSlotQuiet : api.clearSlot)(date, mealType)
@@ -319,7 +387,13 @@ export function Meals() {
     // Stash the label for the ghost (only shown once a drag actually starts).
     pendingLabel.current = {
       emoji: entry.recipe?.emoji ?? (out ? '🍴' : left ? '🥡' : tryNew ? '✨' : '🍽️'),
-      title: out ? 'Eating out' : left ? 'Leftovers' : tryNew ? 'Try something new' : entry.recipe?.title ?? entry.title ?? 'Planned',
+      title: out
+        ? 'Eating out'
+        : left
+          ? 'Leftovers'
+          : tryNew
+            ? 'Try something new'
+            : (entry.recipe?.title ?? entry.title ?? 'Planned'),
     }
   }
 
@@ -342,7 +416,9 @@ export function Meals() {
           dragKeyRef.current = pending.current.key
           setDragLabel(pendingLabel.current)
           document.body.style.userSelect = 'none'
-          document.querySelector(`[data-slot="${CSS.escape(pending.current.key)}"]`)?.classList.add('slot-dragging')
+          document
+            .querySelector(`[data-slot="${CSS.escape(pending.current.key)}"]`)
+            ?.classList.add('slot-dragging')
         }
       }
       if (dragKeyRef.current) {
@@ -351,7 +427,7 @@ export function Meals() {
           ghostRef.current.style.top = `${e.clientY}px`
         }
         const el = document.elementFromPoint(e.clientX, e.clientY)
-        const cell = el && (el as Element).closest('[data-slot]')
+        const cell = el && (el as Element).closest('[data-meal-slot]')
         const k = cell ? cell.getAttribute('data-slot') : null
         if (k !== overRef.current) {
           document.querySelectorAll('.slot-drop').forEach((n) => n.classList.remove('slot-drop'))
@@ -371,7 +447,9 @@ export function Meals() {
         // Optimistic: swap the two slots' content locally so the grid updates the
         // instant you drop — no round-trip delay, no half-swapped flash.
         mutate((prev) => {
-          const rest = prev.filter((e) => `${e.date}|${e.mealType}` !== src && `${e.date}|${e.mealType}` !== tgt)
+          const rest = prev.filter(
+            (e) => `${e.date}|${e.mealType}` !== src && `${e.date}|${e.mealType}` !== tgt,
+          )
           const out = [...rest]
           if (a) out.push({ ...a, date: td, mealType: tm })
           if (b) out.push({ ...b, date: sd, mealType: sm })
@@ -388,7 +466,9 @@ export function Meals() {
           }
         })()
       }
-      document.querySelectorAll('.slot-drop, .slot-dragging').forEach((n) => n.classList.remove('slot-drop', 'slot-dragging'))
+      document
+        .querySelectorAll('.slot-drop, .slot-dragging')
+        .forEach((n) => n.classList.remove('slot-drop', 'slot-dragging'))
       document.body.style.userSelect = ''
       pending.current = null
       dragKeyRef.current = null
@@ -396,7 +476,9 @@ export function Meals() {
       setDragLabel(null)
     }
     const cancel = () => {
-      document.querySelectorAll('.slot-drop, .slot-dragging').forEach((n) => n.classList.remove('slot-drop', 'slot-dragging'))
+      document
+        .querySelectorAll('.slot-drop, .slot-dragging')
+        .forEach((n) => n.classList.remove('slot-drop', 'slot-dragging'))
       document.body.style.userSelect = ''
       pending.current = null
       dragKeyRef.current = null
@@ -416,11 +498,28 @@ export function Meals() {
   const rows: MealType[] = filter === 'dinner' ? ['dinner'] : [...MEALS]
 
   if (planning) {
-    return <PlanWeek startStr={startStr} days={days} initialUseUp={seedUseUp} onClose={() => { setPlanning(false); setSeedUseUp([]) }} onApplied={refetch} />
+    return (
+      <PlanWeek
+        startStr={startStr}
+        days={days}
+        initialUseUp={seedUseUp}
+        onClose={() => {
+          setPlanning(false)
+          setSeedUseUp([])
+        }}
+        onApplied={refetch}
+      />
+    )
   }
 
   if (planningMonth) {
-    return <PlanMonth monthStart={ymd(monthStartD)} onClose={() => setPlanningMonth(false)} onApplied={refetch} />
+    return (
+      <PlanMonth
+        monthStart={ymd(monthStartD)}
+        onClose={() => setPlanningMonth(false)}
+        onApplied={refetch}
+      />
+    )
   }
 
   if (picking) {
@@ -445,45 +544,111 @@ export function Meals() {
   return (
     <div className="meals-screen">
       <div className="meals-head">
-        <div className="card-h wf-serif" style={{ fontSize: 20 }}>{view === 'month' ? monthLabel : 'Meal plan'}</div>
+        <div className="card-h wf-serif" style={{ fontSize: 20 }}>
+          {view === 'month' ? monthLabel : 'Meal plan'}
+        </div>
         <div className="seg">
-          <button className={view === 'week' ? 'on' : ''} onClick={() => setView('week')}>Week</button>
-          <button className={view === 'month' ? 'on' : ''} onClick={() => setView('month')}>Month</button>
+          <Button
+            variant="unstyled"
+            className={view === 'week' ? 'on' : ''}
+            onClick={() => setView('week')}
+          >
+            Week
+          </Button>
+          <Button
+            variant="unstyled"
+            className={view === 'month' ? 'on' : ''}
+            onClick={() => setView('month')}
+          >
+            Month
+          </Button>
         </div>
         {view === 'week' && (
           <div className="seg">
-            <button className={filter === 'all' ? 'on' : ''} onClick={() => setFilter('all')}>All meals</button>
-            <button className={filter === 'dinner' ? 'on' : ''} onClick={() => setFilter('dinner')}>Dinners</button>
+            <Button
+              variant="unstyled"
+              className={filter === 'all' ? 'on' : ''}
+              onClick={() => setFilter('all')}
+            >
+              All meals
+            </Button>
+            <Button
+              variant="unstyled"
+              className={filter === 'dinner' ? 'on' : ''}
+              onClick={() => setFilter('dinner')}
+            >
+              Dinners
+            </Button>
           </div>
         )}
-        <button type="button" className="pill" style={{ cursor: 'pointer' }} onClick={() => navigate('/meals/recipes')}>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="pill"
+          style={{ cursor: 'pointer' }}
+          onClick={() => navigate('/meals/recipes')}
+        >
           <Icon name="recipes" />
           <span>Explore recipes</span>
-        </button>
+        </Button>
         <Editable>
-          <button type="button" className="btn btn-ai" style={{ fontSize: 14, padding: '10px 18px' }} onClick={() => (view === 'month' ? setPlanningMonth(true) : setPlanning(true))}>
+          <Button
+            variant="ai"
+            type="button"
+            style={{ fontSize: 14, padding: '10px 18px' }}
+            onClick={() => (view === 'month' ? setPlanningMonth(true) : setPlanning(true))}
+          >
             <Icon name="spark" />
             {view === 'month' ? 'Plan my month' : 'Plan my week'}
-          </button>
+          </Button>
         </Editable>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 10, alignItems: 'center' }}>
-          <button type="button" className="pill meals-nav" aria-label={view === 'month' ? 'Previous month' : 'Previous week'} onClick={() => step(-1)}>
+          <Button
+            variant="unstyled"
+            type="button"
+            className="pill meals-nav"
+            aria-label={view === 'month' ? 'Previous month' : 'Previous week'}
+            onClick={() => step(-1)}
+          >
             <Icon name="cl" />
-          </button>
-          <button type="button" className="pill" onClick={() => setAnchor(new Date())}>{view === 'month' ? 'This month' : 'This week'}</button>
-          <button type="button" className="pill meals-nav" aria-label={view === 'month' ? 'Next month' : 'Next week'} onClick={() => step(1)}>
+          </Button>
+          <Button
+            variant="unstyled"
+            type="button"
+            className="pill"
+            onClick={() => setAnchor(new Date())}
+          >
+            {view === 'month' ? 'This month' : 'This week'}
+          </Button>
+          <Button
+            variant="unstyled"
+            type="button"
+            className="pill meals-nav"
+            aria-label={view === 'month' ? 'Next month' : 'Next week'}
+            onClick={() => step(1)}
+          >
             <Icon name="cr" />
-          </button>
+          </Button>
         </div>
       </div>
       <div className="meals-hint">
-        {viewOnly ? 'Tap a meal for the recipe' : view === 'month' ? 'Dinners for the month · tap a night to add or open a recipe · drag a meal onto another day to swap' : "Tap a meal for the recipe · tap + to add one · drag a meal to another slot to swap"}
+        {viewOnly
+          ? 'Tap a meal for the recipe'
+          : view === 'month'
+            ? 'Dinners for the month · tap a night to add or open a recipe · drag a meal onto another day to swap'
+            : 'Tap a meal for the recipe · tap + to add one · drag a meal to another slot to swap'}
       </div>
 
       {view === 'month' ? (
-        <div className="meals-month" onPointerDown={gridPointerDown} onClickCapture={gridClickCapture}>
+        <div
+          className="meals-month"
+          onPointerDown={gridPointerDown}
+          onClickCapture={gridClickCapture}
+        >
           {dowLabels.map((d) => (
-            <div key={d} className="mm-dow">{d}</div>
+            <div key={d} className="mm-dow">
+              {d}
+            </div>
           ))}
           {monthCells.map((d) => {
             const dateStr = ymd(d)
@@ -512,7 +677,12 @@ export function Meals() {
           })}
         </div>
       ) : (
-        <div className="meals-grid" style={{ gridTemplateRows: `auto repeat(${rows.length}, 1fr)` }} onPointerDown={gridPointerDown} onClickCapture={gridClickCapture}>
+        <div
+          className="meals-grid"
+          style={{ gridTemplateRows: `auto repeat(${rows.length}, 1fr)` }}
+          onPointerDown={gridPointerDown}
+          onClickCapture={gridClickCapture}
+        >
           <div />
           {days.map((d) => (
             <div key={d.toISOString()} className="meals-dow">
@@ -538,7 +708,7 @@ export function Meals() {
 
       {dragLabel && (
         <div className="grid-drag-ghost" ref={ghostRef}>
-          {dragLabel.emoji ? `${dragLabel.emoji} ` : ''}
+          {dragLabel.emoji ? <>{<DataIcon value={dragLabel.emoji} kind="meal" />} </> : ''}
           {dragLabel.title}
         </div>
       )}
@@ -571,31 +741,50 @@ function MonthCell({
   const out = entry ? isEatingOut(entry) : false
   const left = entry ? isLeftovers(entry) : false
   const tryNew = entry ? isTryNew(entry) : false
-  const title = out ? 'Eating out' : tryNew ? 'Try something new' : entry?.recipe?.title ?? entry?.title ?? null
+  const title = out
+    ? 'Eating out'
+    : tryNew
+      ? 'Try something new'
+      : (entry?.recipe?.title ?? entry?.title ?? null)
   const emoji = entry?.recipe?.emoji ?? (out ? '🍴' : left ? '🥡' : tryNew ? '✨' : '🍽️')
   return (
-    <div className={`mm-cell ${inMonth ? '' : 'mm-out'} ${isToday ? 'mm-today' : ''}`} data-slot={slotKey} data-planned={entry ? '1' : undefined} onClick={entry ? onOpen : onAdd} role="button" tabIndex={0}>
+    <div
+      className={`mm-cell ${inMonth ? '' : 'mm-out'} ${isToday ? 'mm-today' : ''}`}
+      data-meal-slot=""
+      data-slot={slotKey}
+      data-planned={entry ? '1' : undefined}
+      onClick={entry ? onOpen : onAdd}
+      role="button"
+      tabIndex={0}
+    >
       <div className="mm-date">{date.getDate()}</div>
       {entry ? (
         <div className="mm-meal" title={title ?? undefined}>
-          <span className="mm-emoji">{emoji}</span>
+          <span className="mm-emoji">
+            <DataIcon value={emoji} kind="meal" />
+          </span>
           <span className="mm-title">{title}</span>
           <Editable>
-          <button
-            type="button"
-            className="mm-remove"
-            aria-label="Remove dinner"
-            onClick={(e) => {
-              e.stopPropagation()
-              onRemove()
-            }}
-          >
-            ×
-          </button>
+            <Button
+              variant="unstyled"
+              type="button"
+              className="mm-remove"
+              aria-label="Remove dinner"
+              onClick={(e) => {
+                e.stopPropagation()
+                onRemove()
+              }}
+            >
+              <DataIcon value={'×'} kind="meal" />
+            </Button>
           </Editable>
         </div>
       ) : (
-        inMonth && <div className="mm-add"><Icon name="plus" /></div>
+        inMonth && (
+          <div className="mm-add">
+            <Icon name="plus" />
+          </div>
+        )
       )}
     </div>
   )
@@ -635,7 +824,13 @@ function Row({
               slotKey={`${dateStr}|${mealType}`}
               // A plate → open the plate; a recipe → open it; neither ("Fish" /
               // eating-out) → the slot picker, so you can attach something.
-              onOpen={() => (entry.mealId ? onOpenMeal(entry.mealId) : entry.recipeId ? onOpen(entry.recipeId) : onAdd(d))}
+              onOpen={() =>
+                entry.mealId
+                  ? onOpenMeal(entry.mealId)
+                  : entry.recipeId
+                    ? onOpen(entry.recipeId)
+                    : onAdd(d)
+              }
               onRemove={() => onRemove(dateStr, mealType)}
             />
           )

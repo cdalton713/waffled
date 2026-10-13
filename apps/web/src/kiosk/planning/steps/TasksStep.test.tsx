@@ -40,17 +40,40 @@ beforeEach(() => {
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(new Date('2026-09-03T12:00:00Z')) // the Thursday before WEEK
 })
-afterEach(() => { vi.useRealTimers() })
+afterEach(() => {
+  vi.useRealTimers()
+})
 interface Card {
-  id: string; title: string; emoji: string | null; rrule: string | null; cadence: string
-  days: string[]; dueOn: string | null; dueTime: string | null; carriedOver: boolean
-  rewardAmount: number; rewardCurrency: string; pendingInstanceIds: string[]
-  requiresApproval: boolean; requiresPhoto: boolean; completableInstanceId: string | null
+  id: string
+  title: string
+  emoji: string | null
+  rrule: string | null
+  cadence: string
+  days: string[]
+  dueOn: string | null
+  dueTime: string | null
+  carriedOver: boolean
+  rewardAmount: number
+  rewardCurrency: string
+  pendingInstanceIds: string[]
+  requiresApproval: boolean
+  requiresPhoto: boolean
+  completableInstanceId: string | null
 }
 const chore = (over: Partial<Card> & { id: string; title: string }): Card => ({
-  emoji: null, rrule: null, cadence: 'once', days: [], dueOn: null, dueTime: null,
-  carriedOver: false, rewardAmount: 0, rewardCurrency: 'stars', pendingInstanceIds: [],
-  requiresApproval: false, requiresPhoto: false, completableInstanceId: null,
+  emoji: null,
+  rrule: null,
+  cadence: 'once',
+  days: [],
+  dueOn: null,
+  dueTime: null,
+  carriedOver: false,
+  rewardAmount: 0,
+  rewardCurrency: 'stars',
+  pendingInstanceIds: [],
+  requiresApproval: false,
+  requiresPhoto: false,
+  completableInstanceId: null,
   ...over,
 })
 
@@ -60,28 +83,103 @@ const BOARD = {
   newTaskDay: WEEK,
   people: [
     {
-      id: 'p1', name: 'Kevin', avatarEmoji: '🧔', colorHex: '#7A5AF8', memberType: 'adult', isAdmin: true,
+      id: 'p1',
+      name: 'Kevin',
+      avatarEmoji: '🧔',
+      colorHex: '#7A5AF8',
+      memberType: 'adult',
+      isAdmin: true,
       recurringChores: 4,
-      chores: [chore({ id: 'k1', title: 'Dishes', cadence: 'daily', rrule: 'FREQ=DAILY', days: ['2026-09-06', '2026-09-07', '2026-09-08', '2026-09-09', '2026-09-10', '2026-09-11', '2026-09-12'], pendingInstanceIds: ['i7', 'i8'] })],
+      chores: [
+        chore({
+          id: 'k1',
+          title: 'Dishes',
+          cadence: 'daily',
+          rrule: 'FREQ=DAILY',
+          days: [
+            '2026-09-06',
+            '2026-09-07',
+            '2026-09-08',
+            '2026-09-09',
+            '2026-09-10',
+            '2026-09-11',
+            '2026-09-12',
+          ],
+          pendingInstanceIds: ['i7', 'i8'],
+        }),
+      ],
     },
     {
-      id: 'p2', name: 'Wally', avatarEmoji: '🐢', colorHex: '#25A368', memberType: 'kid', isAdmin: false,
+      id: 'p2',
+      name: 'Wally',
+      avatarEmoji: '🐢',
+      colorHex: '#25A368',
+      memberType: 'kid',
+      isAdmin: false,
       recurringChores: 1,
-      chores: [chore({ id: 'w1', title: 'Vacuum upstairs', cadence: 'weekly', rrule: 'FREQ=WEEKLY;BYDAY=WE', days: ['2026-09-09'], dueTime: '18:00', requiresApproval: true, completableInstanceId: 'i-vac' })],
+      chores: [
+        chore({
+          id: 'w1',
+          title: 'Vacuum upstairs',
+          cadence: 'weekly',
+          rrule: 'FREQ=WEEKLY;BYDAY=WE',
+          days: ['2026-09-09'],
+          dueTime: '18:00',
+          requiresApproval: true,
+          completableInstanceId: 'i-vac',
+        }),
+      ],
     },
     {
-      id: 'p3', name: 'Lottie', avatarEmoji: '🦊', colorHex: '#E0653F', memberType: 'kid', isAdmin: false,
+      id: 'p3',
+      name: 'Lottie',
+      avatarEmoji: '🦊',
+      colorHex: '#E0653F',
+      memberType: 'kid',
+      isAdmin: false,
       recurringChores: 0,
-      chores: [chore({ id: 'l1', title: 'Renew the passport', carriedOver: true, completableInstanceId: 'i-pass' })],
+      chores: [
+        chore({
+          id: 'l1',
+          title: 'Renew the passport',
+          carriedOver: true,
+          completableInstanceId: 'i-pass',
+        }),
+      ],
     },
   ],
   unassigned: [
-    chore({ id: 'c1', title: 'Sweep the porch', emoji: '🧹', cadence: 'weekly', rrule: 'FREQ=WEEKLY;BYDAY=SU', days: [WEEK], rewardAmount: 2, pendingInstanceIds: ['i1', 'i2'] }),
+    chore({
+      id: 'c1',
+      title: 'Sweep the porch',
+      emoji: '🧹',
+      cadence: 'weekly',
+      rrule: 'FREQ=WEEKLY;BYDAY=SU',
+      days: [WEEK],
+      rewardAmount: 2,
+      pendingInstanceIds: ['i1', 'i2'],
+    }),
     chore({ id: 'c2', title: 'Fold the towels', emoji: '🧺', rewardAmount: 1 }),
   ],
   rhythms: [
-    { id: 'r1', title: 'Water the plants', emoji: '🪴', personId: 'p2', detail: 'Due Wed', overdue: false, canComplete: true },
-    { id: 'r2', title: 'Book the dentist', emoji: null as string | null, personId: null as string | null, detail: 'Not booked yet', overdue: false, canComplete: false },
+    {
+      id: 'r1',
+      title: 'Water the plants',
+      emoji: '🪴',
+      personId: 'p2',
+      detail: 'Due Wed',
+      overdue: false,
+      canComplete: true,
+    },
+    {
+      id: 'r2',
+      title: 'Book the dentist',
+      emoji: null as string | null,
+      personId: null as string | null,
+      detail: 'Not booked yet',
+      overdue: false,
+      canComplete: false,
+    },
   ],
 }
 
@@ -89,7 +187,9 @@ let calls: { url: string; method: string; body: Record<string, unknown> | null }
 
 // A STATEFUL double: a PATCH really moves the chore, so what the screen shows after a
 // hand-out is the re-read rather than component bookkeeping.
-function mockApi(opts: { capabilities?: string[]; unassigned?: unknown[]; rhythms?: unknown[] } = {}) {
+function mockApi(
+  opts: { capabilities?: string[]; unassigned?: unknown[]; rhythms?: unknown[] } = {},
+) {
   calls = []
   const state = JSON.parse(JSON.stringify(BOARD)) as typeof BOARD
   if (opts.unassigned) state.unassigned = opts.unassigned as typeof BOARD.unassigned
@@ -100,7 +200,8 @@ function mockApi(opts: { capabilities?: string[]; unassigned?: unknown[]; rhythm
     const body = init?.body ? JSON.parse(String(init.body)) : null
     calls.push({ url: u, method, body })
 
-    if (u.includes('/api/weekly-planning/tasks')) return { ok: true, json: async () => JSON.parse(JSON.stringify(state)) }
+    if (u.includes('/api/weekly-planning/tasks'))
+      return { ok: true, json: async () => JSON.parse(JSON.stringify(state)) }
     if (u.includes('/api/household')) {
       return {
         ok: true,
@@ -111,11 +212,18 @@ function mockApi(opts: { capabilities?: string[]; unassigned?: unknown[]; rhythm
         }),
       }
     }
-    if (u.includes('/api/persons')) return { ok: true, json: async () => ({ persons: state.people }) }
+    if (u.includes('/api/persons'))
+      return { ok: true, json: async () => ({ persons: state.people }) }
     if (u.includes('/api/currencies')) {
-      return { ok: true, json: async () => ({ currencies: [{ key: 'stars', label: 'Stars', symbol: '⭐', isDefault: true }] }) }
+      return {
+        ok: true,
+        json: async () => ({
+          currencies: [{ key: 'stars', label: 'Stars', symbol: '⭐', isDefault: true }],
+        }),
+      }
     }
-    if (u.endsWith('/api/chores') && method === 'POST') return { ok: true, json: async () => ({ chore: { id: 'new' } }) }
+    if (u.endsWith('/api/chores') && method === 'POST')
+      return { ok: true, json: async () => ({ chore: { id: 'new' } }) }
     if (/\/api\/chores\/[^/]+$/.test(u) && method === 'PATCH') {
       const id = u.split('/').pop()!
       const patch = (body ?? {}) as { personId?: string | null; dueOn?: string; title?: string }
@@ -147,7 +255,8 @@ function mockApi(opts: { capabilities?: string[]; unassigned?: unknown[]; rhythm
       }
       return { ok: true, json: async () => ({ chore: { id } }) }
     }
-    if (u.includes('/assign')) return { ok: true, json: async () => ({ instance: { id: 'i1', status: 'pending' } }) }
+    if (u.includes('/assign'))
+      return { ok: true, json: async () => ({ instance: { id: 'i1', status: 'pending' } }) }
     if (u.includes('/api/weekly-planning/loose-ends/resolve') && method === 'POST') {
       state.rhythms = state.rhythms.filter((r) => r.id !== (body as { id?: string } | null)?.id)
       return { ok: true, json: async () => ({ ok: true }) }
@@ -175,7 +284,8 @@ const props = (over: Partial<StepBodyProps> = {}): StepBodyProps => ({
 
 const column = (name: string) => screen.getByTestId(`wpt-col-${name}`)
 const strip = () => screen.getByTestId('wpt-strip')
-const wrote = (method: string, match: string) => calls.filter((c) => c.method === method && c.url.includes(match))
+const wrote = (method: string, match: string) =>
+  calls.filter((c) => c.method === method && c.url.includes(match))
 
 describe('TasksStep · the verb it lends the parked-note banner', () => {
   // The banner stays in the SHELL. What the step lends it is one VERB, and that verb opens
@@ -184,9 +294,16 @@ describe('TasksStep · the verb it lends the parked-note banner', () => {
     let action: HandoffAction | null = null
     const finish = vi.fn()
     render(
-      <HandoffCtx.Provider value={{ register: (a) => { action = a }, finish }}>
+      <HandoffCtx.Provider
+        value={{
+          register: (a) => {
+            action = a
+          },
+          finish,
+        }}
+      >
         <Body {...props()} />
-      </HandoffCtx.Provider>
+      </HandoffCtx.Provider>,
     )
     return { act: () => action as HandoffAction | null, finish }
   }
@@ -233,7 +350,9 @@ describe('TasksStep', () => {
     expect(within(column('Lottie')).getByText('Carried over')).toBeTruthy()
     expect(within(column('Lottie')).getByText('Left over from before this week')).toBeTruthy()
     expect(within(strip()).getByText('Sun')).toBeTruthy()
-    expect(within(strip()).getByRole('button', { name: 'Set the day for Fold the towels' }).textContent).toBe('Set a day')
+    expect(
+      within(strip()).getByRole('button', { name: 'Set the day for Fold the towels' }).textContent,
+    ).toBe('Set a day')
 
     expect(within(column('Kevin')).getByText(/4 recurring chores/)).toBeTruthy()
     expect(within(column('Wally')).getByText(/1 recurring chore\b/)).toBeTruthy()
@@ -256,7 +375,9 @@ describe('TasksStep', () => {
     await waitFor(() => expect(wrote('POST', '/api/chore-instances/i2/assign')).toHaveLength(1))
     expect(wrote('POST', '/api/chore-instances/i2/assign')[0].body).toEqual({ personId: 'p2' })
 
-    await waitFor(() => expect(wrote('GET', '/api/weekly-planning/tasks').length).toBeGreaterThan(reads))
+    await waitFor(() =>
+      expect(wrote('GET', '/api/weekly-planning/tasks').length).toBeGreaterThan(reads),
+    )
     await waitFor(() => expect(within(column('Wally')).getByText(/Sweep the porch/)).toBeTruthy())
     expect(within(strip()).queryByText(/Sweep the porch/)).toBeNull()
     expect(within(column('Wally')).getByText('2 this week')).toBeTruthy()
@@ -275,7 +396,9 @@ describe('TasksStep', () => {
     expect(within(strip()).getByText(/Fold the towels/)).toBeTruthy()
     expect(strip().textContent).toMatch(/up for grabs/i)
     // Counts only: the recap reads through to chores, so a copy here could only disagree.
-    await waitFor(() => expect(setDecisionData).toHaveBeenLastCalledWith({ assigned: 1, leftUpForGrabs: 1 }))
+    await waitFor(() =>
+      expect(setDecisionData).toHaveBeenLastCalledWith({ assigned: 1, leftUpForGrabs: 1 }),
+    )
   })
 
   it('an empty strip says everything’s handed out, and still offers the tile', async () => {
@@ -293,7 +416,7 @@ describe('TasksStep', () => {
     fireEvent.click(within(column('Wally')).getByRole('button', { name: /Add for Wally/ }))
     await waitFor(() => expect(screen.getByText('New chore')).toBeTruthy())
     expect(screen.getByPlaceholderText('Feed the dog')).toBeTruthy()
-    await waitFor(() => expect((screen.getByRole('combobox') as HTMLSelectElement).value).toBe('p2'))
+    await waitFor(() => expect(screen.getByRole('combobox')).toHaveTextContent('Wally'))
   })
 
   it('the strip’s own “Add a task” opens the same modal with nobody prefilled', async () => {
@@ -304,7 +427,7 @@ describe('TasksStep', () => {
     fireEvent.click(within(strip()).getByRole('button', { name: /Add a task/ }))
     await waitFor(() => expect(screen.getByText('New chore')).toBeTruthy())
     // '' is ChoreModal's own "— up for grabs —" option: a task nobody owns yet.
-    await waitFor(() => expect((screen.getByRole('combobox') as HTMLSelectElement).value).toBe(''))
+    await waitFor(() => expect(screen.getByRole('combobox')).toHaveTextContent('— up for grabs —'))
   })
 
   it('without chore.manage there is nothing to tap — assigning is not this viewer’s call', async () => {
@@ -323,12 +446,16 @@ describe('TasksStep', () => {
     render(<Body {...props()} />)
     await waitFor(() => expect(within(column('Kevin')).getByText(/Dishes/)).toBeTruthy())
 
-    fireEvent.click(within(column('Kevin')).getByRole('button', { name: 'Put Dishes back up for grabs' }))
+    fireEvent.click(
+      within(column('Kevin')).getByRole('button', { name: 'Put Dishes back up for grabs' }),
+    )
 
     await waitFor(() => expect(wrote('PATCH', '/api/chores/k1')).toHaveLength(1))
     expect(wrote('PATCH', '/api/chores/k1')[0].body).toEqual({ personId: null })
     for (const id of ['i7', 'i8']) {
-      await waitFor(() => expect(wrote('POST', `/api/chore-instances/${id}/assign`)).toHaveLength(1))
+      await waitFor(() =>
+        expect(wrote('POST', `/api/chore-instances/${id}/assign`)).toHaveLength(1),
+      )
       expect(wrote('POST', `/api/chore-instances/${id}/assign`)[0].body).toEqual({ personId: null })
     }
 
@@ -343,10 +470,14 @@ describe('TasksStep', () => {
 
     fireEvent.click(within(column('Kevin')).getByRole('button', { name: 'Give Dishes to Lottie' }))
 
-    await waitFor(() => expect(wrote('PATCH', '/api/chores/k1')[0]?.body).toEqual({ personId: 'p3' }))
+    await waitFor(() =>
+      expect(wrote('PATCH', '/api/chores/k1')[0]?.body).toEqual({ personId: 'p3' }),
+    )
     expect(wrote('POST', '/api/chore-instances/i8/assign')[0].body).toEqual({ personId: 'p3' })
     await waitFor(() => expect(within(column('Lottie')).getByText(/Dishes/)).toBeTruthy())
-    expect(within(column('Lottie')).queryByRole('button', { name: 'Give Dishes to Lottie' })).toBeNull()
+    expect(
+      within(column('Lottie')).queryByRole('button', { name: 'Give Dishes to Lottie' }),
+    ).toBeNull()
   })
 
   // Drag must do exactly what tapping a face does — no second write path.
@@ -371,10 +502,19 @@ describe('TasksStep', () => {
       render(<Body {...props()} />)
       await waitFor(() => expect(screen.getByText(/Sweep the porch/)).toBeTruthy())
 
-      dropOn(within(strip()).getByRole('button', { name: 'Drag Sweep the porch to another column' }), column('Wally'))
+      dropOn(
+        within(strip()).getByRole('button', { name: 'Drag Sweep the porch to another column' }),
+        column('Wally'),
+      )
 
-      await waitFor(() => expect(wrote('PATCH', '/api/chores/c1')[0]?.body).toEqual({ personId: 'p2' }))
-      await waitFor(() => expect(wrote('POST', '/api/chore-instances/i2/assign')[0]?.body).toEqual({ personId: 'p2' }))
+      await waitFor(() =>
+        expect(wrote('PATCH', '/api/chores/c1')[0]?.body).toEqual({ personId: 'p2' }),
+      )
+      await waitFor(() =>
+        expect(wrote('POST', '/api/chore-instances/i2/assign')[0]?.body).toEqual({
+          personId: 'p2',
+        }),
+      )
       await waitFor(() => expect(within(column('Wally')).getByText(/Sweep the porch/)).toBeTruthy())
     })
 
@@ -383,9 +523,14 @@ describe('TasksStep', () => {
       render(<Body {...props()} />)
       await waitFor(() => expect(within(column('Kevin')).getByText(/Dishes/)).toBeTruthy())
 
-      dropOn(within(column('Kevin')).getByRole('button', { name: 'Drag Dishes to another column' }), strip())
+      dropOn(
+        within(column('Kevin')).getByRole('button', { name: 'Drag Dishes to another column' }),
+        strip(),
+      )
 
-      await waitFor(() => expect(wrote('PATCH', '/api/chores/k1')[0]?.body).toEqual({ personId: null }))
+      await waitFor(() =>
+        expect(wrote('PATCH', '/api/chores/k1')[0]?.body).toEqual({ personId: null }),
+      )
       await waitFor(() => expect(within(strip()).getByText(/Dishes/)).toBeTruthy())
     })
 
@@ -394,7 +539,10 @@ describe('TasksStep', () => {
       render(<Body {...props()} />)
       await waitFor(() => expect(within(column('Kevin')).getByText(/Dishes/)).toBeTruthy())
 
-      dropOn(within(column('Kevin')).getByRole('button', { name: 'Drag Dishes to another column' }), column('Kevin'))
+      dropOn(
+        within(column('Kevin')).getByRole('button', { name: 'Drag Dishes to another column' }),
+        column('Kevin'),
+      )
 
       await waitFor(() => expect(within(column('Kevin')).getByText(/Dishes/)).toBeTruthy())
       expect(wrote('PATCH', '/api/chores/k1')).toHaveLength(0)
@@ -455,26 +603,36 @@ describe('TasksStep', () => {
 
     fireEvent.click(within(strip()).getByRole('button', { name: /Add a task/ }))
     await waitFor(() => expect(screen.getByText('New chore')).toBeTruthy())
-    fireEvent.change(screen.getByPlaceholderText('Feed the dog'), { target: { value: 'Book the sitter' } })
+    fireEvent.change(screen.getByPlaceholderText('Feed the dog'), {
+      target: { value: 'Book the sitter' },
+    })
     fireEvent.click(screen.getByRole('button', { name: 'Add chore' }))
 
     await waitFor(() => expect(wrote('POST', '/api/chores')).toHaveLength(1))
-    expect(wrote('POST', '/api/chores')[0].body).toMatchObject({ title: 'Book the sitter', rrule: null, dueOn: WEEK })
+    expect(wrote('POST', '/api/chores')[0].body).toMatchObject({
+      title: 'Book the sitter',
+      rrule: null,
+      dueOn: WEEK,
+    })
   })
   describe('editing a task from the board', () => {
     it('opens the app’s chore editor, and a rename shows on the board', async () => {
       mockApi()
       render(<Body {...props()} />)
-    await waitFor(() => expect(screen.getByText(/Sweep the porch/)).toBeTruthy())
+      await waitFor(() => expect(screen.getByText(/Sweep the porch/)).toBeTruthy())
 
       fireEvent.click(within(strip()).getByRole('button', { name: 'Edit Fold the towels' }))
 
       await waitFor(() => expect(screen.getByText('Edit chore')).toBeTruthy())
-      fireEvent.change(screen.getByDisplayValue('Fold the towels'), { target: { value: 'Fold the tea towels' } })
+      fireEvent.change(screen.getByDisplayValue('Fold the towels'), {
+        target: { value: 'Fold the tea towels' },
+      })
       fireEvent.click(screen.getByRole('button', { name: 'Save' }))
 
       await waitFor(() => expect(wrote('PATCH', '/api/chores/c2')).toHaveLength(1))
-      expect(wrote('PATCH', '/api/chores/c2')[0].body).toMatchObject({ title: 'Fold the tea towels' })
+      expect(wrote('PATCH', '/api/chores/c2')[0].body).toMatchObject({
+        title: 'Fold the tea towels',
+      })
       await waitFor(() => expect(within(strip()).getByText(/Fold the tea towels/)).toBeTruthy())
       expect(screen.queryByText('Edit chore')).toBeNull()
     })
@@ -489,7 +647,7 @@ describe('TasksStep', () => {
 
       expect(screen.getByRole('button', { name: 'Certain days' }).className).toContain('on')
       expect(await screen.findByDisplayValue('18:00')).toBeTruthy()
-      await waitFor(() => expect((screen.getByRole('combobox') as HTMLSelectElement).value).toBe('p2'))
+      await waitFor(() => expect(screen.getByRole('combobox')).toHaveTextContent('Wally'))
       // …and so does "Needs a parent's OK", which the card never draws. A blank prefill here
       // would quietly switch approval OFF the moment anybody fixed a typo.
       expect(screen.getByText('Needs a parent’s OK').closest('button')!.className).toContain('on')
@@ -498,7 +656,7 @@ describe('TasksStep', () => {
     it('offers no Delete — a planning session decides who does what, not what exists', async () => {
       mockApi()
       render(<Body {...props()} />)
-    await waitFor(() => expect(screen.getByText(/Sweep the porch/)).toBeTruthy())
+      await waitFor(() => expect(screen.getByText(/Sweep the porch/)).toBeTruthy())
 
       fireEvent.click(within(strip()).getByRole('button', { name: 'Edit Fold the towels' }))
       await waitFor(() => expect(screen.getByText('Edit chore')).toBeTruthy())
@@ -510,7 +668,9 @@ describe('TasksStep', () => {
       render(<Body {...props()} />)
       await waitFor(() => expect(screen.getByText(/Sweep the porch/)).toBeTruthy())
 
-      const grip = within(strip()).getByRole('button', { name: 'Drag Sweep the porch to another column' })
+      const grip = within(strip()).getByRole('button', {
+        name: 'Drag Sweep the porch to another column',
+      })
       const elementFromPoint = document.elementFromPoint
       document.elementFromPoint = (() => column('Wally')) as typeof document.elementFromPoint
       fireEvent.pointerDown(grip, { clientX: 10, clientY: 10 })
@@ -538,7 +698,9 @@ describe('TasksStep', () => {
 
       const landing = within(strip()).getByRole('button', { name: 'Edit Fold the towels' })
       expect((landing as HTMLButtonElement).disabled).toBe(false)
-      const grip = within(column('Kevin')).getByRole('button', { name: 'Drag Dishes to another column' })
+      const grip = within(column('Kevin')).getByRole('button', {
+        name: 'Drag Dishes to another column',
+      })
       const elementFromPoint = document.elementFromPoint
       document.elementFromPoint = (() => landing) as typeof document.elementFromPoint
       fireEvent.pointerDown(grip, { clientX: 10, clientY: 10 })
@@ -546,7 +708,9 @@ describe('TasksStep', () => {
       fireEvent.pointerUp(window)
       document.elementFromPoint = elementFromPoint
 
-      await waitFor(() => expect(wrote('PATCH', '/api/chores/k1')[0]?.body).toEqual({ personId: null }))
+      await waitFor(() =>
+        expect(wrote('PATCH', '/api/chores/k1')[0]?.body).toEqual({ personId: null }),
+      )
       expect(screen.queryByText('Edit chore')).toBeNull()
       await waitFor(() => expect(within(strip()).getByText(/Dishes/)).toBeTruthy())
     })
@@ -562,8 +726,12 @@ describe('TasksStep · marking a task done', () => {
     mockApi()
     render(<Body {...props()} />)
     fireEvent.click(await screen.findByRole('button', { name: 'Mark Renew the passport done' }))
-    await waitFor(() => expect(wrote('POST', '/api/chore-instances/i-pass/complete')).toHaveLength(1))
-    await waitFor(() => expect(screen.queryByRole('button', { name: 'Mark Renew the passport done' })).toBeNull())
+    await waitFor(() =>
+      expect(wrote('POST', '/api/chore-instances/i-pass/complete')).toHaveLength(1),
+    )
+    await waitFor(() =>
+      expect(screen.queryByRole('button', { name: 'Mark Renew the passport done' })).toBeNull(),
+    )
   })
 
   it('says an approval task is waiting for a parent, rather than looking finished', async () => {
@@ -596,9 +764,18 @@ describe('TasksStep · rhythms due this week', () => {
     expect(within(section).getByText('Due Wed')).toBeTruthy()
 
     fireEvent.click(within(section).getByRole('button', { name: 'Mark Water the plants done' }))
-    await waitFor(() => expect(wrote('POST', '/api/weekly-planning/loose-ends/resolve')).toHaveLength(1))
-    expect(wrote('POST', '/api/weekly-planning/loose-ends/resolve')[0].body).toEqual({ kind: 'rhythm', id: 'r1', action: 'done', sessionId: 's1' })
-    await waitFor(() => expect(within(screen.getByTestId('wpt-rhythms')).queryByText(/Water the plants/)).toBeNull())
+    await waitFor(() =>
+      expect(wrote('POST', '/api/weekly-planning/loose-ends/resolve')).toHaveLength(1),
+    )
+    expect(wrote('POST', '/api/weekly-planning/loose-ends/resolve')[0].body).toEqual({
+      kind: 'rhythm',
+      id: 'r1',
+      action: 'done',
+      sessionId: 's1',
+    })
+    await waitFor(() =>
+      expect(within(screen.getByTestId('wpt-rhythms')).queryByText(/Water the plants/)).toBeNull(),
+    )
   })
 
   it('offers no Done on a rhythm that is settled by booking it', async () => {
@@ -629,13 +806,17 @@ describe('tasks · when handing a chore over half-fails', () => {
     render(<Body {...props()} />)
     // Sweep the porch has pending instances, so the second write is the one that fails.
     await waitFor(() => expect(screen.getByText(/Sweep the porch/)).toBeTruthy())
-    const before = calls.filter((c) => c.method === 'GET' && c.url.includes('/weekly-planning/tasks')).length
+    const before = calls.filter(
+      (c) => c.method === 'GET' && c.url.includes('/weekly-planning/tasks'),
+    ).length
 
     fireEvent.click(within(strip()).getAllByRole('button', { name: /Give Sweep the porch to/ })[0])
 
     expect(await screen.findByRole('alert')).toBeTruthy()
-    await waitFor(() => expect(
-      calls.filter((c) => c.method === 'GET' && c.url.includes('/weekly-planning/tasks')).length
-    ).toBeGreaterThan(before))
+    await waitFor(() =>
+      expect(
+        calls.filter((c) => c.method === 'GET' && c.url.includes('/weekly-planning/tasks')).length,
+      ).toBeGreaterThan(before),
+    )
   })
 })

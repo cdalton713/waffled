@@ -3,8 +3,7 @@ import { updatesApi, useHousehold, type UpdateInfo } from '../../lib/api'
 import '../../styles/update.css'
 import { Button } from '@/components/ui/button'
 import { DataIcon } from '@/components/ui/data-icon'
-
-
+import { Modal } from '@/components/ui/modal'
 
 // Once an admin dismisses a version, remember it so the modal never nags again
 // until an even newer version ships. (Keyed by the release tag.)
@@ -57,10 +56,24 @@ export function UpdateModal() {
   const snooze = () => setOpen(false)
 
   return (
-    <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) snooze() }}>
+    <Modal className="modal-overlay" onClose={snooze}>
       <div className="modal-card upd-card">
-        <Button variant="unstyled" type="button" className="modal-close" aria-label="Dismiss this version" onClick={dismiss}><><DataIcon value={"×"} kind="general" /></></Button>
-        <div className="upd-badge"><><DataIcon value={"🧇"} kind="general" /></></div>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="modal-close"
+          aria-label="Dismiss this version"
+          onClick={dismiss}
+        >
+          <>
+            <DataIcon value={'×'} kind="general" />
+          </>
+        </Button>
+        <div className="upd-badge">
+          <>
+            <DataIcon value={'🧇'} kind="general" />
+          </>
+        </div>
         <div className="upd-eyebrow">Update available</div>
         <h2 className="upd-title wf-serif">Waffled {display} is here</h2>
         <div className="upd-ver">You’re on {info.current.version}</div>
@@ -71,11 +84,22 @@ export function UpdateModal() {
         </div>
 
         <div className="upd-actions">
-          <a className="btn btn-ghost" href={url} target="_blank" rel="noopener noreferrer">View changelog</a>
-          <a className="btn btn-primary" href={upgradeUrl} target="_blank" rel="noopener noreferrer">How to upgrade</a>
+          <a className="btn btn-ghost" href={url} target="_blank" rel="noopener noreferrer">
+            View changelog
+          </a>
+          <a
+            className="btn btn-primary"
+            href={upgradeUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            How to upgrade
+          </a>
         </div>
-        <Button variant="unstyled" type="button" className="upd-later" onClick={snooze}>Remind me later</Button>
+        <Button variant="unstyled" type="button" className="upd-later" onClick={snooze}>
+          Remind me later
+        </Button>
       </div>
-    </div>
+    </Modal>
   )
 }

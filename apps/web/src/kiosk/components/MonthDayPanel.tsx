@@ -6,6 +6,7 @@ import { Icon } from '../icons'
 import { ymd } from './cal-utils'
 import { eventCoversDay } from './month-spans'
 import { AgendaRow, isPastEvent } from './AgendaView'
+import { Button } from '@/components/ui/button'
 
 // Relative name for the selected day, so the panel header reads "Today" / "Tomorrow"
 // / "Yesterday" instead of a bare date. Falls back to the weekday for anything else.
@@ -51,7 +52,11 @@ export function MonthDayPanel({
   }, [events, tz, day])
 
   const dateObj = new Date(`${day}T00:00:00`)
-  const fullDate = dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+  const fullDate = dateObj.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  })
 
   return (
     <aside className="cal-day-panel ag-side">
@@ -61,7 +66,8 @@ export function MonthDayPanel({
           <div className="muted cal-day-date">{fullDate}</div>
         </div>
         <Editable>
-          <button
+          <Button
+            variant="unstyled"
             type="button"
             className="ag-group-add cal-day-add"
             title={`Add an event on ${fullDate}`}
@@ -69,18 +75,29 @@ export function MonthDayPanel({
             onClick={() => onCreate(day)}
           >
             <Icon name="plus" />
-          </button>
+          </Button>
         </Editable>
       </div>
       {dayEvents.length === 0 ? (
-        <button type="button" className="cal-day-empty" onClick={() => onCreate(day)}>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="cal-day-empty"
+          onClick={() => onCreate(day)}
+        >
           <span className="cal-day-empty-t">Nothing scheduled</span>
           {!viewOnly && <span className="muted">Tap to add an event</span>}
-        </button>
+        </Button>
       ) : (
         <div className="cal-day-list">
           {dayEvents.map((e) => (
-            <AgendaRow key={e.id} event={e} past={isPastEvent(e, now)} color={colorOf(e)} onClick={() => onOpenEvent(e)} />
+            <AgendaRow
+              key={e.id}
+              event={e}
+              past={isPastEvent(e, now)}
+              color={colorOf(e)}
+              onClick={() => onOpenEvent(e)}
+            />
           ))}
         </div>
       )}

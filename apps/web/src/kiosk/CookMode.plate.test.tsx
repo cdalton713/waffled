@@ -132,17 +132,17 @@ const SALAD: DishSpec = {
 }
 
 describe('CookMode — cooking a plate', () => {
-  it('renders one tab per dish with its emoji, title and its own progress', async () => {
+  it('renders one tab per dish with its icon, title and its own progress', async () => {
     mockPlate('BBQ Sunday', [BBQ, SALAD])
     renderAt('/meals/meal/m1/cook')
     await screen.findByText('Rub the chicken')
 
     const tabs = screen.getAllByRole('tab')
     expect(tabs).toHaveLength(2)
-    expect(tabs[0].textContent).toContain('🍗')
+    expect(tabs[0].querySelector('svg')).toBeInTheDocument()
     expect(tabs[0].textContent).toContain('BBQ Chicken')
     expect(tabs[0].textContent).toContain('Step 1 of 4')
-    expect(tabs[1].textContent).toContain('🥔')
+    expect(tabs[1].querySelector('svg')).toBeInTheDocument()
     expect(tabs[1].textContent).toContain('Potato Salad')
     expect(tabs[1].textContent).toContain('Step 1 of 2')
     // The first dish is the active one.
@@ -219,7 +219,11 @@ describe('CookMode — cooking a plate', () => {
   })
 
   it('renders a friendly message when the plate cannot be loaded', async () => {
-    globalThis.fetch = vi.fn(async () => ({ ok: false, status: 404, json: async () => ({}) })) as unknown as typeof fetch
+    globalThis.fetch = vi.fn(async () => ({
+      ok: false,
+      status: 404,
+      json: async () => ({}),
+    })) as unknown as typeof fetch
     renderAt('/meals/meal/m1/cook')
     expect(await screen.findByText(/isn’t available/i)).toBeTruthy()
   })
@@ -241,14 +245,20 @@ describe('CookMode — ticked ingredients belong to their dish', () => {
     fireEvent.click(screen.getByRole('tab', { name: /Potato Salad/i }))
     await screen.findByText('Boil the potatoes')
     fireEvent.click(screen.getByRole('button', { name: /All ingredients/i }))
-    expect(screen.getByRole('checkbox', { name: /potatoes/i })).toHaveAttribute('aria-checked', 'false')
+    expect(screen.getByRole('checkbox', { name: /potatoes/i })).toHaveAttribute(
+      'aria-checked',
+      'false',
+    )
     fireEvent.click(screen.getByRole('button', { name: 'Close' }))
 
     // ...and back: the chicken is still ticked.
     fireEvent.click(screen.getByRole('tab', { name: /BBQ Chicken/i }))
     await screen.findByText('Rub the chicken')
     fireEvent.click(screen.getByRole('button', { name: /All ingredients/i }))
-    expect(screen.getByRole('checkbox', { name: /chicken thighs/i })).toHaveAttribute('aria-checked', 'true')
+    expect(screen.getByRole('checkbox', { name: /chicken thighs/i })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    )
   })
 })
 

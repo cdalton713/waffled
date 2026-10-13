@@ -1,4 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
+import { Input } from '@/components/ui/input'
+import { DataIcon } from '@/components/ui/data-icon'
+import { SelectField } from '@/components/ui/select-field'
 
 // AlbumPicker — a real <select> of existing albums plus a "＋ New album…" option
 // that reveals a text input for typing a brand-new name. Used by both PhotoAdd and
@@ -45,17 +48,22 @@ export function AlbumPicker({
 
   return (
     <div className="album-picker">
-      <select id={id} className="field" value={selectValue} onChange={(e) => onSelect(e.target.value)}>
+      <SelectField id={id} className="field" value={selectValue} onValueChange={(e) => onSelect(e)}>
         <option value="">(No album)</option>
         {albums.map((a) => (
           <option key={a} value={a}>
             {a}
           </option>
         ))}
-        <option value={NEW}>＋ New album…</option>
-      </select>
+        <option value={NEW}>
+          <>
+            <DataIcon value={'＋'} kind="photo" />
+            {' New album…'}
+          </>
+        </option>
+      </SelectField>
       {typingNew && (
-        <input
+        <Input
           ref={inputRef}
           className="field"
           placeholder="New album name"

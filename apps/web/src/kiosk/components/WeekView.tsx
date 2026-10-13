@@ -2,10 +2,22 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { Editable } from '../../lib/viewOnly'
 import { usePersons, type AgendaEvent, type Countdown } from '../../lib/api'
 import { evVars, useEventColor } from '../../lib/event-color'
-import { DOW, ymd, addDays, fmtHour, fmtTime, minutesOfDay, durationMin, eventPeople, packLanes } from './cal-utils'
+import {
+  DOW,
+  ymd,
+  addDays,
+  fmtHour,
+  fmtTime,
+  minutesOfDay,
+  durationMin,
+  eventPeople,
+  packLanes,
+} from './cal-utils'
 import { CountdownChip } from './CountdownChip'
 import { RhythmMark } from './RhythmMark'
 import { eventsByDay, weekSpans } from './month-spans'
+import { Button } from '@/components/ui/button'
+import { DataIcon } from '@/components/ui/data-icon'
 
 const DAY_START = 0 // midnight — top of the grid (full day so early events are reachable)
 const DAY_END = 23 // 11 PM — bottom
@@ -38,8 +50,14 @@ export function WeekView({
   // Empty selection = everyone (no filter); toggling a chip narrows to those people.
   const [selected, setSelected] = useState<Set<string>>(new Set())
 
-  const days = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)), [weekStart])
-  const hours = useMemo(() => Array.from({ length: DAY_END - DAY_START + 1 }, (_, i) => DAY_START + i), [])
+  const days = useMemo(
+    () => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)),
+    [weekStart],
+  )
+  const hours = useMemo(
+    () => Array.from({ length: DAY_END - DAY_START + 1 }, (_, i) => DAY_START + i),
+    [],
+  )
   const today = ymd(new Date())
 
   // The grid spans the whole day, so open it scrolled to where the action is:
@@ -80,26 +98,36 @@ export function WeekView({
     <div className="wk-screen">
       <div className="wk-bar">
         <Editable>
-          <button type="button" className="wk-add" onClick={() => onCreate(ymd(weekStart))}>
-            <span className="wk-add-plus">＋</span>
+          <Button
+            variant="unstyled"
+            type="button"
+            className="wk-add"
+            onClick={() => onCreate(ymd(weekStart))}
+          >
+            <span className="wk-add-plus">
+              <DataIcon value={'＋'} kind="general" />
+            </span>
             <span className="wk-add-ph">Add an event…</span>
-          </button>
+          </Button>
         </Editable>
         <div className="wk-chips">
           {persons.map((p) => {
             const on = selected.has(p.id)
             const color = p.colorHex ?? '#6B6B70'
             return (
-              <button
+              <Button
+                variant="unstyled"
                 key={p.id}
                 type="button"
                 className={`wk-chip ${on ? 'on' : ''}`}
                 style={on ? { background: `${color}22`, borderColor: color, color } : undefined}
                 onClick={() => toggle(p.id)}
               >
-                <span className="av sm" style={{ background: `${color}22` }}>{p.avatarEmoji ?? '🙂'}</span>
+                <span className="av sm" style={{ background: `${color}22` }}>
+                  <DataIcon value={p.avatarEmoji ?? '🙂'} kind="person" />
+                </span>
                 {p.name}
-              </button>
+              </Button>
             )
           })}
         </div>
@@ -134,12 +162,14 @@ export function WeekView({
             <div
               key={b.event.id}
               className={`wk-allday-ev ev-tint wk-span ${b.continuesBefore ? 'cont-before' : ''} ${b.continuesAfter ? 'cont-after' : ''}`}
-              style={{
-                ...evVars(colorOf(b.event)),
-                '--span-col': b.startCol + 2,
-                '--span-len': b.endCol - b.startCol + 1,
-                '--lane': b.lane,
-              } as CSSProperties}
+              style={
+                {
+                  ...evVars(colorOf(b.event)),
+                  '--span-col': b.startCol + 2,
+                  '--span-len': b.endCol - b.startCol + 1,
+                  '--lane': b.lane,
+                } as CSSProperties
+              }
               title={b.event.title}
               onClick={() => onOpenEvent(b.event)}
             >
@@ -147,14 +177,21 @@ export function WeekView({
               {b.event.title}
             </div>
           ))}
-          <div className="wk-rail-lbl" style={{ gridRow: 1, gridColumn: 1 }}>ALL-DAY</div>
+          <div className="wk-rail-lbl" style={{ gridRow: 1, gridColumn: 1 }}>
+            ALL-DAY
+          </div>
           {days.map((d, i) => {
             const key = ymd(d)
             const allday = (spans.chipsByDay[key] ?? []).filter((e) => e.allDay)
             const dayCountdowns = countdownsByDate?.[key] ?? []
             return (
               <div key={key} className="wk-allday-cell" style={{ gridRow: 1, gridColumn: i + 2 }}>
-                {spans.lanes > 0 && <div className="wk-span-gap" style={{ '--lanes': spans.lanes } as CSSProperties} />}
+                {spans.lanes > 0 && (
+                  <div
+                    className="wk-span-gap"
+                    style={{ '--lanes': spans.lanes } as CSSProperties}
+                  />
+                )}
                 {allday.map((e) => {
                   const color = colorOf(e)
                   return (
@@ -212,7 +249,14 @@ export function WeekView({
                       <div
                         key={e.id}
                         className={`wk-ev ev-tint ${isMeal ? 'ev-meal' : ''} ${tight ? 'tight' : ''}`}
-                        style={{ top, height, left, width, ...evVars(color), borderLeft: `3px solid ${color}` }}
+                        style={{
+                          top,
+                          height,
+                          left,
+                          width,
+                          ...evVars(color),
+                          borderLeft: `3px solid ${color}`,
+                        }}
                         title={isMeal ? `Planned meal · ${e.title}` : `${fmtTime(e)} · ${e.title}`}
                         onClick={(ev) => {
                           ev.stopPropagation()
@@ -220,7 +264,17 @@ export function WeekView({
                         }}
                       >
                         <div className="wk-ev-t">{fmtTime(e)}</div>
-                        <div className="wk-ev-title">{e.occurrenceStart && <span className="ev-rep" title="Repeats">↻ </span>}<RhythmMark event={e} />{e.title}</div>
+                        <div className="wk-ev-title">
+                          {e.occurrenceStart && (
+                            <span className="ev-rep" title="Repeats">
+                              <>
+                                <DataIcon value={'↻'} kind="general" />{' '}
+                              </>
+                            </span>
+                          )}
+                          <RhythmMark event={e} />
+                          {e.title}
+                        </div>
                       </div>
                     )
                   })}

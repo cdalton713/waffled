@@ -9,7 +9,12 @@ import { TopbarSlotProvider, useTopbarSlots } from './topbar-slot'
 
 const lists = [
   {
-    id: 'l-family', name: 'Family', emoji: '🏡', colorHex: null, isPrivate: false, sortOrder: 0,
+    id: 'l-family',
+    name: 'Family',
+    emoji: '🏡',
+    colorHex: null,
+    isPrivate: false,
+    sortOrder: 0,
     members: [
       { personId: 'p1', name: 'Kevin', avatarEmoji: '🙂', colorHex: null },
       { personId: 'p2', name: 'Kelly', avatarEmoji: '🙃', colorHex: null },
@@ -18,7 +23,13 @@ const lists = [
   },
 ]
 
-const me = { id: 'p1', name: 'Kevin', memberType: 'adult', isAdmin: true, capabilities: ['goal.manage'] }
+const me = {
+  id: 'p1',
+  name: 'Kevin',
+  memberType: 'adult',
+  isAdmin: true,
+  capabilities: ['goal.manage'],
+}
 
 let posted: Record<string, unknown> | null = null
 
@@ -38,7 +49,14 @@ function mockApi(householdDelay = 0, capabilities: string[] = ['goal.manage']) {
     if (u.includes('/api/goals')) return { ok: true, json: async () => ({ goals: [] }) }
     if (u.includes('/api/household')) {
       if (householdDelay) await new Promise((r) => setTimeout(r, householdDelay))
-      return { ok: true, json: async () => ({ provisioned: true, household: { id: 'h', name: 'Home', timezone: 'UTC', weekStart: 'sunday' }, person: { ...me, capabilities } }) }
+      return {
+        ok: true,
+        json: async () => ({
+          provisioned: true,
+          household: { id: 'h', name: 'Home', timezone: 'UTC', weekStart: 'sunday' },
+          person: { ...me, capabilities },
+        }),
+      }
     }
     return { ok: false, status: 404, json: async () => ({}) }
   }) as unknown as typeof fetch
@@ -61,7 +79,7 @@ function renderAt(entry: string) {
           <Route path="/goals/:id" element={<div>goal detail sentinel</div>} />
         </Routes>
       </TopbarSlotProvider>
-    </MemoryRouter>
+    </MemoryRouter>,
   )
 }
 
@@ -70,12 +88,18 @@ beforeEach(() => mockApi())
 describe('GoalCreate · ?featured=1', () => {
   it('opens on the Pinned tier and creates the goal already featured', async () => {
     renderAt('/goals/new?list=l-family&featured=1')
-    await waitFor(() => expect(screen.getByRole('button', { name: /📌 Pinned/ })).toHaveClass('on'))
+    await waitFor(() => expect(screen.getByRole('button', { name: /Pinned/ })).toHaveClass('on'))
 
-    fireEvent.change(screen.getByPlaceholderText('e.g. 750 Hours Outside'), { target: { value: 'Walk after dinner' } })
+    fireEvent.change(screen.getByPlaceholderText('e.g. 750 Hours Outside'), {
+      target: { value: 'Walk after dinner' },
+    })
     fireEvent.click(await screen.findByRole('button', { name: 'Create goal' }))
     await waitFor(() => expect(posted).not.toBe(null))
-    expect(posted).toMatchObject({ title: 'Walk after dinner', goalListId: 'l-family', isFeatured: true })
+    expect(posted).toMatchObject({
+      title: 'Walk after dinner',
+      goalListId: 'l-family',
+      isFeatured: true,
+    })
     // The param pins; it must never promote to the one-per-list hero.
     expect(posted!.isSpotlight).toBe(false)
   })
@@ -83,7 +107,7 @@ describe('GoalCreate · ?featured=1', () => {
   it('changes nothing when the param is absent — the tier still defaults to Normal', async () => {
     renderAt('/goals/new?list=l-family')
     await waitFor(() => expect(screen.getByRole('button', { name: /Normal/ })).toHaveClass('on'))
-    expect(screen.getByRole('button', { name: /📌 Pinned/ })).not.toHaveClass('on')
+    expect(screen.getByRole('button', { name: /Pinned/ })).not.toHaveClass('on')
   })
 
   it('treats any value other than 1 as absent, rather than as truthy', async () => {
@@ -104,7 +128,9 @@ describe('GoalCreate · the ?list= prefill survives the load order', () => {
     const chip = await screen.findByRole('button', { name: /Family/ })
     expect(chip).toHaveClass('on')
 
-    fireEvent.change(screen.getByPlaceholderText('e.g. 750 Hours Outside'), { target: { value: 'Walk after dinner' } })
+    fireEvent.change(screen.getByPlaceholderText('e.g. 750 Hours Outside'), {
+      target: { value: 'Walk after dinner' },
+    })
     fireEvent.click(await screen.findByRole('button', { name: 'Create goal' }))
     await waitFor(() => expect(posted).not.toBe(null))
     expect(posted).toMatchObject({ goalListId: 'l-family', isFeatured: true })
@@ -115,7 +141,9 @@ describe('GoalCreate · the ?list= prefill survives the load order', () => {
   it('still clears a group this viewer may not target, once the household says so', async () => {
     mockApi(30, [])
     renderAt('/goals/new?list=l-family&featured=1')
-    fireEvent.change(screen.getByPlaceholderText('e.g. 750 Hours Outside'), { target: { value: 'Walk after dinner' } })
+    fireEvent.change(screen.getByPlaceholderText('e.g. 750 Hours Outside'), {
+      target: { value: 'Walk after dinner' },
+    })
     await waitFor(() => expect(screen.getByRole('button', { name: 'Create goal' })).toBeEnabled())
     await waitFor(() => expect(screen.getByRole('button', { name: 'Create goal' })).toBeDisabled())
     expect(screen.queryByRole('button', { name: /^Family/ })).not.toBeInTheDocument()
@@ -135,7 +163,7 @@ describe('GoalCreate · embedded', () => {
           <Topbar />
           <GoalCreate embed={{ listId: 'l-family', featured: true, onCreated }} />
         </TopbarSlotProvider>
-      </MemoryRouter>
+      </MemoryRouter>,
     )
     // The group is stated, not offered: no chip to press, and no "＋ New group" either.
     const locked = await screen.findByTestId('ge-who-locked')
@@ -143,12 +171,18 @@ describe('GoalCreate · embedded', () => {
     expect(screen.queryByRole('button', { name: /＋ New group/ })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /^Family/ })).not.toBeInTheDocument()
     expect(screen.getByTestId('topbar')).toBeEmptyDOMElement()
-    expect(screen.getByRole('button', { name: /📌 Pinned/ })).toHaveClass('on')
+    expect(screen.getByRole('button', { name: /Pinned/ })).toHaveClass('on')
 
-    fireEvent.change(screen.getByPlaceholderText('e.g. 750 Hours Outside'), { target: { value: 'Walk after dinner' } })
+    fireEvent.change(screen.getByPlaceholderText('e.g. 750 Hours Outside'), {
+      target: { value: 'Walk after dinner' },
+    })
     fireEvent.click(screen.getByRole('button', { name: 'Create goal' }))
     await waitFor(() => expect(onCreated).toHaveBeenCalled())
-    expect(posted).toMatchObject({ title: 'Walk after dinner', goalListId: 'l-family', isFeatured: true })
+    expect(posted).toMatchObject({
+      title: 'Walk after dinner',
+      goalListId: 'l-family',
+      isFeatured: true,
+    })
     expect(screen.queryByRole('button', { name: 'Cancel' })).not.toBeInTheDocument()
   })
 })

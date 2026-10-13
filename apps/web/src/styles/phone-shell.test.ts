@@ -1,12 +1,13 @@
 // Phone-width (≤720px) rules that keep screens inside a 393px viewport. Layout
 // can't be measured in jsdom, so these pin the CSS that does it.
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
 import postcss, { type AtRule } from 'postcss'
-import { describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
+import { compileStyles, compiledStyle } from '../test/styles'
+
+beforeAll(compileStyles)
 
 function phoneDecl(selector: string, prop: string, file = 'kiosk.css'): string | undefined {
-  const root = postcss.parse(readFileSync(join(__dirname, file), 'utf8'))
+  const root = postcss.parse(compiledStyle(file))
   let value: string | undefined
   root.walkAtRules('media', (m: AtRule) => {
     // Any max-width breakpoint at or above 720px also applies at phone width.
@@ -14,7 +15,9 @@ function phoneDecl(selector: string, prop: string, file = 'kiosk.css'): string |
     if (!bp || Number(bp[1]) < 720) return
     m.walkRules((r) => {
       if (!r.selectors.includes(selector)) return
-      r.walkDecls(prop, (d) => { value = d.value })
+      r.walkDecls(prop, (d) => {
+        value = d.value
+      })
     })
   })
   return value
@@ -70,7 +73,9 @@ describe('phone layout', () => {
   })
 
   it('fits the Meals week grid and its gutters to a phone', () => {
-    expect(phoneDecl('.meals-grid', 'grid-template-columns', 'meals.css')).toBe('22px repeat(7, minmax(0, 1fr))')
+    expect(phoneDecl('.meals-grid', 'grid-template-columns', 'meals.css')).toBe(
+      '22px repeat(7, minmax(0, 1fr))',
+    )
     expect(phoneDecl('.meals-screen', 'padding', 'meals.css')).toBe('0 16px 20px')
   })
 
@@ -130,18 +135,26 @@ describe('pantry.css on a phone', () => {
 
 describe('auth.css pairing code', () => {
   it('lets the six code boxes shrink (no intrinsic input width floor)', () => {
-    const root = postcss.parse(readFileSync(join(__dirname, 'auth.css'), 'utf8'))
+    const root = postcss.parse(compiledStyle('auth.css'))
     let width: string | undefined
-    root.walkRules('.pair-box', (r) => r.walkDecls('width', (d) => { width = d.value }))
+    root.walkRules('.pair-box', (r) =>
+      r.walkDecls('width', (d) => {
+        width = d.value
+      }),
+    )
     expect(width).toBe('0')
   })
 })
 
 describe('settings.css SSO form', () => {
   it('wraps a long redirect URI instead of spilling past the card', () => {
-    const root = postcss.parse(readFileSync(join(__dirname, 'settings.css'), 'utf8'))
+    const root = postcss.parse(compiledStyle('settings.css'))
     let wrap: string | undefined
-    root.walkRules('.sec-form code', (r) => r.walkDecls('overflow-wrap', (d) => { wrap = d.value }))
+    root.walkRules('.sec-form code', (r) =>
+      r.walkDecls('overflow-wrap', (d) => {
+        wrap = d.value
+      }),
+    )
     expect(wrap).toBe('anywhere')
   })
 })
@@ -158,10 +171,13 @@ describe('settings.css permission grid', () => {
   })
 
   it('adds a column per permission instead of hard-coding six', () => {
-    const root = postcss.parse(readFileSync(join(__dirname, 'settings.css'), 'utf8'))
+    const root = postcss.parse(compiledStyle('settings.css'))
     const decls: Record<string, string> = {}
     root.walkRules('.perm-row', (r) => {
-      if (r.parent?.type === 'root') r.walkDecls((d) => { decls[d.prop] = d.value })
+      if (r.parent?.type === 'root')
+        r.walkDecls((d) => {
+          decls[d.prop] = d.value
+        })
     })
     expect(decls['grid-template-columns']).toBe('1.2fr')
     expect(decls['grid-auto-flow']).toBe('column')

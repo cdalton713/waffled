@@ -1,5 +1,9 @@
 import { useState } from 'react'
 import { pantryApi } from '../../lib/api'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { DataIcon } from '@/components/ui/data-icon'
+import { SelectField } from '@/components/ui/select-field'
 
 const NEW = '__new__'
 
@@ -9,7 +13,12 @@ const NEW = '__new__'
 // yet — that shouldn't send you to Settings and lose what you were adding.
 // Creating one appends it to the household's pantry config, so it also shows up
 // in the sidebar straight away.
-export function LocationField({ value, locations, onChange, onLocationsChanged }: {
+export function LocationField({
+  value,
+  locations,
+  onChange,
+  onLocationsChanged,
+}: {
   value: string
   locations: string[]
   onChange: (location: string) => void
@@ -53,20 +62,42 @@ export function LocationField({ value, locations, onChange, onLocationsChanged }
     return (
       <>
         <div className="pl-newloc-row">
-          <input
+          <Input
             value={draft}
             autoFocus
             placeholder="New section name"
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') { e.preventDefault(); create() }
-              if (e.key === 'Escape') { e.preventDefault(); cancel() }
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                create()
+              }
+              if (e.key === 'Escape') {
+                e.preventDefault()
+                cancel()
+              }
             }}
           />
-          <button type="button" className="pill" aria-label="Add section" disabled={busy || !draft.trim()} onClick={create}>
+          <Button
+            variant="unstyled"
+            type="button"
+            className="pill"
+            aria-label="Add section"
+            disabled={busy || !draft.trim()}
+            onClick={create}
+          >
             {busy ? '…' : 'Add'}
-          </button>
-          <button type="button" className="pill" aria-label="Cancel new section" disabled={busy} onClick={cancel}>×</button>
+          </Button>
+          <Button
+            variant="unstyled"
+            type="button"
+            className="pill"
+            aria-label="Cancel new section"
+            disabled={busy}
+            onClick={cancel}
+          >
+            <DataIcon value={'×'} kind="general" />
+          </Button>
         </div>
         {err && <span className="pl-lookup-msg">{err}</span>}
       </>
@@ -74,14 +105,23 @@ export function LocationField({ value, locations, onChange, onLocationsChanged }
   }
 
   return (
-    <select
+    <SelectField
       aria-label="Location"
       value={value}
-      onChange={(e) => (e.target.value === NEW ? setAdding(true) : onChange(e.target.value))}
+      onValueChange={(e) => (e === NEW ? setAdding(true) : onChange(e))}
     >
-      {locations.map((l) => <option key={l} value={l}>{l}</option>)}
+      {locations.map((l) => (
+        <option key={l} value={l}>
+          {l}
+        </option>
+      ))}
       {!locations.includes(value) && <option value={value}>{value}</option>}
-      <option value={NEW}>＋ New section…</option>
-    </select>
+      <option value={NEW}>
+        <>
+          <DataIcon value={'＋'} kind="general" />
+          {' New section…'}
+        </>
+      </option>
+    </SelectField>
   )
 }

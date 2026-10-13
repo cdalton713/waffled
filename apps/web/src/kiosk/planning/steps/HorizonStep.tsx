@@ -18,6 +18,9 @@ import { MONTHS_SHORT, addDays, ymd } from '../../components/cal-utils'
 import type { PlanningStepModule, StepBodyProps } from '../registry'
 import { ParkedNoteEditor } from '../ParkedNoteEditor'
 import '../../../styles/planning-horizon.css'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { DataIcon } from '@/components/ui/data-icon'
 
 // Step 3 · Horizon scan — THE NEXT FOUR WEEKS ON THE MONTH VIEW YOU ALREADY SHIP, PLUS ONE BAR.
 //
@@ -32,8 +35,8 @@ import '../../../styles/planning-horizon.css'
 //  2. NOTHING NAVIGATES — the shell owns where the session is.
 //  3. THE SERVER OWNS THE WEEK. `weekStart` is a prop; nothing here asks the device.
 
-  // Read back from `planning_parked_items` rather than kept on the session: `setDecisionData`
-  // only reaches the server when the step is ANSWERED.
+// Read back from `planning_parked_items` rather than kept on the session: `setDecisionData`
+// only reaches the server when the step is ANSWERED.
 function useHorizon(sessionId: string) {
   const [tags, setTags] = useState<HorizonTag[]>([])
   const [parked, setParked] = useState<HorizonNote[]>([])
@@ -43,13 +46,16 @@ function useHorizon(sessionId: string) {
   useEffect(() => {
     let alive = true
     setReadFailed(false)
-    horizonApi.get(sessionId)
+    horizonApi
+      .get(sessionId)
       .then((v) => {
         if (!alive) return
         setTags(v.tags ?? [])
         setParked(v.parked ?? [])
       })
-      .catch(() => { if (alive) setReadFailed(true) })
+      .catch(() => {
+        if (alive) setReadFailed(true)
+      })
     return () => {
       alive = false
     }
@@ -74,7 +80,9 @@ function Body({ weekStart, sessionId, setDecisionData, refresh, busy }: StepBody
   // string as a LOCAL date — `new Date('YYYY-MM-DD')` is UTC midnight, the day before out west.
   const [ahead, setAhead] = useState(0)
   // A different planned week is a new floor, so stepping ahead starts over (as iOS does).
-  useEffect(() => { setAhead(0) }, [weekStart])
+  useEffect(() => {
+    setAhead(0)
+  }, [weekStart])
   const range = useMemo(() => {
     const [y, m, d] = weekStart.split('-').map(Number)
     return { start: addDays(new Date(y, m - 1, d), ahead * WINDOW_WEEKS * 7), weeks: WINDOW_WEEKS }
@@ -155,8 +163,8 @@ function Body({ weekStart, sessionId, setDecisionData, refresh, busy }: StepBody
         setError(
           err instanceof ApiSendError && typeof err.body?.message === 'string'
             ? err.body.message
-            : "That didn't go through — try again."
-        )
+            : "That didn't go through — try again.",
+        ),
       )
       .finally(() => setParking(false))
   }
@@ -180,25 +188,27 @@ function Body({ weekStart, sessionId, setDecisionData, refresh, busy }: StepBody
         </div>
       )}
       <header className="wph-head">
-        <button
+        <Button
+          variant="unstyled"
           type="button"
           className="wph-nav"
           aria-label="Previous 4 weeks"
           disabled={ahead === 0 || busy}
           onClick={() => setAhead((n) => Math.max(0, n - 1))}
         >
-          ‹
-        </button>
+          <DataIcon value={'‹'} kind="general" />
+        </Button>
         <div className="wph-month wf-serif">{windowLabel(range.start, windowEnd)}</div>
-        <button
+        <Button
+          variant="unstyled"
           type="button"
           className="wph-nav"
           aria-label="Next 4 weeks"
           disabled={busy}
           onClick={() => setAhead((n) => n + 1)}
         >
-          ›
-        </button>
+          <DataIcon value={'›'} kind="general" />
+        </Button>
       </header>
 
       <div className="wph-cal">
@@ -224,9 +234,9 @@ function Body({ weekStart, sessionId, setDecisionData, refresh, busy }: StepBody
 
       <form className="wph-park" onSubmit={park}>
         <span className="wph-park-pin" aria-hidden>
-          📌
+          <DataIcon value={'📌'} kind="general" />
         </span>
-        <input
+        <Input
           ref={inputRef}
           className="wph-park-in"
           value={note}
@@ -238,9 +248,14 @@ function Body({ weekStart, sessionId, setDecisionData, refresh, busy }: StepBody
           aria-label="Park a note"
         />
         {note.trim() ? (
-          <button type="submit" className="btn btn-primary wph-park-go" disabled={disabled || !note.trim()}>
+          <Button
+            variant="default"
+            type="submit"
+            className="wph-park-go"
+            disabled={disabled || !note.trim()}
+          >
             Park it
-          </button>
+          </Button>
         ) : (
           <span className="wph-park-hint">a note, not a calendar entry</span>
         )}
@@ -251,7 +266,8 @@ function Body({ weekStart, sessionId, setDecisionData, refresh, busy }: StepBody
         <div className="wph-park-tagrow">
           <div className="wph-tags" role="group" aria-label="Which step should look at this?">
             {tags.map((t) => (
-              <button
+              <Button
+                variant="unstyled"
                 key={t.stepKey}
                 type="button"
                 className={`wph-tag${chosen === t.stepKey ? ' on' : ''}`}
@@ -260,16 +276,17 @@ function Body({ weekStart, sessionId, setDecisionData, refresh, busy }: StepBody
                 onClick={() => setTag(t.stepKey)}
               >
                 {t.label}
-              </button>
+              </Button>
             ))}
-            <button
+            <Button
+              variant="unstyled"
               type="button"
               className={`wph-tag${chosen === null ? ' on' : ''}`}
               disabled={disabled}
               onClick={() => setTag(null)}
             >
               No tag
-            </button>
+            </Button>
           </div>
           {/* Both outcomes stated: a tag is a DESTINATION, so that step's handoff banner raises the
               note; with no tag no step raises it and it stays on the board. */}
@@ -298,8 +315,8 @@ function Body({ weekStart, sessionId, setDecisionData, refresh, busy }: StepBody
       <p className="wph-note">
         <b>Know the day it lands?</b> Tap that day on the calendar above and add it — you get a real
         calendar event. <b>Only know it&rsquo;s coming?</b> Park it in the bar: it stays off the
-        calendar, and comes back at whichever step you tag it for &mdash; all of them still ahead
-        of you tonight.
+        calendar, and comes back at whichever step you tag it for &mdash; all of them still ahead of
+        you tonight.
       </p>
 
       {parked.length > 0 && (
@@ -330,9 +347,10 @@ function Body({ weekStart, sessionId, setDecisionData, refresh, busy }: StepBody
                                 note: next.note,
                                 stepKey: next.stepKey,
                                 // The label is joined from the catalog, never stored.
-                                stepLabel: tags.find((t) => t.stepKey === next.stepKey)?.label ?? null,
-                              }
-                        )
+                                stepLabel:
+                                  tags.find((t) => t.stepKey === next.stepKey)?.label ?? null,
+                              },
+                        ),
                       )
                       refresh()
                     }}
@@ -345,7 +363,8 @@ function Body({ weekStart, sessionId, setDecisionData, refresh, busy }: StepBody
                     ) : (
                       <span className="wph-parked-tag is-unset">No tag</span>
                     )}
-                    <button
+                    <Button
+                      variant="unstyled"
                       type="button"
                       className="wph-parked-edit"
                       disabled={disabled}
@@ -353,7 +372,7 @@ function Body({ weekStart, sessionId, setDecisionData, refresh, busy }: StepBody
                       aria-label={`Edit “${n.note}”`}
                     >
                       Edit
-                    </button>
+                    </Button>
                   </>
                 )}
               </li>

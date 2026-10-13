@@ -18,6 +18,10 @@ import {
 } from '../../../lib/api'
 import type { PlanningStepModule, StepBodyProps } from '../registry'
 import '../../../styles/planning-looseEnds.css'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { DataIcon } from '@/components/ui/data-icon'
+import { Modal } from '@/components/ui/modal'
 
 // Step 1 · Loose ends — a deck you work through, a switch carrying both counts, and a see-all list.
 //
@@ -52,14 +56,19 @@ function Owner({ owner }: { owner: LooseEnd['owner'] }) {
   return (
     <span className="wp-le-owner">
       <span className="chore-ava" style={{ background: avTint(owner.colorHex) }} aria-hidden>
-        {owner.avatarEmoji ?? '🙂'}
+        <DataIcon value={owner.avatarEmoji ?? '🙂'} kind="person" />
       </span>
       {owner.name}
     </span>
   )
 }
 
-function Deck({ item, choices, quiet, busy }: {
+function Deck({
+  item,
+  choices,
+  quiet,
+  busy,
+}: {
   item: LooseEnd
   choices: Choice[]
   quiet: Choice[]
@@ -73,13 +82,18 @@ function Deck({ item, choices, quiet, busy }: {
           <Owner owner={item.owner} />
         </div>
         <div className="wp-le-t">
-          {item.emoji && <span className="wp-le-emoji" aria-hidden>{item.emoji}</span>}
+          {item.emoji && (
+            <span className="wp-le-emoji" aria-hidden>
+              <DataIcon value={item.emoji} kind="general" />
+            </span>
+          )}
           {item.title}
         </div>
         {item.detail && <div className="wp-le-d">{item.detail}</div>}
         <div className="wp-le-choices">
           {choices.map((c) => (
-            <button
+            <Button
+              variant="unstyled"
               key={c.key}
               type="button"
               className={`wp-le-choice${c.primary ? ' primary' : ''} ${c.tone ?? 'route'}`}
@@ -88,14 +102,21 @@ function Deck({ item, choices, quiet, busy }: {
             >
               <b>{c.label}</b>
               <s>{c.hint}</s>
-            </button>
+            </Button>
           ))}
         </div>
         <div className="wp-le-quiet">
           {quiet.map((c) => (
-            <button key={c.key} type="button" className="wp-le-quiet-b" disabled={busy} onClick={c.run}>
+            <Button
+              variant="unstyled"
+              key={c.key}
+              type="button"
+              className="wp-le-quiet-b"
+              disabled={busy}
+              onClick={c.run}
+            >
               {c.label}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
@@ -115,8 +136,8 @@ function Body({ step, sessionId, weekStart, setDecisionData, busy }: StepBodyPro
   const [working, setWorking] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [setAside, setSetAside] = useState<string[]>([])
-  const [routes, setRoutes] = useState<LooseEndRoute[]>(
-    () => (Array.isArray(step.data?.routes) ? (step.data.routes as LooseEndRoute[]) : [])
+  const [routes, setRoutes] = useState<LooseEndRoute[]>(() =>
+    Array.isArray(step.data?.routes) ? (step.data.routes as LooseEndRoute[]) : [],
   )
   const [answered, setAnswered] = useState(0)
   // Answered this sitting. The module may still report one (a habit logged once can still be
@@ -134,9 +155,14 @@ function Body({ step, sessionId, weekStart, setDecisionData, busy }: StepBodyPro
       const next = await looseEndsApi.get(weekStart, sessionId)
       setView(next)
       setRoutes(next.routes)
-      const seen = (known: string[], items: LooseEnd[]) =>
-        [...known, ...items.map((i) => i.key).filter((k) => !known.includes(k))]
-      setOrder((o) => ({ notDone: seen(o.notDone, next.notDone), parked: seen(o.parked, next.parked) }))
+      const seen = (known: string[], items: LooseEnd[]) => [
+        ...known,
+        ...items.map((i) => i.key).filter((k) => !known.includes(k)),
+      ]
+      setOrder((o) => ({
+        notDone: seen(o.notDone, next.notDone),
+        parked: seen(o.parked, next.parked),
+      }))
       return next
     } catch {
       setView(null)
@@ -146,9 +172,16 @@ function Body({ step, sessionId, weekStart, setDecisionData, busy }: StepBodyPro
     }
   }, [weekStart, sessionId])
 
-  useEffect(() => { void load() }, [load])
+  useEffect(() => {
+    void load()
+  }, [load])
 
-  useEffect(() => { setSetAside([]); setAnswered(0); setSettled([]); setOrder({ notDone: [], parked: [] }) }, [weekStart])
+  useEffect(() => {
+    setSetAside([])
+    setAnswered(0)
+    setSettled([])
+    setOrder({ notDone: [], parked: [] })
+  }, [weekStart])
 
   // Opening see-all lands on the section for the group you were on. A starting POSITION, not a
   // second filter. Guarded because jsdom has no scrollIntoView.
@@ -167,15 +200,17 @@ function Body({ step, sessionId, weekStart, setDecisionData, busy }: StepBodyPro
         return at < 0 ? Number.MAX_SAFE_INTEGER : at
       }
       return (all ?? [])
-        .filter((i) => !routedKeys.has(i.key) && !setAside.includes(i.key) && !settled.includes(i.key))
+        .filter(
+          (i) => !routedKeys.has(i.key) && !setAside.includes(i.key) && !settled.includes(i.key),
+        )
         .sort((a, b) => place(a.key) - place(b.key))
     },
-    [view, routedKeys, setAside, settled, order]
+    [view, routedKeys, setAside, settled, order],
   )
 
   const remaining = useMemo(
     () => ({ notDone: openIn('notDone').length, parked: openIn('parked').length }),
-    [openIn]
+    [openIn],
   )
 
   useEffect(() => {
@@ -184,22 +219,25 @@ function Body({ step, sessionId, weekStart, setDecisionData, busy }: StepBodyPro
 
   const disabled = busy || working
 
-  const guard = useCallback(async (fn: () => Promise<unknown>) => {
-    if (disabled) return
-    setWorking(true)
-    setError(null)
-    try {
-      await fn()
-    } catch (err) {
-      setError(
-        err instanceof ApiSendError && typeof err.body?.message === 'string'
-          ? err.body.message
-          : "That didn't go through — try again."
-      )
-    } finally {
-      setWorking(false)
-    }
-  }, [disabled])
+  const guard = useCallback(
+    async (fn: () => Promise<unknown>) => {
+      if (disabled) return
+      setWorking(true)
+      setError(null)
+      try {
+        await fn()
+      } catch (err) {
+        setError(
+          err instanceof ApiSendError && typeof err.body?.message === 'string'
+            ? err.body.message
+            : "That didn't go through — try again.",
+        )
+      } finally {
+        setWorking(false)
+      }
+    },
+    [disabled],
+  )
 
   const sendTo = (item: LooseEnd, source: LooseEndGroup, to: string) =>
     guard(async () => {
@@ -240,7 +278,8 @@ function Body({ step, sessionId, weekStart, setDecisionData, busy }: StepBodyPro
   }
 
   const choicesFor = (item: LooseEnd, g: LooseEndGroup): { choices: Choice[]; quiet: Choice[] } => {
-    const dests: LooseEndDestination[] = (g === 'notDone' ? view?.destinations.notDone : view?.destinations.parked) ?? []
+    const dests: LooseEndDestination[] =
+      (g === 'notDone' ? view?.destinations.notDone : view?.destinations.parked) ?? []
     const choices: Choice[] = dests.map((d) => ({
       key: `to:${d.to}`,
       label: d.label,
@@ -273,12 +312,25 @@ function Body({ step, sessionId, weekStart, setDecisionData, busy }: StepBodyPro
     return { choices, quiet }
   }
 
-  if (loading) return <div className="wp-le"><div className="wp-le-empty">Looking for what's still open…</div></div>
-  if (!view) return <div className="wp-le"><div className="wp-le-empty">Couldn't read your loose ends — reload and try again.</div></div>
+  if (loading)
+    return (
+      <div className="wp-le">
+        <div className="wp-le-empty">Looking for what's still open…</div>
+      </div>
+    )
+  if (!view)
+    return (
+      <div className="wp-le">
+        <div className="wp-le-empty">Couldn't read your loose ends — reload and try again.</div>
+      </div>
+    )
 
   const card = openIn(group)[0] ?? null
   // Everything this group has shown this sitting, answered or not.
-  const total = Math.max(order[group].length, (group === 'notDone' ? view.notDone : view.parked).length)
+  const total = Math.max(
+    order[group].length,
+    (group === 'notDone' ? view.notDone : view.parked).length,
+  )
   const position = total - openIn(group).length + 1
   const other: LooseEndGroup = group === 'parked' ? 'notDone' : 'parked'
   const otherLabel = LOOSE_END_GROUPS.find((g) => g.key === other)!.label
@@ -289,9 +341,11 @@ function Body({ step, sessionId, weekStart, setDecisionData, busy }: StepBodyPro
   // Step NAMES for the trail, never "Parked"'s verbs: the server's step title, then the notDone
   // label, then the key for a step whose module has since gone off.
   const stepName = (to: string) =>
-    [...view.destinations.notDone, ...view.destinations.parked].find((d) => d.to === to && d.stepTitle)?.stepTitle
-    ?? view.destinations.notDone.find((d) => d.to === to)?.label
-    ?? to
+    [...view.destinations.notDone, ...view.destinations.parked].find(
+      (d) => d.to === to && d.stepTitle,
+    )?.stepTitle ??
+    view.destinations.notDone.find((d) => d.to === to)?.label ??
+    to
 
   // WHICH LISTS THIS STEP ASKS ABOUT. Sending somebody to Settings → Modules to silence a
   // someday list is the ejection this module exists to avoid, and that panel is admin-only;
@@ -323,8 +377,13 @@ function Body({ step, sessionId, weekStart, setDecisionData, busy }: StepBodyPro
   }
 
   const listChooser = (
-    <div className="modal-overlay" onClick={() => setChooser(false)}>
-      <div className="modal-card wp-le-lists" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Lists it asks about">
+    <Modal className="modal-overlay" onClose={() => setChooser(false)}>
+      <div
+        className="modal-card wp-le-lists"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-label="Lists it asks about"
+      >
         <div className="wp-le-lists-t wf-serif">Lists it asks about</div>
         <div className="wp-le-lists-s">
           This step asks about anything still unchecked from before this week. Turn off a list
@@ -334,34 +393,44 @@ function Body({ step, sessionId, weekStart, setDecisionData, busy }: StepBodyPro
         {candidates.map((l) => {
           const on = l.relevant
           return (
-            <button
+            <Button
+              variant="unstyled"
               key={l.id}
               type="button"
               className="wp-le-lists-row"
               disabled={busy || ruling !== null}
               onClick={() => ruleList(l.id, !on)}
             >
-              <span className="wp-le-lists-n">{[l.emoji, l.name].filter(Boolean).join(' ')}</span>
+              <span className="wp-le-lists-n">
+                <DataIcon value={l.emoji} kind="list" /> {l.name}
+              </span>
               <span
                 className={`toggle ${on ? 'on' : ''}`}
                 role="switch"
                 aria-checked={on}
                 aria-label={`Ask about ${l.name} in the weekly planning session`}
               />
-            </button>
+            </Button>
           )
         })}
-        <button type="button" className="btn btn-primary wp-le-lists-done" onClick={() => setChooser(false)}>
+        <Button
+          variant="default"
+          type="button"
+          className="wp-le-lists-done"
+          onClick={() => setChooser(false)}
+        >
           Done
-        </button>
+        </Button>
       </div>
-    </div>
+    </Modal>
   )
 
   const captureBar = (
     <form className="wp-le-capture" onSubmit={park}>
-      <span className="wp-le-capture-p" aria-hidden>＋</span>
-      <input
+      <span className="wp-le-capture-p" aria-hidden>
+        <DataIcon value={'＋'} kind="general" />
+      </span>
+      <Input
         className="wp-le-capture-in"
         value={note}
         onChange={(e) => setNote(e.target.value)}
@@ -369,9 +438,14 @@ function Body({ step, sessionId, weekStart, setDecisionData, busy }: StepBodyPro
         placeholder="Drop something new on the board — one line is enough"
         aria-label="Park something new"
       />
-      <button type="submit" className="btn btn-primary wp-le-capture-go" disabled={disabled || !note.trim()}>
+      <Button
+        variant="default"
+        type="submit"
+        className="wp-le-capture-go"
+        disabled={disabled || !note.trim()}
+      >
         Park it
-      </button>
+      </Button>
     </form>
   )
 
@@ -385,32 +459,57 @@ function Body({ step, sessionId, weekStart, setDecisionData, busy }: StepBodyPro
         ) : (
           <div className="wp-le-switch" role="group" aria-label="Which loose ends">
             {LOOSE_END_GROUPS.map((g) => (
-              <button
+              <Button
+                variant="unstyled"
                 key={g.key}
                 type="button"
                 className={`wp-le-tab${g.key === group ? ' on' : ''}`}
                 aria-pressed={g.key === group}
-                onClick={() => { setGroup(g.key); setError(null) }}
+                onClick={() => {
+                  setGroup(g.key)
+                  setError(null)
+                }}
               >
                 {g.label}{' '}
-                <span className="wp-le-n">{remaining[g.key] === 0 ? '✓' : remaining[g.key]}</span>
-              </button>
+                <span className="wp-le-n">
+                  {remaining[g.key] === 0 ? (
+                    <DataIcon value={'✓'} kind="general" />
+                  ) : (
+                    remaining[g.key]
+                  )}
+                </span>
+              </Button>
             ))}
           </div>
         )}
-        <button type="button" className="wp-le-seeall" aria-pressed={seeAll} onClick={() => setSeeAll((v) => !v)}>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="wp-le-seeall"
+          aria-pressed={seeAll}
+          onClick={() => setSeeAll((v) => !v)}
+        >
           {seeAll ? 'One at a time' : 'See all'}
-        </button>
+        </Button>
         {showChooser && (
-          <button type="button" className="wp-le-lists-open" onClick={() => setChooser(true)}>
+          <Button
+            variant="unstyled"
+            type="button"
+            className="wp-le-lists-open"
+            onClick={() => setChooser(true)}
+          >
             Which lists?
-          </button>
+          </Button>
         )}
       </div>
 
       {!seeAll && <div className="wp-le-note">{groupNote}</div>}
 
-      {error && <div className="wp-le-err" role="alert">{error}</div>}
+      {error && (
+        <div className="wp-le-err" role="alert">
+          {error}
+        </div>
+      )}
 
       {seeAll ? (
         <div className="wp-le-list">
@@ -422,10 +521,19 @@ function Body({ step, sessionId, weekStart, setDecisionData, busy }: StepBodyPro
               key={g.key}
               id={`wp-le-sec-${g.key}`}
               className="wp-le-sec"
-              ref={(el) => { sections.current[g.key] = el }}
+              ref={(el) => {
+                sections.current[g.key] = el
+              }}
             >
               <h3 className="wp-le-sec-h">
-                {g.label} <span className="wp-le-n">{remaining[g.key] === 0 ? '✓' : remaining[g.key]}</span>
+                {g.label}{' '}
+                <span className="wp-le-n">
+                  {remaining[g.key] === 0 ? (
+                    <DataIcon value={'✓'} kind="general" />
+                  ) : (
+                    remaining[g.key]
+                  )}
+                </span>
                 <span className="wp-le-sec-cap">· {g.caption}</span>
               </h3>
               {openIn(g.key).length === 0 ? (
@@ -436,7 +544,9 @@ function Body({ step, sessionId, weekStart, setDecisionData, busy }: StepBodyPro
                 <ul className="wp-le-rows">
                   {openIn(g.key).map((item) => (
                     <li key={item.key} className="wp-le-row">
-                      <span className="wp-le-emoji" aria-hidden>{item.emoji ?? '•'}</span>
+                      <span className="wp-le-emoji" aria-hidden>
+                        <DataIcon value={item.emoji ?? '•'} kind="general" />
+                      </span>
                       <span className="wp-le-row-main">
                         <b>{item.title}</b>
                         <s className="wp-le-row-meta">
@@ -446,8 +556,12 @@ function Body({ step, sessionId, weekStart, setDecisionData, busy }: StepBodyPro
                         </s>
                       </span>
                       <span className="wp-le-row-acts">
-                        {((g.key === 'notDone' ? view.destinations.notDone : view.destinations.parked)).map((d) => (
-                          <button
+                        {(g.key === 'notDone'
+                          ? view.destinations.notDone
+                          : view.destinations.parked
+                        ).map((d) => (
+                          <Button
+                            variant="unstyled"
                             key={d.to}
                             type="button"
                             className={`wp-le-pill${d.primary ? ' primary' : ''}`}
@@ -455,10 +569,11 @@ function Body({ step, sessionId, weekStart, setDecisionData, busy }: StepBodyPro
                             onClick={() => void sendTo(item, g.key, d.to)}
                           >
                             {d.label}
-                          </button>
+                          </Button>
                         ))}
                         {item.actions.map((a) => (
-                          <button
+                          <Button
+                            variant="unstyled"
                             key={a}
                             type="button"
                             className="wp-le-pill quiet"
@@ -466,7 +581,7 @@ function Body({ step, sessionId, weekStart, setDecisionData, busy }: StepBodyPro
                             onClick={() => void settle(item, a)}
                           >
                             {looseEndActionLabel(a, item.kind)}
-                          </button>
+                          </Button>
                         ))}
                       </span>
                     </li>
@@ -479,12 +594,16 @@ function Body({ step, sessionId, weekStart, setDecisionData, busy }: StepBodyPro
         </div>
       ) : card ? (
         <div className="wp-le-deck">
-          <div className="wp-le-pos">{position} of {total}</div>
+          <div className="wp-le-pos">
+            {position} of {total}
+          </div>
           <Deck item={card} {...choicesFor(card, group)} busy={disabled} />
         </div>
       ) : (
         <div className="wp-le-clear">
-          <div className="wp-le-check" aria-hidden>✓</div>
+          <div className="wp-le-check" aria-hidden>
+            <DataIcon value={'✓'} kind="general" />
+          </div>
           <div className="wp-le-clear-t wf-serif">
             {group === 'parked' ? "Nothing's parked" : "Nothing's left undone"}
           </div>
@@ -493,13 +612,18 @@ function Body({ step, sessionId, weekStart, setDecisionData, busy }: StepBodyPro
               ? 'Nobody wrote anything down this week that lives nowhere else yet.'
               : `We checked your ${view.sources.length ? view.sources.join(', ') : 'modules'}.`}
             {remaining[other] > 0
-              ? ` ${remaining[other]} ${other === 'parked' ? (remaining[other] === 1 ? 'parked note is' : 'parked notes are') : (remaining[other] === 1 ? 'loose end is' : 'loose ends are')} still waiting.`
+              ? ` ${remaining[other]} ${other === 'parked' ? (remaining[other] === 1 ? 'parked note is' : 'parked notes are') : remaining[other] === 1 ? 'loose end is' : 'loose ends are'} still waiting.`
               : ' Both groups are clear.'}
           </div>
           {remaining[other] > 0 && (
-            <button type="button" className="btn btn-primary wp-le-clear-go" onClick={() => setGroup(other)}>
+            <Button
+              variant="default"
+              type="button"
+              className="wp-le-clear-go"
+              onClick={() => setGroup(other)}
+            >
               Go to {otherLabel}
-            </button>
+            </Button>
           )}
         </div>
       )}
@@ -511,8 +635,14 @@ function Body({ step, sessionId, weekStart, setDecisionData, busy }: StepBodyPro
           </span>
           {(trailOpen ? trail : trail.slice(0, 3)).map((r, i) => (
             <span key={routeKey(r)} className={`wp-le-trail-i${i === 0 ? ' last' : ''}`}>
-              <b>{r.title}</b> → {stepName(r.to)}{' '}
-              <button
+              <b>{r.title}</b>
+              <>
+                {' '}
+                <DataIcon value={'→'} kind="general" />{' '}
+              </>
+              {stepName(r.to)}{' '}
+              <Button
+                variant="unstyled"
                 type="button"
                 className="wp-le-undo"
                 aria-label={`Undo sending ${r.title}`}
@@ -520,13 +650,18 @@ function Body({ step, sessionId, weekStart, setDecisionData, busy }: StepBodyPro
                 onClick={() => void undoRoute(r)}
               >
                 Undo
-              </button>
+              </Button>
             </span>
           ))}
           {!trailOpen && trail.length > 3 && (
-            <button type="button" className="wp-le-undo" onClick={() => setTrailOpen(true)}>
+            <Button
+              variant="unstyled"
+              type="button"
+              className="wp-le-undo"
+              onClick={() => setTrailOpen(true)}
+            >
               Show all {trail.length}
-            </button>
+            </Button>
           )}
         </div>
       )}

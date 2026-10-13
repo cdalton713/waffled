@@ -35,7 +35,14 @@ const household = {
   },
 }
 
-const capabilities = ['chore.manage', 'chore.approve', 'reward.manage', 'reward.approve', 'reward.grant', 'goal.manage']
+const capabilities = [
+  'chore.manage',
+  'chore.approve',
+  'reward.manage',
+  'reward.approve',
+  'reward.grant',
+  'goal.manage',
+]
 const permissionRow = Object.fromEntries(capabilities.map((capability) => [capability, false]))
 const permissions = { adult: permissionRow, teen: permissionRow, kid: permissionRow }
 const empty = {
@@ -66,25 +73,45 @@ async function mockApi(page: Page) {
     let body: unknown = empty
 
     if (path === '/api/auth/status') body = { initialized: true, methods: ['password'] }
-    else if (path === '/api/auth/login') body = { accessToken: 'test-access', refreshToken: 'test-refresh', expiresIn: 900 }
+    else if (path === '/api/auth/login')
+      body = { accessToken: 'test-access', refreshToken: 'test-refresh', expiresIn: 900 }
     else if (path === '/api/auth/logout') body = { ok: true }
-    else if (path === '/api/household') body = { provisioned: true, household, person, memberships: [], pendingInvites: [] }
+    else if (path === '/api/household')
+      body = { provisioned: true, household, person, memberships: [], pendingInvites: [] }
     else if (path === '/api/household/settings') {
       body = {
         household,
-        members: [{ ...person, hasLogin: true, loginEmail: 'alex@example.test', hasPassword: true, hasPin: false, isOwner: true }],
+        members: [
+          {
+            ...person,
+            hasLogin: true,
+            loginEmail: 'alex@example.test',
+            hasPassword: true,
+            hasPin: false,
+            isOwner: true,
+          },
+        ],
       }
     } else if (path === '/api/persons') body = { persons: [person] }
-    else if (path === '/api/permissions') body = { permissions, capabilities, roles: ['adult', 'teen', 'kid'] }
+    else if (path === '/api/permissions')
+      body = { permissions, capabilities, roles: ['adult', 'teen', 'kid'] }
     else if (path === '/api/weather') body = { weather: null }
     else if (path === '/api/updates') body = { enabled: false, updateAvailable: false }
     else if (path === '/api/calendar/status') body = { connected: false, configured: false }
     else if (path === '/api/powersync/token') {
-      await route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'disabled in browser tests' }) })
+      await route.fulfill({
+        status: 503,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: 'disabled in browser tests' }),
+      })
       return
     }
 
-    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) })
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(body),
+    })
   })
 }
 
@@ -105,7 +132,7 @@ test('signs in and signs out through the rendered application', async ({ page })
   await signIn(page)
 
   await page.getByRole('link', { name: 'Settings', exact: true }).click()
-  await expect(page.getByText('Family & People', { exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Family & People', exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Sign out' }).click()
   await page.getByRole('button', { name: 'Tap again to sign out' }).click()
 
@@ -118,7 +145,9 @@ test('never stores authenticated API responses in Cache Storage', async ({ page 
 
   await page.waitForFunction(() => navigator.serviceWorker.controller !== null)
   const response = await page.evaluate(async () => {
-    const result = await fetch('/api/household', { headers: { authorization: 'Bearer test-access' } })
+    const result = await fetch('/api/household', {
+      headers: { authorization: 'Bearer test-access' },
+    })
     return { ok: result.ok, body: await result.json() }
   })
   expect(response.ok).toBe(true)

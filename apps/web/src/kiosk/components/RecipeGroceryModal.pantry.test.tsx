@@ -14,7 +14,11 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { RecipeGroceryModal } from './RecipeGroceryModal'
 import type { RecipeIngredient } from '../../lib/api'
 
-const ing = (id: string, name: string, extra: Partial<RecipeIngredient> = {}): RecipeIngredient => ({
+const ing = (
+  id: string,
+  name: string,
+  extra: Partial<RecipeIngredient> = {},
+): RecipeIngredient => ({
   id,
   name,
   amount: 1,
@@ -50,13 +54,13 @@ const show = (ingredients: RecipeIngredient[]) =>
       ingredients={ingredients}
       onClose={() => {}}
       onAdded={() => {}}
-    />
+    />,
   )
 
 // The row's ✓ cell is empty when unchecked — the checkmark is the state.
 const checked = (name: string): boolean => {
   const row = screen.getByText(name).closest('.ring-row')!
-  return row.querySelector('.ring-ck')!.textContent === '✓'
+  return row.getAttribute('aria-pressed') === 'true'
 }
 
 describe('RecipeGroceryModal — pantry pre-uncheck', () => {
@@ -102,7 +106,9 @@ describe('RecipeGroceryModal — pantry pre-uncheck', () => {
 
   it('says how many it unchecked, so the change is never silent', () => {
     show([ing('1', 'Leeks'), ing('2', 'Heavy cream', { inPantry: true })])
-    expect(screen.getByText(/already unchecked 1 item your pantry says you have/)).toBeInTheDocument()
+    expect(
+      screen.getByText(/already unchecked 1 item your pantry says you have/),
+    ).toBeInTheDocument()
   })
 
   it('names the state rather than offering a dead "Add 0 items" when the pantry covers everything', () => {

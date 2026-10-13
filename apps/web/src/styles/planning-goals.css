@@ -1,106 +1,307 @@
+@reference './ui.css';
+
 /* Weekly Planning · step 6 — Goals (planning/steps/GoalsStep.tsx).
 
    Built from the shared vocabulary plus this step's own chrome, on the same tokens as
    planning.css so dark mode comes for free. NEVER hardcode a hex here. Member avatars
    reuse the global .avstack / .av.sm design-system classes. */
 
-.wpg { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
-.wpg-note { color: var(--ink-3); font-weight: 600; max-width: 58ch; line-height: 1.55; margin: auto 0; }
+.wpg {
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:18px];
+  @apply [min-width:0];
+}
+.wpg-note {
+  @apply [color:var(--ink-3)];
+  @apply font-semibold;
+  @apply [max-width:58ch];
+  @apply [line-height:1.55];
+  @apply [margin:auto_0];
+}
 
 .wpg-tabs {
-  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-  padding-bottom: 14px; border-bottom: 1px solid var(--hair);
+  @apply flex;
+  @apply items-center;
+  @apply [gap:8px];
+  @apply flex-wrap;
+  @apply [padding-bottom:14px];
+  @apply [border-bottom:1px_solid_var(--hair)];
 }
 .wpg-tab {
-  display: inline-flex; align-items: center; gap: 7px;
-  font: inherit; font-size: 13.5px; font-weight: 700; letter-spacing: -0.01em;
-  color: var(--ink-2); background: var(--panel);
-  border: 1px solid transparent; border-radius: 999px; padding: 8px 14px; cursor: pointer;
+  @apply inline-flex;
+  @apply items-center;
+  @apply [gap:7px];
+  @apply [font:inherit];
+  @apply [font-size:13.5px];
+  @apply font-bold;
+  @apply [letter-spacing:-0.01em];
+  @apply [color:var(--ink-2)];
+  @apply [background:var(--panel)];
+  @apply [border:1px_solid_transparent];
+  @apply [border-radius:999px];
+  @apply [padding:8px_14px];
+  @apply cursor-pointer;
 }
-.wpg-tab:hover { color: var(--ink); }
-.wpg-tab.on { color: var(--ink); background: var(--card); border-color: var(--line); box-shadow: var(--sh-1); }
-.wpg-tab-e { font-size: 15px; line-height: 1; }
-.wpg-tab-n { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 16ch; }
-.wpg-tab-lock { font-size: 11px; line-height: 1; opacity: 0.75; }
+.wpg-tab:hover {
+  @apply [color:var(--ink)];
+}
+.wpg-tab.on {
+  @apply [color:var(--ink)];
+  @apply [background:var(--card)];
+  @apply [border-color:var(--line)];
+  @apply [box-shadow:var(--sh-1)];
+}
+.wpg-tab-e {
+  @apply [font-size:15px];
+  @apply [line-height:1];
+}
+.wpg-tab-n {
+  @apply [min-width:0];
+  @apply overflow-hidden;
+  @apply [text-overflow:ellipsis];
+  @apply whitespace-nowrap;
+  @apply [max-width:16ch];
+}
+.wpg-tab-lock {
+  @apply [font-size:11px];
+  @apply [line-height:1];
+  @apply [opacity:0.75];
+}
 /* The ★ lets the room read what's left without opening every group. */
-.wpg-tab-star { color: var(--gold); font-size: 12px; line-height: 1; }
-.wpg-tab.settled { color: var(--ink); }
-.wpg-tally { margin-left: auto; font-size: 12.5px; font-weight: 650; color: var(--ink-2); }
+.wpg-tab-star {
+  @apply [color:var(--gold)];
+  @apply [font-size:12px];
+  @apply [line-height:1];
+}
+.wpg-tab.settled {
+  @apply [color:var(--ink)];
+}
+.wpg-tally {
+  @apply [margin-left:auto];
+  @apply [font-size:12.5px];
+  @apply [font-weight:650];
+  @apply [color:var(--ink-2)];
+}
 
-.wpg-card { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.wpg-card {
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:14px];
+  @apply [min-width:0];
+}
 
-.wpg-card-h { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.wpg-card-h {
+  @apply flex;
+  @apply items-center;
+  @apply [gap:14px];
+  @apply [min-width:0];
+}
 .wpg-card-tile {
-  flex: none; width: 46px; height: 46px; border-radius: var(--r-sm);
-  display: grid; place-items: center; font-size: 24px;
-  background: var(--panel);
+  @apply [flex:none];
+  @apply [width:46px];
+  @apply [height:46px];
+  @apply [border-radius:var(--r-sm)];
+  @apply grid;
+  @apply [place-items:center];
+  @apply [font-size:24px];
+  @apply [background:var(--panel)];
 }
-.wpg-card-id { flex: 1; min-width: 0; }
+.wpg-card-id {
+  @apply [flex:1];
+  @apply [min-width:0];
+}
 .wpg-card-n {
-  display: flex; align-items: center; gap: 7px;
-  font-family: var(--serif); font-size: 21px; font-weight: 600; letter-spacing: -0.02em;
-  min-width: 0;
+  @apply flex;
+  @apply items-center;
+  @apply [gap:7px];
+  @apply [font-family:var(--serif)];
+  @apply [font-size:21px];
+  @apply font-semibold;
+  @apply [letter-spacing:-0.02em];
+  @apply [min-width:0];
 }
-.wpg-card-lock { font-size: 12px; opacity: 0.7; }
-.wpg-card-s { margin-top: 2px; font-size: 12.5px; font-weight: 650; color: var(--ink-2); }
-.wpg-card-h .avstack { flex: none; }
+.wpg-card-lock {
+  @apply [font-size:12px];
+  @apply [opacity:0.7];
+}
+.wpg-card-s {
+  @apply [margin-top:2px];
+  @apply [font-size:12.5px];
+  @apply [font-weight:650];
+  @apply [color:var(--ink-2)];
+}
+.wpg-card-h .avstack {
+  @apply [flex:none];
+}
 
-.wpg-opts { display: flex; flex-direction: column; gap: 10px; }
+.wpg-opts {
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:10px];
+}
 
 .wpg-opt {
-  display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;
-  font: inherit; color: var(--ink);
-  background: var(--card); border: 1px solid var(--hair); border-radius: var(--r-md);
-  padding: 13px 16px; cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  @apply flex;
+  @apply items-center;
+  @apply [gap:14px];
+  @apply [width:100%];
+  @apply text-left;
+  @apply [font:inherit];
+  @apply [color:var(--ink)];
+  @apply [background:var(--card)];
+  @apply [border:1px_solid_var(--hair)];
+  @apply [border-radius:var(--r-md)];
+  @apply [padding:13px_16px];
+  @apply cursor-pointer;
+  @apply [transition:border-color_0.15s_ease,_background_0.15s_ease];
 }
-.wpg-opt:hover:not(:disabled) { border-color: var(--line); }
-.wpg-opt:disabled { opacity: 0.55; cursor: default; }
+.wpg-opt:hover:not(:disabled) {
+  @apply [border-color:var(--line)];
+}
+.wpg-opt:disabled {
+  @apply [opacity:0.55];
+  @apply cursor-default;
+}
 /* Chosen = the week's focus. Coral is the app's one primary accent. */
-.wpg-opt.on { border-color: var(--primary); background: var(--primary-t); }
+.wpg-opt.on {
+  @apply [border-color:var(--primary)];
+  @apply [background:var(--primary-t)];
+}
 /* `:hover:not(:disabled)` outscores `.on` — see the horizon tags. */
-.wpg-opt.on:hover:not(:disabled) { border-color: var(--primary); }
+.wpg-opt.on:hover:not(:disabled) {
+  @apply [border-color:var(--primary)];
+}
 
-.wpg-opt-e { font-size: 22px; line-height: 1; flex: none; }
-.wpg-opt-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
-.wpg-opt-t { font-size: 15.5px; font-weight: 700; letter-spacing: -0.012em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.wpg-opt-s { font-size: 12.5px; font-weight: 600; color: var(--ink-2); line-height: 1.4; }
+.wpg-opt-e {
+  @apply [font-size:22px];
+  @apply [line-height:1];
+  @apply [flex:none];
+}
+.wpg-opt-main {
+  @apply [flex:1];
+  @apply [min-width:0];
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:6px];
+}
+.wpg-opt-t {
+  @apply [font-size:15.5px];
+  @apply font-bold;
+  @apply [letter-spacing:-0.012em];
+  @apply overflow-hidden;
+  @apply [text-overflow:ellipsis];
+  @apply whitespace-nowrap;
+}
+.wpg-opt-s {
+  @apply [font-size:12.5px];
+  @apply font-semibold;
+  @apply [color:var(--ink-2)];
+  @apply [line-height:1.4];
+}
 
-.wpg-opt-bar { display: block; height: 5px; border-radius: 999px; background: var(--panel); overflow: hidden; }
-.wpg-opt-bar > span { display: block; height: 100%; border-radius: 999px; }
+.wpg-opt-bar {
+  @apply block;
+  @apply [height:5px];
+  @apply [border-radius:999px];
+  @apply [background:var(--panel)];
+  @apply overflow-hidden;
+}
+.wpg-opt-bar > span {
+  @apply block;
+  @apply [height:100%];
+  @apply [border-radius:999px];
+}
 
 /* The number is on the goal's OWN axis — see goalDisplayProgress in lib/api. */
-.wpg-opt-num { flex: none; display: flex; align-items: baseline; gap: 4px; flex-wrap: wrap; justify-content: flex-end; max-width: 44%; }
-.wpg-opt-n { font-size: 19px; font-weight: 750; letter-spacing: -0.02em; }
-.wpg-opt-d { font-size: 12.5px; font-weight: 650; color: var(--ink-2); }
-.wpg-opt-w { flex-basis: 100%; text-align: right; font-size: 11.5px; font-weight: 650; color: var(--ink-3); }
+.wpg-opt-num {
+  @apply [flex:none];
+  @apply flex;
+  @apply items-baseline;
+  @apply [gap:4px];
+  @apply flex-wrap;
+  @apply justify-end;
+  @apply [max-width:44%];
+}
+.wpg-opt-n {
+  @apply [font-size:19px];
+  @apply [font-weight:750];
+  @apply [letter-spacing:-0.02em];
+}
+.wpg-opt-d {
+  @apply [font-size:12.5px];
+  @apply [font-weight:650];
+  @apply [color:var(--ink-2)];
+}
+.wpg-opt-w {
+  @apply [flex-basis:100%];
+  @apply text-right;
+  @apply [font-size:11.5px];
+  @apply [font-weight:650];
+  @apply [color:var(--ink-3)];
+}
 
-.wpg-opt-tick { flex: none; width: 14px; text-align: center; color: var(--gold); font-size: 14px; }
+.wpg-opt-tick {
+  @apply [flex:none];
+  @apply [width:14px];
+  @apply text-center;
+  @apply [color:var(--gold)];
+  @apply [font-size:14px];
+}
 
 /* The pace sentence's three tones, all from tokens: --person-3-tx is the readable green
    the category palette uses for "physical" text. */
-.wpg-pace { font-weight: 700; }
-.wpg-pace.ok { color: var(--person-3-tx); }
-.wpg-pace.flat { color: var(--ink-2); }
-.wpg-pace.behind { color: var(--danger-tx); }
+.wpg-pace {
+  @apply font-bold;
+}
+.wpg-pace.ok {
+  @apply [color:var(--person-3-tx)];
+}
+.wpg-pace.flat {
+  @apply [color:var(--ink-2)];
+}
+.wpg-pace.behind {
+  @apply [color:var(--danger-tx)];
+}
 
-.wpg-none { background: var(--card-2); }
-.wpg-none.on { background: var(--primary-t); }
+.wpg-none {
+  @apply [background:var(--card-2)];
+}
+.wpg-none.on {
+  @apply [background:var(--primary-t)];
+}
 
 /* Quiet when nothing is picked: that is reassurance, not a warning. */
 .wpg-verdict {
-  display: flex; align-items: center; gap: 7px;
-  font-size: 14px; font-weight: 700; color: var(--ink-2); letter-spacing: -0.01em;
-  padding-top: 12px; border-top: 1px solid var(--hair-2);
+  @apply flex;
+  @apply items-center;
+  @apply [gap:7px];
+  @apply [font-size:14px];
+  @apply font-bold;
+  @apply [color:var(--ink-2)];
+  @apply [letter-spacing:-0.01em];
+  @apply [padding-top:12px];
+  @apply [border-top:1px_solid_var(--hair-2)];
 }
-.wpg-verdict.has { color: var(--ink); }
-.wpg-verdict-s { color: var(--gold-d); }
+.wpg-verdict.has {
+  @apply [color:var(--ink)];
+}
+.wpg-verdict-s {
+  @apply [color:var(--gold-d)];
+}
 
-.wpg-new { align-self: flex-start; }
+.wpg-new {
+  @apply [align-self:flex-start];
+}
 
 @media (max-width: 720px) {
-  .wpg-tally { margin-left: 0; flex-basis: 100%; }
-  .wpg-opt-num { max-width: none; }
+  .wpg-tally {
+    @apply [margin-left:0];
+    @apply [flex-basis:100%];
+  }
+  .wpg-opt-num {
+    @apply [max-width:none];
+  }
 }
 
 /* ── the new-goal modal ───────────────────────────────────────────────────────
@@ -109,34 +310,66 @@
    would give the form two scrollbars. Scoped under .wpg-modal, so /goals/new is
    untouched. */
 .wpg-modal-card {
-  max-width: min(1180px, 94vw);
-  max-height: none;
-  overflow: hidden;
-  padding: 20px 0 0;
+  @apply [max-width:min(1180px,_94vw)];
+  @apply [max-height:none];
+  @apply overflow-hidden;
+  @apply [padding:20px_0_0];
 }
 .wpg-modal .ge-embed {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  height: min(74vh, 720px);
+  @apply flex;
+  @apply flex-col;
+  @apply [min-height:0];
+  @apply [height:min(74vh,_720px)];
 }
 /* The bar is the modal's header; the × sits at its right, so leave it room. */
-.wpg-modal .ge-topbar { padding: 0 62px 14px 30px; border-bottom: 1px solid var(--hair-2); }
-.wpg-modal .ge-title { font-size: 24px; }
-.wpg-modal .goal-create { min-height: 0; }
+.wpg-modal .ge-topbar {
+  @apply [padding:0_62px_14px_30px];
+  @apply [border-bottom:1px_solid_var(--hair-2)];
+}
+.wpg-modal .ge-title {
+  @apply [font-size:24px];
+}
+.wpg-modal .goal-create {
+  @apply [min-height:0];
+}
 /* The editor's page padding is generous for a full screen and wasteful in a card. */
-.wpg-modal .ge-col { padding: 8px 30px 40px; }
+.wpg-modal .ge-col {
+  @apply [padding:8px_30px_40px];
+}
 /* The group is stated, not offered — flat, unclickable, and clearly the answer. */
-.ge-who-locked { cursor: default; }
+.ge-who-locked {
+  @apply cursor-default;
+}
 
 @media (max-width: 900px) {
   /* Too narrow for the preview pane; the form is the part you need. */
-  .wpg-modal .goal-create { grid-template-columns: minmax(0, 1fr); }
-  .wpg-modal .ge-pvpane { display: none; }
+  .wpg-modal .goal-create {
+    @apply [grid-template-columns:minmax(0,_1fr)];
+  }
+  .wpg-modal .ge-pvpane {
+    @apply hidden;
+  }
 }
 
 /* This week's target, under the goal it belongs to. */
-.wpg-week { display: flex; align-items: center; gap: 10px; margin: -2px 0 6px 38px; }
-.wpg-week > span:first-child { flex: none; font-size: 12px; font-weight: 700; color: var(--ink-3); }
-.wpg-week input { width: 72px; flex: none; }
-.wpg-week-s { font-size: 12.5px; font-weight: 600; color: var(--ink-2); }
+.wpg-week {
+  @apply flex;
+  @apply items-center;
+  @apply [gap:10px];
+  @apply [margin:-2px_0_6px_38px];
+}
+.wpg-week > span:first-child {
+  @apply [flex:none];
+  @apply [font-size:12px];
+  @apply font-bold;
+  @apply [color:var(--ink-3)];
+}
+.wpg-week input {
+  @apply [width:72px];
+  @apply [flex:none];
+}
+.wpg-week-s {
+  @apply [font-size:12.5px];
+  @apply font-semibold;
+  @apply [color:var(--ink-2)];
+}

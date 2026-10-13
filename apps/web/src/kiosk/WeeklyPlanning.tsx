@@ -21,6 +21,10 @@ import { HandoffCtx, type HandoffAction } from './planning/handoff'
 import { ParkedNoteEditor, type ParkedTag } from './planning/ParkedNoteEditor'
 import { ParkNoteComposer } from './planning/ParkNoteComposer'
 import '../styles/planning.css'
+import { Button } from '@/components/ui/button'
+import { DataIcon } from '@/components/ui/data-icon'
+import { Modal } from '@/components/ui/modal'
+import { ChevronDown } from 'lucide-react'
 
 // Weekly Planning — the session shell: a step counter, a title, the step's ONE question and
 // a 2px progress hair. The ten steps are reachable from the counter (the agenda sheet), not a
@@ -43,7 +47,13 @@ function weekLabel(weekStart: string): string {
 // Hoisted, NOT defined inside WeeklyPlanning: a component declared in the render body is a
 // new component type on every render, so React remounts it and replaces its DOM nodes —
 // dropping focus mid-interaction. Anything with a handler belongs out here.
-function WeekStepper({ weekStart, canGoBack, busy, onGo, className }: {
+function WeekStepper({
+  weekStart,
+  canGoBack,
+  busy,
+  onGo,
+  className,
+}: {
   weekStart: string
   canGoBack: boolean
   busy: boolean
@@ -52,22 +62,37 @@ function WeekStepper({ weekStart, canGoBack, busy, onGo, className }: {
 }) {
   return (
     <div className={`wp-weeknav ${className ?? ''}`}>
-      <button
-        type="button" className="wp-weekarrow" disabled={!canGoBack || busy}
+      <Button
+        variant="unstyled"
+        type="button"
+        className="wp-weekarrow"
+        disabled={!canGoBack || busy}
         onClick={() => onGo(addWeeks(weekStart, -1))}
         aria-label="Plan the previous week"
-      >‹</button>
+      >
+        <DataIcon value={'‹'} kind="general" />
+      </Button>
       <span className="wp-weeknav-l">{weekLabel(weekStart)}</span>
-      <button
-        type="button" className="wp-weekarrow" disabled={busy}
+      <Button
+        variant="unstyled"
+        type="button"
+        className="wp-weekarrow"
+        disabled={busy}
         onClick={() => onGo(addWeeks(weekStart, 1))}
         aria-label="Plan the next week"
-      >›</button>
+      >
+        <DataIcon value={'›'} kind="general" />
+      </Button>
     </div>
   )
 }
 
-function DiscardBlock({ confirming, setConfirming, busy, onDiscard }: {
+function DiscardBlock({
+  confirming,
+  setConfirming,
+  busy,
+  onDiscard,
+}: {
   confirming: boolean
   setConfirming: (v: boolean) => void
   busy: boolean
@@ -78,16 +103,38 @@ function DiscardBlock({ confirming, setConfirming, busy, onDiscard }: {
       {confirming ? (
         <>
           <div className="wp-sheet-danger-q">
-            Throw this session away and start the week over? What it already decided —
-            events added, chores handed out — stays put; only the session is discarded.
+            Throw this session away and start the week over? What it already decided — events added,
+            chores handed out — stays put; only the session is discarded.
           </div>
           <div className="wp-sheet-danger-acts">
-            <button type="button" className="wp-sheet-danger-no" onClick={() => setConfirming(false)}>Keep it</button>
-            <button type="button" className="wp-sheet-danger-yes" disabled={busy} onClick={onDiscard}>Start over</button>
+            <Button
+              variant="unstyled"
+              type="button"
+              className="wp-sheet-danger-no"
+              onClick={() => setConfirming(false)}
+            >
+              Keep it
+            </Button>
+            <Button
+              variant="unstyled"
+              type="button"
+              className="wp-sheet-danger-yes"
+              disabled={busy}
+              onClick={onDiscard}
+            >
+              Start over
+            </Button>
           </div>
         </>
       ) : (
-        <button type="button" className="wp-sheet-danger-open" onClick={() => setConfirming(true)}>Start this week over</button>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="wp-sheet-danger-open"
+          onClick={() => setConfirming(true)}
+        >
+          Start this week over
+        </Button>
       )}
     </div>
   )
@@ -104,7 +151,15 @@ function DiscardBlock({ confirming, setConfirming, busy, onDiscard }: {
  * lends one, a third opens the STEP'S own composer (see `./handoff`) and settles the note
  * only if something was really created; a step with no composer lends nothing.
  */
-function Handoff({ step, steps, sessionId, busy, onDone, action, onAct }: {
+function Handoff({
+  step,
+  steps,
+  sessionId,
+  busy,
+  onDone,
+  action,
+  onAct,
+}: {
   step: PlanningStep
   /** Every step in the catalog — the tag list an edit may re-address a note to. */
   steps: PlanningStep[]
@@ -122,8 +177,11 @@ function Handoff({ step, steps, sessionId, busy, onDone, action, onAct }: {
   // that as a circle). Wider than the park bar's forward-only list on purpose: a correction
   // must not be narrower than the mistake. Titles come from the server-owned catalog.
   const tags: ParkedTag[] = useMemo(
-    () => availableSteps(steps).filter((s) => s.key !== 'looseEnds').map((s) => ({ stepKey: s.key, label: s.title })),
-    [steps]
+    () =>
+      availableSteps(steps)
+        .filter((s) => s.key !== 'looseEnds')
+        .map((s) => ({ stepKey: s.key, label: s.title })),
+    [steps],
   )
 
   const answer = async (id: string, action: 'done' | 'drop') => {
@@ -131,8 +189,8 @@ function Handoff({ step, steps, sessionId, busy, onDone, action, onAct }: {
     setWorking(id)
     try {
       await looseEndsApi.resolve('parked', id, action, sessionId)
-              // Hidden locally as well as refetched: the refetch makes it true, this makes
-              // it feel true before the round trip lands.
+      // Hidden locally as well as refetched: the refetch makes it true, this makes
+      // it feel true before the round trip lands.
       setHidden((h) => [...h, id])
       onDone()
     } catch {
@@ -147,8 +205,12 @@ function Handoff({ step, steps, sessionId, busy, onDone, action, onAct }: {
   return (
     <div className="wp-handoff" data-testid="wp-handoff">
       <div className="wp-handoff-h">
-        <span aria-hidden>📌</span>
-        {notes.length === 1 ? 'You parked this for right here' : `You parked ${notes.length} things for right here`}
+        <span aria-hidden>
+          <DataIcon value={'📌'} kind="general" />
+        </span>
+        {notes.length === 1
+          ? 'You parked this for right here'
+          : `You parked ${notes.length} things for right here`}
       </div>
       <ul className="wp-handoff-list">
         {notes.map((n) => (
@@ -168,48 +230,52 @@ function Handoff({ step, steps, sessionId, busy, onDone, action, onAct }: {
                 }}
               />
             ) : (
-            <>
-            <span className="wp-handoff-note">
-              {n.note}
-              {n.byline && <em>{n.byline}</em>}
-            </span>
-            <span className="wp-handoff-acts">
-              <button
-                type="button"
-                className="btn btn-ghost wp-handoff-act"
-                disabled={busy || working === n.id}
-                onClick={() => setEditing(n.id)}
-              >
-                Edit
-              </button>
-              {action && (
-                <button
-                  type="button"
-                  className="btn btn-primary wp-handoff-act is-make"
-                  disabled={busy || working === n.id}
-                  onClick={() => onAct(n.id, n.note)}
-                >
-                  {action.label}
-                </button>
-              )}
-              <button
-                type="button"
-                className="btn btn-ghost wp-handoff-act"
-                disabled={busy || working === n.id}
-                onClick={() => void answer(n.id, 'done')}
-              >
-                {action ? 'Already handled' : 'Handled'}
-              </button>
-              <button
-                type="button"
-                className="btn btn-ghost wp-handoff-act is-drop"
-                disabled={busy || working === n.id}
-                onClick={() => void answer(n.id, 'drop')}
-              >
-                Drop it
-              </button>
-            </span>
-            </>
+              <>
+                <span className="wp-handoff-note">
+                  {n.note}
+                  {n.byline && <em>{n.byline}</em>}
+                </span>
+                <span className="wp-handoff-acts">
+                  <Button
+                    variant="ghost"
+                    type="button"
+                    className="wp-handoff-act"
+                    disabled={busy || working === n.id}
+                    onClick={() => setEditing(n.id)}
+                  >
+                    Edit
+                  </Button>
+                  {action && (
+                    <Button
+                      variant="default"
+                      type="button"
+                      className="wp-handoff-act is-make"
+                      disabled={busy || working === n.id}
+                      onClick={() => onAct(n.id, n.note)}
+                    >
+                      {action.label}
+                    </Button>
+                  )}
+                  <Button
+                    variant="ghost"
+                    type="button"
+                    className="wp-handoff-act"
+                    disabled={busy || working === n.id}
+                    onClick={() => void answer(n.id, 'done')}
+                  >
+                    {action ? 'Already handled' : 'Handled'}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    type="button"
+                    className="wp-handoff-act is-drop"
+                    disabled={busy || working === n.id}
+                    onClick={() => void answer(n.id, 'drop')}
+                  >
+                    Drop it
+                  </Button>
+                </span>
+              </>
             )}
           </li>
         ))}
@@ -231,13 +297,19 @@ const PAUSED_KEY = 'waffled.planning.pausedSession'
 const readPaused = (): string | null => {
   // Storage can throw outright (private mode, blocked site data), and a session you cannot
   // pause beats a screen that will not render.
-  try { return sessionStorage.getItem(PAUSED_KEY) } catch { return null }
+  try {
+    return sessionStorage.getItem(PAUSED_KEY)
+  } catch {
+    return null
+  }
 }
 const writePaused = (id: string | null) => {
   try {
     if (id) sessionStorage.setItem(PAUSED_KEY, id)
     else sessionStorage.removeItem(PAUSED_KEY)
-  } catch { /* the pause is a convenience; losing it costs a resumed session */ }
+  } catch {
+    /* the pause is a convenience; losing it costs a resumed session */
+  }
 }
 
 // These two steps carry their own park bar, so the footer's stays off there.
@@ -269,7 +341,9 @@ export function WeeklyPlanning() {
   // What the step wants kept on the record. A ref, not state: it only matters at the moment
   // the answer is sent, so keystrokes inside a step must not re-render the session.
   const decisionData = useRef<Record<string, unknown> | null>(null)
-  const setDecisionData = useCallback((d: Record<string, unknown> | null) => { decisionData.current = d }, [])
+  const setDecisionData = useCallback((d: Record<string, unknown> | null) => {
+    decisionData.current = d
+  }, [])
 
   const steps = view?.steps ?? []
   const runnable = useMemo(() => availableSteps(steps), [steps])
@@ -293,7 +367,7 @@ export function WeeklyPlanning() {
       acting.current = id
       handoffAction?.run(note)
     },
-    [handoffAction]
+    [handoffAction],
   )
 
   const finish = useCallback(
@@ -306,13 +380,14 @@ export function WeeklyPlanning() {
         .then(() => refetch())
         .catch(() => {})
     },
-    [sessionId, refetch]
+    [sessionId, refetch],
   )
 
   const handoffCtx = useMemo(() => ({ register, finish }), [register, finish])
 
-
-  useEffect(() => { decisionData.current = null }, [current?.key])
+  useEffect(() => {
+    decisionData.current = null
+  }, [current?.key])
 
   const hrefFor = (stepKey: string | null, week?: string) => {
     const w = week ?? view?.weekStart
@@ -366,15 +441,21 @@ export function WeeklyPlanning() {
     }
   }
 
-  const start = () => go(async () => {
-    const { session: s } = await weeklyPlanningApi.startSession(view?.weekStart)
-    if (s?.currentStep) navigate(hrefFor(s.currentStep))
-  })
+  const start = () =>
+    go(async () => {
+      const { session: s } = await weeklyPlanningApi.startSession(view?.weekStart)
+      if (s?.currentStep) navigate(hrefFor(s.currentStep))
+    })
 
   async function answer(status: 'done' | 'skipped') {
     if (!session || !current) return
     await go(async () => {
-      await weeklyPlanningApi.decideStep(session.id, current.key, status, decisionData.current ?? undefined)
+      await weeklyPlanningApi.decideStep(
+        session.id,
+        current.key,
+        status,
+        decisionData.current ?? undefined,
+      )
       decisionData.current = null
       if (next) {
         await weeklyPlanningApi.patchSession(session.id, { currentStep: next.key })
@@ -406,11 +487,17 @@ export function WeeklyPlanning() {
     })
   }
 
-  const closeSheet = () => { setSheet(false); setConfirmDiscard(false) }
+  const closeSheet = () => {
+    setSheet(false)
+    setConfirmDiscard(false)
+  }
 
   const leave = () => {
     setSheet(false)
-    if (session) { writePaused(session.id); setPaused(session.id) }
+    if (session) {
+      writePaused(session.id)
+      setPaused(session.id)
+    }
     navigate(hrefFor(null))
   }
 
@@ -428,15 +515,30 @@ export function WeeklyPlanning() {
     navigate(week === view.defaultWeekStart ? '/planning' : `/planning?week=${week}`)
   }
 
-  if (loading) return <div className="wp-screen"><div className="wp-empty">Loading…</div></div>
-  if (!view) return <div className="wp-screen"><div className="wp-empty">Couldn't load the session — reload or sign in again.</div></div>
+  if (loading)
+    return (
+      <div className="wp-screen">
+        <div className="wp-empty">Loading…</div>
+      </div>
+    )
+  if (!view)
+    return (
+      <div className="wp-screen">
+        <div className="wp-empty">Couldn't load the session — reload or sign in again.</div>
+      </div>
+    )
 
   if (!runnable.length) {
     return (
       <div className="wp-screen">
         <div className="wp-empty">
-          Every step of the session reads a module that's turned off. Turn one back on in
-          Settings → Modules, or turn individual steps on under Weekly Planning.
+          <>
+            {
+              "Every step of the session reads a module that's turned off. Turn one back on in Settings "
+            }
+            <DataIcon value={'→'} kind="general" />
+            {' Modules, or turn individual steps on under Weekly Planning.'}
+          </>
         </div>
       </div>
     )
@@ -445,16 +547,30 @@ export function WeeklyPlanning() {
   const canGoBack = view.weekStart > view.minWeekStart
   const weekNav = { weekStart: view.weekStart, canGoBack, busy, onGo: goWeek }
 
-  const discardProps = { confirming: confirmDiscard, setConfirming: setConfirmDiscard, busy, onDiscard: discard }
+  const discardProps = {
+    confirming: confirmDiscard,
+    setConfirming: setConfirmDiscard,
+    busy,
+    onDiscard: discard,
+  }
 
   // The record, "Left for now" and the lobby are what the page shows mid-week, which is when
   // a note for the next session comes up. It parks with no session and no tag. The composer
   // renders at the screen root, outside the footers, so their button rules can't reach it.
   const parkBetween = (
     <Editable>
-      <button type="button" className="btn btn-ghost wp-park-between" disabled={busy} onClick={() => setParkingBetween(true)}>
-        📌 Park a note
-      </button>
+      <Button
+        variant="ghost"
+        type="button"
+        className="wp-park-between"
+        disabled={busy}
+        onClick={() => setParkingBetween(true)}
+      >
+        <>
+          <DataIcon value={'📌'} kind="general" />
+          {' Park a note'}
+        </>
+      </Button>
     </Editable>
   )
   const parkBetweenComposer = parkingBetween && (
@@ -474,8 +590,9 @@ export function WeeklyPlanning() {
   if (session?.status === 'completed') {
     const decided = runnable.filter((s) => s.status !== 'pending')
     const recapStep = steps.find((s) => s.key === 'recap')
-    const readBack = RecordRecap && recapStep
-      ? <RecordRecap
+    const readBack =
+      RecordRecap && recapStep ? (
+        <RecordRecap
           step={recapStep}
           sessionId={session.id}
           weekStart={view.weekStart}
@@ -484,47 +601,71 @@ export function WeeklyPlanning() {
           busy={busy}
           hrefForStep={(key) => RECORD_MODULE_HREF[key] ?? null}
         />
-      : null
+      ) : null
     return (
       <div className="wp-screen">
         <div className={`wp-record${readBack ? ' is-read' : ''}`}>
           <div className="wp-record-h">
             <div className="wp-record-t wf-serif">The week is decided</div>
             <div className="wp-record-s">
-              {weekLabel(view.weekStart)} · saved {new Date(session.completedAt ?? session.startedAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+              {weekLabel(view.weekStart)} · saved{' '}
+              {new Date(session.completedAt ?? session.startedAt).toLocaleString(undefined, {
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+              })}
             </div>
           </div>
-          <div className="wp-record-week">Plan another week <WeekStepper {...weekNav} /></div>
+          <div className="wp-record-week">
+            Plan another week <WeekStepper {...weekNav} />
+          </div>
           {readBack && (
             <div className="wp-record-read">
-              <StepErrorBoundary key={`record-recap-${recordRev}`} title="the week">{readBack}</StepErrorBoundary>
+              <StepErrorBoundary key={`record-recap-${recordRev}`} title="the week">
+                {readBack}
+              </StepErrorBoundary>
             </div>
           )}
           {/* The read-back already names what was left alone on purpose, skipped steps included;
               the list only stands in when there is no read-back, with the recap step off. */}
-          {!readBack && <div className="wp-record-list">
-            {decided.map((s) => (
-              <div key={s.key} className={`wp-record-row ${s.status}`}>
-                <div className="wp-record-n">{s.status === 'done' ? '✓' : '–'}</div>
-                <div className="wp-record-main">
-                  <b>{s.title}</b>
-                  <s>{s.status === 'done' ? s.primary : 'Skipped — a real answer'}</s>
+          {!readBack && (
+            <div className="wp-record-list">
+              {decided.map((s) => (
+                <div key={s.key} className={`wp-record-row ${s.status}`}>
+                  <div className="wp-record-n">
+                    {s.status === 'done' ? <DataIcon value={'✓'} kind="general" /> : '–'}
+                  </div>
+                  <div className="wp-record-main">
+                    <b>{s.title}</b>
+                    <s>{s.status === 'done' ? s.primary : 'Skipped — a real answer'}</s>
+                  </div>
                 </div>
-              </div>
-            ))}
-            {!decided.length && <div className="wp-record-row"><div className="wp-record-main"><s>Nothing was decided in this session.</s></div></div>}
-          </div>}
+              ))}
+              {!decided.length && (
+                <div className="wp-record-row">
+                  <div className="wp-record-main">
+                    <s>Nothing was decided in this session.</s>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
           <div className="wp-record-f">
             {parkBetween}
-            <button
-              type="button" className="btn btn-ghost" disabled={busy}
-              onClick={() => go(async () => {
-                await weeklyPlanningApi.patchSession(session.id, { status: 'active' })
-                if (session.currentStep) navigate(hrefFor(session.currentStep))
-              })}
+            <Button
+              variant="ghost"
+              type="button"
+              disabled={busy}
+              onClick={() =>
+                go(async () => {
+                  await weeklyPlanningApi.patchSession(session.id, { status: 'active' })
+                  if (session.currentStep) navigate(hrefFor(session.currentStep))
+                })
+              }
             >
               Reopen the session
-            </button>
+            </Button>
           </div>
           <DiscardBlock {...discardProps} />
         </div>
@@ -540,14 +681,23 @@ export function WeeklyPlanning() {
         <div className="wp-lobby" data-testid="wp-paused">
           <div className="wp-lobby-t wf-serif">Left for now</div>
           <div className="wp-lobby-s">
-            {weekLabel(view.weekStart)} is part-planned — {runnable.filter((x) => x.status !== 'pending').length} of{' '}
-            {runnable.length} steps decided. Nothing was lost; pick it up whenever.
+            {weekLabel(view.weekStart)} is part-planned —{' '}
+            {runnable.filter((x) => x.status !== 'pending').length} of {runnable.length} steps
+            decided. Nothing was lost; pick it up whenever.
           </div>
-          <button type="button" className="btn btn-primary wp-lobby-go" disabled={busy} onClick={resume}>
+          <Button
+            variant="default"
+            type="button"
+            className="wp-lobby-go"
+            disabled={busy}
+            onClick={resume}
+          >
             Resume the session
-          </button>
+          </Button>
           {parkBetween}
-          <div className="wp-record-week">Plan another week <WeekStepper {...weekNav} /></div>
+          <div className="wp-record-week">
+            Plan another week <WeekStepper {...weekNav} />
+          </div>
           <DiscardBlock {...discardProps} />
         </div>
         {parkBetweenComposer}
@@ -560,8 +710,12 @@ export function WeeklyPlanning() {
     return (
       <div className="wp-screen">
         <div className="wp-lobby">
-          <div className="wp-lobby-t wf-serif">{planningDayName(view.config.dayOfWeek)}'s session</div>
-          <div className="wp-lobby-s">{runnable.length} steps. Jump anywhere, leave whenever the week is decided.</div>
+          <div className="wp-lobby-t wf-serif">
+            {planningDayName(view.config.dayOfWeek)}'s session
+          </div>
+          <div className="wp-lobby-s">
+            {runnable.length} steps. Jump anywhere, leave whenever the week is decided.
+          </div>
           <WeekStepper {...weekNav} className="wp-weeknav-lobby" />
           <div className="wp-lobby-acts">
             {stepsByAct(steps).map((a) => (
@@ -571,9 +725,15 @@ export function WeeklyPlanning() {
               </div>
             ))}
           </div>
-          <button type="button" className="btn btn-primary wp-lobby-go" disabled={busy} onClick={start}>
+          <Button
+            variant="default"
+            type="button"
+            className="wp-lobby-go"
+            disabled={busy}
+            onClick={start}
+          >
             Start the session
-          </button>
+          </Button>
           {parkBetween}
         </div>
         {parkBetweenComposer}
@@ -585,117 +745,192 @@ export function WeeklyPlanning() {
   const pos = runnable.findIndex((s) => s.key === current?.key) + 1
   const pct = Math.round((pos / runnable.length) * 100)
   const stepProps: StepBodyProps | null = current
-    ? { step: current, sessionId: session.id, weekStart: view.weekStart, setDecisionData, refresh: refetch, busy }
+    ? {
+        step: current,
+        sessionId: session.id,
+        weekStart: view.weekStart,
+        setDecisionData,
+        refresh: refetch,
+        busy,
+      }
     : null
 
   return (
     <HandoffCtx.Provider value={handoffCtx}>
-    <div className="wp-screen wp-in">
-      <div className="wp-head">
-        <button type="button" className="wp-stepchip" onClick={() => setSheet(true)} aria-expanded={sheet}>
-          {pos} of {runnable.length}
-          <svg viewBox="0 0 24 24" aria-hidden><path d="M6 9l6 6 6-6" /></svg>
-        </button>
-        <div className="wp-title wf-serif">{current?.title}</div>
-        <div className="wp-ask">{current?.ask}</div>
-        <div className="wp-week">{weekLabel(view.weekStart)}</div>
-        <button type="button" className="wp-exit" data-testid="wp-exit" onClick={leave}>
-          Leave for now
-        </button>
-        <div className="wp-prog"><div style={{ width: `${pct}%` }} /></div>
-      </div>
-
-      {error && <div className="wp-err" role="alert">{error}</div>}
-
-      <div className="wp-body">
-        {/* `?? []` on purpose: a payload missing the field must cost the banner, never
-            the whole session screen. The shell is the one component whose failure has
-            nowhere to fall back to — there is no boundary above it. */}
-        {current && (current.parked ?? []).length > 0 && (
-          <Handoff
-            step={current}
-            steps={view.steps}
-            sessionId={session.id}
-            busy={busy}
-            onDone={refetch}
-            action={handoffAction}
-            onAct={onAct}
-          />
-        )}
-        {current && (
-          // Keyed on the step so moving on retries rather than inheriting a failure.
-          <StepErrorBoundary key={current.key} title={current.title}>
-            {stepMod ? <stepMod.Body {...stepProps!} /> : <StepPlaceholder step={current} />}
-          </StepErrorBoundary>
-        )}
-      </div>
-
-      <div className="wp-foot">
-        <button type="button" className="wp-skip" disabled={busy} onClick={() => answer('skipped')}>Skip this step</button>
-        {current && !OWN_PARK_BAR.has(current.key) && !isViewOnly() && (
-          <button type="button" className="wp-skip wp-park-open" disabled={busy} onClick={() => setParking(true)}>
-            📌 Park a note
-          </button>
-        )}
-        {stepMod?.FooterExtra && stepProps && <stepMod.FooterExtra {...stepProps} />}
-        <div className="wp-foot-sp" />
-        <button type="button" className="btn btn-primary wp-primary" disabled={busy} onClick={() => answer('done')}>
-          {current?.primary}
-          {next && <span className="wp-next">· next: {next.title}</span>}
-        </button>
-      </div>
-
-      {parking && current && (
-        <ParkNoteComposer
-          tags={parkTags(runnable, current.key)}
-          sessionId={session.id}
-          onClose={() => setParking(false)}
-          onParked={() => {
-            setParking(false)
-            refetch()
-          }}
-        />
-      )}
-
-      {sheet && (
-        <div className="modal-overlay" onClick={closeSheet}>
-          <div className="modal-card wp-sheet" data-testid="wp-sheet" onClick={(e) => e.stopPropagation()}>
-            <button type="button" className="modal-close" onClick={closeSheet} aria-label="Close">×</button>
-            <div className="wp-sheet-t wf-serif">{planningDayName(view.config.dayOfWeek)}'s session</div>
-            <div className="wp-sheet-s">{runnable.length} steps. Jump anywhere, leave whenever the week is decided.</div>
-            <WeekStepper {...weekNav} className="wp-weeknav-sheet" />
-            {stepsByAct(steps).map((a) => (
-              <div key={a.act}>
-                <div className="wp-sheet-act">{a.act}</div>
-                {a.steps.map((s) => {
-                  const here = s.key === current?.key
-                  const n = runnable.findIndex((x) => x.key === s.key) + 1
-                  return (
-                    <button
-                      key={s.key}
-                      type="button"
-                      className={`wp-sheet-step${here ? ' on' : ''}${s.status === 'done' ? ' done' : ''}${s.status === 'skipped' ? ' skipped' : ''}`}
-                      onClick={() => jump(s.key)}
-                    >
-                      <span className="wp-sheet-n">{s.status === 'done' ? '✓' : n}</span>
-                      <span className="wp-sheet-name">{s.title}</span>
-                      {here && <span className="wp-sheet-m">you're here</span>}
-                      {!here && s.status === 'done' && <span className="wp-sheet-m">decided</span>}
-                      {!here && s.status === 'skipped' && <span className="wp-sheet-m">skipped</span>}
-                    </button>
-                  )
-                })}
-              </div>
-            ))}
-            <div className="wp-sheet-f">
-              <button type="button" className="btn btn-ghost" onClick={closeSheet}>Close</button>
-              <button type="button" className="btn btn-ghost" onClick={leave}>Leave for now</button>
-            </div>
-            <DiscardBlock {...discardProps} />
+      <div className="wp-screen wp-in">
+        <div className="wp-head">
+          <Button
+            variant="unstyled"
+            type="button"
+            className="wp-stepchip"
+            onClick={() => setSheet(true)}
+            aria-expanded={sheet}
+          >
+            {pos} of {runnable.length}
+            <ChevronDown aria-hidden="true" />
+          </Button>
+          <div className="wp-title wf-serif">{current?.title}</div>
+          <div className="wp-ask">{current?.ask}</div>
+          <div className="wp-week">{weekLabel(view.weekStart)}</div>
+          <Button
+            variant="unstyled"
+            type="button"
+            className="wp-exit"
+            data-testid="wp-exit"
+            onClick={leave}
+          >
+            Leave for now
+          </Button>
+          <div className="wp-prog">
+            <div style={{ width: `${pct}%` }} />
           </div>
         </div>
-      )}
-    </div>
+
+        {error && (
+          <div className="wp-err" role="alert">
+            {error}
+          </div>
+        )}
+
+        <div className="wp-body">
+          {/* `?? []` on purpose: a payload missing the field must cost the banner, never
+            the whole session screen. The shell is the one component whose failure has
+            nowhere to fall back to — there is no boundary above it. */}
+          {current && (current.parked ?? []).length > 0 && (
+            <Handoff
+              step={current}
+              steps={view.steps}
+              sessionId={session.id}
+              busy={busy}
+              onDone={refetch}
+              action={handoffAction}
+              onAct={onAct}
+            />
+          )}
+          {current && (
+            // Keyed on the step so moving on retries rather than inheriting a failure.
+            <StepErrorBoundary key={current.key} title={current.title}>
+              {stepMod ? <stepMod.Body {...stepProps!} /> : <StepPlaceholder step={current} />}
+            </StepErrorBoundary>
+          )}
+        </div>
+
+        <div className="wp-foot">
+          <Button
+            variant="unstyled"
+            type="button"
+            className="wp-skip"
+            disabled={busy}
+            onClick={() => answer('skipped')}
+          >
+            Skip this step
+          </Button>
+          {current && !OWN_PARK_BAR.has(current.key) && !isViewOnly() && (
+            <Button
+              variant="unstyled"
+              type="button"
+              className="wp-skip wp-park-open"
+              disabled={busy}
+              onClick={() => setParking(true)}
+            >
+              <>
+                <DataIcon value={'📌'} kind="general" />
+                {' Park a note'}
+              </>
+            </Button>
+          )}
+          {stepMod?.FooterExtra && stepProps && <stepMod.FooterExtra {...stepProps} />}
+          <div className="wp-foot-sp" />
+          <Button
+            variant="default"
+            type="button"
+            className="wp-primary"
+            disabled={busy}
+            onClick={() => answer('done')}
+          >
+            {current?.primary}
+            {next && <span className="wp-next">· next: {next.title}</span>}
+          </Button>
+        </div>
+
+        {parking && current && (
+          <ParkNoteComposer
+            tags={parkTags(runnable, current.key)}
+            sessionId={session.id}
+            onClose={() => setParking(false)}
+            onParked={() => {
+              setParking(false)
+              refetch()
+            }}
+          />
+        )}
+
+        {sheet && (
+          <Modal className="modal-overlay" onClose={closeSheet}>
+            <div
+              className="modal-card wp-sheet"
+              data-testid="wp-sheet"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Button
+                variant="unstyled"
+                type="button"
+                className="modal-close"
+                onClick={closeSheet}
+                aria-label="Close"
+              >
+                <DataIcon value={'×'} kind="general" />
+              </Button>
+              <div className="wp-sheet-t wf-serif">
+                {planningDayName(view.config.dayOfWeek)}'s session
+              </div>
+              <div className="wp-sheet-s">
+                {runnable.length} steps. Jump anywhere, leave whenever the week is decided.
+              </div>
+              <WeekStepper {...weekNav} className="wp-weeknav-sheet" />
+              {stepsByAct(steps).map((a) => (
+                <div key={a.act}>
+                  <div className="wp-sheet-act">{a.act}</div>
+                  {a.steps.map((s) => {
+                    const here = s.key === current?.key
+                    const n = runnable.findIndex((x) => x.key === s.key) + 1
+                    return (
+                      <Button
+                        variant="unstyled"
+                        key={s.key}
+                        type="button"
+                        className={`wp-sheet-step${here ? ' on' : ''}${s.status === 'done' ? ' done' : ''}${s.status === 'skipped' ? ' skipped' : ''}`}
+                        onClick={() => jump(s.key)}
+                      >
+                        <span className="wp-sheet-n">
+                          {s.status === 'done' ? <DataIcon value={'✓'} kind="general" /> : n}
+                        </span>
+                        <span className="wp-sheet-name">{s.title}</span>
+                        {here && <span className="wp-sheet-m">you're here</span>}
+                        {!here && s.status === 'done' && (
+                          <span className="wp-sheet-m">decided</span>
+                        )}
+                        {!here && s.status === 'skipped' && (
+                          <span className="wp-sheet-m">skipped</span>
+                        )}
+                      </Button>
+                    )
+                  })}
+                </div>
+              ))}
+              <div className="wp-sheet-f">
+                <Button variant="ghost" type="button" onClick={closeSheet}>
+                  Close
+                </Button>
+                <Button variant="ghost" type="button" onClick={leave}>
+                  Leave for now
+                </Button>
+              </div>
+              <DiscardBlock {...discardProps} />
+            </div>
+          </Modal>
+        )}
+      </div>
     </HandoffCtx.Provider>
   )
 }
@@ -720,9 +955,15 @@ function useRecapPanel(active: boolean): ComponentType<RecapPanelProps> | null {
     if (!active) return
     let alive = true
     import('./planning/steps/RecapStep')
-      .then((m) => { if (alive) setPanel(() => m.RecapPanel) })
-      .catch(() => { /* the tick-list below is the fallback, and it is never not there */ })
-    return () => { alive = false }
+      .then((m) => {
+        if (alive) setPanel(() => m.RecapPanel)
+      })
+      .catch(() => {
+        /* the tick-list below is the fallback, and it is never not there */
+      })
+    return () => {
+      alive = false
+    }
   }, [active])
   return panel
 }
@@ -738,8 +979,16 @@ function useStepModule(key: string | undefined): PlanningStepModule | null {
     setMod(null)
     const load = key ? STEP_MODULES[key] : undefined
     if (!load) return
-    load().then((m) => { if (alive) setMod(m) }).catch(() => { /* falls back to the placeholder */ })
-    return () => { alive = false }
+    load()
+      .then((m) => {
+        if (alive) setMod(m)
+      })
+      .catch(() => {
+        /* falls back to the placeholder */
+      })
+    return () => {
+      alive = false
+    }
   }, [key])
   return mod
 }

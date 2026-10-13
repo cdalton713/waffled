@@ -1,7 +1,12 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { ChoreModal } from './ChoreModal'
 
-function mockApi(opts: { created?: unknown[]; patched?: unknown[]; deleted?: unknown[]; failNextPatch?: boolean }) {
+function mockApi(opts: {
+  created?: unknown[]
+  patched?: unknown[]
+  deleted?: unknown[]
+  failNextPatch?: boolean
+}) {
   globalThis.fetch = vi.fn(async (url: string, init?: { method?: string; body?: string }) => {
     const u = String(url)
     const m = init?.method
@@ -10,8 +15,22 @@ function mockApi(opts: { created?: unknown[]; patched?: unknown[]; deleted?: unk
         ok: true,
         json: async () => ({
           persons: [
-            { id: 'p1', name: 'Wally', avatarEmoji: '🐢', colorHex: '#25A368', memberType: 'kid', isAdmin: false },
-            { id: 'p2', name: 'Lottie', avatarEmoji: '🦊', colorHex: '#E0653F', memberType: 'kid', isAdmin: false },
+            {
+              id: 'p1',
+              name: 'Wally',
+              avatarEmoji: '🐢',
+              colorHex: '#25A368',
+              memberType: 'kid',
+              isAdmin: false,
+            },
+            {
+              id: 'p2',
+              name: 'Lottie',
+              avatarEmoji: '🦊',
+              colorHex: '#E0653F',
+              memberType: 'kid',
+              isAdmin: false,
+            },
           ],
         }),
       }
@@ -43,7 +62,9 @@ describe('ChoreModal', () => {
     const created: unknown[] = []
     mockApi({ created })
     render(<ChoreModal personId="p1" onClose={vi.fn()} onSaved={vi.fn()} />)
-    fireEvent.change(screen.getByPlaceholderText('Feed the dog'), { target: { value: 'Tidy room' } })
+    fireEvent.change(screen.getByPlaceholderText('Feed the dog'), {
+      target: { value: 'Tidy room' },
+    })
     fireEvent.click(screen.getByRole('button', { name: 'Add chore' }))
     await waitFor(() => expect(created).toHaveLength(1))
     expect(created[0]).toMatchObject({ title: 'Tidy room', personId: 'p1' })
@@ -61,7 +82,10 @@ describe('ChoreModal', () => {
 
   it('canAssignOthers=false restricts the assignee picker to self + up-for-grabs', async () => {
     mockApi({})
-    render(<ChoreModal canAssignOthers={false} selfPersonId="p1" onClose={vi.fn()} onSaved={vi.fn()} />)
+    render(
+      <ChoreModal canAssignOthers={false} selfPersonId="p1" onClose={vi.fn()} onSaved={vi.fn()} />,
+    )
+    fireEvent.keyDown(screen.getByRole('combobox', { name: 'Who' }), { key: 'ArrowDown' })
     expect(await screen.findByRole('option', { name: /Wally/ })).toBeInTheDocument()
     expect(screen.getByRole('option', { name: /up for grabs/ })).toBeInTheDocument()
     expect(screen.queryByRole('option', { name: /Lottie/ })).not.toBeInTheDocument()
@@ -69,7 +93,10 @@ describe('ChoreModal', () => {
 
   it('canAssignOthers=true shows the full member list', async () => {
     mockApi({})
-    render(<ChoreModal canAssignOthers={true} selfPersonId="p1" onClose={vi.fn()} onSaved={vi.fn()} />)
+    render(
+      <ChoreModal canAssignOthers={true} selfPersonId="p1" onClose={vi.fn()} onSaved={vi.fn()} />,
+    )
+    fireEvent.keyDown(screen.getByRole('combobox', { name: 'Who' }), { key: 'ArrowDown' })
     expect(await screen.findByRole('option', { name: /Wally/ })).toBeInTheDocument()
     expect(screen.getByRole('option', { name: /Lottie/ })).toBeInTheDocument()
   })
@@ -87,11 +114,25 @@ describe('ChoreModal', () => {
   it('asks for a recurring scope and sends the selected occurrence', async () => {
     const patched: unknown[] = []
     mockApi({ patched })
-    render(<ChoreModal chore={{ ...chore, instanceId: 'i1', rrule: 'FREQ=DAILY', dueOn: '2026-07-31', status: 'pending' }} onClose={vi.fn()} onSaved={vi.fn()} />)
+    render(
+      <ChoreModal
+        chore={{
+          ...chore,
+          instanceId: 'i1',
+          rrule: 'FREQ=DAILY',
+          dueOn: '2026-07-31',
+          status: 'pending',
+        }}
+        onClose={vi.fn()}
+        onSaved={vi.fn()}
+      />,
+    )
     fireEvent.change(screen.getByDisplayValue('Old chore'), { target: { value: 'New chore' } })
     fireEvent.click(screen.getByRole('button', { name: 'Save' }))
 
-    expect(await screen.findByRole('dialog', { name: 'Choose recurring chore scope' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('dialog', { name: 'Choose recurring chore scope' }),
+    ).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'This chore only' }))
 
     await waitFor(() => expect(patched).toHaveLength(1))
@@ -100,32 +141,65 @@ describe('ChoreModal', () => {
 
   it('does not offer a single occurrence for a repeat-rule change', async () => {
     mockApi({})
-    render(<ChoreModal chore={{ ...chore, instanceId: 'i1', rrule: 'FREQ=DAILY', dueOn: '2026-07-31', status: 'pending' }} onClose={vi.fn()} onSaved={vi.fn()} />)
+    render(
+      <ChoreModal
+        chore={{
+          ...chore,
+          instanceId: 'i1',
+          rrule: 'FREQ=DAILY',
+          dueOn: '2026-07-31',
+          status: 'pending',
+        }}
+        onClose={vi.fn()}
+        onSaved={vi.fn()}
+      />,
+    )
     fireEvent.click(screen.getByRole('button', { name: 'Just once' }))
     fireEvent.click(screen.getByRole('button', { name: 'Save' }))
 
-    expect(await screen.findByRole('dialog', { name: 'Choose recurring chore scope' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('dialog', { name: 'Choose recurring chore scope' }),
+    ).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'This chore only' })).not.toBeInTheDocument()
     expect(screen.getByText(/Repeat changes must apply/)).toBeInTheDocument()
   })
 
-  it.each(['done', 'awaiting'])('does not offer a single-occurrence action for a %s chore', async (status) => {
-    mockApi({})
-    render(<ChoreModal chore={{ ...chore, instanceId: 'i1', rrule: 'FREQ=DAILY', status }} onClose={vi.fn()} onSaved={vi.fn()} />)
-    fireEvent.change(screen.getByDisplayValue('Old chore'), { target: { value: 'Future chore' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+  it.each(['done', 'awaiting'])(
+    'does not offer a single-occurrence action for a %s chore',
+    async (status) => {
+      mockApi({})
+      render(
+        <ChoreModal
+          chore={{ ...chore, instanceId: 'i1', rrule: 'FREQ=DAILY', status }}
+          onClose={vi.fn()}
+          onSaved={vi.fn()}
+        />,
+      )
+      fireEvent.change(screen.getByDisplayValue('Old chore'), { target: { value: 'Future chore' } })
+      fireEvent.click(screen.getByRole('button', { name: 'Save' }))
 
-    expect(await screen.findByRole('dialog', { name: 'Choose recurring chore scope' })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'This chore only' })).not.toBeInTheDocument()
-    expect(screen.getByText(/selected completed or awaiting-approval chore stays unchanged/i)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'This and future chores' })).toBeInTheDocument()
-  })
+      expect(
+        await screen.findByRole('dialog', { name: 'Choose recurring chore scope' }),
+      ).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'This chore only' })).not.toBeInTheDocument()
+      expect(
+        screen.getByText(/selected completed or awaiting-approval chore stays unchanged/i),
+      ).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'This and future chores' })).toBeInTheDocument()
+    },
+  )
 
   it('keeps a failed recurring edit visible and retryable', async () => {
     const patched: unknown[] = []
     const onClose = vi.fn()
     mockApi({ patched, failNextPatch: true })
-    render(<ChoreModal chore={{ ...chore, instanceId: 'i1', rrule: 'FREQ=DAILY', status: 'pending' }} onClose={onClose} onSaved={vi.fn()} />)
+    render(
+      <ChoreModal
+        chore={{ ...chore, instanceId: 'i1', rrule: 'FREQ=DAILY', status: 'pending' }}
+        onClose={onClose}
+        onSaved={vi.fn()}
+      />,
+    )
     fireEvent.change(screen.getByDisplayValue('Old chore'), { target: { value: 'Retry chore' } })
     fireEvent.click(screen.getByRole('button', { name: 'Save' }))
     fireEvent.click(await screen.findByRole('button', { name: 'This and future chores' }))
@@ -144,7 +218,9 @@ describe('ChoreModal', () => {
     mockApi({ created })
     render(<ChoreModal personId="p1" onClose={vi.fn()} onSaved={vi.fn()} />)
     expect(screen.getByRole('button', { name: 'Every day' }).className).toContain('on')
-    fireEvent.change(screen.getByPlaceholderText('Feed the dog'), { target: { value: 'Tidy room' } })
+    fireEvent.change(screen.getByPlaceholderText('Feed the dog'), {
+      target: { value: 'Tidy room' },
+    })
     fireEvent.click(screen.getByRole('button', { name: 'Add chore' }))
     await waitFor(() => expect(created).toHaveLength(1))
     expect(created[0]).toMatchObject({ rrule: 'FREQ=DAILY' })
@@ -162,10 +238,12 @@ describe('ChoreModal', () => {
         defaultTitle="Book the sitter"
         onClose={vi.fn()}
         onSaved={vi.fn()}
-      />
+      />,
     )
     expect(screen.getByRole('button', { name: 'Just once' }).className).toContain('on')
-    expect((screen.getByPlaceholderText('Feed the dog') as HTMLInputElement).value).toBe('Book the sitter')
+    expect((screen.getByPlaceholderText('Feed the dog') as HTMLInputElement).value).toBe(
+      'Book the sitter',
+    )
     fireEvent.click(screen.getByRole('button', { name: 'Add chore' }))
     await waitFor(() => expect(created).toHaveLength(1))
     expect(created[0]).toMatchObject({ title: 'Book the sitter', rrule: null, dueOn: '2099-03-04' })
@@ -183,7 +261,9 @@ describe('ChoreModal', () => {
   it('a one-off shows its own day when edited, and moves it', async () => {
     const patched: unknown[] = []
     mockApi({ patched })
-    render(<ChoreModal chore={{ ...chore, dueOn: '2099-03-04' }} onClose={vi.fn()} onSaved={vi.fn()} />)
+    render(
+      <ChoreModal chore={{ ...chore, dueOn: '2099-03-04' }} onClose={vi.fn()} onSaved={vi.fn()} />,
+    )
     const day = screen.getByLabelText('On') as HTMLInputElement
     expect(day.value).toBe('2099-03-04')
     fireEvent.change(day, { target: { value: '2099-03-06' } })
@@ -198,7 +278,9 @@ describe('ChoreModal', () => {
   it('an already-dated one-off is not floored at today', async () => {
     const patched: unknown[] = []
     mockApi({ patched })
-    render(<ChoreModal chore={{ ...chore, dueOn: '2020-01-02' }} onClose={vi.fn()} onSaved={vi.fn()} />)
+    render(
+      <ChoreModal chore={{ ...chore, dueOn: '2020-01-02' }} onClose={vi.fn()} onSaved={vi.fn()} />,
+    )
     const day = screen.getByLabelText('On') as HTMLInputElement
     expect(day.value).toBe('2020-01-02')
     expect(day.hasAttribute('min')).toBe(false)
@@ -220,10 +302,16 @@ describe('ChoreModal', () => {
     mockApi({ patched })
     render(
       <ChoreModal
-        chore={{ ...chore, instanceId: 'i1', rrule: 'FREQ=DAILY', dueOn: '2026-07-31', status: 'pending' }}
+        chore={{
+          ...chore,
+          instanceId: 'i1',
+          rrule: 'FREQ=DAILY',
+          dueOn: '2026-07-31',
+          status: 'pending',
+        }}
         onClose={vi.fn()}
         onSaved={vi.fn()}
-      />
+      />,
     )
     expect(screen.queryByLabelText('On')).toBeNull()
     fireEvent.change(screen.getByDisplayValue('Old chore'), { target: { value: 'Renamed' } })

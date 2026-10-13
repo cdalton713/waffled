@@ -1,15 +1,65 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type FormEvent,
+  type KeyboardEvent,
+  type ReactNode,
+} from 'react'
 import { useViewOnly } from '../../lib/viewOnly'
 import { createPortal } from 'react-dom'
 import { Icon } from '../icons'
-import { usePersons, useHousehold, api, countdownsApi, pantryApi, can, localToday, emit, emitHouseholdChanged, type Topic, type Person, type ListSummary, type Candidate } from '../../lib/api'
-import { parseCapture, intentSummary, looksConfident, memberTypeLabel, MEMBER_TYPES, goalTypeLabel, GOAL_TYPES, mutateTargetLabel, type ParsedIntent } from '../../lib/capture/parse'
+import {
+  usePersons,
+  useHousehold,
+  api,
+  countdownsApi,
+  pantryApi,
+  can,
+  localToday,
+  emit,
+  emitHouseholdChanged,
+  type Topic,
+  type Person,
+  type ListSummary,
+  type Candidate,
+} from '../../lib/api'
+import {
+  parseCapture,
+  intentSummary,
+  looksConfident,
+  memberTypeLabel,
+  MEMBER_TYPES,
+  goalTypeLabel,
+  GOAL_TYPES,
+  mutateTargetLabel,
+  type ParsedIntent,
+} from '../../lib/capture/parse'
 import { moduleEnabled, rewardsEnabled } from '../../lib/modules'
 import { describeRrule } from './recurrence'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { NativeSelect } from '@/components/ui/native-select'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { DataIcon } from '@/components/ui/data-icon'
+import { IconPicker } from '@/components/ui/icon-picker'
+import { SelectField } from '@/components/ui/select-field'
 
 const BYDAY = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA']
 const freqOf = (r: string | null): string =>
-  !r ? '' : /FREQ=DAILY/.test(r) ? 'daily' : /FREQ=WEEKLY/.test(r) ? 'weekly' : /FREQ=MONTHLY/.test(r) ? 'monthly' : /FREQ=YEARLY/.test(r) ? 'yearly' : 'custom'
+  !r
+    ? ''
+    : /FREQ=DAILY/.test(r)
+      ? 'daily'
+      : /FREQ=WEEKLY/.test(r)
+        ? 'weekly'
+        : /FREQ=MONTHLY/.test(r)
+          ? 'monthly'
+          : /FREQ=YEARLY/.test(r)
+            ? 'yearly'
+            : 'custom'
 
 // The "Add anything…" capture bar (roadmap 6.6). A compact trigger in the topbar
 // opens a centered floating composer. It shows an instant on-device parse and
@@ -23,17 +73,17 @@ const VIA_LABEL: Record<string, string> = {
   ollama: 'local LLM',
 }
 const MEAL_TYPES = ['breakfast', 'lunch', 'dinner', 'snack']
-const KINDS: Array<{ k: ParsedIntent['kind']; label: string }> = [
-  { k: 'event', label: '📅 Event' },
-  { k: 'list', label: '📝 List' },
-  { k: 'grocery', label: '🛒 Grocery' },
-  { k: 'task', label: '✅ Task' },
-  { k: 'meal', label: '🍽️ Meal' },
-  { k: 'countdown', label: '⏳ Countdown' },
-  { k: 'person', label: '👤 Family member' },
-  { k: 'goal', label: '🎯 Goal' },
-  { k: 'pantry', label: '🥫 Pantry' },
-  { k: 'reward', label: '🎁 Reward' },
+const KINDS: Array<{ k: ParsedIntent['kind']; label: string; icon: string }> = [
+  { k: 'event', icon: '📅', label: 'Event' },
+  { k: 'list', icon: '📝', label: 'List' },
+  { k: 'grocery', icon: '🛒', label: 'Grocery' },
+  { k: 'task', icon: '✅', label: 'Task' },
+  { k: 'meal', icon: '🍽️', label: 'Meal' },
+  { k: 'countdown', icon: '⏳', label: 'Countdown' },
+  { k: 'person', icon: '👤', label: 'Family member' },
+  { k: 'goal', icon: '🎯', label: 'Goal' },
+  { k: 'pantry', icon: '🥫', label: 'Pantry' },
+  { k: 'reward', icon: '🎁', label: 'Reward' },
 ]
 
 const kindLabel = (k: ParsedIntent['kind']) => KINDS.find((x) => x.k === k)?.label ?? 'item'
@@ -41,12 +91,17 @@ const pad = (n: number) => String(n).padStart(2, '0')
 const cap = (s: string) => (s ? s[0].toUpperCase() + s.slice(1) : s)
 function localParts(iso: string): { date: string; time: string } {
   const d = new Date(iso)
-  return { date: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`, time: `${pad(d.getHours())}:${pad(d.getMinutes())}` }
+  return {
+    date: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`,
+    time: `${pad(d.getHours())}:${pad(d.getMinutes())}`,
+  }
 }
 function eventWhen(date: string, time: string | null, allDay: boolean): string {
   const d = new Date(`${date}T${allDay ? '12:00' : time || '12:00'}:00`)
   const day = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
-  return allDay ? `${day} · All day` : `${day} · ${d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`
+  return allDay
+    ? `${day} · All day`
+    : `${day} · ${d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`
 }
 function mealWhen(date: string, mealType: string): string {
   const d = new Date(`${date}T12:00:00`)
@@ -54,7 +109,11 @@ function mealWhen(date: string, mealType: string): string {
 }
 function countdownWhen(date: string): string {
   const d = new Date(`${date}T12:00:00`)
-  const dayLabel = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+  const dayLabel = d.toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  })
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   const days = Math.round((new Date(`${date}T00:00:00`).getTime() - today.getTime()) / 86_400_000)
@@ -117,18 +176,52 @@ function rerouteKind(i: ParsedIntent, kind: ParsedIntent['kind'], today: string)
     case 'event': {
       const d = new Date()
       d.setHours(0, 0, 0, 0)
-      return { kind: 'event', title: primary, startsAt: d.toISOString(), allDay: true, personName, rrule: null, recurrenceEndAt: null, scheduleLabel: '', whenLabel: eventWhen(localToday(), null, true) }
+      return {
+        kind: 'event',
+        title: primary,
+        startsAt: d.toISOString(),
+        allDay: true,
+        personName,
+        rrule: null,
+        recurrenceEndAt: null,
+        scheduleLabel: '',
+        whenLabel: eventWhen(localToday(), null, true),
+      }
     }
     case 'task':
-      return { kind: 'task', title: primary, personName, stars: null, rrule: null, scheduleLabel: '' }
+      return {
+        kind: 'task',
+        title: primary,
+        personName,
+        stars: null,
+        rrule: null,
+        scheduleLabel: '',
+      }
     case 'grocery':
       return { kind: 'grocery', name: primary, quantity }
     case 'list':
-      return { kind: 'list', itemName: primary, listName: i.kind === 'list' ? i.listName : null, quantity }
+      return {
+        kind: 'list',
+        itemName: primary,
+        listName: i.kind === 'list' ? i.listName : null,
+        quantity,
+      }
     case 'meal':
-      return { kind: 'meal', title: primary, date: today, mealType: 'dinner', whenLabel: mealWhen(today, 'dinner') }
+      return {
+        kind: 'meal',
+        title: primary,
+        date: today,
+        mealType: 'dinner',
+        whenLabel: mealWhen(today, 'dinner'),
+      }
     case 'countdown':
-      return { kind: 'countdown', title: primary, date: today, emoji: i.kind === 'countdown' ? i.emoji : null, whenLabel: countdownWhen(today) }
+      return {
+        kind: 'countdown',
+        title: primary,
+        date: today,
+        emoji: i.kind === 'countdown' ? i.emoji : null,
+        whenLabel: countdownWhen(today),
+      }
     case 'person':
       return {
         kind: 'person',
@@ -179,17 +272,41 @@ function rerouteKind(i: ParsedIntent, kind: ParsedIntent['kind'], today: string)
 }
 
 // Compact person picker (chips). `allowNone` shows an "Up for grabs" / "Anyone" option.
-function PersonChips({ persons, value, onChange, noneLabel }: { persons: Person[]; value: string | null; onChange: (name: string | null) => void; noneLabel: string }) {
+function PersonChips({
+  persons,
+  value,
+  onChange,
+  noneLabel,
+}: {
+  persons: Person[]
+  value: string | null
+  onChange: (name: string | null) => void
+  noneLabel: ReactNode
+}) {
   return (
     <div className="cap-people">
-      <button type="button" className={`cap-person ${!value ? 'on' : ''}`} onClick={() => onChange(null)}>{noneLabel}</button>
+      <Button
+        variant="unstyled"
+        type="button"
+        className={`cap-person ${!value ? 'on' : ''}`}
+        onClick={() => onChange(null)}
+      >
+        {noneLabel}
+      </Button>
       {persons.map((p) => {
         const on = value?.toLowerCase() === p.name.toLowerCase()
         const color = p.colorHex ?? '#6B6B70'
         return (
-          <button key={p.id} type="button" className={`cap-person ${on ? 'on' : ''}`} style={on ? { borderColor: color, color, background: `${color}18` } : undefined} onClick={() => onChange(p.name)}>
-            {p.avatarEmoji ?? '🙂'} {p.name}
-          </button>
+          <Button
+            variant="unstyled"
+            key={p.id}
+            type="button"
+            className={`cap-person ${on ? 'on' : ''}`}
+            style={on ? { borderColor: color, color, background: `${color}18` } : undefined}
+            onClick={() => onChange(p.name)}
+          >
+            <DataIcon value={p.avatarEmoji ?? '🙂'} kind="person" /> {p.name}
+          </Button>
         )
       })}
     </div>
@@ -207,7 +324,7 @@ function PersonChips({ persons, value, onChange, noneLabel }: { persons: Person[
 export function resolveEventPersonId(
   name: string | null,
   persons: { id: string; name: string }[],
-  viewerId: string | null
+  viewerId: string | null,
 ): string | null {
   if (name) return persons.find((p) => p.name.toLowerCase() === name.toLowerCase())?.id ?? null
   return viewerId ?? null
@@ -219,14 +336,22 @@ export function resolveEventPersonId(
 // `persons`). Applies only to the DISPLAYED intent while it's still untouched — the
 // caller runs this on the pre-draft parse, so once the user taps a chip a draft
 // exists and this no longer runs, leaving an explicit "Nobody" choice intact.
-export function seedEventViewer(intent: ParsedIntent | null, viewerName: string | null): ParsedIntent | null {
+export function seedEventViewer(
+  intent: ParsedIntent | null,
+  viewerName: string | null,
+): ParsedIntent | null {
   if (intent?.kind === 'event' && intent.personName == null && viewerName) {
     return { ...intent, personName: viewerName }
   }
   return intent
 }
 
-export function seedGoalParticipants(audience: 'me' | 'everyone' | null, viewerId: string | null, allIds: string[], canManageOthers = true): string[] {
+export function seedGoalParticipants(
+  audience: 'me' | 'everyone' | null,
+  viewerId: string | null,
+  allIds: string[],
+  canManageOthers = true,
+): string[] {
   // A non-manager (a kid) can only create a self-only goal — POST /api/goals requires the
   // goal.manage capability the moment participants include anyone but the caller — so we
   // clamp "everyone" down to just the viewer rather than 403 on commit.
@@ -238,8 +363,13 @@ export function seedGoalParticipants(audience: 'me' | 'everyone' | null, viewerI
 // Which preset chip is lit, derived from the participant SET (not a separate mode flag):
 // "Just me" ⇔ the set is exactly {viewer}; "Everyone" ⇔ the set is every member. Pure so
 // it's unit-testable and shared with GoalWho.
-export function goalWhoHighlights(ids: string[], viewerId: string | null, allIds: string[]): { isJustMe: boolean; isEveryone: boolean } {
-  const isEveryone = allIds.length > 0 && ids.length === allIds.length && allIds.every((id) => ids.includes(id))
+export function goalWhoHighlights(
+  ids: string[],
+  viewerId: string | null,
+  allIds: string[],
+): { isJustMe: boolean; isEveryone: boolean } {
+  const isEveryone =
+    allIds.length > 0 && ids.length === allIds.length && allIds.every((id) => ids.includes(id))
   const isJustMe = !!viewerId && ids.length === 1 && ids[0] === viewerId
   return { isJustMe, isEveryone }
 }
@@ -255,7 +385,19 @@ export function goalWhoHighlights(ids: string[], viewerId: string | null, allIds
 // clicking only your own tile is equivalent to Just me. The set is seeded once from the
 // inferred `audience` so "family"/"personal" phrasing lands on the right preset.
 // Reuses the .cap-people person chips.
-function GoalWho({ intent, persons, viewer, set, canManageGoals }: { intent: Extract<ParsedIntent, { kind: 'goal' }>; persons: Person[]; viewer: Person | null; set: (i: ParsedIntent) => void; canManageGoals: boolean }) {
+function GoalWho({
+  intent,
+  persons,
+  viewer,
+  set,
+  canManageGoals,
+}: {
+  intent: Extract<ParsedIntent, { kind: 'goal' }>
+  persons: Person[]
+  viewer: Person | null
+  set: (i: ParsedIntent) => void
+  canManageGoals: boolean
+}) {
   const ids = intent.participantIds
   const allIds = useMemo(() => persons.map((p) => p.id), [persons])
   // Seed the set from the inferred audience while it's still empty (nothing picked yet).
@@ -271,7 +413,12 @@ function GoalWho({ intent, persons, viewer, set, canManageGoals }: { intent: Ext
   if (!canManageGoals) {
     return (
       <div className="cap-people">
-        <span className="cap-person on">🙋 Assigned to you</span>
+        <span className="cap-person on">
+          <>
+            <DataIcon value={'🙋'} kind="person" />
+            {' Assigned to you'}
+          </>
+        </span>
       </div>
     )
   }
@@ -282,15 +429,42 @@ function GoalWho({ intent, persons, viewer, set, canManageGoals }: { intent: Ext
   }
   return (
     <div className="cap-people">
-      <button type="button" className={`cap-person ${isJustMe ? 'on' : ''}`} onClick={() => set({ ...intent, participantIds: viewer ? [viewer.id] : [] })}>🙋 Just me</button>
-      <button type="button" className={`cap-person ${isEveryone ? 'on' : ''}`} onClick={() => set({ ...intent, participantIds: allIds })}>👨‍👩‍👧 Everyone</button>
+      <Button
+        variant="unstyled"
+        type="button"
+        className={`cap-person ${isJustMe ? 'on' : ''}`}
+        onClick={() => set({ ...intent, participantIds: viewer ? [viewer.id] : [] })}
+      >
+        <>
+          <DataIcon value={'🙋'} kind="person" />
+          {' Just me'}
+        </>
+      </Button>
+      <Button
+        variant="unstyled"
+        type="button"
+        className={`cap-person ${isEveryone ? 'on' : ''}`}
+        onClick={() => set({ ...intent, participantIds: allIds })}
+      >
+        <>
+          <DataIcon value={'👨‍👩‍👧'} kind="person" />
+          {' Everyone'}
+        </>
+      </Button>
       {persons.map((p) => {
         const on = ids.includes(p.id)
         const color = p.colorHex ?? '#6B6B70'
         return (
-          <button key={p.id} type="button" className={`cap-person ${on ? 'on' : ''}`} style={on ? { borderColor: color, color, background: `${color}18` } : undefined} onClick={() => toggle(p.id)}>
-            {p.avatarEmoji ?? '🙂'} {p.name}
-          </button>
+          <Button
+            variant="unstyled"
+            key={p.id}
+            type="button"
+            className={`cap-person ${on ? 'on' : ''}`}
+            style={on ? { borderColor: color, color, background: `${color}18` } : undefined}
+            onClick={() => toggle(p.id)}
+          >
+            <DataIcon value={p.avatarEmoji ?? '🙂'} kind="person" /> {p.name}
+          </Button>
         )
       })}
     </div>
@@ -298,22 +472,67 @@ function GoalWho({ intent, persons, viewer, set, canManageGoals }: { intent: Ext
 }
 
 // Per-kind "basics" — extends the inline edit beyond just the title.
-function DraftFields({ intent, persons, lists, set, today, viewer, canManageGoals }: { intent: ParsedIntent; persons: Person[]; lists: ListSummary[]; set: (i: ParsedIntent) => void; today: string; viewer: Person | null; canManageGoals: boolean }) {
+function DraftFields({
+  intent,
+  persons,
+  lists,
+  set,
+  today,
+  viewer,
+  canManageGoals,
+}: {
+  intent: ParsedIntent
+  persons: Person[]
+  lists: ListSummary[]
+  set: (i: ParsedIntent) => void
+  today: string
+  viewer: Person | null
+  canManageGoals: boolean
+}) {
   if (intent.kind === 'grocery') {
     return (
-      <input className="cap-edit-sub" value={intent.quantity ?? ''} placeholder="quantity (optional, e.g. 2 lbs)" aria-label="Quantity" onChange={(e) => set({ ...intent, quantity: e.target.value || null })} />
+      <Input
+        className="cap-edit-sub"
+        value={intent.quantity ?? ''}
+        placeholder="quantity (optional, e.g. 2 lbs)"
+        aria-label="Quantity"
+        onChange={(e) => set({ ...intent, quantity: e.target.value || null })}
+      />
     )
   }
   if (intent.kind === 'list') {
     const known = lists.some((l) => l.name === intent.listName)
     return (
       <>
-        <select className="cap-edit-sub" value={known ? intent.listName ?? '' : '__new__'} aria-label="List" onChange={(e) => set({ ...intent, listName: e.target.value === '__new__' ? '' : e.target.value })}>
-          {lists.map((l) => <option key={l.id} value={l.name}>{(l.emoji ? `${l.emoji} ` : '') + l.name}</option>)}
-          <option value="__new__">＋ New list…</option>
-        </select>
+        <SelectField
+          className="cap-edit-sub"
+          value={known ? (intent.listName ?? '') : '__new__'}
+          aria-label="List"
+          onValueChange={(e) => set({ ...intent, listName: e === '__new__' ? '' : e })}
+        >
+          {lists.map((l) => (
+            <option key={l.id} value={l.name}>
+              <>
+                {l.emoji ? <>{<DataIcon value={l.emoji} kind="general" />} </> : ''}
+                {l.name}
+              </>
+            </option>
+          ))}
+          <option value="__new__">
+            <>
+              <DataIcon value={'＋'} kind="list" />
+              {' New list…'}
+            </>
+          </option>
+        </SelectField>
         {!known && (
-          <input className="cap-edit-sub" value={intent.listName ?? ''} placeholder="new list name" aria-label="New list name" onChange={(e) => set({ ...intent, listName: e.target.value || null })} />
+          <Input
+            className="cap-edit-sub"
+            value={intent.listName ?? ''}
+            placeholder="new list name"
+            aria-label="New list name"
+            onChange={(e) => set({ ...intent, listName: e.target.value || null })}
+          />
         )}
       </>
     )
@@ -321,8 +540,25 @@ function DraftFields({ intent, persons, lists, set, today, viewer, canManageGoal
   if (intent.kind === 'task') {
     return (
       <>
-        <PersonChips persons={persons} value={intent.personName} onChange={(name) => set({ ...intent, personName: name })} noneLabel="🙌 Up for grabs" />
-        <label className="cap-stars">Stars <input type="number" min={0} value={intent.stars ?? 0} onChange={(e) => set({ ...intent, stars: Number(e.target.value) || null })} /></label>
+        <PersonChips
+          persons={persons}
+          value={intent.personName}
+          onChange={(name) => set({ ...intent, personName: name })}
+          noneLabel={
+            <>
+              <DataIcon value="🙌" kind="person" /> Up for grabs
+            </>
+          }
+        />
+        <Label className="cap-stars">
+          Stars{' '}
+          <Input
+            type="number"
+            min={0}
+            value={intent.stars ?? 0}
+            onChange={(e) => set({ ...intent, stars: Number(e.target.value) || null })}
+          />
+        </Label>
       </>
     )
   }
@@ -336,44 +572,94 @@ function DraftFields({ intent, persons, lists, set, today, viewer, canManageGoal
     const setFreq = (v: string) => {
       const start = new Date(intent.startsAt)
       const rrule =
-        v === 'daily' ? 'FREQ=DAILY'
-        : v === 'weekly' ? `FREQ=WEEKLY;BYDAY=${BYDAY[start.getDay()]}`
-        : v === 'monthly' ? 'FREQ=MONTHLY'
-        : v === 'yearly' ? 'FREQ=YEARLY'
-        : null
+        v === 'daily'
+          ? 'FREQ=DAILY'
+          : v === 'weekly'
+            ? `FREQ=WEEKLY;BYDAY=${BYDAY[start.getDay()]}`
+            : v === 'monthly'
+              ? 'FREQ=MONTHLY'
+              : v === 'yearly'
+                ? 'FREQ=YEARLY'
+                : null
       // Clearing the repeat clears any end date too.
-      set({ ...intent, rrule, recurrenceEndAt: rrule ? intent.recurrenceEndAt ?? null : null, scheduleLabel: rrule ? describeRrule(rrule, start) : '' })
+      set({
+        ...intent,
+        rrule,
+        recurrenceEndAt: rrule ? (intent.recurrenceEndAt ?? null) : null,
+        scheduleLabel: rrule ? describeRrule(rrule, start) : '',
+      })
     }
     const untilDate = intent.recurrenceEndAt ? localParts(intent.recurrenceEndAt).date : ''
     return (
       <>
-        <PersonChips persons={persons} value={intent.personName} onChange={(name) => set({ ...intent, personName: name })} noneLabel="Nobody" />
+        <PersonChips
+          persons={persons}
+          value={intent.personName}
+          onChange={(name) => set({ ...intent, personName: name })}
+          noneLabel="Nobody"
+        />
         <div className="cap-edit-row">
-          <input type="date" className="cap-edit-mini" value={date} onChange={(e) => upd(e.target.value, time, intent.allDay)} aria-label="Date" />
-          {!intent.allDay && <input type="time" className="cap-edit-mini" value={time} onChange={(e) => upd(date, e.target.value, false)} aria-label="Time" />}
-          <button type="button" className={`cap-person ${intent.allDay ? 'on' : ''}`} onClick={() => upd(date, time, !intent.allDay)}>All day</button>
+          <Input
+            type="date"
+            className="cap-edit-mini"
+            value={date}
+            onChange={(e) => upd(e.target.value, time, intent.allDay)}
+            aria-label="Date"
+          />
+          {!intent.allDay && (
+            <Input
+              type="time"
+              className="cap-edit-mini"
+              value={time}
+              onChange={(e) => upd(date, e.target.value, false)}
+              aria-label="Time"
+            />
+          )}
+          <Button
+            variant="unstyled"
+            type="button"
+            className={`cap-person ${intent.allDay ? 'on' : ''}`}
+            onClick={() => upd(date, time, !intent.allDay)}
+          >
+            All day
+          </Button>
         </div>
         <div className="cap-edit-row">
-          <label className="cap-stars" style={{ gap: 6 }}>Repeats
-            <select className="cap-edit-mini" style={{ cursor: 'pointer' }} value={freq === 'custom' ? 'custom' : freq} onChange={(e) => setFreq(e.target.value)} aria-label="Repeats">
+          <Label className="cap-stars" style={{ gap: 6 }}>
+            Repeats
+            <NativeSelect
+              className="cap-edit-mini"
+              style={{ cursor: 'pointer' }}
+              value={freq === 'custom' ? 'custom' : freq}
+              onChange={(e) => setFreq(e.target.value)}
+              aria-label="Repeats"
+            >
               <option value="">Does not repeat</option>
               <option value="daily">Daily</option>
               <option value="weekly">Weekly</option>
               <option value="monthly">Monthly</option>
               <option value="yearly">Yearly</option>
               {freq === 'custom' && <option value="custom">Custom ({intent.scheduleLabel})</option>}
-            </select>
-          </label>
+            </NativeSelect>
+          </Label>
           {intent.rrule && (
-            <label className="cap-stars" style={{ gap: 6 }}>Until
-              <input
+            <Label className="cap-stars" style={{ gap: 6 }}>
+              Until
+              <Input
                 type="date"
                 className="cap-edit-mini"
                 value={untilDate}
-                onChange={(e) => set({ ...intent, recurrenceEndAt: e.target.value ? new Date(`${e.target.value}T23:59:00`).toISOString() : null })}
+                onChange={(e) =>
+                  set({
+                    ...intent,
+                    recurrenceEndAt: e.target.value
+                      ? new Date(`${e.target.value}T23:59:00`).toISOString()
+                      : null,
+                  })
+                }
                 aria-label="Until"
               />
-            </label>
+            </Label>
           )}
         </div>
       </>
@@ -384,17 +670,47 @@ function DraftFields({ intent, persons, lists, set, today, viewer, canManageGoal
       <div className="cap-edit-row">
         <div className="cap-people">
           {MEAL_TYPES.map((mt) => (
-            <button key={mt} type="button" className={`cap-person ${intent.mealType === mt ? 'on' : ''}`} onClick={() => set({ ...intent, mealType: mt, whenLabel: mealWhen(intent.date ?? today, mt) })}>{cap(mt)}</button>
+            <Button
+              variant="unstyled"
+              key={mt}
+              type="button"
+              className={`cap-person ${intent.mealType === mt ? 'on' : ''}`}
+              onClick={() =>
+                set({ ...intent, mealType: mt, whenLabel: mealWhen(intent.date ?? today, mt) })
+              }
+            >
+              {cap(mt)}
+            </Button>
           ))}
         </div>
-        <input type="date" className="cap-edit-mini" value={intent.date ?? today} onChange={(e) => set({ ...intent, date: e.target.value, whenLabel: mealWhen(e.target.value, intent.mealType) })} aria-label="Date" />
+        <Input
+          type="date"
+          className="cap-edit-mini"
+          value={intent.date ?? today}
+          onChange={(e) =>
+            set({
+              ...intent,
+              date: e.target.value,
+              whenLabel: mealWhen(e.target.value, intent.mealType),
+            })
+          }
+          aria-label="Date"
+        />
       </div>
     )
   }
   if (intent.kind === 'countdown') {
     return (
       <div className="cap-edit-row">
-        <input type="date" className="cap-edit-mini" value={intent.date} onChange={(e) => set({ ...intent, date: e.target.value, whenLabel: countdownWhen(e.target.value) })} aria-label="Date" />
+        <Input
+          type="date"
+          className="cap-edit-mini"
+          value={intent.date}
+          onChange={(e) =>
+            set({ ...intent, date: e.target.value, whenLabel: countdownWhen(e.target.value) })
+          }
+          aria-label="Date"
+        />
       </div>
     )
   }
@@ -403,12 +719,33 @@ function DraftFields({ intent, persons, lists, set, today, viewer, canManageGoal
       <>
         <div className="cap-people">
           {MEMBER_TYPES.map((mt) => (
-            <button key={mt} type="button" className={`cap-person ${intent.memberType === mt ? 'on' : ''}`} onClick={() => set({ ...intent, memberType: mt })}>{memberTypeLabel(mt)}</button>
+            <Button
+              variant="unstyled"
+              key={mt}
+              type="button"
+              className={`cap-person ${intent.memberType === mt ? 'on' : ''}`}
+              onClick={() => set({ ...intent, memberType: mt })}
+            >
+              {memberTypeLabel(mt)}
+            </Button>
           ))}
         </div>
         <div className="cap-edit-row">
-          <input className="cap-edit-mini" value={intent.avatarEmoji ?? ''} placeholder="emoji" aria-label="Avatar emoji" style={{ maxWidth: 72 }} onChange={(e) => set({ ...intent, avatarEmoji: e.target.value || null })} />
-          <input type="date" className="cap-edit-mini" value={intent.birthday ?? ''} aria-label="Birthday" onChange={(e) => set({ ...intent, birthday: e.target.value || null })} />
+          <IconPicker
+            kind="general"
+            className="cap-edit-mini"
+            value={intent.avatarEmoji ?? ''}
+            aria-label="Avatar Icon"
+            style={{ maxWidth: 72 }}
+            onValueChange={(e) => set({ ...intent, avatarEmoji: e || null })}
+          />
+          <Input
+            type="date"
+            className="cap-edit-mini"
+            value={intent.birthday ?? ''}
+            aria-label="Birthday"
+            onChange={(e) => set({ ...intent, birthday: e.target.value || null })}
+          />
         </div>
       </>
     )
@@ -421,21 +758,68 @@ function DraftFields({ intent, persons, lists, set, today, viewer, canManageGoal
       <>
         <div className="cap-people">
           {GOAL_TYPES.map((gt) => (
-            <button key={gt} type="button" className={`cap-person ${intent.goalType === gt ? 'on' : ''}`} onClick={() => set({ ...intent, goalType: gt, ...(gt === 'count' || gt === 'total' ? {} : { targetValue: null, unit: null }) })}>{goalTypeLabel(gt)}</button>
+            <Button
+              variant="unstyled"
+              key={gt}
+              type="button"
+              className={`cap-person ${intent.goalType === gt ? 'on' : ''}`}
+              onClick={() =>
+                set({
+                  ...intent,
+                  goalType: gt,
+                  ...(gt === 'count' || gt === 'total' ? {} : { targetValue: null, unit: null }),
+                })
+              }
+            >
+              {goalTypeLabel(gt)}
+            </Button>
           ))}
         </div>
         {measured && (
           <div className="cap-edit-row">
-            <input type="number" min={0} className="cap-edit-mini" value={intent.targetValue ?? ''} placeholder="target" aria-label="Target" style={{ maxWidth: 96 }} onChange={(e) => set({ ...intent, targetValue: e.target.value === '' ? null : Number(e.target.value) })} />
-            <input className="cap-edit-mini" value={intent.unit ?? ''} placeholder="unit (e.g. books)" aria-label="Unit" onChange={(e) => set({ ...intent, unit: e.target.value || null })} />
+            <Input
+              type="number"
+              min={0}
+              className="cap-edit-mini"
+              value={intent.targetValue ?? ''}
+              placeholder="target"
+              aria-label="Target"
+              style={{ maxWidth: 96 }}
+              onChange={(e) =>
+                set({
+                  ...intent,
+                  targetValue: e.target.value === '' ? null : Number(e.target.value),
+                })
+              }
+            />
+            <Input
+              className="cap-edit-mini"
+              value={intent.unit ?? ''}
+              placeholder="unit (e.g. books)"
+              aria-label="Unit"
+              onChange={(e) => set({ ...intent, unit: e.target.value || null })}
+            />
           </div>
         )}
         <div className="cap-edit-row">
-          <label className="cap-stars" style={{ gap: 6 }}>By
-            <input type="date" className="cap-edit-mini" value={intent.deadline ?? ''} aria-label="Deadline" onChange={(e) => set({ ...intent, deadline: e.target.value || null })} />
-          </label>
+          <Label className="cap-stars" style={{ gap: 6 }}>
+            By
+            <Input
+              type="date"
+              className="cap-edit-mini"
+              value={intent.deadline ?? ''}
+              aria-label="Deadline"
+              onChange={(e) => set({ ...intent, deadline: e.target.value || null })}
+            />
+          </Label>
         </div>
-        <GoalWho intent={intent} persons={persons} viewer={viewer} set={set} canManageGoals={canManageGoals} />
+        <GoalWho
+          intent={intent}
+          persons={persons}
+          viewer={viewer}
+          set={set}
+          canManageGoals={canManageGoals}
+        />
       </>
     )
   }
@@ -445,21 +829,60 @@ function DraftFields({ intent, persons, lists, set, today, viewer, canManageGoal
     return (
       <>
         <div className="cap-edit-row">
-          <input className="cap-edit-mini" value={intent.amount ?? ''} placeholder="amount" aria-label="Amount" style={{ maxWidth: 96 }} onChange={(e) => set({ ...intent, amount: e.target.value || null })} />
-          <input className="cap-edit-mini" value={intent.unit ?? ''} placeholder="unit (e.g. cans)" aria-label="Unit" onChange={(e) => set({ ...intent, unit: e.target.value || null })} />
+          <Input
+            className="cap-edit-mini"
+            value={intent.amount ?? ''}
+            placeholder="amount"
+            aria-label="Amount"
+            style={{ maxWidth: 96 }}
+            onChange={(e) => set({ ...intent, amount: e.target.value || null })}
+          />
+          <Input
+            className="cap-edit-mini"
+            value={intent.unit ?? ''}
+            placeholder="unit (e.g. cans)"
+            aria-label="Unit"
+            onChange={(e) => set({ ...intent, unit: e.target.value || null })}
+          />
         </div>
         <div className="cap-people">
           {locations.map((loc) => (
-            <button key={loc} type="button" className={`cap-person ${intent.location === loc ? 'on' : ''}`} onClick={() => set({ ...intent, location: loc })}>{loc}</button>
+            <Button
+              variant="unstyled"
+              key={loc}
+              type="button"
+              className={`cap-person ${intent.location === loc ? 'on' : ''}`}
+              onClick={() => set({ ...intent, location: loc })}
+            >
+              {loc}
+            </Button>
           ))}
         </div>
         <div className="cap-edit-row">
-          <label className="cap-stars" style={{ gap: 6 }}>Expires
-            <input type="date" className="cap-edit-mini" value={intent.expiresOn ?? ''} aria-label="Expires on" onChange={(e) => set({ ...intent, expiresOn: e.target.value || null })} />
-          </label>
-          <label className="cap-stars" style={{ gap: 6 }}>Low at
-            <input type="number" min={0} className="cap-edit-mini" style={{ maxWidth: 72 }} value={intent.lowAt ?? ''} aria-label="Low at" onChange={(e) => set({ ...intent, lowAt: e.target.value === '' ? null : Number(e.target.value) })} />
-          </label>
+          <Label className="cap-stars" style={{ gap: 6 }}>
+            Expires
+            <Input
+              type="date"
+              className="cap-edit-mini"
+              value={intent.expiresOn ?? ''}
+              aria-label="Expires on"
+              onChange={(e) => set({ ...intent, expiresOn: e.target.value || null })}
+            />
+          </Label>
+          <Label className="cap-stars" style={{ gap: 6 }}>
+            Low at
+            <Input
+              type="number"
+              min={0}
+              className="cap-edit-mini"
+              style={{ maxWidth: 72 }}
+              value={intent.lowAt ?? ''}
+              aria-label="Low at"
+              onChange={(e) =>
+                set({ ...intent, lowAt: e.target.value === '' ? null : Number(e.target.value) })
+              }
+            />
+          </Label>
         </div>
       </>
     )
@@ -468,12 +891,43 @@ function DraftFields({ intent, persons, lists, set, today, viewer, canManageGoal
     return (
       <>
         <div className="cap-edit-row">
-          <input className="cap-edit-mini" value={intent.emoji ?? ''} placeholder="emoji" aria-label="Emoji" style={{ maxWidth: 72 }} onChange={(e) => set({ ...intent, emoji: e.target.value || null })} />
+          <IconPicker
+            kind="general"
+            className="cap-edit-mini"
+            value={intent.emoji ?? ''}
+            aria-label="Icon"
+            style={{ maxWidth: 72 }}
+            onValueChange={(e) => set({ ...intent, emoji: e || null })}
+          />
           {/* Reuse the star-cost control (same as a task's Stars) for the reward price. */}
-          <label className="cap-stars">Cost <input type="number" min={0} value={intent.cost ?? 0} aria-label="Cost" onChange={(e) => set({ ...intent, cost: e.target.value === '' ? null : Math.max(0, Math.round(Number(e.target.value))) })} /></label>
+          <Label className="cap-stars">
+            Cost{' '}
+            <Input
+              type="number"
+              min={0}
+              value={intent.cost ?? 0}
+              aria-label="Cost"
+              onChange={(e) =>
+                set({
+                  ...intent,
+                  cost:
+                    e.target.value === '' ? null : Math.max(0, Math.round(Number(e.target.value))),
+                })
+              }
+            />
+          </Label>
         </div>
         <div className="cap-people">
-          <button type="button" className={`cap-person ${intent.requiresApproval ? 'on' : ''}`} onClick={() => set({ ...intent, requiresApproval: intent.requiresApproval === true ? false : true })}>Needs approval</button>
+          <Button
+            variant="unstyled"
+            type="button"
+            className={`cap-person ${intent.requiresApproval ? 'on' : ''}`}
+            onClick={() =>
+              set({ ...intent, requiresApproval: intent.requiresApproval === true ? false : true })
+            }
+          >
+            Needs approval
+          </Button>
         </div>
       </>
     )
@@ -486,10 +940,28 @@ function DraftFields({ intent, persons, lists, set, today, viewer, canManageGoal
 // 1 → auto-selected, still confirmed explicitly; 2+ → chips to pick. Every `delete` (even
 // a single confident match) demands the explicit destructive button — ↵ never deletes.
 const CONFIRM_LABEL: Record<string, string> = {
-  complete: 'Mark done', log: 'Log it', reschedule: 'Reschedule', reassign: 'Reassign', redeem: 'Redeem', delete: 'Delete it',
+  complete: 'Mark done',
+  log: 'Log it',
+  reschedule: 'Reschedule',
+  reassign: 'Reassign',
+  redeem: 'Redeem',
+  delete: 'Delete it',
 }
-type CandidateState = { list: Candidate[]; disabledReason?: string; unsupported?: boolean; forDesc: string; offline?: boolean }
-function CandidatePicker({ intent, state, chosenId, onPick, onCommit, busy }: {
+type CandidateState = {
+  list: Candidate[]
+  disabledReason?: string
+  unsupported?: boolean
+  forDesc: string
+  offline?: boolean
+}
+function CandidatePicker({
+  intent,
+  state,
+  chosenId,
+  onPick,
+  onCommit,
+  busy,
+}: {
   intent: Extract<ParsedIntent, { kind: 'mutate' }>
   state: CandidateState | null
   chosenId: string | null
@@ -503,17 +975,26 @@ function CandidatePicker({ intent, state, chosenId, onPick, onCommit, busy }: {
     return <div className="cap-detail">Finding a {kindLabel} like that…</div>
   }
   if (state.offline) {
-    return <div className="cap-primary" style={{ whiteSpace: 'normal' }}>I need a connection for that.</div>
+    return (
+      <div className="cap-primary" style={{ whiteSpace: 'normal' }}>
+        I need a connection for that.
+      </div>
+    )
   }
   if (state.list.length === 0) {
     // `unsupported` = quick-add can't act on this kind/verb yet (the row may well exist) —
     // show ONLY the server's reason, never a misleading "couldn't find it".
     if (state.unsupported) {
-      return <div className="cap-primary" style={{ whiteSpace: 'normal' }}>{state.disabledReason ?? 'Quick-add can’t do that yet.'}</div>
+      return (
+        <div className="cap-primary" style={{ whiteSpace: 'normal' }}>
+          {state.disabledReason ?? 'Quick-add can’t do that yet.'}
+        </div>
+      )
     }
     return (
       <div className="cap-primary" style={{ whiteSpace: 'normal' }}>
-        Couldn’t find a {kindLabel} like that{state.disabledReason ? ` — ${state.disabledReason}` : ''}
+        Couldn’t find a {kindLabel} like that
+        {state.disabledReason ? ` — ${state.disabledReason}` : ''}
       </div>
     )
   }
@@ -522,15 +1003,29 @@ function CandidatePicker({ intent, state, chosenId, onPick, onCommit, busy }: {
     <>
       <div className="cap-people">
         {state.list.map((c) => (
-          <button key={c.id} type="button" className={`cap-person ${chosenId === c.id ? 'on' : ''}`} onClick={() => onPick(c.id)}>
-            {c.title}{c.subtitle ? ` · ${c.subtitle}` : ''}
-          </button>
+          <Button
+            variant="unstyled"
+            key={c.id}
+            type="button"
+            className={`cap-person ${chosenId === c.id ? 'on' : ''}`}
+            onClick={() => onPick(c.id)}
+          >
+            {c.title}
+            {c.subtitle ? ` · ${c.subtitle}` : ''}
+          </Button>
         ))}
       </div>
       {chosenId && (
-        <button type="button" className={`btn btn-primary ${isDelete ? 'cap-danger' : ''}`} style={{ alignSelf: 'flex-start' }} disabled={busy} onClick={onCommit}>
+        <Button
+          variant="default"
+          type="button"
+          className={`${isDelete ? 'cap-danger' : ''}`}
+          style={{ alignSelf: 'flex-start' }}
+          disabled={busy}
+          onClick={onCommit}
+        >
           {CONFIRM_LABEL[intent.verb] ?? 'Confirm'}
-        </button>
+        </Button>
       )}
     </>
   )
@@ -567,7 +1062,11 @@ function CaptureBarInner() {
   const [busy, setBusy] = useState(false)
   const [thinking, setThinking] = useState(false)
   const [flash, setFlash] = useState<{ ok: boolean; msg: string } | null>(null)
-  const [server, setServer] = useState<{ intent: ParsedIntent | null; via: string; forText: string } | null>(null)
+  const [server, setServer] = useState<{
+    intent: ParsedIntent | null
+    via: string
+    forText: string
+  } | null>(null)
   const [lists, setLists] = useState<ListSummary[]>([])
   const [draft, setDraft] = useState<ParsedIntent | null>(null)
   // TIER 2 — the candidate rows for a mutate intent (from /api/capture/resolve) and the
@@ -583,12 +1082,20 @@ function CaptureBarInner() {
   const names = useMemo(() => persons.map((p) => p.name), [persons])
   const customLists = useMemo(() => lists.filter((l) => l.listType !== 'grocery'), [lists])
   const listNames = useMemo(() => customLists.map((l) => l.name), [customLists])
-  const localIntent = useMemo<ParsedIntent | null>(() => parseCapture(text, names, new Date(), listNames), [text, names, listNames])
+  const localIntent = useMemo<ParsedIntent | null>(
+    () => parseCapture(text, names, new Date(), listNames),
+    [text, names, listNames],
+  )
 
   useEffect(() => {
     let alive = true
-    api.lists().then((d) => alive && setLists(d.lists)).catch(() => {})
-    return () => { alive = false }
+    api
+      .lists()
+      .then((d) => alive && setLists(d.lists))
+      .catch(() => {})
+    return () => {
+      alive = false
+    }
   }, [])
 
   // Debounced server resolve. ~0.8s after you stop typing, so we capture whole
@@ -608,7 +1115,11 @@ function CaptureBarInner() {
         // normalize so the goal preview + picker never read an undefined array.
         const intent =
           r.intent?.kind === 'goal'
-            ? { ...r.intent, participantIds: r.intent.participantIds ?? [], audience: r.intent.audience ?? null }
+            ? {
+                ...r.intent,
+                participantIds: r.intent.participantIds ?? [],
+                audience: r.intent.audience ?? null,
+              }
             : r.intent
         setServer({ intent, via: r.via, forText: text })
         setThinking(false)
@@ -617,7 +1128,10 @@ function CaptureBarInner() {
     return () => clearTimeout(id)
   }, [text, names, listNames])
 
-  useEffect(() => { setDraft(null); setPreferLlm(false) }, [text])
+  useEffect(() => {
+    setDraft(null)
+    setPreferLlm(false)
+  }, [text])
 
   useEffect(() => {
     const el = taRef.current
@@ -632,7 +1146,11 @@ function CaptureBarInner() {
   // flips a clear calendar event into a task. When it disagrees on *kind* with a
   // CONFIDENT on-device guess, keep ours and offer theirs (one tap), rather than
   // silently swapping. Agreement (or a weak local fallback) still defers to the model.
-  const disagrees = !!serverIntent && !!localIntent && looksConfident(localIntent, text) && serverIntent.kind !== localIntent.kind
+  const disagrees =
+    !!serverIntent &&
+    !!localIntent &&
+    looksConfident(localIntent, text) &&
+    serverIntent.kind !== localIntent.kind
   const showingServer = usingServer && !(disagrees && !preferLlm)
   const parsed = showingServer ? serverIntent : localIntent
   const altIntent = disagrees ? (preferLlm ? localIntent : serverIntent) : null
@@ -641,7 +1159,8 @@ function CaptureBarInner() {
   // While the model is still thinking and the on-device guess is just a weak
   // grocery fallback, don't assert it — show a thinking row instead.
   const thinkingPlaceholder = !usingServer && thinking && !looksConfident(localIntent, text)
-  const rawIntent = draft ?? (thinkingPlaceholder ? null : seedEventViewer(parsed, viewer?.name ?? null))
+  const rawIntent =
+    draft ?? (thinkingPlaceholder ? null : seedEventViewer(parsed, viewer?.name ?? null))
   // Gates: only admins can add a household member (adminRoute); goals can be created
   // only when the Goals module is on; and pantry (default OFF) is suppressed entirely
   // unless the Pantry module is on. Each blocked case degrades gracefully to an
@@ -650,16 +1169,26 @@ function CaptureBarInner() {
     rawIntent?.kind === 'person' && !isAdmin
       ? { kind: 'unsupported', reason: 'Only an adult can add family members.' }
       : rawIntent?.kind === 'goal' && !goalsOn
-        ? { kind: 'unsupported', reason: 'Goals is turned off. Turn it on in Settings → Modules to add goals.' }
+        ? {
+            kind: 'unsupported',
+            reason: 'Goals is turned off. Turn it on in Settings → Modules to add goals.',
+          }
         : rawIntent?.kind === 'pantry' && !pantryOn
-          ? { kind: 'unsupported', reason: 'The Pantry module is turned off. Turn it on in Settings → Modules to add pantry items.' }
+          ? {
+              kind: 'unsupported',
+              reason:
+                'The Pantry module is turned off. Turn it on in Settings → Modules to add pantry items.',
+            }
           : rawIntent?.kind === 'reward' && (!rewardsOn || !canManageRewards)
-            ? { kind: 'unsupported', reason: !rewardsOn ? 'Rewards are turned off.' : 'Ask a parent to add a reward.' }
-            // A mutate always goes to the SERVER's candidate lookup (POST /capture/resolve) — even
-            // when the *parse* came from the on-device heuristic (a household with no LLM configured
-            // still resolves + commits online). We only surface "I need a connection" when the
-            // resolve call itself fails (handled below), NOT merely because the parse was on-device.
-            : rawIntent
+            ? {
+                kind: 'unsupported',
+                reason: !rewardsOn ? 'Rewards are turned off.' : 'Ask a parent to add a reward.',
+              }
+            : // A mutate always goes to the SERVER's candidate lookup (POST /capture/resolve) — even
+              // when the *parse* came from the on-device heuristic (a household with no LLM configured
+              // still resolves + commits online). We only surface "I need a connection" when the
+              // resolve call itself fails (handled below), NOT merely because the parse was on-device.
+              rawIntent
   const editing = draft !== null && intent?.kind !== 'unsupported' && intent?.kind !== 'mutate'
   // A stable key for the current mutate intent — drives the candidate resolve so it fires
   // once per distinct phrase (not on every render). ONLY a SETTLED parse gets a key: one
@@ -668,26 +1197,48 @@ function CaptureBarInner() {
   // /capture/resolve — paste/dictation/resumed typing briefly renders with thinking=false,
   // and each stray call with a partial description costs a server round-trip that also
   // inserts today's chore instances (ensureTodayInstances).
-  const mutateKey = intent?.kind === 'mutate' && usingServer ? `${intent.verb}|${intent.targetKind}|${intent.target.description}` : null
+  const mutateKey =
+    intent?.kind === 'mutate' && usingServer
+      ? `${intent.verb}|${intent.targetKind}|${intent.target.description}`
+      : null
 
   // Resolve candidates once a settled mutate intent arrives (keyed on mutateKey so it
   // fires per distinct phrase, not per render). Clears the picker for any non-mutate
   // (or a not-yet-settled parse).
   useEffect(() => {
-    if (!mutateKey || intent?.kind !== 'mutate') { setCandidates(null); setChosenId(null); return }
+    if (!mutateKey || intent?.kind !== 'mutate') {
+      setCandidates(null)
+      setChosenId(null)
+      return
+    }
     const desc = intent.target.description
     let alive = true
     setCandidates(null)
     setChosenId(null)
-    api.resolveCandidates({ verb: intent.verb, targetKind: intent.targetKind, target: intent.target, args: intent.args })
+    api
+      .resolveCandidates({
+        verb: intent.verb,
+        targetKind: intent.targetKind,
+        target: intent.target,
+        args: intent.args,
+      })
       .then((r) => {
         if (!alive) return
-        setCandidates({ list: r.candidates, disabledReason: r.disabledReason, unsupported: r.unsupported, forDesc: desc })
+        setCandidates({
+          list: r.candidates,
+          disabledReason: r.disabledReason,
+          unsupported: r.unsupported,
+          forDesc: desc,
+        })
         // 1 candidate → auto-select (still confirmed explicitly); 2+ → leave unpicked.
         setChosenId(r.candidates.length === 1 ? r.candidates[0].id : null)
       })
-      .catch(() => { if (alive) setCandidates({ list: [], forDesc: desc, offline: true }) })
-    return () => { alive = false }
+      .catch(() => {
+        if (alive) setCandidates({ list: [], forDesc: desc, offline: true })
+      })
+    return () => {
+      alive = false
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mutateKey])
 
@@ -715,7 +1266,14 @@ function CaptureBarInner() {
 
   async function commit(i: ParsedIntent): Promise<string> {
     if (i.kind === 'event') {
-      await api.createEvent({ title: i.title, startsAt: i.startsAt, allDay: i.allDay, personId: resolveEventPersonId(i.personName, persons, viewer?.id ?? null), rrule: i.rrule ?? undefined, recurrenceEndAt: i.recurrenceEndAt ?? undefined })
+      await api.createEvent({
+        title: i.title,
+        startsAt: i.startsAt,
+        allDay: i.allDay,
+        personId: resolveEventPersonId(i.personName, persons, viewer?.id ?? null),
+        rrule: i.rrule ?? undefined,
+        recurrenceEndAt: i.recurrenceEndAt ?? undefined,
+      })
       return `Added “${i.title}”${i.rrule ? ' (repeating)' : ''} to the calendar`
     }
     if (i.kind === 'grocery') {
@@ -727,8 +1285,11 @@ function CaptureBarInner() {
       const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '')
       const named = (await api.lists()).lists.filter((l) => l.listType !== 'grocery')
       let target = i.listName
-        ? named.find((l) => norm(l.name) === norm(i.listName!)) ??
-          named.find((l) => norm(l.name).includes(norm(i.listName!)) || norm(i.listName!).includes(norm(l.name)))
+        ? (named.find((l) => norm(l.name) === norm(i.listName!)) ??
+          named.find(
+            (l) =>
+              norm(l.name).includes(norm(i.listName!)) || norm(i.listName!).includes(norm(l.name)),
+          ))
         : undefined
       if (!target) target = await api.createList({ name: i.listName?.trim() || 'List' })
       await api.addListItem(target.id, { name: i.itemName, quantity: i.quantity ?? undefined })
@@ -740,12 +1301,19 @@ function CaptureBarInner() {
       try {
         const { recipes } = await api.recipes()
         const n = i.title.toLowerCase()
-        const hit = recipes.find((r) => (r.title ?? '').toLowerCase() === n) ?? recipes.find((r) => (r.title ?? '').toLowerCase().includes(n))
+        const hit =
+          recipes.find((r) => (r.title ?? '').toLowerCase() === n) ??
+          recipes.find((r) => (r.title ?? '').toLowerCase().includes(n))
         recipeId = hit?.id
       } catch {
         /* recipe lookup is best-effort */
       }
-      await api.planSlot({ date, mealType: i.mealType, recipeId, title: recipeId ? undefined : i.title })
+      await api.planSlot({
+        date,
+        mealType: i.mealType,
+        recipeId,
+        title: recipeId ? undefined : i.title,
+      })
       return `Added “${i.title}” to ${i.mealType} (${i.whenLabel.split(' · ')[0]})`
     }
     if (i.kind === 'countdown') {
@@ -769,10 +1337,15 @@ function CaptureBarInner() {
       // only yourself never needs goal.manage). A picked subset / Everyone is sent as-is.
       const participantIds = i.participantIds.length
         ? i.participantIds
-        : seedGoalParticipants(i.audience, viewer?.id ?? null, persons.map((p) => p.id), canManageGoals)
+        : seedGoalParticipants(
+            i.audience,
+            viewer?.id ?? null,
+            persons.map((p) => p.id),
+            canManageGoals,
+          )
       // Final clamp: a non-manager never POSTs other people (even via a stale picked set) —
       // POST /api/goals would 403 on goal.manage, surfacing as a bogus sign-in error.
-      const finalIds = canManageGoals ? participantIds : (viewer ? [viewer.id] : participantIds)
+      const finalIds = canManageGoals ? participantIds : viewer ? [viewer.id] : participantIds
       await api.createGoal({
         title: i.title,
         goalType: i.goalType,
@@ -812,11 +1385,22 @@ function CaptureBarInner() {
       // The row was picked in the preview; the server applies the mutation (verb → the
       // module's own service fn) and returns the flash message (or a 4xx we surface).
       const chosen = candidates?.list.find((c) => c.id === chosenId)
-      const r = await api.commitMutate({ verb: i.verb, targetKind: i.targetKind, targetId: chosenId!, args: i.args ?? {}, meta: chosen?.meta })
+      const r = await api.commitMutate({
+        verb: i.verb,
+        targetKind: i.targetKind,
+        targetId: chosenId!,
+        args: i.args ?? {},
+        meta: chosen?.meta,
+      })
       return r.message
     }
     if (i.kind === 'unsupported') return ''
-    await api.createChore({ title: i.title, personId: personId(i.personName), rewardAmount: i.stars ?? undefined, rrule: i.rrule ?? undefined })
+    await api.createChore({
+      title: i.title,
+      personId: personId(i.personName),
+      rewardAmount: i.stars ?? undefined,
+      rrule: i.rrule ?? undefined,
+    })
     return `Added the “${i.title}” chore${i.personName ? ` for ${i.personName}` : ''}`
   }
 
@@ -825,9 +1409,23 @@ function CaptureBarInner() {
   // until a manual refresh — the bug that motivated this). Events/pantry ride PowerSync/their
   // own refresh and have no bus topic yet.
   function emitAfterCommit(i: ParsedIntent): void {
-    const CREATE_TOPIC: Partial<Record<ParsedIntent['kind'], Topic>> = { grocery: 'grocery', meal: 'meals', countdown: 'countdowns', goal: 'goals', reward: 'rewards' }
-    const MUTATE_TOPIC: Partial<Record<string, Topic>> = { chore: 'chores', goal: 'goals', listItem: 'grocery', reward: 'rewards' }
-    if (i.kind === 'person') { emitHouseholdChanged(); return }
+    const CREATE_TOPIC: Partial<Record<ParsedIntent['kind'], Topic>> = {
+      grocery: 'grocery',
+      meal: 'meals',
+      countdown: 'countdowns',
+      goal: 'goals',
+      reward: 'rewards',
+    }
+    const MUTATE_TOPIC: Partial<Record<string, Topic>> = {
+      chore: 'chores',
+      goal: 'goals',
+      listItem: 'grocery',
+      reward: 'rewards',
+    }
+    if (i.kind === 'person') {
+      emitHouseholdChanged()
+      return
+    }
     const topic = i.kind === 'mutate' ? MUTATE_TOPIC[i.targetKind ?? ''] : CREATE_TOPIC[i.kind]
     if (topic) emit(topic)
   }
@@ -851,9 +1449,10 @@ function CaptureBarInner() {
     } catch (err) {
       // A mutate commit rethrows the server's human `message` (e.g. "That chore needs a
       // photo…"); surface it. Other commits keep the generic reload/sign-in hint.
-      const msg = toCommit.kind === 'mutate' && err instanceof Error && err.message
-        ? err.message
-        : "Couldn't add that — try reloading or signing in again."
+      const msg =
+        toCommit.kind === 'mutate' && err instanceof Error && err.message
+          ? err.message
+          : "Couldn't add that — try reloading or signing in again."
       setFlash({ ok: false, msg })
     } finally {
       setBusy(false)
@@ -888,19 +1487,69 @@ function CaptureBarInner() {
   }
 
   const preview = intent ? intentSummary(intent) : null
+  const detailParts: ReactNode[] =
+    intent?.kind === 'event'
+      ? [
+          intent.whenLabel,
+          intent.scheduleLabel && (
+            <>
+              <DataIcon value="🔁" /> {intent.scheduleLabel}
+            </>
+          ),
+          intent.personName,
+        ]
+      : intent?.kind === 'task'
+        ? [
+            intent.personName ?? 'Up for grabs',
+            intent.scheduleLabel,
+            !!intent.stars && (
+              <>
+                {intent.stars}
+                <DataIcon value="★" kind="reward" />
+              </>
+            ),
+          ]
+        : intent?.kind === 'reward'
+          ? [
+              'Adds to the reward shop',
+              intent.cost != null && (
+                <>
+                  {intent.cost}
+                  <DataIcon value="★" kind="reward" />
+                </>
+              ),
+              intent.requiresApproval && 'needs approval',
+            ]
+          : [preview?.detail]
+  const previewDetail = detailParts.filter(Boolean).map((part, index) => (
+    <span key={index}>
+      {index > 0 && ' · '}
+      {part}
+    </span>
+  ))
   // A mutate needs a chosen row to commit — and a `delete` is NEVER committable via ↵
   // (only the explicit destructive button), so ↵ stays disabled for it.
-  const canCommit = !!intent && intent.kind !== 'unsupported' &&
+  const canCommit =
+    !!intent &&
+    intent.kind !== 'unsupported' &&
     (intent.kind !== 'mutate' || (!!chosenId && intent.verb !== 'delete'))
 
   return (
     <>
-      <button type="button" className="ai-bar capture-trigger" onClick={open} style={{ flex: 1, maxWidth: 520 }}>
+      <Button
+        variant="unstyled"
+        type="button"
+        className="ai-bar capture-trigger"
+        onClick={open}
+        style={{ flex: 1, maxWidth: 520 }}
+      >
         <div className="ai-spark">
           <Icon name="spark" />
         </div>
-        <span className={`cap-trigger-text ${text ? '' : 'ph'}`}>{text || 'Add anything… “Soccer Tue 4pm for Wally”'}</span>
-      </button>
+        <span className={`cap-trigger-text ${text ? '' : 'ph'}`}>
+          {text || 'Add anything… “Soccer Tue 4pm for Wally”'}
+        </span>
+      </Button>
 
       {expanded &&
         createPortal(
@@ -911,7 +1560,7 @@ function CaptureBarInner() {
                   <div className={`ai-spark ${thinking ? 'thinking' : ''}`}>
                     <Icon name="spark" />
                   </div>
-                  <textarea
+                  <Textarea
                     ref={taRef}
                     value={text}
                     onChange={(e) => setText(e.target.value)}
@@ -921,73 +1570,146 @@ function CaptureBarInner() {
                     rows={1}
                     disabled={busy}
                   />
-                  <button type="submit" className="cap-go" aria-label="Add" disabled={busy || !text.trim() || !canCommit}>
+                  <Button
+                    variant="unstyled"
+                    type="submit"
+                    className="cap-go"
+                    aria-label="Add"
+                    disabled={busy || !text.trim() || !canCommit}
+                  >
                     ↵
-                  </button>
+                  </Button>
                 </div>
               </form>
 
               {flash ? (
                 <div className={`cap-flash ${flash.ok ? 'ok' : 'err'}`}>
-                  {flash.ok ? '✓' : '⚠'} {flash.msg}
+                  {flash.ok ? (
+                    <DataIcon value={'✓'} kind="general" />
+                  ) : (
+                    <DataIcon value={'⚠'} kind="general" />
+                  )}{' '}
+                  {flash.msg}
                 </div>
               ) : thinkingPlaceholder ? (
                 <div className="cap-preview cap-thinking">
-                  <div className="cap-icon">✦</div>
+                  <div className="cap-icon">
+                    <DataIcon value={'✦'} kind="general" />
+                  </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div className="cap-kind">Reading that<span className="cap-via">thinking…</span></div>
+                    <div className="cap-kind">
+                      Reading that<span className="cap-via">thinking…</span>
+                    </div>
                     <div className="cap-detail">One sec while I sort it out…</div>
                   </div>
                 </div>
               ) : preview && intent ? (
                 <div className={`cap-preview ${editing ? 'editing' : ''}`}>
-                  <div className="cap-icon">{preview.icon}</div>
+                  <div className="cap-icon">
+                    <DataIcon value={preview.icon} kind="general" />
+                  </div>
                   <div style={{ minWidth: 0, flex: 1 }}>
                     <div className="cap-kind">
                       {preview.kind}
                       {/* A confident guess is already shown — the model is just
                           refining it, so make clear you can submit now. */}
-                      <span className="cap-via">{thinking ? 'improving… · ↵ to add now' : `via ${VIA_LABEL[via] ?? via}`}</span>
+                      <span className="cap-via">
+                        {thinking ? 'improving… · ↵ to add now' : `via ${VIA_LABEL[via] ?? via}`}
+                      </span>
                     </div>
 
                     {intent.kind === 'unsupported' ? (
                       <div className="cap-primary">{intent.reason}</div>
                     ) : intent.kind === 'mutate' ? (
                       <div className="cap-edit">
-                        <div className="cap-primary" style={{ whiteSpace: 'normal' }}>{preview.primary}</div>
-                        <CandidatePicker intent={intent} state={candidates} chosenId={chosenId} onPick={setChosenId} onCommit={() => void performCommit(intent)} busy={busy} />
+                        <div className="cap-primary" style={{ whiteSpace: 'normal' }}>
+                          {preview.primary}
+                        </div>
+                        <CandidatePicker
+                          intent={intent}
+                          state={candidates}
+                          chosenId={chosenId}
+                          onPick={setChosenId}
+                          onCommit={() => void performCommit(intent)}
+                          busy={busy}
+                        />
                         {/* Mutations lean on matching an existing item. The on-device parser is
                             best-effort (common phrasings only); an AI provider makes "do anything"
                             reliable — so say so plainly whenever we're running without one. */}
                         {via === 'on-device' && (
-                          <div className="cap-detail" style={{ marginTop: 6, whiteSpace: 'normal' }}>
-                            Matched on-device (no AI key). Add an AI provider in <strong>Settings → AI &amp; capture</strong> for reliable “do anything” results.
+                          <div
+                            className="cap-detail"
+                            style={{ marginTop: 6, whiteSpace: 'normal' }}
+                          >
+                            Matched on-device (no AI key). Add an AI provider in{' '}
+                            <strong>
+                              <>
+                                {'Settings '}
+                                <DataIcon value={'→'} kind="general" />
+                                {' AI &amp; capture'}
+                              </>
+                            </strong>{' '}
+                            for reliable “do anything” results.
                           </div>
                         )}
                       </div>
                     ) : editing ? (
                       <div className="cap-edit">
-                        <input className="cap-edit-input" value={primaryOf(intent)} onChange={(e) => setDraft(withPrimary(intent, e.target.value))} aria-label="Edit" autoFocus />
-                        <DraftFields intent={intent} persons={persons} lists={customLists} set={setDraft} today={localToday()} viewer={viewer ?? null} canManageGoals={canManageGoals} />
+                        <Input
+                          className="cap-edit-input"
+                          value={primaryOf(intent)}
+                          onChange={(e) => setDraft(withPrimary(intent, e.target.value))}
+                          aria-label="Edit"
+                          autoFocus
+                        />
+                        <DraftFields
+                          intent={intent}
+                          persons={persons}
+                          lists={customLists}
+                          set={setDraft}
+                          today={localToday()}
+                          viewer={viewer ?? null}
+                          canManageGoals={canManageGoals}
+                        />
                         <div className="cap-kind-chips">
-                          {KINDS.map(({ k, label }) => (
-                            <button key={k} type="button" className={`cap-kind-chip ${intent.kind === k ? 'on' : ''}`} onClick={() => setDraft(rerouteKind(intent, k, localToday()))}>
-                              {label}
-                            </button>
+                          {KINDS.map(({ k, label, icon }) => (
+                            <Button
+                              variant="unstyled"
+                              key={k}
+                              type="button"
+                              className={`cap-kind-chip ${intent.kind === k ? 'on' : ''}`}
+                              onClick={() => setDraft(rerouteKind(intent, k, localToday()))}
+                            >
+                              <DataIcon value={icon} /> {label}
+                            </Button>
                           ))}
                         </div>
                       </div>
                     ) : (
                       <>
-                        <button type="button" className="cap-primary cap-primary-btn" onClick={() => setDraft(intent)} title="Tap to edit">
+                        <Button
+                          variant="unstyled"
+                          type="button"
+                          className="cap-primary cap-primary-btn"
+                          onClick={() => setDraft(intent)}
+                          title="Tap to edit"
+                        >
                           {preview.primary}
-                          <span className="cap-edit-pencil">✎</span>
-                        </button>
-                        {preview.detail && <div className="cap-detail">{preview.detail}</div>}
+                          <span className="cap-edit-pencil">
+                            <DataIcon value={'✎'} kind="general" />
+                          </span>
+                        </Button>
+                        {preview.detail && <div className="cap-detail">{previewDetail}</div>}
                         {altIntent && (
-                          <button type="button" className="cap-switch" onClick={() => setPreferLlm((v) => !v)}>
-                            ⇔ {altFrom} reads this as {kindLabel(altIntent.kind)} — switch
-                          </button>
+                          <Button
+                            variant="unstyled"
+                            type="button"
+                            className="cap-switch"
+                            onClick={() => setPreferLlm((v) => !v)}
+                          >
+                            <DataIcon value="⇄" /> {altFrom} reads this as{' '}
+                            {kindLabel(altIntent.kind)} — switch
+                          </Button>
                         )}
                       </>
                     )}
@@ -995,7 +1717,9 @@ function CaptureBarInner() {
                   <div className="cap-hint">{editing ? 'editing' : canCommit ? 'press ↵' : ''}</div>
                 </div>
               ) : (
-                <div className="cap-empty-hint tiny muted">Type an event, list item, chore, grocery, or meal — I’ll sort it out.</div>
+                <div className="cap-empty-hint tiny muted">
+                  Type an event, list item, chore, grocery, or meal — I’ll sort it out.
+                </div>
               )}
             </div>
           </div>,

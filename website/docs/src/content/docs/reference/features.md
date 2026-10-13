@@ -37,6 +37,7 @@ Legend: ✅ supported · 🟡 partial · 🚧 planned · ❌ not supported / N-A
 | **Dark mode** + Settings → Appearance (Light / Dark / Match system) | ✅ | ✅ | ✅ | ✅ Done — web/kiosk **and** iPhone/iPad share one warm-dark palette (`apps/ios/DARK_MODE.md`) |
 | **Kitchen theme** (Kitchen / Kitchen night) for a 10.1" wall tablet | ✅ | ❌ | ❌ | ✅ Done — web/kiosk only; a `data-palette` axis beside light/dark, self-hosted Atkinson Hyperlegible + Bricolage Grotesque |
 | **Typeface picker** (Classic / Clear / Hyperlegible / Friendly / Early reader), per device | ✅ | ❌ | ❌ | ✅ Done — web/kiosk only; a `data-typeface` axis that swaps `--sans`/`--serif`, self-hosted Lexend, Atkinson Hyperlegible Next, Nunito, Andika |
+| **Shared web controls and Lucide icons** — consistent buttons, dialogs, menus and icon picker | ✅ | ❌ N/A | ❌ N/A | ✅ Done — web/kiosk keeps its existing palettes and typefaces. Select an icon in the editor; existing saved icons remain compatible. Currency symbols also accept text such as XP or $. Escape closes dialogs and phone navigation, with focus returned to the opener. Personal notes stay unchanged. |
 | **Email/password** login (built-in) | ✅ | ✅ | ✅ | ✅ Done |
 | Rotating refresh tokens + transparent 401-refresh | ✅ | ✅ | ✅ | ✅ Done (Keychain token store) |
 | **OIDC SSO** (backend-mediated, invite-gated) | ✅ | ✅ | ✅ | ✅ Done (`ASWebAuthenticationSession`) |

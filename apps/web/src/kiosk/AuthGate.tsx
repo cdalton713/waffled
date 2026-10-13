@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode, type FormEvent } from 'react'
 import { useNavigate } from 'react-router'
 import { authApi, getAccessToken, isKioskMode, type AuthStatus, type SetupInput } from '../lib/api'
-import { SERVER_PROBE_EVENT, SERVER_REACHABLE_EVENT, ensureProbing, isUnansweredError } from '../lib/api/reachability'
+import {
+  SERVER_PROBE_EVENT,
+  SERVER_REACHABLE_EVENT,
+  ensureProbing,
+  isUnansweredError,
+} from '../lib/api/reachability'
 import { UNREACHABLE_HEADLINE } from './components/ServerUnreachableBanner'
 import { useOnline } from '../lib/pwa'
 import { ProfilePicker } from './ProfilePicker'
@@ -11,7 +16,6 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { NativeSelect } from '@/components/ui/native-select'
-
 
 type Phase = 'loading' | 'authed' | 'login' | 'setup' | 'picker' | 'unreachable'
 
@@ -108,7 +112,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
 // What a form says when its submit went unanswered: the raw error is the proxy's
 // ("Request failed (502)"), and it blames the credentials for the server's absence.
 const SUBMIT_UNREACHABLE = 'Can’t reach the Waffled server right now — try again in a moment.'
-const submitError = (err: unknown) => (isUnansweredError(err) ? SUBMIT_UNREACHABLE : (err as Error).message)
+const submitError = (err: unknown) =>
+  isUnansweredError(err) ? SUBMIT_UNREACHABLE : (err as Error).message
 
 function AuthShell({ title, sub, children }: { title: string; sub: string; children: ReactNode }) {
   return (
@@ -147,15 +152,28 @@ function UnreachableScreen({ onAnswered }: { onAnswered: () => void }) {
   // server would help — so say the true thing instead.
   if (!deviceOnline) {
     return (
-      <AuthShell title="Your device is offline" sub="Reconnect to Wi-Fi and Waffled will pick up where it left off.">
+      <AuthShell
+        title="Your device is offline"
+        sub="Reconnect to Wi-Fi and Waffled will pick up where it left off."
+      >
         {null}
       </AuthShell>
     )
   }
-  return <AuthShell title={UNREACHABLE_HEADLINE} sub="It may be stopped or asleep. Retrying…">{null}</AuthShell>
+  return (
+    <AuthShell title={UNREACHABLE_HEADLINE} sub="It may be stopped or asleep. Retrying…">
+      {null}
+    </AuthShell>
+  )
 }
 
-function LoginScreen({ status, oidcError }: { status: AuthStatus | null; oidcError: string | null }) {
+function LoginScreen({
+  status,
+  oidcError,
+}: {
+  status: AuthStatus | null
+  oidcError: string | null
+}) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)
@@ -190,28 +208,74 @@ function LoginScreen({ status, oidcError }: { status: AuthStatus | null; oidcErr
   return (
     <AuthShell title="Welcome back" sub="Sign in to your family's Waffled.">
       {error && (
-        <div ref={errorRef} id="login-error" className="auth-error" style={{ marginBottom: 12 }} role="alert" tabIndex={-1}>
+        <div
+          ref={errorRef}
+          id="login-error"
+          className="auth-error"
+          style={{ marginBottom: 12 }}
+          role="alert"
+          tabIndex={-1}
+        >
           {error}
         </div>
       )}
       {showOidc && (
-        <Button variant="unstyled" type="button" className="btn auth-submit auth-sso" style={{ marginTop: 0 }} onClick={() => authApi.startOidc()}>
+        <Button
+          variant="plain"
+          type="button"
+          className="auth-submit auth-sso"
+          style={{ marginTop: 0 }}
+          onClick={() => authApi.startOidc()}
+        >
           {status!.oidc!.buttonLabel}
         </Button>
       )}
       {showOidc && showPassword && <div className="auth-or">or</div>}
       {showPassword && (
         <form onSubmit={submit} className="auth-form">
-          <Label className="auth-label" htmlFor="login-email">Email</Label>
-          <Input id="login-email" className="auth-input" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} aria-describedby={error ? 'login-error' : undefined} autoFocus required />
-          <Label className="auth-label" htmlFor="login-password">Password</Label>
-          <Input id="login-password" className="auth-input" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} aria-describedby={error ? 'login-error' : undefined} required />
-          <Button variant="unstyled" type="submit" className="btn btn-primary auth-submit" disabled={busy || !email || !password}>
+          <Label className="auth-label" htmlFor="login-email">
+            Email
+          </Label>
+          <Input
+            id="login-email"
+            className="auth-input"
+            type="email"
+            autoComplete="username"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            aria-describedby={error ? 'login-error' : undefined}
+            autoFocus
+            required
+          />
+          <Label className="auth-label" htmlFor="login-password">
+            Password
+          </Label>
+          <Input
+            id="login-password"
+            className="auth-input"
+            type="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            aria-describedby={error ? 'login-error' : undefined}
+            required
+          />
+          <Button
+            variant="default"
+            type="submit"
+            className="auth-submit"
+            disabled={busy || !email || !password}
+          >
             {busy ? 'Signing in…' : 'Sign in'}
           </Button>
         </form>
       )}
-      <Button variant="unstyled" type="button" className="auth-kiosk-link" onClick={() => setPairing(true)}>
+      <Button
+        variant="unstyled"
+        type="button"
+        className="auth-kiosk-link"
+        onClick={() => setPairing(true)}
+      >
         Set up this device as a kiosk
       </Button>
     </AuthShell>
@@ -223,16 +287,29 @@ function LoginScreen({ status, oidcError }: { status: AuthStatus | null; oidcErr
 // field is never just a free-text guess ("what do I put for Seattle?").
 const TIMEZONES: string[] = (() => {
   try {
-    const all = (Intl as { supportedValuesOf?: (key: string) => string[] }).supportedValuesOf?.('timeZone')
+    const all = (Intl as { supportedValuesOf?: (key: string) => string[] }).supportedValuesOf?.(
+      'timeZone',
+    )
     if (Array.isArray(all) && all.length) return all
   } catch {
     /* Intl.supportedValuesOf unsupported — fall through to the curated list */
   }
   return [
-    'America/New_York', 'America/Chicago', 'America/Denver', 'America/Phoenix',
-    'America/Los_Angeles', 'America/Anchorage', 'Pacific/Honolulu', 'America/Toronto',
-    'America/Vancouver', 'Europe/London', 'Europe/Paris', 'Europe/Berlin',
-    'Asia/Tokyo', 'Australia/Sydney', 'UTC',
+    'America/New_York',
+    'America/Chicago',
+    'America/Denver',
+    'America/Phoenix',
+    'America/Los_Angeles',
+    'America/Anchorage',
+    'Pacific/Honolulu',
+    'America/Toronto',
+    'America/Vancouver',
+    'Europe/London',
+    'Europe/Paris',
+    'Europe/Berlin',
+    'Asia/Tokyo',
+    'Australia/Sydney',
+    'UTC',
   ]
 })()
 
@@ -258,15 +335,27 @@ function SetupWizard() {
   const errorRef = useRef<HTMLDivElement>(null)
   // Only surface a field's validation hint when the user leaves it still-invalid —
   // and hide it again the moment they resume typing. Never yell mid-keystroke.
-  const [showErr, setShowErr] = useState<{ email?: boolean; password?: boolean; confirm?: boolean }>({})
-  const clearErr = (f: 'email' | 'password' | 'confirm') => setShowErr((s) => (s[f] ? { ...s, [f]: false } : s))
+  const [showErr, setShowErr] = useState<{
+    email?: boolean
+    password?: boolean
+    confirm?: boolean
+  }>({})
+  const clearErr = (f: 'email' | 'password' | 'confirm') =>
+    setShowErr((s) => (s[f] ? { ...s, [f]: false } : s))
 
   // Pre-select the detected zone; make sure it's selectable even if the fallback list omits it.
   const tzOptions = TIMEZONES.includes(detectedTz) ? TIMEZONES : [detectedTz, ...TIMEZONES]
   const emailValid = SETUP_EMAIL_RE.test(email.trim())
   const passwordLongEnough = password.length >= 8
   const passwordsMatch = password === confirm
-  const valid = !!(householdName.trim() && timezone.trim() && name.trim() && emailValid && passwordLongEnough && passwordsMatch)
+  const valid = !!(
+    householdName.trim() &&
+    timezone.trim() &&
+    name.trim() &&
+    emailValid &&
+    passwordLongEnough &&
+    passwordsMatch
+  )
 
   useEffect(() => {
     if (error) errorRef.current?.focus()
@@ -281,7 +370,13 @@ function SetupWizard() {
       household: { name: householdName.trim(), timezone: timezone.trim() },
       // Give the owner a default avatar + color (matching PersonModal's defaults) so
       // they aren't an avatar-less member in pickers/dropdowns; editable later.
-      admin: { name: name.trim(), email: email.trim(), password, avatarEmoji: '🙂', colorHex: '#2F7FED' },
+      admin: {
+        name: name.trim(),
+        email: email.trim(),
+        password,
+        avatarEmoji: '🙂',
+        colorHex: '#2F7FED',
+      },
     }
     try {
       await authApi.setup(input)
@@ -297,29 +392,128 @@ function SetupWizard() {
     <AuthShell title="Welcome to Waffled" sub="Let's set up your household and your admin account.">
       <form onSubmit={submit} className="auth-form">
         <div className="auth-section">Your household</div>
-        <Label className="auth-label" htmlFor="setup-household">Household name</Label>
-        <Input id="setup-household" className="auth-input" value={householdName} onChange={(e) => setHouseholdName(e.target.value)} placeholder="The Sites Family" autoFocus required />
-        <Label className="auth-label" htmlFor="setup-timezone">Timezone</Label>
-        <NativeSelect id="setup-timezone" className="auth-input auth-select" value={timezone} onChange={(e) => setTimezone(e.target.value)} required>
+        <Label className="auth-label" htmlFor="setup-household">
+          Household name
+        </Label>
+        <Input
+          id="setup-household"
+          className="auth-input"
+          value={householdName}
+          onChange={(e) => setHouseholdName(e.target.value)}
+          placeholder="The Sites Family"
+          autoFocus
+          required
+        />
+        <Label className="auth-label" htmlFor="setup-timezone">
+          Timezone
+        </Label>
+        <NativeSelect
+          id="setup-timezone"
+          className="auth-input auth-select"
+          value={timezone}
+          onChange={(e) => setTimezone(e.target.value)}
+          required
+        >
           {tzOptions.map((tz) => (
-            <option key={tz} value={tz}>{tz.replace(/_/g, ' ')}</option>
+            <option key={tz} value={tz}>
+              {tz.replace(/_/g, ' ')}
+            </option>
           ))}
         </NativeSelect>
 
-        <div className="auth-section" style={{ marginTop: 14 }}>Admin account</div>
-        <Label className="auth-label" htmlFor="setup-name">Your name</Label>
-        <Input id="setup-name" className="auth-input" value={name} onChange={(e) => setName(e.target.value)} placeholder="John Doe" required />
-        <Label className="auth-label" htmlFor="setup-email">Email</Label>
-        <Input id="setup-email" className="auth-input" type="email" autoComplete="username" value={email} onChange={(e) => { setEmail(e.target.value); clearErr('email') }} onBlur={() => setShowErr((s) => ({ ...s, email: !!email.trim() && !emailValid }))} aria-invalid={showErr.email || undefined} aria-describedby={showErr.email ? 'setup-email-error' : undefined} placeholder="you@example.com" required />
-        {showErr.email && <div id="setup-email-error" className="auth-error">Enter a valid email address (e.g. you@example.com).</div>}
-        <Label className="auth-label" htmlFor="setup-password">Password</Label>
-        <Input id="setup-password" className="auth-input" type="password" autoComplete="new-password" value={password} onChange={(e) => { setPassword(e.target.value); clearErr('password') }} onBlur={() => setShowErr((s) => ({ ...s, password: !!password && !passwordLongEnough }))} aria-invalid={showErr.password || undefined} aria-describedby={showErr.password ? 'setup-password-error' : undefined} placeholder="At least 8 characters" required />
-        {showErr.password && <div id="setup-password-error" className="auth-error">Password must be at least 8 characters.</div>}
-        <Label className="auth-label" htmlFor="setup-confirm">Confirm password</Label>
-        <Input id="setup-confirm" className="auth-input" type="password" autoComplete="new-password" value={confirm} onChange={(e) => { setConfirm(e.target.value); clearErr('confirm') }} onBlur={() => setShowErr((s) => ({ ...s, confirm: !!password && !!confirm && !passwordsMatch }))} aria-invalid={showErr.confirm || undefined} aria-describedby={showErr.confirm ? 'setup-confirm-error' : undefined} required />
-        {showErr.confirm && <div id="setup-confirm-error" className="auth-error">Passwords don't match.</div>}
-        {error && <div ref={errorRef} className="auth-error" role="alert" tabIndex={-1}>{error}</div>}
-        <Button variant="unstyled" type="submit" className="btn btn-primary auth-submit" disabled={busy || !valid}>
+        <div className="auth-section" style={{ marginTop: 14 }}>
+          Admin account
+        </div>
+        <Label className="auth-label" htmlFor="setup-name">
+          Your name
+        </Label>
+        <Input
+          id="setup-name"
+          className="auth-input"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="John Doe"
+          required
+        />
+        <Label className="auth-label" htmlFor="setup-email">
+          Email
+        </Label>
+        <Input
+          id="setup-email"
+          className="auth-input"
+          type="email"
+          autoComplete="username"
+          value={email}
+          onChange={(e) => {
+            setEmail(e.target.value)
+            clearErr('email')
+          }}
+          onBlur={() => setShowErr((s) => ({ ...s, email: !!email.trim() && !emailValid }))}
+          aria-invalid={showErr.email || undefined}
+          aria-describedby={showErr.email ? 'setup-email-error' : undefined}
+          placeholder="you@example.com"
+          required
+        />
+        {showErr.email && (
+          <div id="setup-email-error" className="auth-error">
+            Enter a valid email address (e.g. you@example.com).
+          </div>
+        )}
+        <Label className="auth-label" htmlFor="setup-password">
+          Password
+        </Label>
+        <Input
+          id="setup-password"
+          className="auth-input"
+          type="password"
+          autoComplete="new-password"
+          value={password}
+          onChange={(e) => {
+            setPassword(e.target.value)
+            clearErr('password')
+          }}
+          onBlur={() => setShowErr((s) => ({ ...s, password: !!password && !passwordLongEnough }))}
+          aria-invalid={showErr.password || undefined}
+          aria-describedby={showErr.password ? 'setup-password-error' : undefined}
+          placeholder="At least 8 characters"
+          required
+        />
+        {showErr.password && (
+          <div id="setup-password-error" className="auth-error">
+            Password must be at least 8 characters.
+          </div>
+        )}
+        <Label className="auth-label" htmlFor="setup-confirm">
+          Confirm password
+        </Label>
+        <Input
+          id="setup-confirm"
+          className="auth-input"
+          type="password"
+          autoComplete="new-password"
+          value={confirm}
+          onChange={(e) => {
+            setConfirm(e.target.value)
+            clearErr('confirm')
+          }}
+          onBlur={() =>
+            setShowErr((s) => ({ ...s, confirm: !!password && !!confirm && !passwordsMatch }))
+          }
+          aria-invalid={showErr.confirm || undefined}
+          aria-describedby={showErr.confirm ? 'setup-confirm-error' : undefined}
+          required
+        />
+        {showErr.confirm && (
+          <div id="setup-confirm-error" className="auth-error">
+            Passwords don't match.
+          </div>
+        )}
+        {error && (
+          <div ref={errorRef} className="auth-error" role="alert" tabIndex={-1}>
+            {error}
+          </div>
+        )}
+        <Button variant="default" type="submit" className="auth-submit" disabled={busy || !valid}>
           {busy ? 'Creating…' : 'Create household'}
         </Button>
       </form>

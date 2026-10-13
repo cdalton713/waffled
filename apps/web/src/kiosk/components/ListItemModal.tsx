@@ -1,6 +1,11 @@
 import { useState, type FormEvent } from 'react'
 import { listWrites, type ListItem, type Person } from '../../lib/api'
 import { PRIORITY_OPTIONS } from './priority'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { DataIcon } from '@/components/ui/data-icon'
+import { Modal } from '@/components/ui/modal'
 
 // Add or edit a list item — name, quantity (free text like "1 lb" / "×4"),
 // note, section, and assignee. Touch-friendly (a real form, not a hover affordance).
@@ -51,37 +56,65 @@ export function ListItemModal({
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <Modal className="modal-overlay" onClose={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 440 }}>
-        <button type="button" className="modal-close" aria-label="Close" onClick={onClose}>×</button>
-        <div className="wf-serif" style={{ fontSize: 20, fontWeight: 600, marginBottom: 14 }}>{editing ? 'Edit item' : 'Add item'}</div>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="modal-close"
+          aria-label="Close"
+          onClick={onClose}
+        >
+          <DataIcon value={'×'} kind="list" />
+        </Button>
+        <div className="wf-serif" style={{ fontSize: 20, fontWeight: 600, marginBottom: 14 }}>
+          {editing ? 'Edit item' : 'Add item'}
+        </div>
 
         <form onSubmit={submit}>
           <div className="field-row">
-            <label className="field" style={{ flex: 3 }}>
+            <Label className="field" style={{ flex: 3 }}>
               <span>Item</span>
-              <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Beach towels" autoFocus />
-            </label>
-            <label className="field" style={{ flex: 1 }}>
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Beach towels"
+                autoFocus
+              />
+            </Label>
+            <Label className="field" style={{ flex: 1 }}>
               <span>Quantity</span>
-              <input value={quantity} onChange={(e) => setQuantity(e.target.value)} placeholder="×4 / 1 lb" />
-            </label>
+              <Input
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                placeholder="×4 / 1 lb"
+              />
+            </Label>
           </div>
 
-          <label className="field">
+          <Label className="field">
             <span>Note</span>
-            <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. the blue cap one" />
-          </label>
+            <Input
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="e.g. the blue cap one"
+            />
+          </Label>
 
-          <label className="field">
+          <Label className="field">
             <span>Section</span>
-            <input value={section} onChange={(e) => setSection(e.target.value)} placeholder="e.g. Produce, Gear" list="list-sections" />
+            <Input
+              value={section}
+              onChange={(e) => setSection(e.target.value)}
+              placeholder="e.g. Produce, Gear"
+              list="list-sections"
+            />
             <datalist id="list-sections">
               {sections.map((s) => (
                 <option key={s} value={s} />
               ))}
             </datalist>
-          </label>
+          </Label>
 
           <div className="field">
             <span>Priority</span>
@@ -89,15 +122,33 @@ export function ListItemModal({
               {PRIORITY_OPTIONS.map((o) => {
                 const on = priority === o.value
                 return (
-                  <button
+                  <Button
+                    variant="unstyled"
                     type="button"
                     key={o.value}
                     aria-pressed={on}
                     onClick={() => setPriority(o.value)}
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 999, border: on ? '1.5px solid var(--ink)' : '1px solid var(--hair)', background: on ? 'var(--panel)' : 'var(--card-2)', font: 'inherit', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '6px 12px',
+                      borderRadius: 999,
+                      border: on ? '1.5px solid var(--ink)' : '1px solid var(--hair)',
+                      background: on ? 'var(--panel)' : 'var(--card-2)',
+                      font: 'inherit',
+                      fontSize: 14,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
                   >
-                    {o.icon && <span aria-hidden>{o.icon}</span>} {o.label}
-                  </button>
+                    {o.icon && (
+                      <span aria-hidden>
+                        <DataIcon value={o.icon} kind="list" />
+                      </span>
+                    )}{' '}
+                    {o.label}
+                  </Button>
                 )
               })}
             </div>
@@ -106,35 +157,69 @@ export function ListItemModal({
           <div className="field">
             <span>Assign to (optional)</span>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              <button
+              <Button
+                variant="unstyled"
                 type="button"
                 onClick={() => setAssignedTo('')}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 999, border: assignedTo === '' ? '1.5px solid var(--ink)' : '1px solid var(--hair)', background: assignedTo === '' ? 'var(--panel)' : 'var(--card-2)', font: 'inherit', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '6px 12px',
+                  borderRadius: 999,
+                  border: assignedTo === '' ? '1.5px solid var(--ink)' : '1px solid var(--hair)',
+                  background: assignedTo === '' ? 'var(--panel)' : 'var(--card-2)',
+                  font: 'inherit',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
               >
-                👪 Anyone
-              </button>
+                <>
+                  <DataIcon value={'👪'} kind="list" />
+                  {' Anyone'}
+                </>
+              </Button>
               {persons.map((p) => {
                 const on = assignedTo === p.id
                 const color = p.colorHex ?? '#6B6B70'
                 return (
-                  <button
+                  <Button
+                    variant="unstyled"
                     type="button"
                     key={p.id}
                     onClick={() => setAssignedTo(p.id)}
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 999, border: on ? `1.5px solid ${color}` : '1px solid var(--hair)', background: on ? `${color}22` : 'var(--card-2)', font: 'inherit', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '6px 12px',
+                      borderRadius: 999,
+                      border: on ? `1.5px solid ${color}` : '1px solid var(--hair)',
+                      background: on ? `${color}22` : 'var(--card-2)',
+                      font: 'inherit',
+                      fontSize: 14,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
                   >
-                    {p.avatarEmoji ?? '🙂'} {p.name}
-                  </button>
+                    <DataIcon value={p.avatarEmoji ?? '🙂'} kind="person" /> {p.name}
+                  </Button>
                 )
               })}
             </div>
           </div>
 
-          <button type="submit" className="btn btn-primary" disabled={!name.trim() || saving} style={{ width: '100%', justifyContent: 'center', marginTop: 6 }}>
+          <Button
+            variant="default"
+            type="submit"
+            disabled={!name.trim() || saving}
+            style={{ width: '100%', justifyContent: 'center', marginTop: 6 }}
+          >
             {saving ? 'Saving…' : editing ? 'Save changes' : 'Add item'}
-          </button>
+          </Button>
         </form>
       </div>
-    </div>
+    </Modal>
   )
 }

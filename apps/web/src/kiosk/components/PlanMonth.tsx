@@ -1,13 +1,31 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
-import { api, useHousehold, usePersons, useRecipes, type PlanCard, type Recipe } from '../../lib/api'
+import {
+  api,
+  useHousehold,
+  usePersons,
+  useRecipes,
+  type PlanCard,
+  type Recipe,
+} from '../../lib/api'
 import { useTopbarFull } from '../topbar-slot'
 import { Icon } from '../icons'
 import { RecipeModal } from './RecipeModal'
 import { RecipeBrowser, type MealType } from './RecipeBrowser'
+import { Button } from '@/components/ui/button'
+import { NativeSelect } from '@/components/ui/native-select'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { DataIcon } from '@/components/ui/data-icon'
+import { Checkbox } from '@/components/ui/checkbox'
 
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const DOW1 = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
-const VIA_LABEL: Record<string, string> = { anthropic: 'Claude', openai: 'OpenAI', ollama: 'local LLM' }
+const VIA_LABEL: Record<string, string> = {
+  anthropic: 'Claude',
+  openai: 'OpenAI',
+  ollama: 'local LLM',
+}
 
 // Must mirror MONTH_THEMES on the server (modules/meals/meals.service.ts).
 const THEME_OPTS: Array<{ key: string; label: string }> = [
@@ -29,8 +47,10 @@ const THEME_OPTS: Array<{ key: string; label: string }> = [
 type MonthCard = PlanCard & { wasPlanned?: boolean }
 
 function friendlyAiError(msg: string): string {
-  if (/no ai provider|not configured/i.test(msg)) return 'Pick an AI provider in Settings → AI & capture first.'
-  if (/abort|timeout|timed out|ETIMEDOUT/i.test(msg)) return 'The model took too long — try a smaller pool, or switch to a faster provider in Settings.'
+  if (/no ai provider|not configured/i.test(msg))
+    return 'Pick an AI provider in Settings → AI & capture first.'
+  if (/abort|timeout|timed out|ETIMEDOUT/i.test(msg))
+    return 'The model took too long — try a smaller pool, or switch to a faster provider in Settings.'
   return 'Couldn’t draft the month — please try again.'
 }
 
@@ -59,7 +79,10 @@ function isoWeekKey(date: string, firstDay: 'sunday' | 'monday' | null): string 
 // into a single key, the server snaps that key to its own boundary, and the other week is
 // never built at all. So when we don't know, we cover both. The extra rebuild is idempotent
 // — far cheaper than a week of shopping that quietly never appears.
-export function weekStartsToRebuild(dates: string[], firstDay: 'sunday' | 'monday' | null): string[] {
+export function weekStartsToRebuild(
+  dates: string[],
+  firstDay: 'sunday' | 'monday' | null,
+): string[] {
   const weeks = new Set<string>()
   const cuts: Array<'sunday' | 'monday'> = firstDay === null ? ['sunday', 'monday'] : [firstDay]
   for (const date of dates) {
@@ -69,7 +92,9 @@ export function weekStartsToRebuild(dates: string[], firstDay: 'sunday' | 'monda
       const dow = d.getDay() // 0=Sun..6=Sat
       // A monday household's Sunday closes the week that began six days earlier.
       d.setDate(d.getDate() - (cut === 'monday' ? (dow === 0 ? 6 : dow - 1) : dow))
-      weeks.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`)
+      weeks.add(
+        `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`,
+      )
     }
   }
   return [...weeks].sort()
@@ -81,7 +106,15 @@ const byDate = (a: { date: string }, b: { date: string }) => (a.date < b.date ? 
 // (drafted + already-planned, all editable) grouped by week on the right. Nights
 // can be AI-swapped, hand-picked, locked, skipped, or dragged onto each other to
 // swap dishes. `monthStart` is the 1st of the target month.
-export function PlanMonth({ monthStart, onClose, onApplied }: { monthStart: string; onClose: () => void; onApplied: () => void }) {
+export function PlanMonth({
+  monthStart,
+  onClose,
+  onApplied,
+}: {
+  monthStart: string
+  onClose: () => void
+  onApplied: () => void
+}) {
   const { persons } = usePersons()
   const familySize = Math.max(1, persons.length)
   // Which day starts a week here — the grocery list is keyed by week start, so the
@@ -90,7 +123,9 @@ export function PlanMonth({ monthStart, onClose, onApplied }: { monthStart: stri
   // null while the household is genuinely unknown — see weekStartsToRebuild. Guessing here
   // is what leaves a monday household with an unbuilt week.
   const firstDayOfWeek: 'sunday' | 'monday' | null = household
-    ? household.weekStart === 'monday' ? 'monday' : 'sunday'
+    ? household.weekStart === 'monday'
+      ? 'monday'
+      : 'sunday'
     : null
   const { recipes } = useRecipes()
 
@@ -136,16 +171,26 @@ export function PlanMonth({ monthStart, onClose, onApplied }: { monthStart: stri
   useTopbarFull(
     () => (
       <>
-        <div className="pill" onClick={onClose} style={{ padding: '9px 14px 9px 11px', cursor: 'pointer' }}>
+        <div
+          className="pill"
+          onClick={onClose}
+          style={{ padding: '9px 14px 9px 11px', cursor: 'pointer' }}
+        >
           <Icon name="cl" />
           Meals
         </div>
-        <button type="button" className="pill" style={{ marginLeft: 'auto', cursor: 'pointer' }} onClick={onClose}>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="pill"
+          style={{ marginLeft: 'auto', cursor: 'pointer' }}
+          onClick={onClose}
+        >
           Cancel
-        </button>
+        </Button>
       </>
     ),
-    []
+    [],
   )
 
   function markDirty(...dates: string[]) {
@@ -194,7 +239,9 @@ export function PlanMonth({ monthStart, onClose, onApplied }: { monthStart: stri
         }
         // Redraft specific nights: replace just those, keep everything else.
         const sug = new Map(r.suggestions.map((s) => [s.date, s]))
-        return prev.map((c) => (sug.has(c.date) ? { ...sug.get(c.date)!, wasPlanned: c.wasPlanned } : c)).sort(byDate)
+        return prev
+          .map((c) => (sug.has(c.date) ? { ...sug.get(c.date)!, wasPlanned: c.wasPlanned } : c))
+          .sort(byDate)
       })
       if (dates) markDirty(...dates)
     } catch (e) {
@@ -208,7 +255,9 @@ export function PlanMonth({ monthStart, onClose, onApplied }: { monthStart: stri
     void draft(undefined, [...rejected.current])
   }
   function reshuffle() {
-    const dates = cards.filter((c) => !locked.has(c.date) && !removed.has(c.date)).map((c) => c.date)
+    const dates = cards
+      .filter((c) => !locked.has(c.date) && !removed.has(c.date))
+      .map((c) => c.date)
     for (const c of cards) if (dates.includes(c.date)) rejected.current.add(c.title)
     const lockedTitles = cards.filter((c) => locked.has(c.date)).map((c) => c.title)
     void draft(dates, [...rejected.current, ...lockedTitles])
@@ -224,9 +273,16 @@ export function PlanMonth({ monthStart, onClose, onApplied }: { monthStart: stri
     setCards((prev) =>
       prev.map((c) =>
         c.date === date
-          ? { ...c, title: r.title, recipeId: r.id, emoji: r.emoji, minutes: r.cookTimeMinutes, note: 'Your pick' }
-          : c
-      )
+          ? {
+              ...c,
+              title: r.title,
+              recipeId: r.id,
+              emoji: r.emoji,
+              minutes: r.cookTimeMinutes,
+              note: 'Your pick',
+            }
+          : c,
+      ),
     )
     markDirty(date)
     setPickForDate(null)
@@ -238,8 +294,24 @@ export function PlanMonth({ monthStart, onClose, onApplied }: { monthStart: stri
       const cb = prev.find((c) => c.date === b)
       if (!ca || !cb) return prev
       return prev.map((c) => {
-        if (c.date === a) return { ...c, title: cb.title, recipeId: cb.recipeId, emoji: cb.emoji, minutes: cb.minutes, note: cb.note }
-        if (c.date === b) return { ...c, title: ca.title, recipeId: ca.recipeId, emoji: ca.emoji, minutes: ca.minutes, note: ca.note }
+        if (c.date === a)
+          return {
+            ...c,
+            title: cb.title,
+            recipeId: cb.recipeId,
+            emoji: cb.emoji,
+            minutes: cb.minutes,
+            note: cb.note,
+          }
+        if (c.date === b)
+          return {
+            ...c,
+            title: ca.title,
+            recipeId: ca.recipeId,
+            emoji: ca.emoji,
+            minutes: ca.minutes,
+            note: ca.note,
+          }
         return c
       })
     })
@@ -326,7 +398,11 @@ export function PlanMonth({ monthStart, onClose, onApplied }: { monthStart: stri
       const unsaved: string[] = []
       for (const c of toApply) {
         await api
-          .planSlot(c.recipeId ? { date: c.date, mealType: 'dinner', recipeId: c.recipeId } : { date: c.date, mealType: 'dinner', title: c.title })
+          .planSlot(
+            c.recipeId
+              ? { date: c.date, mealType: 'dinner', recipeId: c.recipeId }
+              : { date: c.date, mealType: 'dinner', title: c.title },
+          )
           .catch(() => unsaved.push(c.date))
       }
       // Clear nights that were planned before but the user skipped.
@@ -348,7 +424,10 @@ export function PlanMonth({ monthStart, onClose, onApplied }: { monthStart: stri
       // definition already has them — never heals itself, and the list would go on showing
       // shopping for dinners the user just replaced.
       const failed: string[] = []
-      for (const week of weekStartsToRebuild([...toApply.map((c) => c.date), ...cleared], firstDayOfWeek)) {
+      for (const week of weekStartsToRebuild(
+        [...toApply.map((c) => c.date), ...cleared],
+        firstDayOfWeek,
+      )) {
         await api.rebuildGrocery(week).catch(() => failed.push(week))
       }
       // Whatever did save IS written, so surface it either way — nothing is lost by
@@ -363,7 +442,7 @@ export function PlanMonth({ monthStart, onClose, onApplied }: { monthStart: stri
             ? `${nights} couldn’t be saved, and the grocery list for ${weeks} didn’t rebuild. Tap “Save month & build list” to try again.`
             : unsaved.length > 0
               ? `${nights} couldn’t be saved. Tap “Save month & build list” to try again.`
-              : `Your month is saved, but the grocery list for ${weeks} didn’t rebuild. Tap “Save month & build list” again, or open the list and hit Refresh.`
+              : `Your month is saved, but the grocery list for ${weeks} didn’t rebuild. Tap “Save month & build list” again, or open the list and hit Refresh.`,
         )
         return
       }
@@ -373,7 +452,10 @@ export function PlanMonth({ monthStart, onClose, onApplied }: { monthStart: stri
     }
   }
 
-  const monthLabel = new Date(`${monthStart}T12:00:00`).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+  const monthLabel = new Date(`${monthStart}T12:00:00`).toLocaleDateString('en-US', {
+    month: 'long',
+    year: 'numeric',
+  })
   const cookNightsCount = useMemo(() => {
     const base = new Date(`${monthStart}T00:00:00`)
     const y = base.getFullYear()
@@ -390,7 +472,10 @@ export function PlanMonth({ monthStart, onClose, onApplied }: { monthStart: stri
   const libShort = recipes.length > 0 && recipes.length < cookNightsCount
   const labelFor = (date: string) => {
     const d = new Date(`${date}T12:00:00`)
-    return { dow: DOW[d.getDay()], dt: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) }
+    return {
+      dow: DOW[d.getDay()],
+      dt: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    }
   }
 
   // Group every night by week for the review.
@@ -412,65 +497,108 @@ export function PlanMonth({ monthStart, onClose, onApplied }: { monthStart: stri
       {/* Left: the guardrails */}
       <div className="plan-config">
         <div className="plan-title wf-serif">Plan {monthLabel}</div>
-        <div className="tiny muted plan-sub">Waffled drafts a rotation of your recipes and spreads it across the month — then builds your grocery list.</div>
+        <div className="tiny muted plan-sub">
+          Waffled drafts a rotation of your recipes and spreads it across the month — then builds
+          your grocery list.
+        </div>
 
         {libShort && (
           <div className="plan-lib-hint tiny">
-            📖 You have {recipes.length} recipe{recipes.length === 1 ? '' : 's'} but this month has ~{cookNightsCount} dinners, so some will repeat. Add more in <b>Explore recipes</b> for more variety.
+            <>
+              <DataIcon value={'📖'} kind="general" />
+              {' You have '}
+            </>
+            {recipes.length} recipe{recipes.length === 1 ? '' : 's'} but this month has ~
+            {cookNightsCount} dinners, so some will repeat. Add more in <b>Explore recipes</b> for
+            more variety.
           </div>
         )}
 
         <div className="flabel">Which nights?</div>
         <div className="plan-days">
           {DOW1.map((d, i) => (
-            <button key={i} type="button" className={`plan-day-chip ${weekdays.has(i) ? 'on' : ''}`} onClick={() => toggleWeekday(i)} title={DOW[i]}>
+            <Button
+              variant="unstyled"
+              key={i}
+              type="button"
+              className={`plan-day-chip ${weekdays.has(i) ? 'on' : ''}`}
+              onClick={() => toggleWeekday(i)}
+              title={DOW[i]}
+            >
               {d}
-            </button>
+            </Button>
           ))}
         </div>
 
         <div className="plan-card">
           <div className="constraint">
             <span className="cl">Cooking for</span>
-            <select className="sel" value={cookingFor} onChange={(e) => setCookingFor(Number(e.target.value))}>
+            <NativeSelect
+              className="sel"
+              value={cookingFor}
+              onChange={(e) => setCookingFor(Number(e.target.value))}
+            >
               <option value={0}>{familySize} · whole family</option>
-              {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => <option key={n} value={n}>{n}</option>)}
-            </select>
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+                <option key={n} value={n}>
+                  {n}
+                </option>
+              ))}
+            </NativeSelect>
           </div>
         </div>
 
         <div className="plan-card">
-          <label className="pm-toggle">
-            <input type="checkbox" checked={allowRepeats} onChange={(e) => setAllowRepeats(e.target.checked)} />
+          <Label className="pm-toggle">
+            <Checkbox checked={allowRepeats} onCheckedChange={(e) => setAllowRepeats(e === true)} />
             <span>Allow repeat meals (a rotation)</span>
-          </label>
+          </Label>
           {allowRepeats && (
             <div className="constraint" style={{ marginTop: 8 }}>
               <span className="cl">No closer than</span>
-              <select className="sel" value={repeatGapDays} onChange={(e) => setRepeatGapDays(Number(e.target.value))}>
-                {[3, 5, 7, 10, 14].map((n) => <option key={n} value={n}>{n} days</option>)}
-              </select>
+              <NativeSelect
+                className="sel"
+                value={repeatGapDays}
+                onChange={(e) => setRepeatGapDays(Number(e.target.value))}
+              >
+                {[3, 5, 7, 10, 14].map((n) => (
+                  <option key={n} value={n}>
+                    {n} days
+                  </option>
+                ))}
+              </NativeSelect>
             </div>
           )}
         </div>
 
         <div className="plan-card">
-          <label className="pm-toggle">
-            <input type="checkbox" checked={quickWeeknights} onChange={(e) => setQuickWeeknights(e.target.checked)} />
+          <Label className="pm-toggle">
+            <Checkbox
+              checked={quickWeeknights}
+              onCheckedChange={(e) => setQuickWeeknights(e === true)}
+            />
             <span>Quick weeknights</span>
-          </label>
+          </Label>
           {quickWeeknights && (
             <div className="constraint" style={{ marginTop: 8 }}>
               <span className="cl">Under</span>
-              <select className="sel" value={weeknightMax} onChange={(e) => setWeeknightMax(Number(e.target.value))}>
-                {[20, 30, 45].map((n) => <option key={n} value={n}>{n} min</option>)}
-              </select>
+              <NativeSelect
+                className="sel"
+                value={weeknightMax}
+                onChange={(e) => setWeeknightMax(Number(e.target.value))}
+              >
+                {[20, 30, 45].map((n) => (
+                  <option key={n} value={n}>
+                    {n} min
+                  </option>
+                ))}
+              </NativeSelect>
             </div>
           )}
-          <label className="pm-toggle" style={{ marginTop: 10 }}>
-            <input type="checkbox" checked={leftovers} onChange={(e) => setLeftovers(e.target.checked)} />
+          <Label className="pm-toggle" style={{ marginTop: 10 }}>
+            <Checkbox checked={leftovers} onCheckedChange={(e) => setLeftovers(e === true)} />
             <span>Leftover nights after a big cook</span>
-          </label>
+          </Label>
         </div>
 
         <div className="plan-card">
@@ -479,9 +607,17 @@ export function PlanMonth({ monthStart, onClose, onApplied }: { monthStart: stri
             {[...weekdays].sort().map((dow) => (
               <div key={dow} className="pm-theme-row">
                 <span className="pm-theme-dow">{DOW[dow]}</span>
-                <select className="sel" value={themes[String(dow)] ?? ''} onChange={(e) => setTheme(dow, e.target.value)}>
-                  {THEME_OPTS.map((t) => <option key={t.key} value={t.key}>{t.label}</option>)}
-                </select>
+                <NativeSelect
+                  className="sel"
+                  value={themes[String(dow)] ?? ''}
+                  onChange={(e) => setTheme(dow, e.target.value)}
+                >
+                  {THEME_OPTS.map((t) => (
+                    <option key={t.key} value={t.key}>
+                      {t.label}
+                    </option>
+                  ))}
+                </NativeSelect>
               </div>
             ))}
             {weekdays.size === 0 && <div className="tiny muted">Pick some nights above first.</div>}
@@ -492,9 +628,14 @@ export function PlanMonth({ monthStart, onClose, onApplied }: { monthStart: stri
           <div className="tiny">Use up first</div>
           <div className="use-up-list">
             {useUp.map((u) => (
-              <span key={u} className="use-chip">{u} <b onClick={() => setUseUp((x) => x.filter((y) => y !== u))}>×</b></span>
+              <span key={u} className="use-chip">
+                {u}{' '}
+                <b onClick={() => setUseUp((x) => x.filter((y) => y !== u))}>
+                  <DataIcon value={'×'} kind="general" />
+                </b>
+              </span>
             ))}
-            <input
+            <Input
               className="use-add-input"
               placeholder="+ Add"
               value={useUpInput}
@@ -511,7 +652,13 @@ export function PlanMonth({ monthStart, onClose, onApplied }: { monthStart: stri
 
         <div className="plan-card">
           <div className="tiny">Keep in mind</div>
-          <textarea className="plan-keep" rows={2} placeholder="e.g. school nights are hectic · no pork · the kids love pasta" value={keepInMind} onChange={(e) => setKeepInMind(e.target.value)} />
+          <Textarea
+            className="plan-keep"
+            rows={2}
+            placeholder="e.g. school nights are hectic · no pork · the kids love pasta"
+            value={keepInMind}
+            onChange={(e) => setKeepInMind(e.target.value)}
+          />
         </div>
       </div>
 
@@ -520,47 +667,81 @@ export function PlanMonth({ monthStart, onClose, onApplied }: { monthStart: stri
         <div className="plan-results-head">
           <div className="card-h wf-serif">Your {monthLabel} dinners</div>
           {cards.length > 0 && (
-            <button type="button" className="pill" onClick={reshuffle} disabled={loading}>
-              {loading ? <><span className="spinner" /> Reshuffling…</> : <><Icon name="spark" /> Reshuffle</>}
-            </button>
+            <Button
+              variant="unstyled"
+              type="button"
+              className="pill"
+              onClick={reshuffle}
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <span className="spinner" /> Reshuffling…
+                </>
+              ) : (
+                <>
+                  <Icon name="spark" /> Reshuffle
+                </>
+              )}
+            </Button>
           )}
         </div>
         {cards.length > 0 && (
           <div className="tiny muted" style={{ margin: '-4px 2px 12px' }}>
-            {via && VIA_LABEL[via] ? `Drafted via ${VIA_LABEL[via]} · ` : ''}drag a night by its handle onto another to swap them.
+            {via && VIA_LABEL[via] ? `Drafted via ${VIA_LABEL[via]} · ` : ''}drag a night by its
+            handle onto another to swap them.
           </div>
         )}
 
         {!started && (
           <div className="plan-empty">
-            <div className="plan-empty-emoji">📆</div>
+            <div className="plan-empty-emoji">
+              <DataIcon value={'📆'} kind="general" />
+            </div>
             <div className="set-row2-t">Ready when you are</div>
             <div className="tiny muted" style={{ maxWidth: 360, margin: '4px 0 18px' }}>
-              Set the guardrails on the left, then draft a month of dinners as a rotation you can tweak.
+              Set the guardrails on the left, then draft a month of dinners as a rotation you can
+              tweak.
             </div>
-            <button type="button" className="btn btn-primary" onClick={planAll} disabled={weekdays.size === 0}>
+            <Button
+              variant="default"
+              type="button"
+              onClick={planAll}
+              disabled={weekdays.size === 0}
+            >
               <Icon name="spark" /> Plan my month
-            </button>
+            </Button>
           </div>
         )}
 
         {loading && cards.length === 0 && (
           <div className="plan-empty">
             <span className="spinner lg" />
-            <div className="tiny muted" style={{ marginTop: 14 }}>Drafting your month…</div>
+            <div className="tiny muted" style={{ marginTop: 14 }}>
+              Drafting your month…
+            </div>
           </div>
         )}
 
         {applyWarning && (
           // role="alert" so it is announced — this appears after the user has already
           // committed and looked away from the button they pressed.
-          <div className="plan-lib-hint tiny" role="alert">⚠️ {applyWarning}</div>
+          <div className="plan-lib-hint tiny" role="alert">
+            <>
+              <DataIcon value={'⚠️'} kind="general" />{' '}
+            </>
+            {applyWarning}
+          </div>
         )}
 
         {error && (
           <div className="plan-empty">
-            <div className="muted" style={{ fontWeight: 600, marginBottom: 16, maxWidth: 360 }}>{error}</div>
-            <button type="button" className="btn btn-primary" onClick={planAll}><Icon name="spark" /> Try again</button>
+            <div className="muted" style={{ fontWeight: 600, marginBottom: 16, maxWidth: 360 }}>
+              {error}
+            </div>
+            <Button variant="default" type="button" onClick={planAll}>
+              <Icon name="spark" /> Try again
+            </Button>
           </div>
         )}
 
@@ -573,42 +754,97 @@ export function PlanMonth({ monthStart, onClose, onApplied }: { monthStart: stri
                 const isLocked = locked.has(c.date)
                 const isDrop = !!drag && overDate === c.date && drag.date !== c.date
                 return (
-                  <div key={c.date} data-night={c.date} className={`plan-day ${isLocked ? 'locked' : ''} ${isDrop ? 'pm-drop' : ''} ${drag?.date === c.date ? 'pm-dragging' : ''}`}>
-                    <button type="button" className="pm-grip" title="Drag onto another night to swap" aria-label="Drag to swap" onPointerDown={(e) => startDrag(e, c.date)}>
-                      ⠿
-                    </button>
+                  <div
+                    key={c.date}
+                    data-night={c.date}
+                    className={`plan-day ${isLocked ? 'locked' : ''} ${isDrop ? 'pm-drop' : ''} ${drag?.date === c.date ? 'pm-dragging' : ''}`}
+                  >
+                    <Button
+                      variant="unstyled"
+                      type="button"
+                      className="pm-grip"
+                      title="Drag onto another night to swap"
+                      aria-label="Drag to swap"
+                      onPointerDown={(e) => startDrag(e, c.date)}
+                    >
+                      <DataIcon value={'⠿'} kind="general" />
+                    </Button>
                     <div className="pd-day">
                       <div className="pd-dow">{lab.dow}</div>
                       <div className="pd-dt">{lab.dt}</div>
                     </div>
                     <div
                       className="pd-main clickable"
-                      onClick={() => (c.recipeId ? setViewRecipeId(c.recipeId) : setPickForDate(c.date))}
+                      onClick={() =>
+                        c.recipeId ? setViewRecipeId(c.recipeId) : setPickForDate(c.date)
+                      }
                       role="button"
                       title={c.recipeId ? 'View recipe' : 'Choose a recipe'}
                     >
-                      <div className="pd-img">{c.emoji ?? '🍽️'}</div>
+                      <div className="pd-img">
+                        <DataIcon value={c.emoji ?? '🍽️'} kind="meal" />
+                      </div>
                       <div className="pd-b">
                         <div className="pd-t">
                           {c.title}
                           {c.wasPlanned && <span className="pm-tag">was planned</span>}
                         </div>
                         <div className="pd-m">
-                          {[c.minutes ? `${c.minutes} min` : null, `Serves ${c.servings}`].filter(Boolean).join(' · ')}
+                          {[c.minutes ? `${c.minutes} min` : null, `Serves ${c.servings}`]
+                            .filter(Boolean)
+                            .join(' · ')}
                           {c.recipeId ? ' · from your recipes' : ''}
                         </div>
-                        {c.note && <div className="reason"><Icon name="spark" />{c.note}</div>}
+                        {c.note && (
+                          <div className="reason">
+                            <Icon name="spark" />
+                            {c.note}
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className="pd-act">
-                      <button type="button" className="pd-icon" title="Swap — let AI pick another" onClick={() => swap(c)} disabled={loading}>⟳</button>
-                      <button type="button" className="pd-icon" title="Choose a recipe yourself" onClick={() => setPickForDate(c.date)}>
+                      <Button
+                        variant="unstyled"
+                        type="button"
+                        className="pd-icon"
+                        title="Swap — let AI pick another"
+                        onClick={() => swap(c)}
+                        disabled={loading}
+                      >
+                        ⟳
+                      </Button>
+                      <Button
+                        variant="unstyled"
+                        type="button"
+                        className="pd-icon"
+                        title="Choose a recipe yourself"
+                        onClick={() => setPickForDate(c.date)}
+                      >
                         <Icon name="recipes" />
-                      </button>
-                      <button type="button" className={`pd-icon ${isLocked ? 'on' : ''}`} title={isLocked ? 'Locked — won’t reshuffle' : 'Lock this night'} onClick={() => toggleLock(c.date)}>
-                        {isLocked ? '🔒' : '🔓'}
-                      </button>
-                      <button type="button" className="pd-icon" title="Skip this night" onClick={() => removeNight(c.date)}>✕</button>
+                      </Button>
+                      <Button
+                        variant="unstyled"
+                        type="button"
+                        className={`pd-icon ${isLocked ? 'on' : ''}`}
+                        title={isLocked ? 'Locked — won’t reshuffle' : 'Lock this night'}
+                        onClick={() => toggleLock(c.date)}
+                      >
+                        {isLocked ? (
+                          <DataIcon value={'🔒'} kind="general" />
+                        ) : (
+                          <DataIcon value={'🔓'} kind="general" />
+                        )}
+                      </Button>
+                      <Button
+                        variant="unstyled"
+                        type="button"
+                        className="pd-icon"
+                        title="Skip this night"
+                        onClick={() => removeNight(c.date)}
+                      >
+                        <DataIcon value={'✕'} kind="general" />
+                      </Button>
                     </div>
                   </div>
                 )
@@ -621,35 +857,57 @@ export function PlanMonth({ monthStart, onClose, onApplied }: { monthStart: stri
           <div className="plan-foot">
             <div>
               <div className="set-row2-t">Looks good?</div>
-              <div className="tiny muted">Saves {toApply.length} dinner{toApply.length === 1 ? '' : 's'} to the calendar &amp; builds your grocery list.</div>
+              <div className="tiny muted">
+                Saves {toApply.length} dinner{toApply.length === 1 ? '' : 's'} to the calendar &amp;
+                builds your grocery list.
+              </div>
             </div>
-            <button type="button" className="btn btn-primary" onClick={applyAll} disabled={applying || loading || toApply.length === 0}>
+            <Button
+              variant="default"
+              type="button"
+              onClick={applyAll}
+              disabled={applying || loading || toApply.length === 0}
+            >
               {applying ? 'Saving…' : 'Save month & build list'}
-            </button>
+            </Button>
           </div>
         )}
       </div>
 
       {drag && dragCard && (
         <div className="pm-drag-ghost" style={{ left: pos.x, top: pos.y }}>
-          {dragCard.emoji ? `${dragCard.emoji} ` : ''}
+          {dragCard.emoji ? <>{<DataIcon value={dragCard.emoji} kind="general" />} </> : ''}
           {dragCard.title}
         </div>
       )}
 
-      {viewRecipeId && <RecipeModal recipeId={viewRecipeId} onClose={() => setViewRecipeId(null)} />}
+      {viewRecipeId && (
+        <RecipeModal recipeId={viewRecipeId} onClose={() => setViewRecipeId(null)} />
+      )}
 
       {pickForDate && (
         <div className="plan-pick-overlay">
           <div className="plan-pick-head">
-            <button type="button" className="pill" onClick={() => setPickForDate(null)} style={{ cursor: 'pointer' }}>
+            <Button
+              variant="unstyled"
+              type="button"
+              className="pill"
+              onClick={() => setPickForDate(null)}
+              style={{ cursor: 'pointer' }}
+            >
               <Icon name="cl" /> Back
-            </button>
+            </Button>
             <div className="wf-serif" style={{ fontSize: 20, fontWeight: 600, marginLeft: 14 }}>
               Choose a recipe · {labelFor(pickForDate).dow} {labelFor(pickForDate).dt}
             </div>
           </div>
-          <RecipeBrowser recipes={recipes} loading={false} slot={'dinner' as MealType} onPick={(r) => pickRecipe(pickForDate, r)} selectLabel="Use this" />
+          <RecipeBrowser
+            recipes={recipes}
+            loading={false}
+            slot={'dinner' as MealType}
+            onPick={(r) => pickRecipe(pickForDate, r)}
+            selectLabel="Use this"
+          />
         </div>
       )}
     </div>

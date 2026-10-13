@@ -2,6 +2,9 @@
 // ends in a drop zone that doubles as a tap target. See docs/product/meal-builder-plan.md.
 import { useState } from 'react'
 import type { MealDish, Person } from '../../lib/api'
+import { Button } from '@/components/ui/button'
+import { DataIcon } from '@/components/ui/data-icon'
+import { SelectField } from '@/components/ui/select-field'
 
 // Roles are free text server-side (soft scaffolding, not an enum) — these three are the ones
 // the builder scaffolds today, in plate order.
@@ -26,7 +29,10 @@ export type DragPayload =
   | { kind: 'meal'; id: string }
   | { kind: 'dish'; id: string; from: PlateRole }
 
-export function dishMinutes(d: { prepTimeMinutes: number | null; cookTimeMinutes: number | null }): number {
+export function dishMinutes(d: {
+  prepTimeMinutes: number | null
+  cookTimeMinutes: number | null
+}): number {
   return (d.prepTimeMinutes ?? 0) + (d.cookTimeMinutes ?? 0)
 }
 
@@ -36,22 +42,32 @@ export function dishMinutes(d: { prepTimeMinutes: number | null; cookTimeMinutes
 function OnHand({ dish, open, onToggle }: { dish: MealDish; open: boolean; onToggle: () => void }) {
   if (dish.toBuy === 0) {
     // Only a pantry that actually reported can claim everything is on hand.
-    return dish.onHand ? <span className="mb-onhand-ok">✓ all on hand</span> : null
+    return dish.onHand ? (
+      <span className="mb-onhand-ok">
+        <>
+          <DataIcon value={'✓'} kind="meal" />
+          {' all on hand'}
+        </>
+      </span>
+    ) : null
   }
   return (
-    <button
+    <Button
+      variant="unstyled"
       type="button"
       className="mb-onhand-buy mb-onhand-btn"
       aria-expanded={open}
-        // The row around this opens the recipe; expanding the count must not.
+      // The row around this opens the recipe; expanding the count must not.
       onClick={(e) => {
         e.stopPropagation()
         onToggle()
       }}
     >
       {dish.toBuy} to buy
-      <span className="mb-onhand-caret">{open ? '▾' : '▸'}</span>
-    </button>
+      <span className="mb-onhand-caret">
+        {open ? <DataIcon value={'▾'} kind="meal" /> : <DataIcon value={'▸'} kind="meal" />}
+      </span>
+    </Button>
   )
 }
 
@@ -98,46 +114,64 @@ function DishRow({
           : {})}
         className="mb-dish-open"
       >
-        <span className="mb-thumb">{dish.emoji ?? '🍽️'}</span>
+        <span className="mb-thumb">
+          <DataIcon value={dish.emoji ?? '🍽️'} kind="meal" />
+        </span>
         <span className="mb-dish-b">
           <span className="mb-dish-t">{title}</span>
           <span className="mb-dish-m">
-            {mins > 0 ? <span>{`🕐 ${mins} min`}</span> : null}
-            <OnHand
-              dish={dish}
-              open={open}
-              onToggle={() => setOpen((v) => !v)}
-            />
+            {mins > 0 ? (
+              <span>
+                <>
+                  <>
+                    <DataIcon value={'🕐'} kind="meal" />{' '}
+                  </>
+                  {mins}
+                  {' min'}
+                </>
+              </span>
+            ) : null}
+            <OnHand dish={dish} open={open} onToggle={() => setOpen((v) => !v)} />
             {dish.cook ? (
               <span
                 className="mb-cook-badge"
                 style={{ background: dish.cook.colorHex ? `${dish.cook.colorHex}22` : undefined }}
               >
-                👩‍🍳 {dish.cook.avatarEmoji ?? '🧑‍🍳'} {dish.cook.name ?? 'Cook'}
+                <>
+                  <DataIcon value={'👩‍🍳'} kind="meal" />{' '}
+                </>
+                <DataIcon value={dish.cook.avatarEmoji ?? '🧑‍🍳'} kind="person" />{' '}
+                {dish.cook.name ?? 'Cook'}
               </span>
             ) : null}
           </span>
         </span>
       </div>
 
-      <select
+      <SelectField
         className="sel mb-cook-sel"
         aria-label={`Who cooks ${title}?`}
         value={dish.cook?.personId ?? ''}
-        onChange={(e) => onAssignCook(e.target.value || null)}
+        onValueChange={(e) => onAssignCook(e || null)}
       >
         <option value="">— whoever —</option>
         {persons.map((p) => (
           <option key={p.id} value={p.id}>
-            {p.avatarEmoji ? `${p.avatarEmoji} ` : ''}
+            {p.avatarEmoji ? <>{<DataIcon value={p.avatarEmoji} kind="person" />} </> : ''}
             {p.name}
           </option>
         ))}
-      </select>
+      </SelectField>
 
-      <button type="button" className="mb-x" aria-label={`Remove ${title}`} onClick={onRemove}>
-        ×
-      </button>
+      <Button
+        variant="unstyled"
+        type="button"
+        className="mb-x"
+        aria-label={`Remove ${title}`}
+        onClick={onRemove}
+      >
+        <DataIcon value={'×'} kind="meal" />
+      </Button>
 
       {open && dish.toBuyNames.length > 0 ? (
         <ul className="mb-tobuy">
@@ -178,12 +212,14 @@ export function MealBuilderPlate({
     <div className="mb-plate">
       {PLATE_ROLES.map((role) => {
         const rows = dishes
-          .filter((d) => (role.key === 'side' ? d.role !== 'main' && d.role !== 'dessert' : d.role === role.key))
+          .filter((d) =>
+            role.key === 'side' ? d.role !== 'main' && d.role !== 'dessert' : d.role === role.key,
+          )
           .sort((a, b) => a.sortOrder - b.sortOrder)
         return (
-              // The whole group is the drop target, not just its trailing slot — a populated
-              // group's slot sits below its rows, so requiring a hit on it would make
-              // Sides → Main a game of pixel-hunting.
+          // The whole group is the drop target, not just its trailing slot — a populated
+          // group's slot sits below its rows, so requiring a hit on it would make
+          // Sides → Main a game of pixel-hunting.
           <section
             className="mb-group"
             key={role.key}
@@ -237,15 +273,18 @@ export function MealBuilderPlate({
               />
             ))}
 
-            <button
+            <Button
+              variant="unstyled"
               type="button"
               aria-label={role.slot}
               className={`mb-slot${hover === role.key ? ' is-over' : ''}${addingRole === role.key ? ' is-adding' : ''}`}
               onClick={() => onPickRole(role.key)}
             >
-              <span className="mb-slot-plus">＋</span>
+              <span className="mb-slot-plus">
+                <DataIcon value={'＋'} kind="meal" />
+              </span>
               <span className="mb-slot-label">{role.slot}</span>
-            </button>
+            </Button>
           </section>
         )
       })}

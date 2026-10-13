@@ -4,7 +4,13 @@
 // left column in place of the old flat "By person" card.
 import { useEffect, useMemo, useState } from 'react'
 import { useGoalActivity, useHousehold, type GoalDetail as GoalDetailT } from '../../lib/api'
-import { availableViews, classifyTimeframe, computeGoalStats, defaultView, type ViewKey } from '../../lib/goalStats'
+import {
+  availableViews,
+  classifyTimeframe,
+  computeGoalStats,
+  defaultView,
+  type ViewKey,
+} from '../../lib/goalStats'
 import { getSavedView, saveView } from './persist'
 import { DayDetailPopover } from './DayDetailPopover'
 import { MonthDetailPopover } from './MonthDetailPopover'
@@ -17,6 +23,8 @@ import { YearRing } from './YearRing'
 import { CollectionGrid } from './CollectionGrid'
 import { ConsistencyCalendar } from './ConsistencyCalendar'
 import type { DataViewProps } from './types'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 
 const VIEW_LABEL: Record<ViewKey, string> = {
   week: 'Week',
@@ -51,7 +59,10 @@ export function GoalDataViews({ goal }: { goal: GoalDetailT }) {
   const [selectedMonth, setSelectedMonth] = useState<{ year: number; month: number } | null>(null)
 
   const timeframe = activity ? classifyTimeframe(activity.startDate, activity.endDate) : null
-  const offered = useMemo(() => (timeframe ? availableViews(goal.goalType, timeframe) : []), [goal.goalType, timeframe])
+  const offered = useMemo(
+    () => (timeframe ? availableViews(goal.goalType, timeframe) : []),
+    [goal.goalType, timeframe],
+  )
 
   useEffect(() => {
     if (!timeframe || offered.length === 0) return
@@ -64,19 +75,34 @@ export function GoalDataViews({ goal }: { goal: GoalDetailT }) {
 
   const stats = useMemo(() => {
     if (!activity) return null
-    return computeGoalStats({ today: activity.today, startDate: activity.startDate, endDate: activity.endDate, target: goal.target, days: activity.days })
+    return computeGoalStats({
+      today: activity.today,
+      startDate: activity.startDate,
+      endDate: activity.endDate,
+      target: goal.target,
+      days: activity.days,
+    })
   }, [activity, goal.target])
 
-  const personMap = useMemo(() => new Map(goal.participants.map((p) => [p.personId, p])), [goal.participants])
+  const personMap = useMemo(
+    () => new Map(goal.participants.map((p) => [p.personId, p])),
+    [goal.participants],
+  )
 
   // loading/error must be checked BEFORE "offered is empty": offered derives from
   // timeframe, which is null until activity resolves, so it's [] during loading
   // and on error too — checking it first made both of those branches dead code
   // and rendered a blank card instead of a loading state or an error message.
-  if (loading) return <div className="card detail-card gdv-loading tiny muted">Loading…</div>
-  if (error) return <div className="card detail-card tiny muted" style={{ padding: 20 }}>Couldn't load this goal's activity — try reloading.</div>
+  if (loading) return <Card className="card detail-card gdv-loading tiny muted">Loading…</Card>
+  if (error)
+    return (
+      <Card className="card detail-card tiny muted" style={{ padding: 20 }}>
+        Couldn't load this goal's activity — try reloading.
+      </Card>
+    )
   if (offered.length === 0) return null // checklist: the existing steps card covers it
-  if (!stats || !view) return <div className="card detail-card gdv-loading tiny muted">Loading…</div>
+  if (!stats || !view)
+    return <Card className="card detail-card gdv-loading tiny muted">Loading…</Card>
 
   function selectView(v: ViewKey) {
     setView(v)
@@ -87,13 +113,21 @@ export function GoalDataViews({ goal }: { goal: GoalDetailT }) {
   const segControl = (
     <div className="seg gdv-seg">
       {offered.map((v) => (
-        <button key={v} type="button" className={v === view ? 'on' : ''} onClick={() => selectView(v)}>{VIEW_LABEL[v]}</button>
+        <Button
+          variant="unstyled"
+          key={v}
+          type="button"
+          className={v === view ? 'on' : ''}
+          onClick={() => selectView(v)}
+        >
+          {VIEW_LABEL[v]}
+        </Button>
       ))}
     </div>
   )
 
   return (
-    <div className="card detail-card">
+    <Card className="card detail-card">
       <ViewComponent
         goal={goal}
         stats={stats}
@@ -122,6 +156,6 @@ export function GoalDataViews({ goal }: { goal: GoalDetailT }) {
           onClose={() => setSelectedMonth(null)}
         />
       )}
-    </div>
+    </Card>
   )
 }

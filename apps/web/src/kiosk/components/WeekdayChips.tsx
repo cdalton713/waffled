@@ -1,7 +1,14 @@
 import { WEEKDAYS } from './recurrence'
+import { Button } from '@/components/ui/button'
 
 const WEEKDAY_LABELS: Record<string, string> = {
-  SU: 'S', MO: 'M', TU: 'T', WE: 'W', TH: 'T', FR: 'F', SA: 'S',
+  SU: 'S',
+  MO: 'M',
+  TU: 'T',
+  WE: 'W',
+  TH: 'T',
+  FR: 'F',
+  SA: 'S',
 }
 
 /**
@@ -35,7 +42,8 @@ export function WeekdayChips({
       {WEEKDAYS.map((d) => {
         const on = value.length ? value.includes(d) : d === weekday
         return (
-          <button
+          <Button
+            variant="unstyled"
             type="button"
             key={d}
             aria-pressed={on}
@@ -62,7 +70,7 @@ export function WeekdayChips({
             }}
           >
             {WEEKDAY_LABELS[d]}
-          </button>
+          </Button>
         )
       })}
     </div>

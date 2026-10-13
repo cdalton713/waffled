@@ -17,6 +17,11 @@ import { CATEGORIES } from '../../categories'
 import { GoalCreate } from '../../GoalCreate'
 import type { PlanningStepModule, StepBodyProps } from '../registry'
 import '../../../styles/planning-goals.css'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { DataIcon } from '@/components/ui/data-icon'
+import { Modal } from '@/components/ui/modal'
 
 // Step 6 · Goals — "What's each group's focus this week?"
 //
@@ -32,14 +37,20 @@ import '../../../styles/planning-goals.css'
 // navigating to /goals/new abandons the session. The group is fixed to the tab (so it
 // cannot be answered for the wrong group) and the goal is created already pinned.
 
-const TYPE_LABEL: Record<string, string> = { count: 'Count', total: 'Total', habit: 'Habit', checklist: 'Checklist' }
+const TYPE_LABEL: Record<string, string> = {
+  count: 'Count',
+  total: 'Total',
+  habit: 'Habit',
+  checklist: 'Checklist',
+}
 
 const firstName = (name: string) => name.split(' ')[0]
 
 // Matches the shared helper's rule: a habit is this period's count, a checklist is steps,
 // everything else the running total.
 function axisLabel(g: PlanningGoalGoal): string {
-  if (g.goalType === 'habit') return g.habitPeriod === 'day' ? 'today' : `this ${g.habitPeriod ?? 'week'}`
+  if (g.goalType === 'habit')
+    return g.habitPeriod === 'day' ? 'today' : `this ${g.habitPeriod ?? 'week'}`
   if (g.goalType === 'checklist') return 'steps done'
   return g.unit ?? 'so far'
 }
@@ -68,7 +79,12 @@ function groupSub(g: PlanningGoalGroup): string {
 
 // Progress ALWAYS comes from the shared helpers, never an inline `totalProgress` (which
 // shows a habit's lifetime count). The subtitle is `kind · pace`, in the server's words.
-function GoalOption({ goal, checked, disabled, onPick }: {
+function GoalOption({
+  goal,
+  checked,
+  disabled,
+  onPick,
+}: {
   goal: PlanningGoalGoal
   checked: boolean
   disabled: boolean
@@ -78,7 +94,8 @@ function GoalOption({ goal, checked, disabled, onPick }: {
   const target = goalDisplayTarget(goal)
   const kind = TYPE_LABEL[goal.goalType] ?? goal.goalType
   return (
-    <button
+    <Button
+      variant="unstyled"
       type="button"
       role="radio"
       aria-checked={checked}
@@ -86,7 +103,12 @@ function GoalOption({ goal, checked, disabled, onPick }: {
       className={`wpg-opt${checked ? ' on' : ''}`}
       onClick={onPick}
     >
-      <span className="wpg-opt-e" aria-hidden>{goal.emoji ?? (goal.category ? CATEGORIES[goal.category]?.emoji : null) ?? '🎯'}</span>
+      <span className="wpg-opt-e" aria-hidden>
+        <DataIcon
+          value={goal.emoji ?? (goal.category ? CATEGORIES[goal.category]?.emoji : null) ?? '🎯'}
+          kind="goal"
+        />
+      </span>
       <span className="wpg-opt-main">
         <span className="wpg-opt-t">{goal.title}</span>
         <span className="wpg-opt-s">
@@ -94,12 +116,19 @@ function GoalOption({ goal, checked, disabled, onPick }: {
           {goal.pace && (
             <>
               {' · '}
-              <span className={`wpg-pace ${goal.pace.tone}`} data-tone={goal.pace.tone}>{goal.pace.text}</span>
+              <span className={`wpg-pace ${goal.pace.tone}`} data-tone={goal.pace.tone}>
+                {goal.pace.text}
+              </span>
             </>
           )}
         </span>
         <span className="wpg-opt-bar">
-          <span style={{ width: `${(goalFraction(goal) * 100).toFixed(0)}%`, background: goalColor(goal) }} />
+          <span
+            style={{
+              width: `${(goalFraction(goal) * 100).toFixed(0)}%`,
+              background: goalColor(goal),
+            }}
+          />
         </span>
       </span>
       <span className="wpg-opt-num">
@@ -107,13 +136,19 @@ function GoalOption({ goal, checked, disabled, onPick }: {
         {target != null && <span className="wpg-opt-d">/ {fmtGoalNum(target)}</span>}
         <span className="wpg-opt-w">{axisLabel(goal)}</span>
       </span>
-      <span className="wpg-opt-tick" aria-hidden>{checked ? '★' : ''}</span>
-    </button>
+      <span className="wpg-opt-tick" aria-hidden>
+        {checked ? <DataIcon value={'★'} kind="goal" /> : ''}
+      </span>
+    </Button>
   )
 }
 
 // This week's slice of a goal, beside its option rather than inside it: the option is a button.
-function WeekTarget({ goal, disabled, onSave }: {
+function WeekTarget({
+  goal,
+  disabled,
+  onSave,
+}: {
   goal: PlanningGoalGoal
   disabled: boolean
   /** Resolves false when the write didn't take, so the box can show the saved target again. */
@@ -121,22 +156,32 @@ function WeekTarget({ goal, disabled, onSave }: {
 }) {
   const saved = goal.weekTarget != null ? String(goal.weekTarget) : ''
   const [draft, setDraft] = useState(saved)
-  useEffect(() => { setDraft(saved) }, [saved])
+  useEffect(() => {
+    setDraft(saved)
+  }, [saved])
   const commit = () => {
     const next = draft.trim() === '' ? null : Number(draft)
-    if (next !== null && !(Number.isFinite(next) && next > 0)) { setDraft(saved); return }
+    if (next !== null && !(Number.isFinite(next) && next > 0)) {
+      setDraft(saved)
+      return
+    }
     if (next === (goal.weekTarget ?? null)) return
-    void onSave(next).then((ok) => { if (!ok) setDraft(saved) })
+    void onSave(next).then((ok) => {
+      if (!ok) setDraft(saved)
+    })
   }
   const done = goal.weekDone ?? 0
   const words = (bits: (string | null)[]) => bits.filter(Boolean).join(' ')
-  const line = goal.weekTarget != null
-    ? words([fmtGoalNum(done), 'of', fmtGoalNum(goal.weekTarget), goal.unit ?? null, 'this week'])
-    : done > 0 ? words([fmtGoalNum(done), goal.unit ?? null, 'so far this week']) : 'No target for this week'
+  const line =
+    goal.weekTarget != null
+      ? words([fmtGoalNum(done), 'of', fmtGoalNum(goal.weekTarget), goal.unit ?? null, 'this week'])
+      : done > 0
+        ? words([fmtGoalNum(done), goal.unit ?? null, 'so far this week'])
+        : 'No target for this week'
   return (
-    <label className="field wpg-week">
+    <Label className="field wpg-week">
       <span>This week</span>
-      <input
+      <Input
         type="number"
         inputMode="decimal"
         min="0"
@@ -147,10 +192,12 @@ function WeekTarget({ goal, disabled, onSave }: {
         disabled={disabled}
         onChange={(e) => setDraft(e.target.value)}
         onBlur={commit}
-        onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') e.currentTarget.blur()
+        }}
       />
       <span className="wpg-week-s">{line}</span>
-    </label>
+    </Label>
   )
 }
 
@@ -170,28 +217,46 @@ function Body({ sessionId, setDecisionData, refresh, busy }: StepBodyProps) {
   useEffect(() => {
     let alive = true
     setLoading(true)
-    planningGoalsApi.get(sessionId)
-      .then((v) => { if (alive) { setView(v); setFailed(false); setLoading(false) } })
-      .catch(() => { if (alive) { setFailed(true); setLoading(false) } })
-    return () => { alive = false }
+    planningGoalsApi
+      .get(sessionId)
+      .then((v) => {
+        if (alive) {
+          setView(v)
+          setFailed(false)
+          setLoading(false)
+        }
+      })
+      .catch(() => {
+        if (alive) {
+          setFailed(true)
+          setLoading(false)
+        }
+      })
+    return () => {
+      alive = false
+    }
   }, [sessionId])
 
   // Mirror the session's own answers onto the crumb after EVERY read, not only after a
   // click: the shell resets the crumb on step change and replaces the step's data when
   // the primary is pressed, so a click-handler-only body erases its record on a remount.
-  useEffect(() => { if (view) setDecisionData(planningGoalsDecision(view)) }, [view, setDecisionData])
+  useEffect(() => {
+    if (view) setDecisionData(planningGoalsDecision(view))
+  }, [view, setDecisionData])
 
   // Functional update: this effect can flush after a tab click with a stale `tabId` of null,
   // and must not overwrite the tab the user just picked.
   useEffect(() => {
     if (!view || tabId) return
-    setTabId((cur) => cur ?? (view.groups.find((g) => !g.settled) ?? view.groups[0])?.listId ?? null)
+    setTabId(
+      (cur) => cur ?? (view.groups.find((g) => !g.settled) ?? view.groups[0])?.listId ?? null,
+    )
   }, [view, tabId])
 
   const groups = view?.groups ?? []
   const active: PlanningGoalGroup | null = useMemo(
     () => groups.find((g) => g.listId === tabId) ?? groups[0] ?? null,
-    [groups, tabId]
+    [groups, tabId],
   )
   const settledCount = groups.filter((g) => g.settled).length
 
@@ -246,18 +311,21 @@ function Body({ sessionId, setDecisionData, refresh, busy }: StepBodyProps) {
   // half-typed goal.
   useEffect(() => {
     if (!newForId) return
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setNewForId(null) }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setNewForId(null)
+    }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [newForId])
 
   if (loading) return <div className="wpg-note">Reading your goal groups…</div>
-  if (failed) return <div className="wpg-note">Couldn’t read your goals — reload, or skip this step.</div>
+  if (failed)
+    return <div className="wpg-note">Couldn’t read your goals — reload, or skip this step.</div>
   if (!groups.length) {
     return (
       <div className="wpg-note">
-        There are no goal groups yet. Make one on the Goals screen and this step will have
-        something to ask about — skipping is a real answer in the meantime.
+        There are no goal groups yet. Make one on the Goals screen and this step will have something
+        to ask about — skipping is a real answer in the meantime.
       </div>
     )
   }
@@ -269,7 +337,8 @@ function Body({ sessionId, setDecisionData, refresh, busy }: StepBodyProps) {
     <div className="wpg">
       <div className="wpg-tabs" role="tablist" aria-label="Goal groups">
         {groups.map((g) => (
-          <button
+          <Button
+            variant="unstyled"
             key={g.listId}
             type="button"
             role="tab"
@@ -281,33 +350,62 @@ function Body({ sessionId, setDecisionData, refresh, busy }: StepBodyProps) {
             className={`wpg-tab${g.listId === active?.listId ? ' on' : ''}${g.settled ? ' settled' : ''}`}
             onClick={() => setTabId(g.listId)}
           >
-            <span className="wpg-tab-e" aria-hidden>{g.emoji ?? '🎯'}</span>
+            <span className="wpg-tab-e" aria-hidden>
+              <DataIcon value={g.emoji ?? '🎯'} kind="goal" />
+            </span>
             <span className="wpg-tab-n">{g.name}</span>
             {/* The lock is the list's own privacy showing through — the server never
                 sent this tab to anyone outside the group in the first place. */}
-            {g.isPrivate && <span className="wpg-tab-lock" title="Private to its members">🔒</span>}
-            <span className="wpg-tab-star" aria-hidden>{g.settled ? '★' : ''}</span>
-          </button>
+            {g.isPrivate && (
+              <span className="wpg-tab-lock" title="Private to its members">
+                <DataIcon value={'🔒'} kind="goal" />
+              </span>
+            )}
+            <span className="wpg-tab-star" aria-hidden>
+              {g.settled ? <DataIcon value={'★'} kind="goal" /> : ''}
+            </span>
+          </Button>
         ))}
-        <span className="wpg-tally">{settledCount} of {groups.length} settled</span>
+        <span className="wpg-tally">
+          {settledCount} of {groups.length} settled
+        </span>
       </div>
 
       {active && (
-        <div className="wpg-card" id="wpg-panel" role="tabpanel" aria-labelledby={`wpg-tab-${active.listId}`}>
+        <div
+          className="wpg-card"
+          id="wpg-panel"
+          role="tabpanel"
+          aria-labelledby={`wpg-tab-${active.listId}`}
+        >
           <div className="wpg-card-h">
-            <div className="wpg-card-tile" aria-hidden>{active.emoji ?? '🎯'}</div>
+            <div className="wpg-card-tile" aria-hidden>
+              <DataIcon value={active.emoji ?? '🎯'} kind="goal" />
+            </div>
             <div className="wpg-card-id">
               <div className="wpg-card-n">
                 {active.name}
-                {active.isPrivate && <span className="wpg-card-lock" title="Private to its members">🔒</span>}
+                {active.isPrivate && (
+                  <span className="wpg-card-lock" title="Private to its members">
+                    <DataIcon value={'🔒'} kind="goal" />
+                  </span>
+                )}
               </div>
               <div className="wpg-card-s">{groupSub(active)}</div>
             </div>
             <AvatarStack members={active.members} max={4} />
           </div>
 
-          {targetError && <p className="wp-pne-err" role="alert">{targetError}</p>}
-          <div className="wpg-opts" role="radiogroup" aria-label={`${active.name}’s focus this week`}>
+          {targetError && (
+            <p className="wp-pne-err" role="alert">
+              {targetError}
+            </p>
+          )}
+          <div
+            className="wpg-opts"
+            role="radiogroup"
+            aria-label={`${active.name}’s focus this week`}
+          >
             {active.goals.map((g) => (
               <Fragment key={g.id}>
                 <GoalOption
@@ -323,7 +421,8 @@ function Body({ sessionId, setDecisionData, refresh, busy }: StepBodyProps) {
             ))}
             {/* Not a "clear" button — an option, so choosing it is as much of an answer
                 as choosing a goal, and the tab gets its ★ either way. */}
-            <button
+            <Button
+              variant="unstyled"
               type="button"
               role="radio"
               aria-checked={active.settled && active.focusGoalId === null}
@@ -331,15 +430,25 @@ function Body({ sessionId, setDecisionData, refresh, busy }: StepBodyProps) {
               className={`wpg-opt wpg-none${active.settled && active.focusGoalId === null ? ' on' : ''}`}
               onClick={() => pick(active.listId, null)}
             >
-              <span className="wpg-opt-e" aria-hidden>🤍</span>
+              <span className="wpg-opt-e" aria-hidden>
+                <DataIcon value={'🤍'} kind="goal" />
+              </span>
               <span className="wpg-opt-main">
                 <span className="wpg-opt-t">Nothing this week</span>
                 <span className="wpg-opt-s">
-                  {active.goals.length ? 'No goal needs the spotlight — leave the week clear.' : 'This group has no goals yet.'}
+                  {active.goals.length
+                    ? 'No goal needs the spotlight — leave the week clear.'
+                    : 'This group has no goals yet.'}
                 </span>
               </span>
-              <span className="wpg-opt-tick" aria-hidden>{active.settled && active.focusGoalId === null ? '★' : ''}</span>
-            </button>
+              <span className="wpg-opt-tick" aria-hidden>
+                {active.settled && active.focusGoalId === null ? (
+                  <DataIcon value={'★'} kind="goal" />
+                ) : (
+                  ''
+                )}
+              </span>
+            </Button>
           </div>
 
           {/* Where the group stands, in one line, right above the escape hatch. Three
@@ -347,34 +456,64 @@ function Body({ sessionId, setDecisionData, refresh, busy }: StepBodyProps) {
               a goal that arrives featured (from ＋ New goal for this week, or pinned on
               the goals screen) shows as the focus but still waits to be confirmed. */}
           <div className={`wpg-verdict${focusGoal && active.settled ? ' has' : ''}`}>
-            {focusGoal
-              ? active.settled
-                ? <><span className="wpg-verdict-s" aria-hidden>★</span> This week · {focusGoal.title}</>
-                : <>Pinned already · {focusGoal.title} — keep it, or pick another</>
-              : 'No focus this week — that’s allowed'}
+            {focusGoal ? (
+              active.settled ? (
+                <>
+                  <span className="wpg-verdict-s" aria-hidden>
+                    <DataIcon value={'★'} kind="goal" />
+                  </span>{' '}
+                  This week · {focusGoal.title}
+                </>
+              ) : (
+                <>Pinned already · {focusGoal.title} — keep it, or pick another</>
+              )
+            ) : (
+              'No focus this week — that’s allowed'
+            )}
           </div>
 
-          <button
+          <Button
+            variant="ghost"
             type="button"
-            className="btn btn-ghost wpg-new"
+            className="wpg-new"
             disabled={busy || !canTarget(active)}
-            title={canTarget(active) ? undefined : `Adding a goal to ${active.name} needs permission to manage goals`}
+            title={
+              canTarget(active)
+                ? undefined
+                : `Adding a goal to ${active.name} needs permission to manage goals`
+            }
             onClick={() => setNewForId(active.listId)}
           >
-            ＋ New goal for this week
-          </button>
+            <>
+              <DataIcon value={'＋'} kind="goal" />
+              {' New goal for this week'}
+            </>
+          </Button>
         </div>
       )}
 
       {/* The app's real goal editor, over the week rather than instead of it. The group
           is fixed to the tab they were on and the goal is pinned on the way in. */}
       {newForId && (
-        <div className="modal-overlay wpg-modal" data-testid="wpg-modal">
-          <div className="modal-card wpg-modal-card" role="dialog" aria-modal="true" aria-label="New goal for this week">
-            <button type="button" className="modal-close" aria-label="Close" onClick={() => setNewForId(null)}>×</button>
+        <Modal className="modal-overlay wpg-modal" data-testid="wpg-modal">
+          <div
+            className="modal-card wpg-modal-card"
+            role="dialog"
+            aria-modal="true"
+            aria-label="New goal for this week"
+          >
+            <Button
+              variant="unstyled"
+              type="button"
+              className="modal-close"
+              aria-label="Close"
+              onClick={() => setNewForId(null)}
+            >
+              <DataIcon value={'×'} kind="goal" />
+            </Button>
             <GoalCreate embed={{ listId: newForId, featured: true, onCreated: goalCreated }} />
           </div>
-        </div>
+        </Modal>
       )}
     </div>
   )

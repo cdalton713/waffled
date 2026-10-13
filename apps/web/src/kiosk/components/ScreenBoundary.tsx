@@ -2,7 +2,6 @@ import { Component, type ReactNode } from 'react'
 import { Placeholder } from './Placeholder'
 import { Button } from '@/components/ui/button'
 
-
 // Catches a screen that fails to render — in practice, a code-split chunk that
 // never arrives. React re-throws a rejected lazy() import during render, and an
 // uncaught render error unmounts the tree to the root, so without this a kiosk that
@@ -35,7 +34,7 @@ export class ScreenBoundary extends Component<{ children: ReactNode }, { failed:
           It’s usually a dropped connection right after an update. Everything else still works —
           pick another screen from the menu, or reload to try this one again.
         </div>
-        <Button variant="unstyled" type="button" className="btn btn-primary" onClick={() => window.location.reload()}>
+        <Button variant="default" type="button" onClick={() => window.location.reload()}>
           Reload
         </Button>
       </Placeholder>

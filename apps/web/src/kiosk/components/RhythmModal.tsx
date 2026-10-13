@@ -1,11 +1,37 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import {
-  rhythmsApi, usePersons, splitCadence, intervalDays, cadenceLabel, nudgeExplainer,
-  nudgePlan, addCadence, consequence, type SatisfiedBy, type Rhythm, type Completion,
+  rhythmsApi,
+  usePersons,
+  splitCadence,
+  intervalDays,
+  cadenceLabel,
+  nudgeExplainer,
+  nudgePlan,
+  addCadence,
+  consequence,
+  type SatisfiedBy,
+  type Rhythm,
+  type Completion,
 } from '../../lib/api'
 import { ConfirmDialog } from './ConfirmDialog'
-import { buildRrule, describeRrule, weekdayCode, NO_REPEAT, type CustomUnit, type MonthlyMode } from './recurrence'
+import {
+  buildRrule,
+  describeRrule,
+  weekdayCode,
+  NO_REPEAT,
+  type CustomUnit,
+  type MonthlyMode,
+} from './recurrence'
 import { WeekdayChips } from './WeekdayChips'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { NativeSelect } from '@/components/ui/native-select'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { DataIcon } from '@/components/ui/data-icon'
+import { IconPicker } from '@/components/ui/icon-picker'
+import { Modal } from '@/components/ui/modal'
+import { ChevronDown, Check, CalendarDays } from 'lucide-react'
 
 // Create a rhythm by saying it as a sentence:
 //
@@ -44,7 +70,12 @@ const UNITS: { value: Unit; label: string }[] = [
   { value: 'years', label: 'years' },
 ]
 
-const CUSTOM_UNIT: Record<Unit, CustomUnit> = { days: 'day', weeks: 'week', months: 'month', years: 'year' }
+const CUSTOM_UNIT: Record<Unit, CustomUnit> = {
+  days: 'day',
+  weeks: 'week',
+  months: 'month',
+  years: 'year',
+}
 
 // Named for what it decides, not for the column it is stored in.
 const MODES: { value: SatisfiedBy; label: string; why: string }[] = [
@@ -75,9 +106,7 @@ function longDate(iso: string | null): string {
 /** Inside the sentence, where the year is noise — "November 19", not "November 19, 2026". */
 const dayMonth = (d: Date) => d.toLocaleDateString(undefined, { month: 'long', day: 'numeric' })
 
-const chev = (
-  <svg className="rhy-chev" viewBox="0 0 24 24" aria-hidden><path d="M6 9l6 6 6-6" /></svg>
-)
+const chev = <ChevronDown aria-hidden="true" className="rhy-chev" />
 
 export function RhythmModal({
   rhythm,
@@ -105,14 +134,25 @@ export function RhythmModal({
   //
   // Completion shape only: a scheduling rhythm has no completions by design — whether it
   // happened is the question that shape refuses to ask — so it is never even requested.
-  const [history, setHistory] = useState<{ completions: Completion[]; total: number; averageIntervalDays: number | null } | null>(null)
+  const [history, setHistory] = useState<{
+    completions: Completion[]
+    total: number
+    averageIntervalDays: number | null
+  } | null>(null)
   useEffect(() => {
     if (!editing || !rhythm || rhythm.satisfiedBy !== 'completion') return
     let alive = true
-    rhythmsApi.completions(rhythm.id, 5)
-      .then((d) => { if (alive) setHistory(d) })
-      .catch(() => { /* a missing history is not worth a message; the row still edits */ })
-    return () => { alive = false }
+    rhythmsApi
+      .completions(rhythm.id, 5)
+      .then((d) => {
+        if (alive) setHistory(d)
+      })
+      .catch(() => {
+        /* a missing history is not worth a message; the row still edits */
+      })
+    return () => {
+      alive = false
+    }
   }, [editing, rhythm])
   const seed = splitCadence(rhythm?.every ?? '')
   const { persons } = usePersons()
@@ -125,7 +165,7 @@ export function RhythmModal({
   const [unit, setUnit] = useState<Unit>(editing ? seed.unit : 'weeks')
   // `null` means "still following the cadence", the same as `nextDue` below.
   const [leadDays, setLeadDays] = useState<string | null>(
-    editing ? String(intervalDays(rhythm!.leadTime)) : null
+    editing ? String(intervalDays(rhythm!.leadTime)) : null,
   )
   const [retiring, setRetiring] = useState(false)
   const today = ymd(new Date())
@@ -138,7 +178,7 @@ export function RhythmModal({
   // the default and means the whole period — which is what `every` meant on its own, so
   // an untouched form creates exactly what it used to.
   const [windowDays, setWindowDays] = useState(
-    editing && rhythm?.bookWithin ? String(intervalDays(rhythm.bookWithin)) : ''
+    editing && rhythm?.bookWithin ? String(intervalDays(rhythm.bookWithin)) : '',
   )
   const [customRule, setCustomRule] = useState('')
   const [modeOpen, setModeOpen] = useState(false)
@@ -194,7 +234,8 @@ export function RhythmModal({
   // So the two jobs are split: the grid anchors on the first of the month, which makes
   // every period a calendar month and every calendar month hold exactly one of any nth
   // weekday, while the rule keeps reading its ordinal off the date actually picked.
-  const monthlyNthWeekday = shape === 'scheduling' && autoSchedule && unit === 'months' && monthlyMode !== 'day'
+  const monthlyNthWeekday =
+    shape === 'scheduling' && autoSchedule && unit === 'months' && monthlyMode !== 'day'
   const periodAnchor = monthlyNthWeekday ? `${startsOn.slice(0, 7)}-01` : startsOn
 
   // The runway to send.
@@ -215,8 +256,16 @@ export function RhythmModal({
   // disagrees with `every` would put the generated event outside the period it is
   // supposed to satisfy. The raw field is the escape hatch, not the normal path.
   const rrule = buildRrule(
-    { ...NO_REPEAT, freq: 'custom', interval: n, unit: CUSTOM_UNIT[unit], monthlyMode, custom: customRule, byday },
-    new Date(`${startsOn}T00:00:00`)
+    {
+      ...NO_REPEAT,
+      freq: 'custom',
+      interval: n,
+      unit: CUSTOM_UNIT[unit],
+      monthlyMode,
+      custom: customRule,
+      byday,
+    },
+    new Date(`${startsOn}T00:00:00`),
   )
 
   // A popover that only closes on its own trigger is a popover you have to hunt for
@@ -301,302 +350,393 @@ export function RhythmModal({
 
   return (
     <>
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-card" role="dialog" aria-modal="true" aria-label={editing ? 'Edit rhythm' : 'New rhythm'} onClick={(e) => e.stopPropagation()} style={{ maxWidth: 520 }}>
-        <button type="button" className="modal-close" aria-label="Close" onClick={onClose}>×</button>
-        <div className="wf-serif" style={{ fontSize: 20, fontWeight: 600, marginBottom: 4 }}>{editing ? 'Edit rhythm' : 'New rhythm'}</div>
-        <div className="tiny muted" style={{ marginBottom: 14 }}>
-          Say it as a sentence. Everything else has a sane default.
-        </div>
-
-        <form onSubmit={submit}>
-          <div className="rhy-sent">
-            <input
-              className="rhy-tok rhy-tok-emoji"
-              value={emoji}
-              onChange={(e) => setEmoji(e.target.value)}
-              placeholder="🔁"
-              maxLength={4}
-              aria-label="Emoji"
-            />
-            {/* The placeholder is the first example anyone reads, so it should be the
-                most ordinary rhythm there is, not the most exotic one. */}
-            <input
-              className="rhy-tok rhy-tok-name"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Take the trash out"
-              size={Math.max(12, title.length || 17)}
-              aria-label="What"
-              autoFocus
-            />
-            <br />
-            <span className="rhy-fix">every</span>
-            {cadenceFixed ? (
-              // A scheduling rhythm's cadence IS its period grid: periods are tiled from
-              // the anchor by this interval, so a new one re-reads every period it has
-              // already skipped or booked. Same reason the shape below is fixed, and said
-              // the same way rather than left to fail on save.
-              <span className="rhy-tok rhy-tok-fixed">{count} {UNITS.find((u) => u.value === unit)?.label ?? unit}</span>
-            ) : (
-              <>
-                <input
-                  className="rhy-tok rhy-tok-num"
-                  type="number"
-                  min={1}
-                  value={count}
-                  onChange={(e) => setCount(e.target.value)}
-                  aria-label="How often"
-                />
-                <span className="rhy-tok rhy-tok-sel">
-                  <select value={unit} onChange={(e) => setUnit(e.target.value as Unit)} aria-label="Unit">
-                    {UNITS.map((u) => <option key={u.value} value={u.value}>{u.label}</option>)}
-                  </select>
-                  {chev}
-                </span>
-              </>
-            )}
-            <span className="rhy-fix">,</span>
-            <br />
-            <span className="rhy-fix">counted when</span>
-            {editing ? (
-              // Not offered: re-shaping a live rhythm would re-read every period it
-              // has already skipped or booked. Said plainly instead of hidden.
-              <span className="rhy-tok rhy-tok-fixed">{modeLabel(shape)}</span>
-            ) : (
-              <span className="rhy-tok-mode" ref={modeRef}>
-                <button
-                  type="button"
-                  className={`rhy-tok rhy-tok-btn${modeOpen ? ' on' : ''}`}
-                  aria-label="counted when"
-                  aria-haspopup="listbox"
-                  aria-expanded={modeOpen}
-                  onClick={() => setModeOpen((v) => !v)}
-                >
-                  {modeLabel(shape)}{chev}
-                </button>
-                {modeOpen && (
-                  <div className="rhy-drop" role="listbox" aria-label="What counts as done">
-                    {MODES.map((o) => (
-                      <div
-                        key={o.value}
-                        role="option"
-                        aria-selected={shape === o.value}
-                        tabIndex={0}
-                        className={`rhy-opt${shape === o.value ? ' on' : ''}`}
-                        onClick={() => { setShape(o.value); setModeOpen(false) }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setShape(o.value); setModeOpen(false) }
-                        }}
-                      >
-                        <span className="rhy-ck" aria-hidden />
-                        <span>
-                          <span className="rhy-opt-t">{o.label}</span>
-                          <span className="rhy-opt-d">{o.why}</span>
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </span>
-            )}
-            <span className="rhy-fix">,</span>
-            <br />
-            <span className="rhy-fix">on</span>
-            <span className="rhy-tok rhy-tok-sel">
-              <select value={personId} onChange={(e) => setPersonId(e.target.value)} aria-label="Who">
-                <option value="">the whole household</option>
-                {persons.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-              </select>
-              {chev}
-            </span>
+      <Modal className="modal-overlay" onClose={onClose}>
+        <div
+          className="modal-card"
+          role="dialog"
+          aria-modal="true"
+          aria-label={editing ? 'Edit rhythm' : 'New rhythm'}
+          onClick={(e) => e.stopPropagation()}
+          style={{ maxWidth: 520 }}
+        >
+          <Button
+            variant="unstyled"
+            type="button"
+            className="modal-close"
+            aria-label="Close"
+            onClick={onClose}
+          >
+            <DataIcon value={'×'} kind="rhythm" />
+          </Button>
+          <div className="wf-serif" style={{ fontSize: 20, fontWeight: 600, marginBottom: 4 }}>
+            {editing ? 'Edit rhythm' : 'New rhythm'}
+          </div>
+          <div className="tiny muted" style={{ marginBottom: 14 }}>
+            Say it as a sentence. Everything else has a sane default.
           </div>
 
-          {/* What the sentence above will actually do, in the two dates that are the
+          <form onSubmit={submit}>
+            <div className="rhy-sent">
+              <IconPicker
+                kind="rhythm"
+                className="rhy-tok rhy-tok-emoji"
+                value={emoji}
+                onValueChange={(e) => setEmoji(e)}
+                aria-label="Icon"
+              />
+              {/* The placeholder is the first example anyone reads, so it should be the
+                most ordinary rhythm there is, not the most exotic one. */}
+              <Input
+                className="rhy-tok rhy-tok-name"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Take the trash out"
+                size={Math.max(12, title.length || 17)}
+                aria-label="What"
+                autoFocus
+              />
+              <br />
+              <span className="rhy-fix">every</span>
+              {cadenceFixed ? (
+                // A scheduling rhythm's cadence IS its period grid: periods are tiled from
+                // the anchor by this interval, so a new one re-reads every period it has
+                // already skipped or booked. Same reason the shape below is fixed, and said
+                // the same way rather than left to fail on save.
+                <span className="rhy-tok rhy-tok-fixed">
+                  {count} {UNITS.find((u) => u.value === unit)?.label ?? unit}
+                </span>
+              ) : (
+                <>
+                  <Input
+                    className="rhy-tok rhy-tok-num"
+                    type="number"
+                    min={1}
+                    value={count}
+                    onChange={(e) => setCount(e.target.value)}
+                    aria-label="How often"
+                  />
+                  <span className="rhy-tok rhy-tok-sel">
+                    <NativeSelect
+                      value={unit}
+                      onChange={(e) => setUnit(e.target.value as Unit)}
+                      aria-label="Unit"
+                    >
+                      {UNITS.map((u) => (
+                        <option key={u.value} value={u.value}>
+                          {u.label}
+                        </option>
+                      ))}
+                    </NativeSelect>
+                    {chev}
+                  </span>
+                </>
+              )}
+              <span className="rhy-fix">,</span>
+              <br />
+              <span className="rhy-fix">counted when</span>
+              {editing ? (
+                // Not offered: re-shaping a live rhythm would re-read every period it
+                // has already skipped or booked. Said plainly instead of hidden.
+                <span className="rhy-tok rhy-tok-fixed">{modeLabel(shape)}</span>
+              ) : (
+                <span className="rhy-tok-mode" ref={modeRef}>
+                  <Button
+                    variant="unstyled"
+                    type="button"
+                    className={`rhy-tok rhy-tok-btn${modeOpen ? ' on' : ''}`}
+                    aria-label="counted when"
+                    aria-haspopup="listbox"
+                    aria-expanded={modeOpen}
+                    onClick={() => setModeOpen((v) => !v)}
+                  >
+                    {modeLabel(shape)}
+                    {chev}
+                  </Button>
+                  {modeOpen && (
+                    <div className="rhy-drop" role="listbox" aria-label="What counts as done">
+                      {MODES.map((o) => (
+                        <div
+                          key={o.value}
+                          role="option"
+                          aria-selected={shape === o.value}
+                          tabIndex={0}
+                          className={`rhy-opt${shape === o.value ? ' on' : ''}`}
+                          onClick={() => {
+                            setShape(o.value)
+                            setModeOpen(false)
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault()
+                              setShape(o.value)
+                              setModeOpen(false)
+                            }
+                          }}
+                        >
+                          <span className="rhy-ck" aria-hidden />
+                          <span>
+                            <span className="rhy-opt-t">{o.label}</span>
+                            <span className="rhy-opt-d">{o.why}</span>
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </span>
+              )}
+              <span className="rhy-fix">,</span>
+              <br />
+              <span className="rhy-fix">on</span>
+              <span className="rhy-tok rhy-tok-sel">
+                <NativeSelect
+                  value={personId}
+                  onChange={(e) => setPersonId(e.target.value)}
+                  aria-label="Who"
+                >
+                  <option value="">the whole household</option>
+                  {persons.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </NativeSelect>
+                {chev}
+              </span>
+            </div>
+
+            {/* What the sentence above will actually do, in the two dates that are the
               whole promise. Both are derived through nudgePlan, never from the typed
               runway: the server keeps least(leadTime, every/2), so a weekly rhythm
               asked for 14 days' notice would otherwise be promised a nudge on a day
               nothing is ever going to happen. */}
-          {plan && !editing && (
-            <div className="rhy-conseq">
-              <span className="rhy-conseq-ic" aria-hidden>
-                {shape === 'completion' ? (
-                  <svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5" /></svg>
-                ) : (
-                  <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3" /><path d="M8 3v4M16 3v4M3 10h18" /></svg>
-                )}
-              </span>
-              <div>
-                {shape === 'completion' ? (
+            {plan && !editing && (
+              <div className="rhy-conseq">
+                <span className="rhy-conseq-ic" aria-hidden>
+                  {shape === 'completion' ? (
+                    <Check aria-hidden="true" />
+                  ) : (
+                    <CalendarDays aria-hidden="true" />
+                  )}
+                </span>
+                <div>
+                  {shape === 'completion' ? (
+                    <>
+                      Next one lands around <b>{dayMonth(plan.landsOn)}</b>. It'll be on your Today
+                      card from <b>{dayMonth(plan.nudgeFrom)}</b>. If you do it late the next one
+                      moves with it — misses never stack up.
+                    </>
+                  ) : (
+                    <>
+                      Booking it is the win — we'll never ask whether it happened. A fresh window
+                      opens {cadenceLabel(every)}, and if nothing's on the calendar by{' '}
+                      <b>{dayMonth(plan.nudgeFrom)}</b> it moves to Needs you now.
+                    </>
+                  )}
+                  {plan.capped && (
+                    <div className="rhy-conseq-cap">
+                      {`${leadNum} days' notice won't fit in ${bookWithin ? 'that booking window' : cadenceLabel(every).replace(/^every /, 'a ')}, so it's trimmed to ${clamp.effectiveDays} — a runway longer than the stretch it belongs to never goes quiet.`}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {editing && rhythm && (
+              <div className="rhy-anchor">
+                {rhythm.satisfiedBy === 'scheduling' ? (
                   <>
-                    Next one lands around <b>{dayMonth(plan.landsOn)}</b>. It'll be on your Today
-                    card from <b>{dayMonth(plan.nudgeFrom)}</b>. If you do it late the next one
-                    moves with it — misses never stack up.
+                    Periods are anchored to {longDate(rhythm.startsOn)},{' '}
+                    {cadenceLabel(rhythm.every)}
+                    {rhythm.autoSchedule ? ', booked automatically' : ''}. Moving the anchor would
+                    re-interpret the periods you've already skipped or booked, so it can't change
+                    here — retire this one and make a new one instead.
                   </>
                 ) : (
                   <>
-                    Booking it is the win — we'll never ask whether it happened. A fresh window
-                    opens {cadenceLabel(every)}, and if nothing's on the calendar
-                    by <b>{dayMonth(plan.nudgeFrom)}</b> it moves to Needs you now.
+                    Next due {longDate(rhythm.nextDueAt)}. The clock isn't set by hand — marking it
+                    done restarts it from when you actually did it. Moving the anchor would mean a
+                    different rhythm, so retire this one and make a new one instead.
                   </>
-                )}
-                {plan.capped && (
-                  <div className="rhy-conseq-cap">
-                    {`${leadNum} days' notice won't fit in ${bookWithin ? 'that booking window' : cadenceLabel(every).replace(/^every /, 'a ')}, so it's trimmed to ${clamp.effectiveDays} — a runway longer than the stretch it belongs to never goes quiet.`}
-                  </div>
                 )}
               </div>
-            </div>
-          )}
+            )}
 
-          {editing && rhythm && (
-            <div className="rhy-anchor">
-              {rhythm.satisfiedBy === 'scheduling' ? (
-                <>
-                  Periods are anchored to {longDate(rhythm.startsOn)}, {cadenceLabel(rhythm.every)}
-                  {rhythm.autoSchedule ? ', booked automatically' : ''}. Moving the anchor would re-interpret
-                  the periods you've already skipped or booked, so it can't change here — retire this one and
-                  make a new one instead.
-                </>
-              ) : (
-                <>
-                  Next due {longDate(rhythm.nextDueAt)}. The clock isn't set by hand — marking it done restarts
-                  it from when you actually did it. Moving the anchor would mean a different rhythm, so retire
-                  this one and make a new one instead.
-                </>
-              )}
-            </div>
-          )}
-
-          {history && history.total > 0 && (
-            <div className="rhy-anchor">
-              <b>{history.total === 1 ? 'Done once' : `Done ${history.total} times`}</b>
-              {/* Rounded: a household needs "about every 123 days", not a decimal place.
+            {history && history.total > 0 && (
+              <div className="rhy-anchor">
+                <b>{history.total === 1 ? 'Done once' : `Done ${history.total} times`}</b>
+                {/* Rounded: a household needs "about every 123 days", not a decimal place.
                   Absent below two completions, because one date is not an interval — the
                   server returns null there rather than inventing one, and this must not
                   fill that in with a number of its own. */}
-              {history.averageIntervalDays !== null && (
-                <> · about every <b>{Math.round(history.averageIntervalDays)} days</b>, against {cadenceLabel(rhythm!.every)}</>
-              )}
-              <div className="tiny muted" style={{ marginTop: 6 }}>
-                {history.completions.map((c) => dayMonth(new Date(c.completedAt))).join(' · ')}
+                {history.averageIntervalDays !== null && (
+                  <>
+                    {' '}
+                    · about every <b>{Math.round(history.averageIntervalDays)} days</b>, against{' '}
+                    {cadenceLabel(rhythm!.every)}
+                  </>
+                )}
+                <div className="tiny muted" style={{ marginTop: 6 }}>
+                  {history.completions.map((c) => dayMonth(new Date(c.completedAt))).join(' · ')}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          <button type="button" className="rhy-more-row" onClick={() => setAdvanced((v) => !v)}>
-            <span className={`rhy-more-chev${advanced ? ' on' : ''}`}>{chev}</span>
-            {advanced ? 'Fewer options' : 'More options — notes, how early to nudge, auto-add to calendar'}
-          </button>
+            <Button
+              variant="unstyled"
+              type="button"
+              className="rhy-more-row"
+              onClick={() => setAdvanced((v) => !v)}
+            >
+              <span className={`rhy-more-chev${advanced ? ' on' : ''}`}>{chev}</span>
+              {advanced
+                ? 'Fewer options'
+                : 'More options — notes, how early to nudge, auto-add to calendar'}
+            </Button>
 
-          {advanced && (
-            <div className="rhy-adv">
-              <label className="field">
-                <span>
-                  {shape === 'completion'
-                    ? 'Start nudging me this many days early'
-                    : 'Start nudging me this many days before the window closes'}
-                </span>
-                <input type="number" min={0} value={lead} onChange={(e) => setLeadDays(e.target.value)} />
-              </label>
-              {/* Spelled out against THIS rhythm's cadence rather than left as "the period",
+            {advanced && (
+              <div className="rhy-adv">
+                <Label className="field">
+                  <span>
+                    {shape === 'completion'
+                      ? 'Start nudging me this many days early'
+                      : 'Start nudging me this many days before the window closes'}
+                  </span>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={lead}
+                    onChange={(e) => setLeadDays(e.target.value)}
+                  />
+                </Label>
+                {/* Spelled out against THIS rhythm's cadence rather than left as "the period",
                   which was reasonably read as "what period? I'm scheduling it every week".
                   It also states the clamp's effect in days — the server stores
                   least(leadTime, every/2), so a weekly rhythm that asks for 14 days' notice
                   quietly gets 3, and nothing said so. */}
-              <div className="tiny muted" style={{ marginTop: -6, marginBottom: 12 }}>
-                {shape === 'completion'
-                  ? 'Capped at half the cadence — a rhythm you mark done keeps asking however late it is, so a longer runway would never let it go quiet.'
-                  : nudgeExplainer(every, leadNum, bookWithin)}
-              </div>
+                <div className="tiny muted" style={{ marginTop: -6, marginBottom: 12 }}>
+                  {shape === 'completion'
+                    ? 'Capped at half the cadence — a rhythm you mark done keeps asking however late it is, so a longer runway would never let it go quiet.'
+                    : nudgeExplainer(every, leadNum, bookWithin)}
+                </div>
 
-              {/* The anchors are create-only: see the note at the top of this file. */}
-              {editing ? null : shape === 'completion' ? (
-                <label className="field">
-                  <span>First one due</span>
-                  <input type="date" value={firstDue} onChange={(e) => setNextDue(e.target.value)} />
-                </label>
-              ) : (
-                <>
-                  <label className="field">
-                    <span>First period starts</span>
-                    <input type="date" value={startsOn} onChange={(e) => setStartsOn(e.target.value)} />
-                  </label>
-
-                  <label
-                    style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '2px 0 10px', cursor: 'pointer', fontWeight: 600 }}
-                    onClick={(e) => { e.preventDefault(); setAutoSchedule((v) => !v) }}
-                  >
-                    <span
-                      className={`toggle ${autoSchedule ? 'on' : ''}`}
-                      role="switch"
-                      aria-checked={autoSchedule}
-                      aria-label="Put it on the calendar automatically"
+                {/* The anchors are create-only: see the note at the top of this file. */}
+                {editing ? null : shape === 'completion' ? (
+                  <Label className="field">
+                    <span>First one due</span>
+                    <Input
+                      type="date"
+                      value={firstDue}
+                      onChange={(e) => setNextDue(e.target.value)}
                     />
-                    <span className="tiny" style={{ fontWeight: 600 }}>Put it on the calendar automatically</span>
-                  </label>
+                  </Label>
+                ) : (
+                  <>
+                    <Label className="field">
+                      <span>First period starts</span>
+                      <Input
+                        type="date"
+                        value={startsOn}
+                        onChange={(e) => setStartsOn(e.target.value)}
+                      />
+                    </Label>
 
-                  {autoSchedule ? (
-                    <>
-                      <div className="tiny muted" style={{ marginBottom: 10 }}>
-                        {describeRrule(rrule, new Date(`${startsOn}T00:00:00`))} — booked once, then it just stays there.
-                      </div>
-                      {/* Which day WITHIN the cadence — the only part of the rule that's an
+                    <Label
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        margin: '2px 0 10px',
+                        cursor: 'pointer',
+                        fontWeight: 600,
+                      }}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        setAutoSchedule((v) => !v)
+                      }}
+                    >
+                      <span
+                        className={`toggle ${autoSchedule ? 'on' : ''}`}
+                        role="switch"
+                        aria-checked={autoSchedule}
+                        aria-label="Put it on the calendar automatically"
+                      />
+                      <span className="tiny" style={{ fontWeight: 600 }}>
+                        Put it on the calendar automatically
+                      </span>
+                    </Label>
+
+                    {autoSchedule ? (
+                      <>
+                        <div className="tiny muted" style={{ marginBottom: 10 }}>
+                          {describeRrule(rrule, new Date(`${startsOn}T00:00:00`))} — booked once,
+                          then it just stays there.
+                        </div>
+                        {/* Which day WITHIN the cadence — the only part of the rule that's an
                           open question. How OFTEN it repeats is derived from "every N units"
                           above and deliberately not asked again here: a rule that disagreed
                           with the cadence would put the event outside the period it exists to
                           satisfy. Same control the calendar uses, in single-select: "every
                           week" plus BYDAY=MO,WE would fire twice a period. */}
-                      {unit === 'weeks' && (
-                        <div className="field">
-                          <span>On this day</span>
-                          <WeekdayChips
-                            value={byday}
-                            weekday={weekdayCode(new Date(`${startsOn}T00:00:00`))}
-                            onChange={setByday}
-                            single
-                          />
-                        </div>
-                      )}
-                      {unit === 'months' && (
-                        <label className="field">
-                          <span>Which day of the month</span>
-                          <select value={monthlyMode} onChange={(e) => setMonthlyMode(e.target.value as MonthlyMode)}>
-                            <option value="day">The same date</option>
-                            <option value="weekday">The same weekday (e.g. the third Saturday)</option>
-                            <option value="lastWeekday">The last of that weekday</option>
-                          </select>
-                        </label>
-                      )}
-                      {monthlyNthWeekday && (
-                        <div className="tiny muted" style={{ marginTop: -6, marginBottom: 10 }}>
-                          Periods run in calendar months so exactly one of these falls in each — the
-                          date above just picks which weekday it is.
-                        </div>
-                      )}
-                      {/* Kept for imported rules and cadences the builder can't express, but
+                        {unit === 'weeks' && (
+                          <div className="field">
+                            <span>On this day</span>
+                            <WeekdayChips
+                              value={byday}
+                              weekday={weekdayCode(new Date(`${startsOn}T00:00:00`))}
+                              onChange={setByday}
+                              single
+                            />
+                          </div>
+                        )}
+                        {unit === 'months' && (
+                          <Label className="field">
+                            <span>Which day of the month</span>
+                            <NativeSelect
+                              value={monthlyMode}
+                              onChange={(e) => setMonthlyMode(e.target.value as MonthlyMode)}
+                            >
+                              <option value="day">The same date</option>
+                              <option value="weekday">
+                                The same weekday (e.g. the third Saturday)
+                              </option>
+                              <option value="lastWeekday">The last of that weekday</option>
+                            </NativeSelect>
+                          </Label>
+                        )}
+                        {monthlyNthWeekday && (
+                          <div className="tiny muted" style={{ marginTop: -6, marginBottom: 10 }}>
+                            Periods run in calendar months so exactly one of these falls in each —
+                            the date above just picks which weekday it is.
+                          </div>
+                        )}
+                        {/* Kept for imported rules and cadences the builder can't express, but
                           behind a disclosure and named exactly as it is on the calendar —
                           an RRULE text box is not a reasonable first thing to ask anyone. */}
-                      <details style={{ marginBottom: 10 }}>
-                        <summary style={{ cursor: 'pointer', fontSize: 13, color: 'var(--ink-2)' }}>Advanced (raw RRULE)</summary>
-                        <input
-                          style={{ marginTop: 8 }}
-                          value={customRule}
-                          onChange={(e) => setCustomRule(e.target.value)}
-                          placeholder="FREQ=MONTHLY;BYDAY=3SA"
-                          aria-label="Custom RRULE"
-                        />
-                      </details>
-                    </>
-                  ) : (
-                    <div className="tiny muted" style={{ marginBottom: 10 }}>
-                      When it happens is an open decision every period, so it'll ask you to pick a time.
-                    </div>
-                  )}
-                </>
-              )}
+                        <details style={{ marginBottom: 10 }}>
+                          <summary
+                            style={{ cursor: 'pointer', fontSize: 13, color: 'var(--ink-2)' }}
+                          >
+                            Advanced (raw RRULE)
+                          </summary>
+                          <Input
+                            style={{ marginTop: 8 }}
+                            value={customRule}
+                            onChange={(e) => setCustomRule(e.target.value)}
+                            placeholder="FREQ=MONTHLY;BYDAY=3SA"
+                            aria-label="Custom RRULE"
+                          />
+                        </details>
+                      </>
+                    ) : (
+                      <div className="tiny muted" style={{ marginBottom: 10 }}>
+                        When it happens is an open decision every period, so it'll ask you to pick a
+                        time.
+                      </div>
+                    )}
+                  </>
+                )}
 
-              {/* The booking window — the one part of WHEN that is editable in place, so it
+                {/* The booking window — the one part of WHEN that is editable in place, so it
                   sits outside the create-only anchor block above. The cadence and the
                   anchor ARE the period grid, and moving either re-reads every boundary
                   (skips stop matching, bookings get re-attributed). A window moves no
@@ -606,64 +746,99 @@ export function RhythmModal({
                   Not offered when the rhythm books itself: the rule already decides which
                   day inside the period, so there is nothing left to pick, and the server
                   refuses the pair. */}
-              {showWindow && (
-                <>
-                  {/* Said as a sentence, like the rest of this form. The label used to read
+                {showWindow && (
+                  <>
+                    {/* Said as a sentence, like the rest of this form. The label used to read
                       "Only the first … days of each period count", which stated the rule
                       inside-out and leaned on a word ("period") the form never taught. */}
-                  <div className="field">
-                    <span>Deadline inside each cycle</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', fontWeight: 600 }}>
-                      <span>It must be booked in the first</span>
-                      <input
-                        type="number"
-                        min={1}
-                        value={windowDays}
-                        placeholder="—"
-                        aria-label={`It must be booked in the first how many days of ${cycleNoun}`}
-                        onChange={(e) => setWindowDays(e.target.value)}
-                        style={{ width: 72 }}
-                      />
-                      <span>days of {cycleNoun}.</span>
+                    <div className="field">
+                      <span>Deadline inside each cycle</span>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 8,
+                          flexWrap: 'wrap',
+                          fontWeight: 600,
+                        }}
+                      >
+                        <span>It must be booked in the first</span>
+                        <Input
+                          type="number"
+                          min={1}
+                          value={windowDays}
+                          placeholder="—"
+                          aria-label={`It must be booked in the first how many days of ${cycleNoun}`}
+                          onChange={(e) => setWindowDays(e.target.value)}
+                          style={{ width: 72 }}
+                        />
+                        <span>days of {cycleNoun}.</span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="tiny muted" style={{ marginTop: -6, marginBottom: 12 }}>
-                    {bookWithin
-                      ? `Leave it blank and any day counts. Set to ${windowNum}, a booking later than that leaves ${cycleNoun.replace(/^each |^every /, '')} unbooked.`
-                      : `Leave it blank and any day in ${cycleNoun.replace(/^each /, 'the ')} counts — most rhythms want that.`}
-                  </div>
-                </>
-              )}
+                    <div className="tiny muted" style={{ marginTop: -6, marginBottom: 12 }}>
+                      {bookWithin
+                        ? `Leave it blank and any day counts. Set to ${windowNum}, a booking later than that leaves ${cycleNoun.replace(/^each |^every /, '')} unbooked.`
+                        : `Leave it blank and any day in ${cycleNoun.replace(/^each /, 'the ')} counts — most rhythms want that.`}
+                    </div>
+                  </>
+                )}
 
-              <label className="field">
-                <span>Notes</span>
-                <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} placeholder="Furnace, 20x25x1" />
-              </label>
-            </div>
-          )}
+                <Label className="field">
+                  <span>Notes</span>
+                  <Textarea
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    rows={2}
+                    placeholder="Furnace, 20x25x1"
+                  />
+                </Label>
+              </div>
+            )}
 
-          {failed && <div className="tiny muted" style={{ marginBottom: 10 }}>{failed}</div>}
+            {failed && (
+              <div className="tiny muted" style={{ marginBottom: 10 }}>
+                {failed}
+              </div>
+            )}
 
-          {editing ? (
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button type="button" className="btn btn-ghost" style={{ color: 'var(--danger)' }} disabled={busy} onClick={() => setRetiring(true)}>
-                Retire
-              </button>
-              <button type="submit" className="btn btn-primary" disabled={busy || !title.trim()} style={{ flex: 1, justifyContent: 'center' }}>
-                {busy ? 'Saving…' : 'Save changes'}
-              </button>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button type="button" className="btn btn-ghost" onClick={onClose}>Cancel</button>
-              <button type="submit" className="btn btn-primary" disabled={busy || !title.trim()} style={{ flex: 1, justifyContent: 'center' }}>
-                {busy ? 'Saving…' : 'Add rhythm'}
-              </button>
-            </div>
-          )}
-        </form>
-      </div>
-    </div>
+            {editing ? (
+              <div style={{ display: 'flex', gap: 10 }}>
+                <Button
+                  variant="ghost"
+                  type="button"
+                  style={{ color: 'var(--danger)' }}
+                  disabled={busy}
+                  onClick={() => setRetiring(true)}
+                >
+                  Retire
+                </Button>
+                <Button
+                  variant="default"
+                  type="submit"
+                  disabled={busy || !title.trim()}
+                  style={{ flex: 1, justifyContent: 'center' }}
+                >
+                  {busy ? 'Saving…' : 'Save changes'}
+                </Button>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', gap: 10 }}>
+                <Button variant="ghost" type="button" onClick={onClose}>
+                  Cancel
+                </Button>
+                <Button
+                  variant="default"
+                  type="submit"
+                  disabled={busy || !title.trim()}
+                  style={{ flex: 1, justifyContent: 'center' }}
+                >
+                  {busy ? 'Saving…' : 'Add rhythm'}
+                </Button>
+              </div>
+            )}
+          </form>
+        </div>
+      </Modal>
 
       {/* Outside the editor's overlay: nested, a click on this backdrop would bubble
           up and close the editor underneath it too. */}

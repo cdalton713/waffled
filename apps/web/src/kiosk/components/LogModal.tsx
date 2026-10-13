@@ -1,10 +1,21 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { api, localToday, type Goal, type GoalStep } from '../../lib/api'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { DataIcon } from '@/components/ui/data-icon'
+import { Modal } from '@/components/ui/modal'
 
 const HOURS = new Set(['hour', 'hours', 'hr', 'hrs'])
 // Cold-start note chips, shown until this goal has enough of its own logged history to
 // fill the row. `label` is the emoji-prefixed display; tapping sets the plain text.
-const DEFAULT_ACTS = ['🚲 Bike ride', '🏞️ Park', '⚽ Sports', '🌳 Outside play', '📚 Reading', '🎨 Art']
+const DEFAULT_ACTS = [
+  '🚲 Bike ride',
+  '🏞️ Park',
+  '⚽ Sports',
+  '🌳 Outside play',
+  '📚 Reading',
+  '🎨 Art',
+]
 // How many note chips the row shows. Personalized suggestions fill it first; the defaults
 // only top up the remainder, so once a goal has this many of its own they replace them.
 const NOTE_CHIP_TARGET = 6
@@ -12,14 +23,14 @@ const NOTE_CHIP_TARGET = 6
 // Blend the goal's own most-used notes (personalized, plain text) with the hardcoded
 // defaults: suggestions first, then defaults for any slots left, de-duped case-insensitively
 // against what's already shown. Returns display label + the note text a tap sets.
-function mergeActs(suggested: string[]): Array<{ label: string; note: string }> {
-  const out: Array<{ label: string; note: string }> = []
+function mergeActs(suggested: string[]): Array<{ label: string; note: string; icon?: string }> {
+  const out: Array<{ label: string; note: string; icon?: string }> = []
   const seen = new Set<string>()
-  const add = (label: string, note: string) => {
+  const add = (label: string, note: string, icon?: string) => {
     const key = note.trim().toLowerCase()
     if (!key || seen.has(key)) return
     seen.add(key)
-    out.push({ label, note })
+    out.push({ label, note, icon })
   }
   for (const s of suggested) {
     if (out.length >= NOTE_CHIP_TARGET) break
@@ -27,7 +38,8 @@ function mergeActs(suggested: string[]): Array<{ label: string; note: string }> 
   }
   for (const d of DEFAULT_ACTS) {
     if (out.length >= NOTE_CHIP_TARGET) break
-    add(d, d.replace(/^\S+\s/, ''))
+    const note = d.replace(/^\S+\s/, '')
+    add(note, note, d.split(' ')[0])
   }
   return out
 }
@@ -87,7 +99,7 @@ export function LogModal({
   // count = whole-unit stepper, habit = one tap per day, checklist = tick steps.
   const oneTap = isHabit
   const isCount = goal.goalType === 'count'
-  const [amount, setAmount] = useState<number>(oneTap ? 1 : isCount ? 1 : chips[1]?.value ?? 1)
+  const [amount, setAmount] = useState<number>(oneTap ? 1 : isCount ? 1 : (chips[1]?.value ?? 1))
   const isShared = goal.trackingMode === 'shared_total'
   const divisible = goal.goalType === 'total'
   // A time goal (total measured in hours) is logged as hours + minutes; the server
@@ -95,7 +107,10 @@ export function LogModal({
   const isTime = divisible && !!goal.unit && HOURS.has(goal.unit.toLowerCase())
   const [hours, setHours] = useState<number>(isTime ? 1 : 0)
   const [minutes, setMinutes] = useState<number>(0)
-  const setTimeChip = (v: number) => { setHours(Math.floor(v)); setMinutes(Math.round((v - Math.floor(v)) * 60)) }
+  const setTimeChip = (v: number) => {
+    setHours(Math.floor(v))
+    setMinutes(Math.round((v - Math.floor(v)) * 60))
+  }
   // The four participant types (see GoalCreate.PARTICIPANT_TYPES), decoded for the
   // "who" copy + preview:
   //   • eachAdds  (each_tracks: "individually"/"we all chip in") — every person tapped
@@ -117,13 +132,17 @@ export function LogModal({
   // Restricted users (no goal.manage) can only attribute progress to themselves
   // or a family/shared log — never to another person. Show only self in the
   // picker and default the selection to self.
-  const pickable = canLogOthers ? goal.participants : goal.participants.filter((p) => p.personId === selfPersonId)
+  const pickable = canLogOthers
+    ? goal.participants
+    : goal.participants.filter((p) => p.personId === selfPersonId)
   const [who, setWho] = useState<string[]>(
     !canLogOthers && pickable.length === 1
       ? [pickable[0].personId]
       : goal.participants.length === 1
         ? [goal.participants[0].personId]
-        : multi ? [] : [FAMILY]
+        : multi
+          ? []
+          : [FAMILY],
   )
   // A single participant is always credited; no picker (and no "Family") needed.
   // Restricted users with exactly themselves on the goal also skip the picker.
@@ -148,20 +167,35 @@ export function LogModal({
   // Focus person = the single participant currently tapped, else the logger themselves —
   // so "who was there" steers whose history the box learns from; refetches as that changes.
   const selectedReal = who.filter((id) => id !== FAMILY)
-  const focusPerson = selectedReal.length === 1 ? selectedReal[0] : selfPersonId ?? null
+  const focusPerson = selectedReal.length === 1 ? selectedReal[0] : (selfPersonId ?? null)
   const [suggestedActs, setSuggestedActs] = useState<string[]>([])
   useEffect(() => {
     if (isChecklist) return // checklists tick steps — no note field
     let live = true
-    api.noteSuggestions(goal.id, focusPerson).then((r) => { if (live) setSuggestedActs(Array.isArray(r?.suggestions) ? r.suggestions : []) }).catch(() => { if (live) setSuggestedActs([]) })
-    return () => { live = false }
+    api
+      .noteSuggestions(goal.id, focusPerson)
+      .then((r) => {
+        if (live) setSuggestedActs(Array.isArray(r?.suggestions) ? r.suggestions : [])
+      })
+      .catch(() => {
+        if (live) setSuggestedActs([])
+      })
+    return () => {
+      live = false
+    }
   }, [goal.id, focusPerson, isChecklist])
   const acts = mergeActs(suggestedActs)
 
   // One-tap (habit / check-off) = 1; count = whole units; time = hours + minutes
   // folded to decimal hours; total = entered amount.
   const timeAmount = Math.round((hours + minutes / 60) * 1e6) / 1e6
-  const logAmount = oneTap ? 1 : isCount ? Math.max(1, Math.round(amount)) : isTime ? timeAmount : Number(amount)
+  const logAmount = oneTap
+    ? 1
+    : isCount
+      ? Math.max(1, Math.round(amount))
+      : isTime
+        ? timeAmount
+        : Number(amount)
 
   // Divisible shared pool in SPLIT mode, more than one tapped → preview the even split.
   const splitN = isSplit && divisible ? who.filter((id) => id !== FAMILY).length : 0
@@ -180,9 +214,14 @@ export function LogModal({
   const qty = (n: number) => (isTime ? fmtDuration(n) : `${Math.round(n * 100) / 100}${unitSuffix}`)
   const amountLabel = qty(logAmount)
   const modeHint =
-    nSel === 0 ? null
-      : eachAdds ? `Each of the ${nSel} gets the full ${qty(logAmount)} · total +${qty(logAmount * nSel)}.`
-        : isSplit ? (perEach != null ? `Shared together → ${qty(perEach)} each, ${qty(logAmount)} total.` : null)
+    nSel === 0
+      ? null
+      : eachAdds
+        ? `Each of the ${nSel} gets the full ${qty(logAmount)} · total +${qty(logAmount * nSel)}.`
+        : isSplit
+          ? perEach != null
+            ? `Shared together → ${qty(perEach)} each, ${qty(logAmount)} total.`
+            : null
           : `Counts once for the family · records who was there${nSel > 0 ? ` (${nSel})` : ''}.`
 
   async function submit(e: FormEvent) {
@@ -194,9 +233,12 @@ export function LogModal({
       const personIds = who.filter((id) => id !== FAMILY)
       const when = loggedOn !== today ? loggedOn : null
       // Time goals send hours + minutes and let the server convert; others send amount.
-      await api.logGoal(goal.id, isTime
-        ? { hours, minutes, personIds, note: note.trim() || null, loggedOn: when }
-        : { amount: logAmount, personIds, note: note.trim() || null, loggedOn: when })
+      await api.logGoal(
+        goal.id,
+        isTime
+          ? { hours, minutes, personIds, note: note.trim() || null, loggedOn: when }
+          : { amount: logAmount, personIds, note: note.trim() || null, loggedOn: when },
+      )
       onSaved()
       onClose()
     } catch {
@@ -220,8 +262,17 @@ export function LogModal({
   useEffect(() => {
     if (!isChecklist) return
     let live = true
-    api.goal(goal.id).then((r) => { if (live) setSteps(r.goal.steps) }).catch(() => { if (live) setSteps([]) })
-    return () => { live = false }
+    api
+      .goal(goal.id)
+      .then((r) => {
+        if (live) setSteps(r.goal.steps)
+      })
+      .catch(() => {
+        if (live) setSteps([])
+      })
+    return () => {
+      live = false
+    }
   }, [isChecklist, goal.id])
 
   async function toggleStep(step: GoalStep) {
@@ -239,42 +290,99 @@ export function LogModal({
     const done = steps?.filter((s) => s.done).length ?? 0
     const total = steps?.length ?? 0
     return (
-      <div className="modal-overlay" onClick={onClose}>
+      <Modal className="modal-overlay" onClose={onClose}>
         <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 440 }}>
-          <button type="button" className="modal-close" aria-label="Close" onClick={onClose}>×</button>
-          <div className="wf-serif" style={{ fontSize: 20, fontWeight: 600, marginBottom: 2 }}>Checklist</div>
-          <div className="muted" style={{ fontSize: 14, marginBottom: 14 }}>{goal.title} · {done}/{total} steps</div>
-          {steps == null && <div className="muted tiny" style={{ fontWeight: 600 }}>Loading…</div>}
-          {steps != null && steps.length === 0 && <div className="muted tiny" style={{ fontWeight: 600 }}>No steps yet — add some by editing this goal.</div>}
+          <Button
+            variant="unstyled"
+            type="button"
+            className="modal-close"
+            aria-label="Close"
+            onClick={onClose}
+          >
+            <DataIcon value={'×'} kind="general" />
+          </Button>
+          <div className="wf-serif" style={{ fontSize: 20, fontWeight: 600, marginBottom: 2 }}>
+            Checklist
+          </div>
+          <div className="muted" style={{ fontSize: 14, marginBottom: 14 }}>
+            {goal.title} · {done}/{total} steps
+          </div>
+          {steps == null && (
+            <div className="muted tiny" style={{ fontWeight: 600 }}>
+              Loading…
+            </div>
+          )}
+          {steps != null && steps.length === 0 && (
+            <div className="muted tiny" style={{ fontWeight: 600 }}>
+              No steps yet — add some by editing this goal.
+            </div>
+          )}
           <div className="log-steps">
             {steps?.map((s) => (
-              <button key={s.id} type="button" className={`log-step-row ${s.done ? 'done' : ''}`} onClick={() => toggleStep(s)}>
-                <span className="log-step-box">{s.done ? '✓' : ''}</span>
+              <Button
+                variant="unstyled"
+                key={s.id}
+                type="button"
+                className={`log-step-row ${s.done ? 'done' : ''}`}
+                onClick={() => toggleStep(s)}
+              >
+                <span className="log-step-box">
+                  {s.done ? <DataIcon value={'✓'} kind="general" /> : ''}
+                </span>
                 <span className="log-step-label">{s.label}</span>
-              </button>
+              </Button>
             ))}
           </div>
-          <button type="button" className="btn btn-primary" onClick={onClose} style={{ width: '100%', justifyContent: 'center', marginTop: 18 }}>Done</button>
+          <Button
+            variant="default"
+            type="button"
+            onClick={onClose}
+            style={{ width: '100%', justifyContent: 'center', marginTop: 18 }}
+          >
+            Done
+          </Button>
           {canDelete && (
-            <button
+            <Button
+              variant="unstyled"
               type="button"
               onClick={del}
-              style={{ display: 'block', margin: '14px auto 0', border: 0, background: 'none', color: confirmDelete ? 'var(--primary)' : 'var(--ink-3)', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}
+              style={{
+                display: 'block',
+                margin: '14px auto 0',
+                border: 0,
+                background: 'none',
+                color: confirmDelete ? 'var(--primary)' : 'var(--ink-3)',
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
             >
               {confirmDelete ? 'Tap again to delete this goal' : 'Delete goal'}
-            </button>
+            </Button>
           )}
         </div>
-      </div>
+      </Modal>
     )
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <Modal className="modal-overlay" onClose={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 440 }}>
-        <button type="button" className="modal-close" aria-label="Close" onClick={onClose}>×</button>
-        <div className="wf-serif" style={{ fontSize: 20, fontWeight: 600, marginBottom: 2 }}>Log progress</div>
-        <div className="muted" style={{ fontSize: 14, marginBottom: 16 }}>{goal.title}</div>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="modal-close"
+          aria-label="Close"
+          onClick={onClose}
+        >
+          <DataIcon value={'×'} kind="general" />
+        </Button>
+        <div className="wf-serif" style={{ fontSize: 20, fontWeight: 600, marginBottom: 2 }}>
+          Log progress
+        </div>
+        <div className="muted" style={{ fontSize: 14, marginBottom: 16 }}>
+          {goal.title}
+        </div>
 
         <form onSubmit={submit}>
           {isHabit ? (
@@ -282,9 +390,19 @@ export function LogModal({
             <>
               <div className="flabel">Consistency · {periodLabel}</div>
               <div className="log-habit">
-                <span className="log-habit-prog">{goal.periodDone}{habitTarget ? ` / ${habitTarget}` : ''}</span>
+                <span className="log-habit-prog">
+                  {goal.periodDone}
+                  {habitTarget ? ` / ${habitTarget}` : ''}
+                </span>
                 <span className="tiny muted" style={{ fontWeight: 600 }}>
-                  {doneToday ? '✓ Already marked done today' : `times ${periodLabel}`}
+                  {doneToday ? (
+                    <>
+                      <DataIcon value={'✓'} kind="general" />
+                      {' Already marked done today'}
+                    </>
+                  ) : (
+                    `times ${periodLabel}`
+                  )}
                 </span>
               </div>
             </>
@@ -293,9 +411,29 @@ export function LogModal({
             <>
               <div className="flabel">How many?</div>
               <div className="log-stepper">
-                <button type="button" className="log-step" aria-label="Less" disabled={amount <= 1} onClick={() => setAmount((a) => Math.max(1, Math.round(a) - 1))}>−</button>
-                <span className="log-step-val">{Math.max(1, Math.round(amount))}{goal.unit ? ` ${goal.unit}` : ''}</span>
-                <button type="button" className="log-step" aria-label="More" onClick={() => setAmount((a) => Math.round(a) + 1)}>＋</button>
+                <Button
+                  variant="unstyled"
+                  type="button"
+                  className="log-step"
+                  aria-label="Less"
+                  disabled={amount <= 1}
+                  onClick={() => setAmount((a) => Math.max(1, Math.round(a) - 1))}
+                >
+                  −
+                </Button>
+                <span className="log-step-val">
+                  {Math.max(1, Math.round(amount))}
+                  {goal.unit ? ` ${goal.unit}` : ''}
+                </span>
+                <Button
+                  variant="unstyled"
+                  type="button"
+                  className="log-step"
+                  aria-label="More"
+                  onClick={() => setAmount((a) => Math.round(a) + 1)}
+                >
+                  <DataIcon value={'＋'} kind="general" />
+                </Button>
               </div>
             </>
           ) : isTime ? (
@@ -304,17 +442,46 @@ export function LogModal({
               <div className="flabel">How long?</div>
               <div className="log-quick">
                 {chips.map((c) => (
-                  <button key={c.label} type="button" className={`log-chip ${Math.abs(timeAmount - c.value) < 1e-6 ? 'on' : ''}`} onClick={() => setTimeChip(c.value)}>
+                  <Button
+                    variant="unstyled"
+                    key={c.label}
+                    type="button"
+                    className={`log-chip ${Math.abs(timeAmount - c.value) < 1e-6 ? 'on' : ''}`}
+                    onClick={() => setTimeChip(c.value)}
+                  >
                     {c.label}
-                  </button>
+                  </Button>
                 ))}
               </div>
               <div className="log-custom">
-                <span className="tiny muted" style={{ fontWeight: 600 }}>or</span>
-                <input type="number" step={1} min={0} value={hours} onChange={(e) => setHours(Math.max(0, Math.floor(Number(e.target.value) || 0)))} aria-label="hours" />
-                <span className="tiny muted" style={{ fontWeight: 600 }}>hr</span>
-                <input type="number" step={1} min={0} max={59} value={minutes} onChange={(e) => setMinutes(Math.min(59, Math.max(0, Math.floor(Number(e.target.value) || 0))))} aria-label="minutes" />
-                <span className="tiny muted" style={{ fontWeight: 600 }}>min</span>
+                <span className="tiny muted" style={{ fontWeight: 600 }}>
+                  or
+                </span>
+                <Input
+                  type="number"
+                  step={1}
+                  min={0}
+                  value={hours}
+                  onChange={(e) => setHours(Math.max(0, Math.floor(Number(e.target.value) || 0)))}
+                  aria-label="hours"
+                />
+                <span className="tiny muted" style={{ fontWeight: 600 }}>
+                  hr
+                </span>
+                <Input
+                  type="number"
+                  step={1}
+                  min={0}
+                  max={59}
+                  value={minutes}
+                  onChange={(e) =>
+                    setMinutes(Math.min(59, Math.max(0, Math.floor(Number(e.target.value) || 0))))
+                  }
+                  aria-label="minutes"
+                />
+                <span className="tiny muted" style={{ fontWeight: 600 }}>
+                  min
+                </span>
               </div>
             </>
           ) : (
@@ -323,53 +490,121 @@ export function LogModal({
               <div className="flabel">How much?</div>
               <div className="log-quick">
                 {chips.map((c) => (
-                  <button key={c.label} type="button" className={`log-chip ${amount === c.value ? 'on' : ''}`} onClick={() => setAmount(c.value)}>
+                  <Button
+                    variant="unstyled"
+                    key={c.label}
+                    type="button"
+                    className={`log-chip ${amount === c.value ? 'on' : ''}`}
+                    onClick={() => setAmount(c.value)}
+                  >
                     {c.label}
-                  </button>
+                  </Button>
                 ))}
               </div>
               <div className="log-custom">
-                <span className="tiny muted" style={{ fontWeight: 600 }}>or</span>
-                <input type="number" step="any" value={amount} onChange={(e) => setAmount(Number(e.target.value))} aria-label="amount" />
-                {goal.unit && <span className="tiny muted" style={{ fontWeight: 600 }}>{goal.unit}</span>}
+                <span className="tiny muted" style={{ fontWeight: 600 }}>
+                  or
+                </span>
+                <Input
+                  type="number"
+                  step="any"
+                  value={amount}
+                  onChange={(e) => setAmount(Number(e.target.value))}
+                  aria-label="amount"
+                />
+                {goal.unit && (
+                  <span className="tiny muted" style={{ fontWeight: 600 }}>
+                    {goal.unit}
+                  </span>
+                )}
               </div>
             </>
           )}
 
           {showWho && (
             <>
-              <div className="flabel" style={{ marginTop: 16 }}>{whoLabel}</div>
+              <div className="flabel" style={{ marginTop: 16 }}>
+                {whoLabel}
+              </div>
               <div className="log-who">
                 {!multi && (
-                  <button type="button" className={`log-person ${who.includes(FAMILY) ? 'on' : ''}`} onClick={() => toggleWho(FAMILY)}>
-                    <div className="av md" style={{ background: 'var(--panel)' }}>👪</div>
-                    <span className="log-check" style={{ background: who.includes(FAMILY) ? 'var(--person-3)' : 'var(--card)', borderColor: who.includes(FAMILY) ? 'var(--person-3)' : 'var(--hair)' }}>
-                      {who.includes(FAMILY) ? '✓' : ''}
+                  <Button
+                    variant="unstyled"
+                    type="button"
+                    className={`log-person ${who.includes(FAMILY) ? 'on' : ''}`}
+                    onClick={() => toggleWho(FAMILY)}
+                  >
+                    <div className="av md" style={{ background: 'var(--panel)' }}>
+                      <DataIcon value={'👪'} kind="person" />
+                    </div>
+                    <span
+                      className="log-check"
+                      style={{
+                        background: who.includes(FAMILY) ? 'var(--person-3)' : 'var(--card)',
+                        borderColor: who.includes(FAMILY) ? 'var(--person-3)' : 'var(--hair)',
+                      }}
+                    >
+                      {who.includes(FAMILY) ? <DataIcon value={'✓'} kind="person" /> : ''}
                     </span>
-                    <span className="tiny" style={{ fontWeight: 700, color: 'var(--ink-2)' }}>Family</span>
-                  </button>
+                    <span className="tiny" style={{ fontWeight: 700, color: 'var(--ink-2)' }}>
+                      Family
+                    </span>
+                  </Button>
                 )}
                 {pickable.map((p) => {
                   const on = who.includes(p.personId)
                   return (
-                    <button key={p.personId} type="button" className={`log-person ${on ? 'on' : ''}`} onClick={() => toggleWho(p.personId)}>
-                      <div className="av md" style={{ background: `${p.colorHex ?? '#A6A29B'}22` }}>{p.avatarEmoji ?? '🙂'}</div>
-                      <span className="log-check" style={{ background: on ? 'var(--person-3)' : 'var(--card)', borderColor: on ? 'var(--person-3)' : 'var(--hair)' }}>
-                        {on ? '✓' : ''}
+                    <Button
+                      variant="unstyled"
+                      key={p.personId}
+                      type="button"
+                      className={`log-person ${on ? 'on' : ''}`}
+                      onClick={() => toggleWho(p.personId)}
+                    >
+                      <div className="av md" style={{ background: `${p.colorHex ?? '#A6A29B'}22` }}>
+                        <DataIcon value={p.avatarEmoji ?? '🙂'} kind="person" />
+                      </div>
+                      <span
+                        className="log-check"
+                        style={{
+                          background: on ? 'var(--person-3)' : 'var(--card)',
+                          borderColor: on ? 'var(--person-3)' : 'var(--hair)',
+                        }}
+                      >
+                        {on ? <DataIcon value={'✓'} kind="person" /> : ''}
                       </span>
-                      <span className="tiny" style={{ fontWeight: 700, color: 'var(--ink-2)' }}>{p.name.split(' ')[0]}</span>
-                    </button>
+                      <span className="tiny" style={{ fontWeight: 700, color: 'var(--ink-2)' }}>
+                        {p.name.split(' ')[0]}
+                      </span>
+                    </Button>
                   )
                 })}
               </div>
               {modeHint && (
-                <div className="tiny muted" style={{ fontWeight: 600, marginTop: 8 }}>{modeHint}</div>
+                <div className="tiny muted" style={{ fontWeight: 600, marginTop: 8 }}>
+                  {modeHint}
+                </div>
               )}
             </>
           )}
 
-          <div className="flabel" style={{ marginTop: 16 }}>When?{loggedOn !== today && <span style={{ textTransform: 'none', letterSpacing: 0, fontWeight: 600, color: 'var(--primary)' }}> · catching up</span>}</div>
-          <input
+          <div className="flabel" style={{ marginTop: 16 }}>
+            When?
+            {loggedOn !== today && (
+              <span
+                style={{
+                  textTransform: 'none',
+                  letterSpacing: 0,
+                  fontWeight: 600,
+                  color: 'var(--primary)',
+                }}
+              >
+                {' '}
+                · catching up
+              </span>
+            )}
+          </div>
+          <Input
             className="log-note"
             type="date"
             max={today}
@@ -378,32 +613,94 @@ export function LogModal({
             aria-label="Date this happened"
           />
 
-          <div className="flabel" style={{ marginTop: 16 }}>What did you do? <span style={{ textTransform: 'none', letterSpacing: 0, fontWeight: 600, color: 'var(--ink-3)' }}>· optional</span></div>
-          <input className="log-note" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Creek hike + fort building" />
+          <div className="flabel" style={{ marginTop: 16 }}>
+            What did you do?{' '}
+            <span
+              style={{
+                textTransform: 'none',
+                letterSpacing: 0,
+                fontWeight: 600,
+                color: 'var(--ink-3)',
+              }}
+            >
+              · optional
+            </span>
+          </div>
+          <Input
+            className="log-note"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="Creek hike + fort building"
+          />
           <div className="log-acts">
             {acts.map((a) => (
-              <button key={a.label} type="button" className="log-act" onClick={() => setNote(a.note)}>{a.label}</button>
+              <Button
+                variant="unstyled"
+                key={a.label}
+                type="button"
+                className="log-act"
+                onClick={() => setNote(a.note)}
+              >
+                {a.icon && (
+                  <>
+                    <DataIcon value={a.icon} kind="goal" />{' '}
+                  </>
+                )}
+                {a.label}
+              </Button>
             ))}
           </div>
 
-          <button type="submit" className="btn btn-primary" disabled={!logAmount || saving || blocked} style={{ width: '100%', justifyContent: 'center', marginTop: 18 }}>
-            {saving
-              ? 'Saving…'
-              : isHabit
-                ? blocked ? 'Done for today ✓' : loggedOn !== today ? '✓ Mark done' : '✓ Mark done for today'
-                : `Log ${amountLabel}`}
-          </button>
+          <Button
+            variant="default"
+            type="submit"
+            disabled={!logAmount || saving || blocked}
+            style={{ width: '100%', justifyContent: 'center', marginTop: 18 }}
+          >
+            {saving ? (
+              'Saving…'
+            ) : isHabit ? (
+              blocked ? (
+                <>
+                  {'Done for today '}
+                  <DataIcon value={'✓'} kind="general" />
+                </>
+              ) : loggedOn !== today ? (
+                <>
+                  <DataIcon value={'✓'} kind="general" />
+                  {' Mark done'}
+                </>
+              ) : (
+                <>
+                  <DataIcon value={'✓'} kind="general" />
+                  {' Mark done for today'}
+                </>
+              )
+            ) : (
+              `Log ${amountLabel}`
+            )}
+          </Button>
         </form>
         {canDelete && (
-          <button
+          <Button
+            variant="unstyled"
             type="button"
             onClick={del}
-            style={{ display: 'block', margin: '14px auto 0', border: 0, background: 'none', color: confirmDelete ? 'var(--primary)' : 'var(--ink-3)', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}
+            style={{
+              display: 'block',
+              margin: '14px auto 0',
+              border: 0,
+              background: 'none',
+              color: confirmDelete ? 'var(--primary)' : 'var(--ink-3)',
+              fontSize: 13,
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
           >
             {confirmDelete ? 'Tap again to delete this goal' : 'Delete goal'}
-          </button>
+          </Button>
         )}
       </div>
-    </div>
+    </Modal>
   )
 }

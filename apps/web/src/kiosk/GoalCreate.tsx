@@ -5,6 +5,12 @@ import { api, useGoalLists, useGoalDetail, useHousehold, can, type GoalList } fr
 import { CATEGORIES, CATEGORY_KEYS } from './categories'
 import { ListModal } from './components/ListModal'
 import './../styles/goals.css'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { NativeSelect } from '@/components/ui/native-select'
+import { DataIcon } from '@/components/ui/data-icon'
+import { IconPicker } from '@/components/ui/icon-picker'
+import { Check, Monitor } from 'lucide-react'
 
 // The measure type also tells us divisibility: "Total" splits evenly, "Count" is whole things.
 const TYPES = [
@@ -34,12 +40,24 @@ const COUNT_RULES = {
   ],
 } as const
 
-const eachTracksOwn = { trackingMode: 'each_tracks', targetBasis: 'per_person', participantMode: 'count_once' } as const
+const eachTracksOwn = {
+  trackingMode: 'each_tracks',
+  targetBasis: 'per_person',
+  participantMode: 'count_once',
+} as const
 function sharedDefault(goalType: string) {
   // total/count default to "everyone's counts" (adds up); habit/checklist have no sub-question.
   return goalType === 'total' || goalType === 'count'
-    ? { trackingMode: 'each_tracks', targetBasis: 'family', participantMode: 'count_once' } as const
-    : { trackingMode: 'shared_total', targetBasis: 'family', participantMode: 'count_once' } as const
+    ? ({
+        trackingMode: 'each_tracks',
+        targetBasis: 'family',
+        participantMode: 'count_once',
+      } as const)
+    : ({
+        trackingMode: 'shared_total',
+        targetBasis: 'family',
+        participantMode: 'count_once',
+      } as const)
 }
 function eachDefault(goalType: string) {
   return {
@@ -52,7 +70,7 @@ function eachDefault(goalType: string) {
 // measure-specific, so a stale combo would submit fractional data on a whole-number goal.
 export function measureCountingFields(
   prev: { goalType: string; trackingMode: string; targetBasis: string },
-  nextType: string
+  nextType: string,
 ) {
   const wasShared =
     prev.goalType === 'total' || prev.goalType === 'count'
@@ -65,12 +83,24 @@ const singular = (u: string) => (u.length > 1 && u.endsWith('s') ? u.slice(0, -1
 function countChoiceFields(goalType: string, k: string) {
   if (goalType === 'total') {
     return k === 'full'
-      ? { trackingMode: 'each_tracks', targetBasis: 'family', participantMode: 'count_once' } as const
-      : { trackingMode: 'shared_total', targetBasis: 'family', participantMode: 'split' } as const
+      ? ({
+          trackingMode: 'each_tracks',
+          targetBasis: 'family',
+          participantMode: 'count_once',
+        } as const)
+      : ({ trackingMode: 'shared_total', targetBasis: 'family', participantMode: 'split' } as const)
   }
   return k === 'each'
-    ? { trackingMode: 'each_tracks', targetBasis: 'family', participantMode: 'count_once' } as const
-    : { trackingMode: 'shared_total', targetBasis: 'family', participantMode: 'count_once' } as const
+    ? ({
+        trackingMode: 'each_tracks',
+        targetBasis: 'family',
+        participantMode: 'count_once',
+      } as const)
+    : ({
+        trackingMode: 'shared_total',
+        targetBasis: 'family',
+        participantMode: 'count_once',
+      } as const)
 }
 
 type Milestone = { threshold: number; emoji: string; label: string; rewardText: string }
@@ -79,7 +109,8 @@ type Milestone = { threshold: number; emoji: string; label: string; rewardText: 
 // text is left BLANK — a reward is never auto-filled.
 function defaultMilestones(goalType: string, target: number): Milestone[] {
   const E = ['🌱', '⭐', '🏆']
-  const mk = (vals: number[]) => vals.map((v, i) => ({ threshold: v, emoji: E[i] ?? '🎖️', label: String(v), rewardText: '' }))
+  const mk = (vals: number[]) =>
+    vals.map((v, i) => ({ threshold: v, emoji: E[i] ?? '🎖️', label: String(v), rewardText: '' }))
   if (goalType === 'habit') return mk([7, 30, 100]) // streak length in days
   if (goalType === 'checklist') return mk([25, 50, 75]) // percent complete
   // total | count: 25% / 50% / 75% of the target, rounded to a tidy step.
@@ -95,32 +126,87 @@ function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
       onClick={onClick}
       role="switch"
       aria-checked={on}
-      style={{ width: 46, height: 28, borderRadius: 999, flex: 'none', cursor: 'pointer', background: on ? 'var(--person-3)' : 'var(--control-track)', position: 'relative', transition: 'background .18s' }}
+      style={{
+        width: 46,
+        height: 28,
+        borderRadius: 999,
+        flex: 'none',
+        cursor: 'pointer',
+        background: on ? 'var(--person-3)' : 'var(--control-track)',
+        position: 'relative',
+        transition: 'background .18s',
+      }}
     >
-      <div style={{ position: 'absolute', top: 3, left: on ? 21 : 3, width: 22, height: 22, borderRadius: 999, background: 'var(--on-accent)', boxShadow: 'var(--sh-1)', transition: 'left .18s' }} />
+      <div
+        style={{
+          position: 'absolute',
+          top: 3,
+          left: on ? 21 : 3,
+          width: 22,
+          height: 22,
+          borderRadius: 999,
+          background: 'var(--on-accent)',
+          boxShadow: 'var(--sh-1)',
+          transition: 'left .18s',
+        }}
+      />
     </div>
   )
 }
 
-function NumField({ value, step, onChange }: { value: number; step: number; onChange: (v: number) => void }) {
+function NumField({
+  value,
+  step,
+  onChange,
+}: {
+  value: number
+  step: number
+  onChange: (v: number) => void
+}) {
   const set = (v: number) => onChange(Math.max(0, v))
   return (
     <div className="ge-num">
-      <input value={value} inputMode="numeric" onChange={(e) => set(parseInt(e.target.value, 10) || 0)} aria-label="target" />
+      <Input
+        value={value}
+        inputMode="numeric"
+        onChange={(e) => set(parseInt(e.target.value, 10) || 0)}
+        aria-label="target"
+      />
       <div className="ge-num-steps">
-        <button type="button" aria-label="increase" onClick={() => set(value + step)}>▲</button>
-        <button type="button" aria-label="decrease" onClick={() => set(value - step)}>▼</button>
+        <Button
+          variant="unstyled"
+          type="button"
+          aria-label="increase"
+          onClick={() => set(value + step)}
+        >
+          <DataIcon value={'▲'} kind="goal" />
+        </Button>
+        <Button
+          variant="unstyled"
+          type="button"
+          aria-label="decrease"
+          onClick={() => set(value - step)}
+        >
+          <DataIcon value={'▼'} kind="goal" />
+        </Button>
       </div>
     </div>
   )
 }
 
 const CheckIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round"><path d="M4 12l5 5L20 6" /></svg>
+  <Check
+    aria-hidden="true"
+    fill="none"
+    stroke="#fff"
+    strokeWidth={3.5}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  />
 )
 
-  // Render the editor INSIDE something else — what Weekly Planning's Goals step does. Purely
-  // additive: route behaviour is unchanged when `embed` is absent.
+// Render the editor INSIDE something else — what Weekly Planning's Goals step does. Purely
+// additive: route behaviour is unchanged when `embed` is absent.
 export interface GoalCreateEmbed {
   // The group the goal belongs to. Fixed, and shown rather than offered — the host already asked.
   listId: string
@@ -133,10 +219,10 @@ export interface GoalCreateEmbed {
 export function GoalCreate({ embed }: { embed?: GoalCreateEmbed } = {}) {
   const navigate = useNavigate()
   const { id } = useParams()
-    // Embedded there is no route to read an id from, and the HOST's params must not leak in.
+  // Embedded there is no route to read an id from, and the HOST's params must not leak in.
   const editing = !embed && !!id
   const { lists, refetch: refetchLists } = useGoalLists()
-  const { goal: editGoal } = useGoalDetail(editing ? id ?? null : null)
+  const { goal: editGoal } = useGoalDetail(editing ? (id ?? null) : null)
   const { household, person } = useHousehold()
   // Without goal.manage you can still make a goal that's just yours, so the picker is limited to
   // lists where you're the sole member. Picking a group needs goal.manage, which 403s server-side.
@@ -172,7 +258,11 @@ export function GoalCreate({ embed }: { embed?: GoalCreateEmbed } = {}) {
     weeklyCheckIn: true,
   })
   const [milestones, setMilestones] = useState<Milestone[]>(DEFAULT_MILESTONES)
-  const [steps, setSteps] = useState<Array<{ id?: string; label: string }>>([{ label: '' }, { label: '' }, { label: '' }])
+  const [steps, setSteps] = useState<Array<{ id?: string; label: string }>>([
+    { label: '' },
+    { label: '' },
+    { label: '' },
+  ])
   const [listSpotlight, setListSpotlight] = useState<{ id: string; title: string } | null>(null)
   const [dlOpen, setDlOpen] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -181,12 +271,18 @@ export function GoalCreate({ embed }: { embed?: GoalCreateEmbed } = {}) {
   const msTouched = useRef(false)
   // Once the user types a unit we stop auto-swapping it, or a Count goal inherits "hours".
   const unitTouched = useRef(false)
-  const set = <K extends keyof typeof form>(k: K, v: (typeof form)[K]) => setForm((f) => ({ ...f, [k]: v }))
+  const set = <K extends keyof typeof form>(k: K, v: (typeof form)[K]) =>
+    setForm((f) => ({ ...f, [k]: v }))
   // Switch measure: re-normalize the counting fields (see measureCountingFields) and fit the unit.
   const setMeasure = (key: (typeof TYPES)[number]['key']) =>
     setForm((f) => {
       const counting = measureCountingFields(f, key)
-      const unit = unitTouched.current || (key !== 'total' && key !== 'count') ? f.unit : key === 'total' ? 'hours' : ''
+      const unit =
+        unitTouched.current || (key !== 'total' && key !== 'count')
+          ? f.unit
+          : key === 'total'
+            ? 'hours'
+            : ''
       return { ...f, goalType: key, unit, ...counting }
     })
 
@@ -217,7 +313,14 @@ export function GoalCreate({ embed }: { embed?: GoalCreateEmbed } = {}) {
     setDlOpen(!!editGoal.deadline)
     if (editGoal.milestones.length) {
       msTouched.current = true // keep the goal's saved milestones, don't regenerate
-      setMilestones(editGoal.milestones.map((m) => ({ threshold: m.threshold, emoji: m.emoji ?? '⛳', label: m.label ?? String(m.threshold), rewardText: m.rewardText ?? '' })))
+      setMilestones(
+        editGoal.milestones.map((m) => ({
+          threshold: m.threshold,
+          emoji: m.emoji ?? '⛳',
+          label: m.label ?? String(m.threshold),
+          rewardText: m.rewardText ?? '',
+        })),
+      )
     }
     if (editGoal.steps?.length) {
       setSteps(editGoal.steps.map((s) => ({ id: s.id, label: s.label })))
@@ -226,14 +329,24 @@ export function GoalCreate({ embed }: { embed?: GoalCreateEmbed } = {}) {
 
   // The selected list's current spotlight, so the Spotlight option can say what it replaces.
   useEffect(() => {
-    if (!form.goalListId) { setListSpotlight(null); return }
+    if (!form.goalListId) {
+      setListSpotlight(null)
+      return
+    }
     let live = true
-    api.goals(form.goalListId).then((r) => {
-      if (!live) return
-      const s = r.goals.find((g) => g.isSpotlight && g.id !== id)
-      setListSpotlight(s ? { id: s.id, title: s.title } : null)
-    }).catch(() => { if (live) setListSpotlight(null) })
-    return () => { live = false }
+    api
+      .goals(form.goalListId)
+      .then((r) => {
+        if (!live) return
+        const s = r.goals.find((g) => g.isSpotlight && g.id !== id)
+        setListSpotlight(s ? { id: s.id, title: s.title } : null)
+      })
+      .catch(() => {
+        if (live) setListSpotlight(null)
+      })
+    return () => {
+      live = false
+    }
   }, [form.goalListId, id])
 
   // Regenerate the default milestones from type + target until the user hand-edits them.
@@ -245,7 +358,9 @@ export function GoalCreate({ embed }: { embed?: GoalCreateEmbed } = {}) {
   // Editing is gated exactly like GoalDetail. GoalDetail hides its Edit button, but
   // /goals/:id/edit is deep-linkable — so without this a kid reaches a "Save changes" that 403s.
   const editBlocked =
-    editing && !!editGoal && !canAssignOthers &&
+    editing &&
+    !!editGoal &&
+    !canAssignOthers &&
     !(editGoal.participants.length === 1 && editGoal.participants[0].personId === person?.id)
   useEffect(() => {
     if (editBlocked) navigate(`/goals/${id}`, { replace: true })
@@ -263,21 +378,32 @@ export function GoalCreate({ embed }: { embed?: GoalCreateEmbed } = {}) {
     if (!selfOnly) setForm((f) => ({ ...f, goalListId: '' }))
   }, [editing, household, canAssignOthers, form.goalListId, lists, person?.id])
 
-  const selectedList = useMemo(() => lists.find((l) => l.id === form.goalListId) ?? null, [lists, form.goalListId])
+  const selectedList = useMemo(
+    () => lists.find((l) => l.id === form.goalListId) ?? null,
+    [lists, form.goalListId],
+  )
 
   // A goal needs a name, a person, and its type's measurement filled in. The deadline is optional.
-  const participantCount = selectedList ? selectedList.members.length : editing ? editGoal?.participants.length ?? 0 : 0
+  const participantCount = selectedList
+    ? selectedList.members.length
+    : editing
+      ? (editGoal?.participants.length ?? 0)
+      : 0
   const stepCount = steps.filter((s) => s.label.trim()).length
   const isChecklist = form.goalType === 'checklist'
-  const typeValid =
-    isChecklist ? stepCount >= 1
-      : form.goalType === 'habit' ? form.habitPerPeriod > 0
-        : Number(form.target) > 0 && form.unit.trim().length > 0 // total | count
-  const canSave = form.title.trim().length > 0 && participantCount >= 1 && typeValid && !saving && !editBlocked
+  const typeValid = isChecklist
+    ? stepCount >= 1
+    : form.goalType === 'habit'
+      ? form.habitPerPeriod > 0
+      : Number(form.target) > 0 && form.unit.trim().length > 0 // total | count
+  const canSave =
+    form.title.trim().length > 0 && participantCount >= 1 && typeValid && !saving && !editBlocked
 
   // Return to the list you came from. After CREATE we return to the goal's final list (see submit).
   const cameFromList = searchParams.get('list') ?? ''
-  const backToGoals = editing ? `/goals/${id}` : `/goals${cameFromList ? `?list=${cameFromList}` : ''}`
+  const backToGoals = editing
+    ? `/goals/${id}`
+    : `/goals${cameFromList ? `?list=${cameFromList}` : ''}`
 
   const submitRef = useRef<() => void>(() => {})
   // Embedded, the bar is the modal's header and drops Cancel — that route isn't the modal's.
@@ -286,9 +412,17 @@ export function GoalCreate({ embed }: { embed?: GoalCreateEmbed } = {}) {
       <div className="ge-title">{editing ? 'Edit goal' : 'New goal'}</div>
       <div className="ge-sp" />
       {!embed && (
-        <button type="button" className="ge-cancel" onClick={() => navigate(backToGoals, { replace: true })}>Cancel</button>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="ge-cancel"
+          onClick={() => navigate(backToGoals, { replace: true })}
+        >
+          Cancel
+        </Button>
       )}
-      <button
+      <Button
+        variant="unstyled"
         type="button"
         className="ge-create"
         disabled={!canSave}
@@ -296,7 +430,7 @@ export function GoalCreate({ embed }: { embed?: GoalCreateEmbed } = {}) {
         onClick={() => submitRef.current()}
       >
         {editing ? 'Save changes' : 'Create goal'}
-      </button>
+      </Button>
     </div>
   )
   // Never when embedded: the host owns its own chrome.
@@ -305,14 +439,21 @@ export function GoalCreate({ embed }: { embed?: GoalCreateEmbed } = {}) {
   async function submit() {
     if (!canSave) return
     setSaving(true)
-    const participantIds = selectedList ? selectedList.members.map((m) => m.personId) : editGoal?.participants.map((p) => p.personId) ?? []
+    const participantIds = selectedList
+      ? selectedList.members.map((m) => m.personId)
+      : (editGoal?.participants.map((p) => p.personId) ?? [])
     const payload = {
       title: form.title.trim(),
       goalListId: form.goalListId || null,
       category: form.category,
       goalType: form.goalType,
       unit: form.goalType === 'habit' || isChecklist ? null : form.unit.trim() || null,
-      targetValue: form.goalType === 'habit' ? form.habitPerPeriod : isChecklist ? null : Number(form.target) || null,
+      targetValue:
+        form.goalType === 'habit'
+          ? form.habitPerPeriod
+          : isChecklist
+            ? null
+            : Number(form.target) || null,
       habitPeriod: form.goalType === 'habit' ? form.habitPeriod : null,
       habitTargetPerPeriod: form.goalType === 'habit' ? form.habitPerPeriod : null,
       trackingMode: form.trackingMode,
@@ -326,27 +467,45 @@ export function GoalCreate({ embed }: { embed?: GoalCreateEmbed } = {}) {
       hasRewards: form.hasRewards,
       participantIds,
       milestones: form.hasRewards
-        ? milestones.map((m) => ({ threshold: Number(m.threshold) || 0, emoji: m.emoji, label: m.label || `${m.threshold}${form.unit ? ` ${form.unit}` : ''}`, rewardText: m.rewardText }))
+        ? milestones.map((m) => ({
+            threshold: Number(m.threshold) || 0,
+            emoji: m.emoji,
+            label: m.label || `${m.threshold}${form.unit ? ` ${form.unit}` : ''}`,
+            rewardText: m.rewardText,
+          }))
         : [],
       // Checklist steps (with ids when editing so completion is preserved).
       ...(isChecklist
-        ? { steps: steps.filter((s) => s.label.trim()).map((s) => ({ id: s.id, label: s.label.trim() })) }
+        ? {
+            steps: steps
+              .filter((s) => s.label.trim())
+              .map((s) => ({ id: s.id, label: s.label.trim() })),
+          }
         : {}),
     }
     try {
       if (editing) await api.updateGoal(id!, payload)
       else await api.createGoal(payload)
       // Embedded, going anywhere is the bug: the host owns the page this sits over.
-      if (embed) { embed.onCreated(); return }
+      if (embed) {
+        embed.onCreated()
+        return
+      }
       // Land on the goal's FINAL list — if they retargeted it, that's where the goal now lives.
-      navigate(editing ? `/goals/${id}` : `/goals${form.goalListId ? `?list=${form.goalListId}` : ''}`, { replace: true })
+      navigate(
+        editing ? `/goals/${id}` : `/goals${form.goalListId ? `?list=${form.goalListId}` : ''}`,
+        { replace: true },
+      )
     } catch {
       setSaving(false)
     }
   }
   submitRef.current = submit
 
-  const setMs = (i: number, patch: Partial<Milestone>) => { msTouched.current = true; setMilestones((ms) => ms.map((m, j) => (j === i ? { ...m, ...patch } : m))) }
+  const setMs = (i: number, patch: Partial<Milestone>) => {
+    msTouched.current = true
+    setMilestones((ms) => ms.map((m, j) => (j === i ? { ...m, ...patch } : m)))
+  }
 
   // ── live-preview helpers ─────────────────────────────────────────────────
   const previewName = form.title.trim() || 'Your goal'
@@ -355,39 +514,78 @@ export function GoalCreate({ embed }: { embed?: GoalCreateEmbed } = {}) {
   // DERIVED from the backend fields, so an edited goal lights up the right rows.
   const shareValue: 'shared' | 'each' =
     form.goalType === 'total' || form.goalType === 'count'
-      ? (form.trackingMode === 'each_tracks' && form.targetBasis === 'per_person' ? 'each' : 'shared')
-      : (form.trackingMode === 'each_tracks' ? 'each' : 'shared')
+      ? form.trackingMode === 'each_tracks' && form.targetBasis === 'per_person'
+        ? 'each'
+        : 'shared'
+      : form.trackingMode === 'each_tracks'
+        ? 'each'
+        : 'shared'
   const shared = shareValue === 'shared'
 
-  const tier: 'spotlight' | 'featured' | 'normal' = form.isSpotlight ? 'spotlight' : form.isFeatured ? 'featured' : 'normal'
+  const tier: 'spotlight' | 'featured' | 'normal' = form.isSpotlight
+    ? 'spotlight'
+    : form.isFeatured
+      ? 'featured'
+      : 'normal'
   const setTier = (t: 'spotlight' | 'featured' | 'normal') =>
     setForm((f) => ({ ...f, isSpotlight: t === 'spotlight', isFeatured: t === 'featured' }))
   const tierHint =
-    tier === 'spotlight' ? 'The one big hero card for this list — only one goal can be the spotlight.'
-      : tier === 'featured' ? 'Pinned to the top of the goals list, above the rest.'
+    tier === 'spotlight'
+      ? 'The one big hero card for this list — only one goal can be the spotlight.'
+      : tier === 'featured'
+        ? 'Pinned to the top of the goals list, above the rest.'
         : 'Lives in the goals list with everything else.'
   const countChoice: string | null =
-    form.goalType === 'total' ? (form.trackingMode === 'each_tracks' ? 'full' : 'split')
-      : form.goalType === 'count' ? (form.trackingMode === 'each_tracks' ? 'each' : 'once')
+    form.goalType === 'total'
+      ? form.trackingMode === 'each_tracks'
+        ? 'full'
+        : 'split'
+      : form.goalType === 'count'
+        ? form.trackingMode === 'each_tracks'
+          ? 'each'
+          : 'once'
         : null
 
   // A concrete "worked example" using the real members' first names + unit.
   const memberNames = (selectedList?.members ?? editGoal?.participants ?? [])
-    .map((m) => (m.name ?? '').split(' ')[0]).filter(Boolean)
+    .map((m) => (m.name ?? '').split(' ')[0])
+    .filter(Boolean)
   const twoNames = memberNames.slice(0, 2).join(' + ') || 'Two people'
-  const someNames = (memberNames.length > 3 ? [...memberNames.slice(0, 3), '…'] : memberNames).join(', ') || 'everyone'
+  const someNames =
+    (memberNames.length > 3 ? [...memberNames.slice(0, 3), '…'] : memberNames).join(', ') ||
+    'everyone'
   const workedExample = (): { icon: string; lead: string; delta: string; tail: string } | null => {
     if (form.goalType === 'total') {
       const u = unit || 'hr'
       return countChoice === 'split'
-        ? { icon: '🌳', lead: `${twoNames}, 1 ${singular(u)} outside together → total `, delta: `+1 ${singular(u)}`, tail: `, ½ each.` }
-        : { icon: '🌳', lead: `${twoNames}, 1 ${singular(u)} each → total `, delta: `+2 ${u}`, tail: `.` }
+        ? {
+            icon: '🌳',
+            lead: `${twoNames}, 1 ${singular(u)} outside together → total `,
+            delta: `+1 ${singular(u)}`,
+            tail: `, ½ each.`,
+          }
+        : {
+            icon: '🌳',
+            lead: `${twoNames}, 1 ${singular(u)} each → total `,
+            delta: `+2 ${u}`,
+            tail: `.`,
+          }
     }
     if (form.goalType === 'count') {
       const u = unit || 'visit'
       return countChoice === 'once'
-        ? { icon: '🏞️', lead: `Log “${someNames}” → the total goes up by `, delta: `1`, tail: ` ${u}.` }
-        : { icon: '🏞️', lead: `Log “${someNames}” → the total goes up by `, delta: `${Math.max(2, participantCount)}`, tail: ` (one each).` }
+        ? {
+            icon: '🏞️',
+            lead: `Log “${someNames}” → the total goes up by `,
+            delta: `1`,
+            tail: ` ${u}.`,
+          }
+        : {
+            icon: '🏞️',
+            lead: `Log “${someNames}” → the total goes up by `,
+            delta: `${Math.max(2, participantCount)}`,
+            tail: ` (one each).`,
+          }
     }
     return null
   }
@@ -395,17 +593,26 @@ export function GoalCreate({ embed }: { embed?: GoalCreateEmbed } = {}) {
     ? ` · by ${new Date(`${form.deadline}T00:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
     : ''
   const subLine = (() => {
-    const tail = isChecklist || form.goalType === 'habit'
-      ? ''
-      : participantCount > 1 ? (shared ? ' · shared total' : ' · each their own') : ''
+    const tail =
+      isChecklist || form.goalType === 'habit'
+        ? ''
+        : participantCount > 1
+          ? shared
+            ? ' · shared total'
+            : ' · each their own'
+          : ''
     if (form.goalType === 'total') return `Adds up in ${unit || 'units'}${dlLabel}${tail}`
-    if (form.goalType === 'count') return `Count to ${form.target} ${unit || 'units'}${dlLabel}${tail}`
-    if (form.goalType === 'habit') return `${form.habitPerPeriod}× a ${form.habitPeriod} · keep the streak going`
+    if (form.goalType === 'count')
+      return `Count to ${form.target} ${unit || 'units'}${dlLabel}${tail}`
+    if (form.goalType === 'habit')
+      return `${form.habitPerPeriod}× a ${form.habitPeriod} · keep the streak going`
     return 'A checklist of steps you tick off'
   })()
   const milestoneHint =
-    form.goalType === 'habit' ? 'The number is the streak length, in days.'
-      : isChecklist ? 'The number is percent complete — 100 = all steps done.'
+    form.goalType === 'habit'
+      ? 'The number is the streak length, in days.'
+      : isChecklist
+        ? 'The number is percent complete — 100 = all steps done.'
         : `The number is the amount reached${unit ? ` in ${unit}` : ''}.`
 
   const editor = (
@@ -413,12 +620,17 @@ export function GoalCreate({ embed }: { embed?: GoalCreateEmbed } = {}) {
       {/* LEFT · focused form */}
       <div className="ge-formpane">
         <div className="ge-col">
-
           {/* 1 · name */}
           <div className="ge-sec">
             <div className="ge-sec-t">Name your goal</div>
             <div className="ge-sec-h">A short, motivating title your family will see.</div>
-            <input className="ge-name" value={form.title} onChange={(e) => set('title', e.target.value)} placeholder="e.g. 750 Hours Outside" autoFocus />
+            <Input
+              className="ge-name"
+              value={form.title}
+              onChange={(e) => set('title', e.target.value)}
+              placeholder="e.g. 750 Hours Outside"
+              autoFocus
+            />
           </div>
 
           {/* 2 · who */}
@@ -435,7 +647,13 @@ export function GoalCreate({ embed }: { embed?: GoalCreateEmbed } = {}) {
                 <span className="ge-who-chip on ge-who-locked" data-testid="ge-who-locked">
                   <span className="ge-avstack">
                     {(selectedList?.members ?? []).slice(0, 4).map((m) => (
-                      <span key={m.personId} className="ge-av" style={{ background: `${m.colorHex ?? '#8a857c'}22` }}>{m.avatarEmoji ?? '🙂'}</span>
+                      <span
+                        key={m.personId}
+                        className="ge-av"
+                        style={{ background: `${m.colorHex ?? '#8a857c'}22` }}
+                      >
+                        <DataIcon value={m.avatarEmoji ?? '🙂'} kind="person" />
+                      </span>
                     ))}
                   </span>
                   {selectedList?.name ?? 'This group'}
@@ -444,16 +662,38 @@ export function GoalCreate({ embed }: { embed?: GoalCreateEmbed } = {}) {
             ) : (
               <div className="ge-who">
                 {pickableLists.map((l: GoalList) => (
-                  <button key={l.id} type="button" className={`ge-who-chip ${form.goalListId === l.id ? 'on' : ''}`} onClick={() => set('goalListId', l.id)}>
+                  <Button
+                    variant="unstyled"
+                    key={l.id}
+                    type="button"
+                    className={`ge-who-chip ${form.goalListId === l.id ? 'on' : ''}`}
+                    onClick={() => set('goalListId', l.id)}
+                  >
                     <span className="ge-avstack">
                       {l.members.slice(0, 4).map((m) => (
-                        <span key={m.personId} className="ge-av" style={{ background: `${m.colorHex ?? '#8a857c'}22` }}>{m.avatarEmoji ?? '🙂'}</span>
+                        <span
+                          key={m.personId}
+                          className="ge-av"
+                          style={{ background: `${m.colorHex ?? '#8a857c'}22` }}
+                        >
+                          <DataIcon value={m.avatarEmoji ?? '🙂'} kind="person" />
+                        </span>
                       ))}
                     </span>
                     {l.name}
-                  </button>
+                  </Button>
                 ))}
-                <button type="button" className="ge-who-chip dashed" onClick={() => setShowListModal(true)}>＋ New group</button>
+                <Button
+                  variant="unstyled"
+                  type="button"
+                  className="ge-who-chip dashed"
+                  onClick={() => setShowListModal(true)}
+                >
+                  <>
+                    <DataIcon value={'＋'} kind="goal" />
+                    {' New group'}
+                  </>
+                </Button>
               </div>
             )}
           </div>
@@ -464,11 +704,22 @@ export function GoalCreate({ embed }: { embed?: GoalCreateEmbed } = {}) {
             <div className="ge-sec-h">This shapes how progress is logged and shown.</div>
             <div className="ge-measure-grid">
               {TYPES.map((t) => (
-                <button key={t.key} type="button" className={`ge-mcard ${form.goalType === t.key ? 'on' : ''}`} onClick={() => setMeasure(t.key)}>
-                  <div className="me">{t.emoji}</div>
-                  <div><div className="mt">{t.title}</div><div className="md">{t.desc}</div></div>
+                <Button
+                  variant="unstyled"
+                  key={t.key}
+                  type="button"
+                  className={`ge-mcard ${form.goalType === t.key ? 'on' : ''}`}
+                  onClick={() => setMeasure(t.key)}
+                >
+                  <div className="me">
+                    <DataIcon value={t.emoji} kind="goal" />
+                  </div>
+                  <div>
+                    <div className="mt">{t.title}</div>
+                    <div className="md">{t.desc}</div>
+                  </div>
                   <div className="mck">{form.goalType === t.key && <CheckIcon />}</div>
-                </button>
+                </Button>
               ))}
             </div>
 
@@ -478,35 +729,103 @@ export function GoalCreate({ embed }: { embed?: GoalCreateEmbed } = {}) {
                 {steps.map((s, i) => (
                   <div key={i} className="ge-step">
                     <span className="ge-step-dot" />
-                    <input value={s.label} placeholder={`Step ${i + 1}`} onChange={(e) => setSteps((ss) => ss.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)))} />
-                    <button type="button" className="ge-step-x" aria-label="remove step" onClick={() => setSteps((ss) => (ss.length > 1 ? ss.filter((_, j) => j !== i) : ss))}>×</button>
+                    <Input
+                      value={s.label}
+                      placeholder={`Step ${i + 1}`}
+                      onChange={(e) =>
+                        setSteps((ss) =>
+                          ss.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)),
+                        )
+                      }
+                    />
+                    <Button
+                      variant="unstyled"
+                      type="button"
+                      className="ge-step-x"
+                      aria-label="remove step"
+                      onClick={() =>
+                        setSteps((ss) => (ss.length > 1 ? ss.filter((_, j) => j !== i) : ss))
+                      }
+                    >
+                      <DataIcon value={'×'} kind="goal" />
+                    </Button>
                   </div>
                 ))}
-                <button type="button" className="ge-add" onClick={() => setSteps((ss) => [...ss, { label: '' }])}>＋ Add step</button>
+                <Button
+                  variant="unstyled"
+                  type="button"
+                  className="ge-add"
+                  onClick={() => setSteps((ss) => [...ss, { label: '' }])}
+                >
+                  <>
+                    <DataIcon value={'＋'} kind="goal" />
+                    {' Add step'}
+                  </>
+                </Button>
               </div>
             ) : form.goalType === 'habit' ? (
               <div className="ge-cfg">
-                <NumField value={form.habitPerPeriod} step={1} onChange={(v) => set('habitPerPeriod', v)} />
-                <div className="ge-unitsel">× per{' '}
-                  <select value={form.habitPeriod} onChange={(e) => set('habitPeriod', e.target.value)}>
+                <NumField
+                  value={form.habitPerPeriod}
+                  step={1}
+                  onChange={(v) => set('habitPerPeriod', v)}
+                />
+                <div className="ge-unitsel">
+                  <>
+                    <DataIcon value={'×'} kind="goal" />
+                    {' per'}
+                  </>{' '}
+                  <NativeSelect
+                    value={form.habitPeriod}
+                    onChange={(e) => set('habitPeriod', e.target.value)}
+                  >
                     <option value="day">day</option>
                     <option value="week">week</option>
                     <option value="month">month</option>
-                  </select>
+                  </NativeSelect>
                 </div>
                 <span className="ge-lead">keep the streak going</span>
               </div>
             ) : (
               <>
                 <div className="ge-cfg">
-                  <NumField value={form.target} step={form.goalType === 'total' ? 10 : 1} onChange={(v) => set('target', v)} />
-                  <input className="ge-unit-input" value={form.unit} onChange={(e) => { unitTouched.current = true; set('unit', e.target.value) }} placeholder="unit — hours, books, miles…" />
+                  <NumField
+                    value={form.target}
+                    step={form.goalType === 'total' ? 10 : 1}
+                    onChange={(v) => set('target', v)}
+                  />
+                  <Input
+                    className="ge-unit-input"
+                    value={form.unit}
+                    onChange={(e) => {
+                      unitTouched.current = true
+                      set('unit', e.target.value)
+                    }}
+                    placeholder="unit — hours, books, miles…"
+                  />
                 </div>
                 <div className="ge-deadline">
-                  <div className="ge-deadline-tx"><div className="e1">Set a deadline</div><div className="e2">Optional — a target date to reach it by</div></div>
-                  <Toggle on={dlOpen} onClick={() => { const n = !dlOpen; setDlOpen(n); if (!n) set('deadline', '') }} />
+                  <div className="ge-deadline-tx">
+                    <div className="e1">Set a deadline</div>
+                    <div className="e2">Optional — a target date to reach it by</div>
+                  </div>
+                  <Toggle
+                    on={dlOpen}
+                    onClick={() => {
+                      const n = !dlOpen
+                      setDlOpen(n)
+                      if (!n) set('deadline', '')
+                    }}
+                  />
                 </div>
-                {dlOpen && <input type="date" className="ge-date-input" value={form.deadline} onChange={(e) => set('deadline', e.target.value)} />}
+                {dlOpen && (
+                  <Input
+                    type="date"
+                    className="ge-date-input"
+                    value={form.deadline}
+                    onChange={(e) => set('deadline', e.target.value)}
+                  />
+                )}
               </>
             )}
 
@@ -514,43 +833,108 @@ export function GoalCreate({ embed }: { embed?: GoalCreateEmbed } = {}) {
                 for a checklist. Only shown with 2+ people. */}
             {participantCount > 1 && form.goalType !== 'checklist' && (
               <div className="ge-share" style={{ marginTop: 18 }}>
-                <button type="button" className={shared ? 'on' : ''} onClick={() => setForm((f) => ({ ...f, ...sharedDefault(f.goalType) }))}>{form.goalType === 'habit' ? 'One shared streak' : 'One shared total'}</button>
-                <button type="button" className={!shared ? 'on' : ''} onClick={() => setForm((f) => ({ ...f, ...eachTracksOwn, targetBasis: (f.goalType === 'total' || f.goalType === 'count') ? 'per_person' : 'family' }))}>{form.goalType === 'habit' ? 'Each keeps their own' : 'Each tracks their own'}</button>
+                <Button
+                  variant="unstyled"
+                  type="button"
+                  className={shared ? 'on' : ''}
+                  onClick={() => setForm((f) => ({ ...f, ...sharedDefault(f.goalType) }))}
+                >
+                  {form.goalType === 'habit' ? 'One shared streak' : 'One shared total'}
+                </Button>
+                <Button
+                  variant="unstyled"
+                  type="button"
+                  className={!shared ? 'on' : ''}
+                  onClick={() =>
+                    setForm((f) => ({
+                      ...f,
+                      ...eachTracksOwn,
+                      targetBasis:
+                        f.goalType === 'total' || f.goalType === 'count' ? 'per_person' : 'family',
+                    }))
+                  }
+                >
+                  {form.goalType === 'habit' ? 'Each keeps their own' : 'Each tracks their own'}
+                </Button>
               </div>
             )}
 
             {/* Group counting — measure-aware. Only for a SHARED total/count goal with 2+ people. */}
-            {shared && participantCount > 1 && (form.goalType === 'total' || form.goalType === 'count') && (
-              <div className="ge-count">
-                <div className="ge-count-q">When a shared activity includes more than one person…</div>
-                <div className="ge-count-h">How should a group entry add up toward the total?</div>
-                {COUNT_RULES[form.goalType as 'total' | 'count'].map((o) => {
-                  const on = countChoice === o.k
-                  const u = unit || (form.goalType === 'total' ? 'hr' : 'visit')
-                  const ex =
-                    o.k === 'full' ? { pre: `2 people, 1 ${singular(u)} each → `, b: `+2 ${u}`, post: '' }
-                      : o.k === 'split' ? { pre: `1 ${singular(u)} together, 2 people → `, b: `+1 ${singular(u)}`, post: ', ½ each' }
-                        : o.k === 'each' ? { pre: `${participantCount} at once → `, b: `+${participantCount}`, post: ' (one each)' }
-                          : { pre: `${participantCount} at once → `, b: '+1', post: ', they’re just who came' }
-                  return (
-                    <button key={o.k} type="button" className={`ge-rowopt ${on ? 'on' : ''}`} onClick={() => setForm((f) => ({ ...f, ...countChoiceFields(f.goalType, o.k) }))}>
-                      <span className="rem">{o.emoji}</span>
-                      <span className="rbd">
-                        <span className="rt">{o.title}</span>
-                        <span className="rex">{ex.pre}<b>{ex.b}</b>{ex.post}</span>
-                      </span>
-                      <span className="rrk" />
-                    </button>
-                  )
-                })}
-                {(() => {
-                  const w = workedExample()
-                  return w ? (
-                    <div className="ge-worked"><span className="wi">{w.icon}</span><span className="wt">{w.lead}<b>{w.delta}</b>{w.tail}</span></div>
-                  ) : null
-                })()}
-              </div>
-            )}
+            {shared &&
+              participantCount > 1 &&
+              (form.goalType === 'total' || form.goalType === 'count') && (
+                <div className="ge-count">
+                  <div className="ge-count-q">
+                    When a shared activity includes more than one person…
+                  </div>
+                  <div className="ge-count-h">
+                    How should a group entry add up toward the total?
+                  </div>
+                  {COUNT_RULES[form.goalType as 'total' | 'count'].map((o) => {
+                    const on = countChoice === o.k
+                    const u = unit || (form.goalType === 'total' ? 'hr' : 'visit')
+                    const ex =
+                      o.k === 'full'
+                        ? { pre: `2 people, 1 ${singular(u)} each → `, b: `+2 ${u}`, post: '' }
+                        : o.k === 'split'
+                          ? {
+                              pre: `1 ${singular(u)} together, 2 people → `,
+                              b: `+1 ${singular(u)}`,
+                              post: ', ½ each',
+                            }
+                          : o.k === 'each'
+                            ? {
+                                pre: `${participantCount} at once → `,
+                                b: `+${participantCount}`,
+                                post: ' (one each)',
+                              }
+                            : {
+                                pre: `${participantCount} at once → `,
+                                b: '+1',
+                                post: ', they’re just who came',
+                              }
+                    return (
+                      <Button
+                        variant="unstyled"
+                        key={o.k}
+                        type="button"
+                        className={`ge-rowopt ${on ? 'on' : ''}`}
+                        onClick={() =>
+                          setForm((f) => ({ ...f, ...countChoiceFields(f.goalType, o.k) }))
+                        }
+                      >
+                        <span className="rem">
+                          <DataIcon value={o.emoji} kind="goal" />
+                        </span>
+                        <span className="rbd">
+                          <span className="rt">{o.title}</span>
+                          <span className="rex">
+                            {ex.pre}
+                            <b>{ex.b}</b>
+                            {ex.post}
+                          </span>
+                        </span>
+                        <span className="rrk" />
+                      </Button>
+                    )
+                  })}
+                  {(() => {
+                    const w = workedExample()
+                    return w ? (
+                      <div className="ge-worked">
+                        <span className="wi">
+                          <DataIcon value={w.icon} kind="goal" />
+                        </span>
+                        <span className="wt">
+                          {w.lead}
+                          <b>{w.delta}</b>
+                          {w.tail}
+                        </span>
+                      </div>
+                    ) : null
+                  })()}
+                </div>
+              )}
           </div>
 
           {/* 4 · category */}
@@ -562,9 +946,21 @@ export function GoalCreate({ embed }: { embed?: GoalCreateEmbed } = {}) {
                 const c = CATEGORIES[k]
                 const on = form.category === k
                 return (
-                  <button key={k} type="button" className={`ge-cat ${on ? 'on' : ''}`} onClick={() => set('category', k)} style={on ? { color: c.txt, borderColor: c.color, background: c.tint } : undefined}>
-                    <span className="cemo">{c.emoji}</span>{c.label}
-                  </button>
+                  <Button
+                    variant="unstyled"
+                    key={k}
+                    type="button"
+                    className={`ge-cat ${on ? 'on' : ''}`}
+                    onClick={() => set('category', k)}
+                    style={
+                      on ? { color: c.txt, borderColor: c.color, background: c.tint } : undefined
+                    }
+                  >
+                    <span className="cemo">
+                      <DataIcon value={c.emoji} kind="goal" />
+                    </span>
+                    {c.label}
+                  </Button>
                 )
               })}
             </div>
@@ -577,57 +973,169 @@ export function GoalCreate({ embed }: { embed?: GoalCreateEmbed } = {}) {
 
             <div className="ge-extra" style={{ display: 'block' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 13 }}>
-                <div className="eic">🌟</div>
-                <div className="etx"><div className="e1">Spotlight &amp; pinned</div><div className="e2">How prominent this goal is on the home screen and goals list</div></div>
+                <div className="eic">
+                  <DataIcon value={'🌟'} kind="goal" />
+                </div>
+                <div className="etx">
+                  <div className="e1">Spotlight &amp; pinned</div>
+                  <div className="e2">
+                    How prominent this goal is on the home screen and goals list
+                  </div>
+                </div>
               </div>
               <div className="ge-share ge-share-3" style={{ display: 'flex', marginTop: 12 }}>
-                <button type="button" className={tier === 'spotlight' ? 'on' : ''} onClick={() => setTier('spotlight')}>🌟 Spotlight</button>
-                <button type="button" className={tier === 'featured' ? 'on' : ''} onClick={() => setTier('featured')}>📌 Pinned</button>
-                <button type="button" className={tier === 'normal' ? 'on' : ''} onClick={() => setTier('normal')}>Normal</button>
+                <Button
+                  variant="unstyled"
+                  type="button"
+                  className={tier === 'spotlight' ? 'on' : ''}
+                  onClick={() => setTier('spotlight')}
+                >
+                  <>
+                    <DataIcon value={'🌟'} kind="goal" />
+                    {' Spotlight'}
+                  </>
+                </Button>
+                <Button
+                  variant="unstyled"
+                  type="button"
+                  className={tier === 'featured' ? 'on' : ''}
+                  onClick={() => setTier('featured')}
+                >
+                  <>
+                    <DataIcon value={'📌'} kind="goal" />
+                    {' Pinned'}
+                  </>
+                </Button>
+                <Button
+                  variant="unstyled"
+                  type="button"
+                  className={tier === 'normal' ? 'on' : ''}
+                  onClick={() => setTier('normal')}
+                >
+                  Normal
+                </Button>
               </div>
-              <div className="ge-sec-h" style={{ marginTop: 6 }}>{tierHint}</div>
+              <div className="ge-sec-h" style={{ marginTop: 6 }}>
+                {tierHint}
+              </div>
               {tier === 'spotlight' && listSpotlight && (
-                <div className="ge-sec-h" style={{ marginTop: 4, fontWeight: 650 }}>Replaces “{listSpotlight.title}” as this list’s spotlight (it becomes Pinned).</div>
+                <div className="ge-sec-h" style={{ marginTop: 4, fontWeight: 650 }}>
+                  Replaces “{listSpotlight.title}” as this list’s spotlight (it becomes Pinned).
+                </div>
               )}
             </div>
 
             <div className="ge-extra">
-              <div className="eic">🏆</div>
-              <div className="etx"><div className="e1">Milestones &amp; rewards</div><div className="e2">Bonus stars at thresholds you set</div></div>
+              <div className="eic">
+                <DataIcon value={'🏆'} kind="goal" />
+              </div>
+              <div className="etx">
+                <div className="e1">Milestones &amp; rewards</div>
+                <div className="e2">Bonus stars at thresholds you set</div>
+              </div>
               <Toggle on={form.hasRewards} onClick={() => set('hasRewards', !form.hasRewards)} />
             </div>
             {form.hasRewards && (
               <div className="ge-ms">
-                <div className="ge-ms-hint">{milestoneHint} Rewards are optional — add one only if you want.</div>
+                <div className="ge-ms-hint">
+                  {milestoneHint} Rewards are optional — add one only if you want.
+                </div>
                 {milestones.map((m, i) => (
                   <div key={i} className="ge-ms-row">
-                    <input className="ge-ms-emoji" value={m.emoji} maxLength={4} aria-label="emoji" onChange={(e) => setMs(i, { emoji: e.target.value })} />
-                    <span className="ge-ms-n"><input value={m.threshold} aria-label="threshold" onChange={(e) => setMs(i, { threshold: Number(e.target.value) || 0, label: e.target.value })} /></span>
-                    <input className="ge-ms-r" value={m.rewardText} placeholder="Add a reward (optional)" onChange={(e) => setMs(i, { rewardText: e.target.value })} />
-                    <button type="button" className="ge-ms-x" aria-label="remove milestone" onClick={() => { msTouched.current = true; setMilestones((ms) => ms.filter((_, j) => j !== i)) }}>✕</button>
+                    <IconPicker
+                      kind="goal"
+                      className="ge-ms-emoji"
+                      value={m.emoji}
+                      aria-label="Icon"
+                      onValueChange={(e) => setMs(i, { emoji: e })}
+                    />
+                    <span className="ge-ms-n">
+                      <Input
+                        value={m.threshold}
+                        aria-label="threshold"
+                        onChange={(e) =>
+                          setMs(i, {
+                            threshold: Number(e.target.value) || 0,
+                            label: e.target.value,
+                          })
+                        }
+                      />
+                    </span>
+                    <Input
+                      className="ge-ms-r"
+                      value={m.rewardText}
+                      placeholder="Add a reward (optional)"
+                      onChange={(e) => setMs(i, { rewardText: e.target.value })}
+                    />
+                    <Button
+                      variant="unstyled"
+                      type="button"
+                      className="ge-ms-x"
+                      aria-label="remove milestone"
+                      onClick={() => {
+                        msTouched.current = true
+                        setMilestones((ms) => ms.filter((_, j) => j !== i))
+                      }}
+                    >
+                      <DataIcon value={'✕'} kind="goal" />
+                    </Button>
                   </div>
                 ))}
-                <button type="button" className="ge-add" onClick={() => { msTouched.current = true; setMilestones((ms) => [...ms, { threshold: 0, emoji: '🎖️', label: '', rewardText: '' }]) }}>＋ Add milestone</button>
+                <Button
+                  variant="unstyled"
+                  type="button"
+                  className="ge-add"
+                  onClick={() => {
+                    msTouched.current = true
+                    setMilestones((ms) => [
+                      ...ms,
+                      { threshold: 0, emoji: '🎖️', label: '', rewardText: '' },
+                    ])
+                  }}
+                >
+                  <>
+                    <DataIcon value={'＋'} kind="reward" />
+                    {' Add milestone'}
+                  </>
+                </Button>
               </div>
             )}
 
             <div className="ge-extra">
-              <div className="eic">🔔</div>
-              <div className="etx"><div className="e1">Weekly check-in</div><div className="e2">Sunday recap on the kiosk</div></div>
-              <Toggle on={form.weeklyCheckIn} onClick={() => set('weeklyCheckIn', !form.weeklyCheckIn)} />
+              <div className="eic">
+                <DataIcon value={'🔔'} kind="goal" />
+              </div>
+              <div className="etx">
+                <div className="e1">Weekly check-in</div>
+                <div className="e2">Sunday recap on the kiosk</div>
+              </div>
+              <Toggle
+                on={form.weeklyCheckIn}
+                onClick={() => set('weeklyCheckIn', !form.weeklyCheckIn)}
+              />
             </div>
 
             {CALENDAR_TYPES.has(form.goalType) && (
               <div className="ge-extra">
-                <div className="eic">📅</div>
-                <div className="etx"><div className="e1">Auto-count from calendar</div><div className="e2">Matching events add progress automatically</div></div>
-                <Toggle on={form.autoFromCalendar} onClick={() => set('autoFromCalendar', !form.autoFromCalendar)} />
+                <div className="eic">
+                  <DataIcon value={'📅'} kind="goal" />
+                </div>
+                <div className="etx">
+                  <div className="e1">Auto-count from calendar</div>
+                  <div className="e2">Matching events add progress automatically</div>
+                </div>
+                <Toggle
+                  on={form.autoFromCalendar}
+                  onClick={() => set('autoFromCalendar', !form.autoFromCalendar)}
+                />
               </div>
             )}
 
-            <div className="ge-foot">Rewards are <b>off by default</b> — goals stay about growth, not points. Turn them on per goal when a little extra motivation helps.</div>
+            <div className="ge-foot">
+              Rewards are <b>off by default</b> — goals stay about growth, not points. Turn them on
+              per goal when a little extra motivation helps.
+            </div>
           </div>
-
         </div>
       </div>
 
@@ -639,18 +1147,59 @@ export function GoalCreate({ embed }: { embed?: GoalCreateEmbed } = {}) {
           {tier !== 'normal' ? (
             <div className="ge-pv-hero">
               <div className="hrow">
-                <div className="hicon">🎯</div>
+                <div className="hicon">
+                  <DataIcon value={'🎯'} kind="goal" />
+                </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <span className="htag">{tier === 'spotlight' ? '🌟 Spotlight' : '📌 Pinned'}{shared ? ' · shared' : ' · each tracks'}</span>
+                  <span className="htag">
+                    {tier === 'spotlight' ? (
+                      <>
+                        <DataIcon value={'🌟'} kind="goal" />
+                        {' Spotlight'}
+                      </>
+                    ) : (
+                      <>
+                        <DataIcon value={'📌'} kind="goal" />
+                        {' Pinned'}
+                      </>
+                    )}
+                    {shared ? ' · shared' : ' · each tracks'}
+                  </span>
                   <div className="htitle">{previewName}</div>
                   <div className="hsub">{subLine}</div>
                 </div>
                 {!isChecklist && (
                   <div className="hring">
                     <svg width={60} height={60} viewBox="0 0 60 60">
-                      <circle cx={30} cy={30} r={25} fill="none" stroke="rgba(255,255,255,.25)" strokeWidth={5} />
-                      <text x={30} y={29} textAnchor="middle" fontFamily="var(--serif)" fontSize={17} fontWeight={600} fill="#fff">0</text>
-                      <text x={30} y={42} textAnchor="middle" fontSize={8.5} fontWeight={700} fill="rgba(255,255,255,.85)">of {form.target}</text>
+                      <circle
+                        cx={30}
+                        cy={30}
+                        r={25}
+                        fill="none"
+                        stroke="rgba(255,255,255,.25)"
+                        strokeWidth={5}
+                      />
+                      <text
+                        x={30}
+                        y={29}
+                        textAnchor="middle"
+                        fontFamily="var(--serif)"
+                        fontSize={17}
+                        fontWeight={600}
+                        fill="#fff"
+                      >
+                        0
+                      </text>
+                      <text
+                        x={30}
+                        y={42}
+                        textAnchor="middle"
+                        fontSize={8.5}
+                        fontWeight={700}
+                        fill="rgba(255,255,255,.85)"
+                      >
+                        of {form.target}
+                      </text>
                     </svg>
                   </div>
                 )}
@@ -659,7 +1208,9 @@ export function GoalCreate({ embed }: { embed?: GoalCreateEmbed } = {}) {
           ) : (
             <div className="ge-pv-card">
               <div className="crow">
-                <div className="cicon">🎯</div>
+                <div className="cicon">
+                  <DataIcon value={'🎯'} kind="goal" />
+                </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div className="ctag">{shared ? 'Shared goal' : 'Each tracks own'}</div>
                   <div className="ctitle">{previewName}</div>
@@ -668,8 +1219,12 @@ export function GoalCreate({ embed }: { embed?: GoalCreateEmbed } = {}) {
               </div>
               {!isChecklist && (
                 <>
-                  <div className="cbar"><div style={{ width: 0 }} /></div>
-                  <div className="cmeta">0 of {form.target} {unit} · just getting started</div>
+                  <div className="cbar">
+                    <div style={{ width: 0 }} />
+                  </div>
+                  <div className="cmeta">
+                    0 of {form.target} {unit} · just getting started
+                  </div>
                 </>
               )}
             </div>
@@ -681,9 +1236,17 @@ export function GoalCreate({ embed }: { embed?: GoalCreateEmbed } = {}) {
               <div className="ge-pv-track">
                 {milestones.slice(0, 4).map((m, i) => (
                   <div key={i} className="ge-pv-node">
-                    <div className="nd">{m.emoji}</div>
+                    <div className="nd">
+                      <DataIcon value={m.emoji} kind="goal" />
+                    </div>
                     <div className="nl">{m.threshold}</div>
-                    <div className="nr">{m.rewardText ? (m.rewardText.length > 16 ? `${m.rewardText.slice(0, 15)}…` : m.rewardText) : '—'}</div>
+                    <div className="nr">
+                      {m.rewardText
+                        ? m.rewardText.length > 16
+                          ? `${m.rewardText.slice(0, 15)}…`
+                          : m.rewardText
+                        : '—'}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -691,8 +1254,12 @@ export function GoalCreate({ embed }: { embed?: GoalCreateEmbed } = {}) {
           )}
 
           <div className="ge-pv-where">
-            <svg viewBox="0 0 24 24"><rect x={3} y={4} width={18} height={14} rx={2} /><path d="M8 20h8M12 18v2" /></svg>
-            {tier === 'spotlight' ? 'The spotlight on the home screen' : tier === 'featured' ? 'Pinned to the top of the goals list' : 'Lives in the goals list'}
+            <Monitor aria-hidden="true" />
+            {tier === 'spotlight'
+              ? 'The spotlight on the home screen'
+              : tier === 'featured'
+                ? 'Pinned to the top of the goals list'
+                : 'Lives in the goals list'}
           </div>
         </div>
       </div>

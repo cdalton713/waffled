@@ -1,3 +1,5 @@
+@reference './ui.css';
+
 /* ===== Lists screen — multi-list, sectioned items (handoff KIOSK_lists) =====
    Layout mirrors the mock: a 236px list rail (YOUR LISTS) + a main column with
    the list header, an add bar, "Waffled suggests" chips, and a two-column grid of
@@ -5,558 +7,579 @@
    .pill, .seg) come from waffled.css; this file only adds the page scaffolding. */
 
 .lists-home {
-  flex: 1;
-  display: grid;
-  grid-template-columns: 236px 1fr;
-  gap: 18px;
-  padding: 2px 30px 26px;
-  min-height: 0;
+  @apply [flex:1];
+  @apply grid;
+  @apply [grid-template-columns:236px_1fr];
+  @apply [gap:18px];
+  @apply [padding:2px_30px_26px];
+  @apply [min-height:0];
 }
 
 /* ----- list rail (sidebar) ----- */
 .lists-rail {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
+  @apply flex;
+  @apply flex-col;
+  @apply [min-height:0];
 }
 .lists-rail-label {
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  color: var(--ink-3);
-  margin: 4px 6px 10px;
+  @apply [font-size:13px];
+  @apply font-extrabold;
+  @apply [letter-spacing:0.05em];
+  @apply [color:var(--ink-3)];
+  @apply [margin:4px_6px_10px];
 }
 .lists-rail-items {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:4px];
 }
 .list-item {
   /* the rail row is interactive; keep the resetbutton look of a div */
-  border: 0;
-  width: 100%;
-  text-align: left;
-  font: inherit;
-  background: transparent;
+  @apply [border:0];
+  @apply [width:100%];
+  @apply text-left;
+  @apply [font:inherit];
+  @apply [background:transparent];
 }
 .list-item .lct.auto {
-  color: var(--ai-d);
+  @apply [color:var(--ai-d)];
 }
 /* the Templates group sits under the New-list button, set off by a hairline */
 .lists-rail-tpl {
-  margin-top: 16px;
-  padding-top: 14px;
-  border-top: 1px solid var(--hair);
+  @apply [margin-top:16px];
+  @apply [padding-top:14px];
+  @apply [border-top:1px_solid_var(--hair)];
 }
 /* "TEMPLATE" pill next to a selected template's name */
 .lists-tpl-badge {
-  margin-left: 10px;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  color: var(--primary-d);
-  background: var(--primary-t);
-  padding: 2px 8px;
-  border-radius: 999px;
-  vertical-align: middle;
+  @apply [margin-left:10px];
+  @apply [font-size:11px];
+  @apply font-extrabold;
+  @apply [letter-spacing:0.05em];
+  @apply [color:var(--primary-d)];
+  @apply [background:var(--primary-t)];
+  @apply [padding:2px_8px];
+  @apply [border-radius:999px];
+  @apply [vertical-align:middle];
 }
 
 /* ----- main column ----- */
 .lists-main {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  min-width: 0;
+  @apply flex;
+  @apply flex-col;
+  @apply [min-height:0];
+  @apply [min-width:0];
 }
 .lists-head {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  margin-bottom: 4px;
+  @apply flex;
+  @apply items-baseline;
+  @apply [gap:10px];
+  @apply [margin-bottom:4px];
 }
 .lists-head-emoji {
-  font-size: 26px;
+  @apply [font-size:26px];
 }
 .lists-head-name {
-  font-size: 24px;
+  @apply [font-size:24px];
 }
 /* Everyone filter · Use template · ⋯ — pinned as one group on the right, all the
    same height so they read as a matched set. */
 .lists-head-actions {
-  margin-left: auto;
-  align-self: center;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  @apply [margin-left:auto];
+  @apply [align-self:center];
+  @apply flex;
+  @apply items-center;
+  @apply [gap:8px];
 }
 .lists-head-actions .pill {
-  height: 36px;
-  padding-top: 0;
-  padding-bottom: 0;
-  font-size: 13px;
-  cursor: pointer;
+  @apply [height:36px];
+  @apply [padding-top:0];
+  @apply [padding-bottom:0];
+  @apply [font-size:13px];
+  @apply cursor-pointer;
 }
 .lists-head .filter-pill {
-  cursor: pointer;
+  @apply cursor-pointer;
 }
 /* The Select toggle carries a distinct coral outline so it's easy to spot among
    the other neutral filter pills (it was hard to find as a plain pill). */
 .lists-select-pill {
-  border: 1.5px solid var(--primary);
-  color: var(--primary-d);
-  font-weight: 700;
+  @apply [border:1.5px_solid_var(--primary)];
+  @apply [color:var(--primary-d)];
+  @apply font-bold;
 }
 .lists-select-pill svg {
-  width: 15px;
-  height: 15px;
+  @apply [width:15px];
+  @apply [height:15px];
 }
 .lists-select-pill.on {
-  background: var(--primary);
-  color: var(--on-accent);
+  @apply [background:var(--primary)];
+  @apply [color:var(--on-accent)];
 }
 /* Search this list — the pantry/recipes search pill, sized to sit in the 36px
    header action row beside the filter pills, with an inline × to clear. */
 .lists-search-wrap {
-  position: relative;
-  flex: none;
-  display: flex;
-  align-items: center;
+  @apply relative;
+  @apply [flex:none];
+  @apply flex;
+  @apply items-center;
 }
 .lists-search {
-  width: 190px;
-  height: 36px;
-  font: inherit;
-  font-size: 13px;
-  padding: 0 30px 0 14px;
-  border-radius: 999px;
-  border: 1px solid var(--control-line);
-  background: var(--card-2);
-  color: var(--ink);
+  @apply [width:190px];
+  @apply [height:36px];
+  @apply [font:inherit];
+  @apply [font-size:13px];
+  @apply [padding:0_30px_0_14px];
+  @apply [border-radius:999px];
+  @apply [border:1px_solid_var(--control-line)];
+  @apply [background:var(--card-2)];
+  @apply [color:var(--ink)];
 }
 .lists-search:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--ring);
+  @apply [outline:none];
+  @apply [border-color:var(--primary)];
+  @apply [box-shadow:0_0_0_3px_var(--ring)];
 }
 .lists-search-clear {
-  position: absolute;
-  right: 8px;
-  border: 0;
-  background: transparent;
-  color: var(--ink-3);
-  font-size: 17px;
-  line-height: 1;
-  padding: 2px 4px;
-  cursor: pointer;
+  @apply absolute;
+  @apply [right:8px];
+  @apply [border:0];
+  @apply [background:transparent];
+  @apply [color:var(--ink-3)];
+  @apply [font-size:17px];
+  @apply [line-height:1];
+  @apply [padding:2px_4px];
+  @apply cursor-pointer;
 }
 .lists-search-clear:hover {
-  color: var(--ink);
+  @apply [color:var(--ink)];
 }
 .lists-hint {
-  font-weight: 600;
-  margin-bottom: 10px;
+  @apply font-semibold;
+  @apply [margin-bottom:10px];
 }
 .lists-addbar {
-  margin: 0 0 14px;
-  max-width: none;
+  @apply [margin:0_0_14px];
+  @apply [max-width:none];
 }
 .lists-addbar input {
-  flex: 1;
-  border: 0;
-  background: transparent;
-  font: inherit;
-  font-size: 15.5px;
-  color: var(--ink);
-  outline: none;
+  @apply [flex:1];
+  @apply [border:0];
+  @apply [background:transparent];
+  @apply [font:inherit];
+  @apply [font-size:15.5px];
+  @apply [color:var(--ink)];
+  @apply [outline:none];
 }
 .lists-addbar input::placeholder {
-  color: var(--ink-3);
+  @apply [color:var(--ink-3)];
 }
 .lists-addbar .ai-spark {
-  cursor: pointer;
-  border: 0;
-  padding: 0;
+  @apply cursor-pointer;
+  @apply [border:0];
+  @apply [padding:0];
 }
 .lists-suggest {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  flex-wrap: wrap;
-  margin-bottom: 16px;
+  @apply flex;
+  @apply items-center;
+  @apply [gap:9px];
+  @apply flex-wrap;
+  @apply [margin-bottom:16px];
 }
 .lists-suggest-label {
-  font-weight: 700;
-  color: var(--ai-d);
+  @apply font-bold;
+  @apply [color:var(--ai-d)];
 }
 .sug-chip {
-  border: 0;
-  font: inherit;
+  @apply [border:0];
+  @apply [font:inherit];
 }
 /* Smaller, chip-sized suggestions (not full-height buttons). */
 .lists-suggest .sug-chip {
-  font-size: 11.5px;
-  padding: 4px 10px;
-  gap: 5px;
+  @apply [font-size:11.5px];
+  @apply [padding:4px_10px];
+  @apply [gap:5px];
 }
 .lists-suggest .sug-chip svg {
-  width: 11px;
-  height: 11px;
+  @apply [width:11px];
+  @apply [height:11px];
 }
 
 /* ----- sectioned item grid ----- */
 .lists-grid {
-  flex: 1;
-  overflow-y: auto;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0 22px;
-  align-content: start;
+  @apply [flex:1];
+  @apply overflow-y-auto;
+  @apply grid;
+  @apply [grid-template-columns:1fr_1fr];
+  @apply [gap:0_22px];
+  @apply [align-content:start];
 }
 .lists-col {
-  min-width: 0;
+  @apply [min-width:0];
 }
 .lists-section {
-  margin-bottom: 14px;
-  border-radius: 12px;
-  transition: box-shadow 0.12s ease, background 0.12s ease;
+  @apply [margin-bottom:14px];
+  @apply [border-radius:12px];
+  @apply [transition:box-shadow_0.12s_ease,_background_0.12s_ease];
 }
 /* Drop target highlight while dragging an item over a section. */
 .lists-section.drag-over {
-  background: var(--panel);
-  box-shadow: inset 0 0 0 2px var(--accent, #8A7DBE);
+  @apply [background:var(--panel)];
+  @apply [box-shadow:inset_0_0_0_2px_var(--accent,_#8A7DBE)];
 }
 .litem[draggable='true'] {
-  cursor: grab;
+  @apply [cursor:grab];
 }
 .litem[draggable='true']:active {
-  cursor: grabbing;
+  @apply [cursor:grabbing];
 }
 .lists-section-title {
-  font-size: 13px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--ink-2);
-  margin: 2px 2px 9px;
+  @apply [font-size:13px];
+  @apply font-extrabold;
+  @apply [text-transform:uppercase];
+  @apply [letter-spacing:0.05em];
+  @apply [color:var(--ink-2)];
+  @apply [margin:2px_2px_9px];
 }
 /* Collapsible regular section header — the title doubles as a full-width toggle. */
 .lists-section-title.lists-section-toggle {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 100%;
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-  padding: 0;
-  text-align: left;
+  @apply flex;
+  @apply items-center;
+  @apply [gap:6px];
+  @apply [width:100%];
+  @apply [border:0];
+  @apply [background:transparent];
+  @apply cursor-pointer;
+  @apply [padding:0];
+  @apply text-left;
 }
 .lists-section-toggle .lists-section-name {
-  flex: 1;
+  @apply [flex:1];
 }
 .lists-section-toggle .ga-n {
-  font-weight: 700;
-  color: var(--ink-3);
+  @apply font-bold;
+  @apply [color:var(--ink-3)];
 }
 /* Add-bar section picker — a compact pill select that keeps its choice across adds. */
 .lists-addbar .lists-addbar-sec {
-  flex: none;
-  max-width: 42%;
-  font-size: 13px;
+  @apply [flex:none];
+  @apply [max-width:42%];
+  @apply [font-size:13px];
 }
 /* Inline "create a new section" input, shown when the picker's New section… is chosen. */
 .lists-secpick-new {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+  @apply inline-flex;
+  @apply items-center;
+  @apply [gap:6px];
 }
 .lists-secpick-input {
-  min-width: 130px;
-  padding: 6px 10px;
-  font-size: 13px;
-  border: 1.5px solid var(--primary);
-  border-radius: 999px;
-  background: var(--card);
-  color: var(--ink);
+  @apply [min-width:130px];
+  @apply [padding:6px_10px];
+  @apply [font-size:13px];
+  @apply [border:1.5px_solid_var(--primary)];
+  @apply [border-radius:999px];
+  @apply [background:var(--card)];
+  @apply [color:var(--ink)];
 }
 .lists-secpick-input:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--ring);
+  @apply [outline:none];
+  @apply [box-shadow:0_0_0_3px_var(--ring)];
 }
 /* Completed section (checked items tuck here — collapsible, matches the grocery board). */
 .lists-completed {
-  margin-top: 10px;
-  grid-column: 1 / -1;
+  @apply [margin-top:10px];
+  @apply [grid-column:1_/_-1];
 }
 .lists-completed-h {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 4px;
-  cursor: pointer;
-  user-select: none;
-  font-weight: 700;
-  font-size: 14px;
-  color: var(--ink-2);
-  border-top: 1px solid var(--hair-2);
+  @apply flex;
+  @apply items-center;
+  @apply [gap:8px];
+  @apply [padding:12px_4px];
+  @apply cursor-pointer;
+  @apply select-none;
+  @apply font-bold;
+  @apply [font-size:14px];
+  @apply [color:var(--ink-2)];
+  @apply [border-top:1px_solid_var(--hair-2)];
 }
 .lists-completed-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 6px;
-  padding-top: 4px;
+  @apply grid;
+  @apply [grid-template-columns:repeat(auto-fill,_minmax(240px,_1fr))];
+  @apply [gap:6px];
+  @apply [padding-top:4px];
 }
 /* "Clear" completed — pushed to the far right of the Completed header. */
 .lists-clear-done {
-  margin-left: auto;
-  font-size: 12.5px;
-  font-weight: 700;
+  @apply [margin-left:auto];
+  @apply [font-size:12.5px];
+  @apply font-bold;
 }
 .lpri {
-  flex: none;
-  margin-right: 5px;
-  font-size: 13px;
-  line-height: 1;
+  @apply [flex:none];
+  @apply [margin-right:5px];
+  @apply [font-size:13px];
+  @apply [line-height:1];
 }
 .litem {
-  cursor: pointer;
+  @apply cursor-pointer;
 }
 .litem .lck {
-  cursor: pointer;
-  display: grid;
-  place-items: center;
+  @apply cursor-pointer;
+  @apply grid;
+  @apply [place-items:center];
 }
 .litem .lav {
-  cursor: pointer;
+  @apply cursor-pointer;
 }
 .lists-empty {
-  color: var(--ink-2);
-  font-weight: 600;
-  padding: 22px 2px;
+  @apply [color:var(--ink-2)];
+  @apply font-semibold;
+  @apply [padding:22px_2px];
 }
 
 /* ----- bulk multi-select ----- */
 .lists-bulkbar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin: 0 0 14px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: var(--panel);
-  box-shadow: inset 0 0 0 1px var(--hair-2);
+  @apply flex;
+  @apply items-center;
+  @apply [gap:10px];
+  @apply flex-wrap;
+  @apply [margin:0_0_14px];
+  @apply [padding:10px_12px];
+  @apply [border-radius:12px];
+  @apply [background:var(--panel)];
+  @apply [box-shadow:inset_0_0_0_1px_var(--hair-2)];
 }
 .lists-bulkbar-n {
-  font-weight: 800;
-  font-size: 13px;
-  color: var(--ink-2);
-  white-space: nowrap;
+  @apply font-extrabold;
+  @apply [font-size:13px];
+  @apply [color:var(--ink-2)];
+  @apply whitespace-nowrap;
 }
 /* Cancel + Done pushed together to the far right; Done is the coral commit. */
 .lists-bulkbar-actions {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  @apply [margin-left:auto];
+  @apply flex;
+  @apply items-center;
+  @apply [gap:8px];
 }
 /* Selection checkbox (distinct from the round completion check) + row highlight. */
 .litem .lck.lsel {
-  width: 20px;
-  height: 20px;
-  border: 2px solid var(--hair-2);
-  border-radius: 6px;
-  background: transparent;
-  flex: none;
+  @apply [width:20px];
+  @apply [height:20px];
+  @apply [border:2px_solid_var(--hair-2)];
+  @apply [border-radius:6px];
+  @apply [background:transparent];
+  @apply [flex:none];
 }
 .litem .lck.lsel.on {
-  background: var(--primary);
-  border-color: var(--primary);
+  @apply [background:var(--primary)];
+  @apply [border-color:var(--primary)];
 }
 .litem.selected {
-  background: color-mix(in srgb, var(--primary) 12%, transparent);
-  border-radius: 8px;
+  @apply [background:color-mix(in_srgb,_var(--primary)_12%,_transparent)];
+  @apply [border-radius:8px];
 }
 
 /* Ambient "added by {name}" attribution on a list item — small, muted, trails
    the item name. Mirrors the grocery board's .gattr (see grocery.css). */
 .lnm .gattr {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  margin-left: 8px;
-  font-size: 11.5px;
-  font-weight: 600;
-  color: var(--ink-3);
-  line-height: 1.2;
+  @apply inline-flex;
+  @apply items-center;
+  @apply [gap:4px];
+  @apply [margin-left:8px];
+  @apply [font-size:11.5px];
+  @apply font-semibold;
+  @apply [color:var(--ink-3)];
+  @apply [line-height:1.2];
 }
 .lnm .gattr-av {
-  display: inline-grid;
-  place-items: center;
-  width: 16px;
-  height: 16px;
-  border-radius: 999px;
-  background: var(--panel);
-  font-size: 10px;
+  @apply [display:inline-grid];
+  @apply [place-items:center];
+  @apply [width:16px];
+  @apply [height:16px];
+  @apply [border-radius:999px];
+  @apply [background:var(--panel)];
+  @apply [font-size:10px];
 }
 
 /* assignee menu (tap an avatar to assign) */
 .assign-menu {
-  position: absolute;
-  z-index: 40;
-  background: var(--card);
-  border-radius: var(--r-md);
-  box-shadow: var(--sh-2);
-  padding: 6px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 168px;
+  @apply absolute;
+  @apply [z-index:40];
+  @apply [background:var(--card)];
+  @apply [border-radius:var(--r-md)];
+  @apply [box-shadow:var(--sh-2)];
+  @apply [padding:6px];
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:2px];
+  @apply [min-width:168px];
 }
 .assign-menu button {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  border: 0;
-  background: transparent;
-  font: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--ink);
-  padding: 8px 10px;
-  border-radius: var(--r-sm);
-  cursor: pointer;
-  text-align: left;
+  @apply flex;
+  @apply items-center;
+  @apply [gap:9px];
+  @apply [border:0];
+  @apply [background:transparent];
+  @apply [font:inherit];
+  @apply [font-size:14px];
+  @apply font-semibold;
+  @apply [color:var(--ink)];
+  @apply [padding:8px_10px];
+  @apply [border-radius:var(--r-sm)];
+  @apply cursor-pointer;
+  @apply text-left;
 }
 .assign-menu button:hover {
-  background: var(--panel);
+  @apply [background:var(--panel)];
 }
 
 /* ----- item rename + delete affordances ----- */
 /* always visible — the kiosk is a touch tablet with no hover */
 .litem-actions {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  opacity: 0.5;
-  transition: opacity 0.12s;
-  flex: none;
+  @apply flex;
+  @apply items-center;
+  @apply [gap:2px];
+  @apply [opacity:0.5];
+  @apply [transition:opacity_0.12s];
+  @apply [flex:none];
 }
 .litem:hover .litem-actions {
-  opacity: 1;
+  @apply [opacity:1];
 }
 .litem-act {
-  width: 26px;
-  height: 26px;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--ink-3);
-  font-size: 15px;
-  line-height: 1;
-  cursor: pointer;
+  @apply [width:26px];
+  @apply [height:26px];
+  @apply [border:0];
+  @apply [border-radius:999px];
+  @apply [background:transparent];
+  @apply [color:var(--ink-3)];
+  @apply [font-size:15px];
+  @apply [line-height:1];
+  @apply cursor-pointer;
 }
 .litem-act:hover {
-  background: var(--panel);
-  color: var(--ink);
+  @apply [background:var(--panel)];
+  @apply [color:var(--ink)];
 }
 .litem-del:hover {
-  color: var(--primary-d);
+  @apply [color:var(--primary-d)];
 }
 .lnm-edit {
-  flex: 1;
-  font: inherit;
-  font-size: 15px;
-  font-weight: 600;
-  padding: 4px 8px;
-  border: 1px solid var(--hair);
-  border-radius: var(--r-sm);
-  background: var(--card);
-  color: var(--ink);
+  @apply [flex:1];
+  @apply [font:inherit];
+  @apply [font-size:15px];
+  @apply font-semibold;
+  @apply [padding:4px_8px];
+  @apply [border:1px_solid_var(--hair)];
+  @apply [border-radius:var(--r-sm)];
+  @apply [background:var(--card)];
+  @apply [color:var(--ink)];
 }
 
 /* ----- assignee / filter menu ----- */
 .filter-wrap {
-  position: relative;
+  @apply relative;
 }
 .filter-pill {
-  cursor: pointer;
+  @apply cursor-pointer;
 }
 .lists-new {
-  margin-top: 14px;
-  justify-content: center;
-  font-size: 13.5px;
-  cursor: pointer;
-  width: 100%;
+  @apply [margin-top:14px];
+  @apply justify-center;
+  @apply [font-size:13.5px];
+  @apply cursor-pointer;
+  @apply [width:100%];
 }
 
 /* ----- item row redesign: the checkbox toggles, the name opens the editor ----- */
 /* checkbox is now a <button>; keep the 22px box look, fill green when checked */
 .litem .lck {
-  padding: 0;
+  @apply [padding:0];
 }
 .litem .lck.on {
-  background: var(--primary);
-  border-color: var(--primary);
+  @apply [background:var(--primary)];
+  @apply [border-color:var(--primary)];
 }
 /* name is a <button> that opens the editor — reset chrome, keep .lnm's type scale */
 .litem .lnm-btn {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 2px 8px;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  font-family: inherit;
-  text-align: left;
-  cursor: pointer;
-  padding: 0;
+  @apply [flex:1];
+  @apply [min-width:0];
+  @apply flex;
+  @apply flex-wrap;
+  @apply items-center;
+  @apply [gap:2px_8px];
+  @apply [border:0];
+  @apply [background:transparent];
+  @apply [color:inherit];
+  @apply [font-family:inherit];
+  @apply text-left;
+  @apply cursor-pointer;
+  @apply [padding:0];
 }
 /* An item's note takes its own line under the name, so it never squeezes the name. */
 .litem .lnm .gattr.lnote {
-  flex-basis: 100%;
-  margin-left: 0;
-  font-weight: 500;
+  @apply [flex-basis:100%];
+  @apply [margin-left:0];
+  @apply font-medium;
 }
 /* checked row stays readable: solid green box + struck, muted label (no full fade) */
 .lists-grid .litem.done {
-  opacity: 1;
+  @apply [opacity:1];
 }
 .lists-grid .litem.done .lnm {
-  text-decoration: none;
+  @apply [text-decoration:none];
 }
 .lists-grid .litem.done .lnm-text {
-  text-decoration: line-through;
-  color: var(--ink-3);
+  @apply [text-decoration:line-through];
+  @apply [color:var(--ink-3)];
 }
 .litem-assign {
-  flex: none;
+  @apply [flex:none];
 }
 /* the ⋯ overflow trigger in the list header */
 .lists-more {
-  min-width: 42px;
-  justify-content: center;
-  font-size: 17px;
-  line-height: 1;
-  cursor: pointer;
+  @apply [min-width:42px];
+  @apply justify-center;
+  @apply [font-size:17px];
+  @apply [line-height:1];
+  @apply cursor-pointer;
 }
 /* Delete is destructive — always red (not just on the confirm tap). Scope under
    .assign-menu to outrank `.assign-menu button { color: var(--ink) }`. */
 .assign-menu .lists-more-del,
 .assign-menu .lists-more-del:hover {
-  color: var(--danger-tx);
+  @apply [color:var(--danger-tx)];
 }
 
 /* Phone: the rail stacks above the list, header actions wrap, items run one column. */
 @media (max-width: 720px) {
-  .lists-home { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; padding: 2px 16px 20px; gap: 14px; }
-  .lists-head { flex-wrap: wrap; row-gap: 10px; }
-  .lists-head-actions { margin-left: 0; flex-wrap: wrap; width: 100%; }
-  .lists-head .lists-search-wrap { flex: 1 1 100%; }
-  .lists-head .lists-search { width: 100%; }
-  .lists-grid { grid-template-columns: minmax(0, 1fr); overflow-y: visible; }
-  .lists-addbar .lists-addbar-sec { max-width: 112px; }
+  .lists-home {
+    @apply [grid-template-columns:minmax(0,_1fr)];
+    @apply [grid-template-rows:auto];
+    @apply [padding:2px_16px_20px];
+    @apply [gap:14px];
+  }
+  .lists-head {
+    @apply flex-wrap;
+    @apply [row-gap:10px];
+  }
+  .lists-head-actions {
+    @apply [margin-left:0];
+    @apply flex-wrap;
+    @apply [width:100%];
+  }
+  .lists-head .lists-search-wrap {
+    @apply [flex:1_1_100%];
+  }
+  .lists-head .lists-search {
+    @apply [width:100%];
+  }
+  .lists-grid {
+    @apply [grid-template-columns:minmax(0,_1fr)];
+    @apply [overflow-y:visible];
+  }
+  .lists-addbar .lists-addbar-sec {
+    @apply [max-width:112px];
+  }
 }

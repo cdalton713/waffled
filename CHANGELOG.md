@@ -60,6 +60,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The web controls keep their Waffled style.** All web screens now use shared shadcn
+  controls with the existing colours, layouts and typefaces. Dialogs and phone navigation
+  support Escape and return focus to the control that opened them.
+- **Lucide icons on web and kiosk.** Buttons and saved icons now use one icon set.
+  Choose an icon from the new picker; existing saved icons remain compatible. Currency
+  symbols can still be text, such as XP or $. Personal notes keep their original text.
+
 - **Easier-to-read colours everywhere.** The palette is retuned so text meets WCAG AA contrast
   in light and dark mode, in the default and Kitchen themes. Coral, blue, green and gold are a
   little deeper. Coloured text and links use darker text shades of each accent. Secondary and

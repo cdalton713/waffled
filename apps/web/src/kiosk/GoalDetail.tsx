@@ -5,12 +5,25 @@ import { LogModal } from './components/LogModal'
 import { EntryModal } from './components/EntryModal'
 import { EventModal } from './components/EventModal'
 import { ReviewList } from './components/GoalRecap'
-import { useGoalDetail, useHousehold, can, api, fmtGoalNum, type GoalMilestone, type GoalLogEntry, goalWeekPlanAmount, goalWeekPlanLabel } from '../lib/api'
+import {
+  useGoalDetail,
+  useHousehold,
+  can,
+  api,
+  fmtGoalNum,
+  type GoalMilestone,
+  type GoalLogEntry,
+  goalWeekPlanAmount,
+  goalWeekPlanLabel,
+} from '../lib/api'
 import { parseGoalDate } from '../lib/goalStats'
 import { useTopbarFull } from './topbar-slot'
 import { CATEGORIES } from './categories'
 import { GoalDataViews } from './goalViews/GoalDataViews'
 import './../styles/goals.css'
+import { Button } from '@/components/ui/button'
+import { DataIcon } from '@/components/ui/data-icon'
+import { Card } from '@/components/ui/card'
 
 const HOUR_UNITS = new Set(['hour', 'hours', 'hr', 'hrs'])
 function pctOf(progress: number, target: number | null): number {
@@ -42,9 +55,28 @@ function Ring({ value, children }: { value: number; children: ReactNode }) {
     <div style={{ position: 'relative', width: 130, height: 130, flex: 'none' }}>
       <svg viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
         <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(255,255,255,.25)" strokeWidth="9" />
-        <circle cx="50" cy="50" r="44" fill="none" stroke="#fff" strokeWidth="9" strokeLinecap="round" strokeDasharray={`${dash} ${C}`} />
+        <circle
+          cx="50"
+          cy="50"
+          r="44"
+          fill="none"
+          stroke="#fff"
+          strokeWidth="9"
+          strokeLinecap="round"
+          strokeDasharray={`${dash} ${C}`}
+        />
       </svg>
-      <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', textAlign: 'center' }}>{children}</div>
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          display: 'grid',
+          placeItems: 'center',
+          textAlign: 'center',
+        }}
+      >
+        {children}
+      </div>
     </div>
   )
 }
@@ -103,12 +135,18 @@ export function GoalDetail() {
   const gType = goal?.goalType
   const gUnit = goal?.unit
   const habitDoneToday =
-    gType === 'habit' && (goal?.participants.length ?? 0) > 0 &&
+    gType === 'habit' &&
+    (goal?.participants.length ?? 0) > 0 &&
     (goal?.participants ?? []).every((p) => goal!.loggedTodayBy.includes(p.personId))
   const logLabel =
-    gType === 'habit' ? (habitDoneToday ? 'Done for today ✓' : '✓ Mark done')
-      : gType === 'count' ? `＋ Add${gUnit ? ` ${gUnit}` : ''}`
-        : gUnit && HOUR_UNITS.has(gUnit.toLowerCase()) ? '＋ Log time'
+    gType === 'habit'
+      ? habitDoneToday
+        ? 'Done for today ✓'
+        : '✓ Mark done'
+      : gType === 'count'
+        ? `＋ Add${gUnit ? ` ${gUnit}` : ''}`
+        : gUnit && HOUR_UNITS.has(gUnit.toLowerCase())
+          ? '＋ Log time'
           : '＋ Log progress'
   const showLog = gType !== 'checklist'
   // "Plan time" is only meaningful when the goal accepts calendar contributions
@@ -121,32 +159,71 @@ export function GoalDetail() {
   useTopbarFull(
     () => (
       <div style={{ display: 'flex', alignItems: 'center', width: '100%', gap: 14 }}>
-        <button className="pill" style={{ cursor: 'pointer' }} onClick={() => backRef.current()}>{backLabel}</button>
+        <Button
+          variant="unstyled"
+          className="pill btn-primary"
+          style={{ cursor: 'pointer' }}
+          onClick={() => backRef.current()}
+        >
+          {backLabel}
+        </Button>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
           {canEdit && (
-            <button className="pill" style={{ cursor: 'pointer' }} onClick={() => navigate(`/goals/${id}/edit`)}>Edit goal</button>
+            <Button
+              variant="unstyled"
+              className="pill btn-primary"
+              style={{ cursor: 'pointer' }}
+              onClick={() => navigate(`/goals/${id}/edit`)}
+            >
+              Edit goal
+            </Button>
           )}
           {canPlan && (
-            <button className="pill" style={{ cursor: 'pointer' }} onClick={() => planRef.current()}>{planLabel}</button>
+            <Button
+              variant="unstyled"
+              className="pill btn-primary"
+              style={{ cursor: 'pointer' }}
+              onClick={() => planRef.current()}
+            >
+              {planLabel}
+            </Button>
           )}
           {showLog && (
-            <button
+            <Button
+              variant="unstyled"
               className="pill btn-primary"
               disabled={habitDoneToday}
-              style={{ color: 'var(--on-accent)', border: 0, cursor: habitDoneToday ? 'default' : 'pointer', opacity: habitDoneToday ? 0.6 : 1 }}
-              onClick={() => { if (!habitDoneToday) logRef.current() }}
+              style={{
+                color: 'var(--on-accent)',
+                border: 0,
+                cursor: habitDoneToday ? 'default' : 'pointer',
+                opacity: habitDoneToday ? 0.6 : 1,
+              }}
+              onClick={() => {
+                if (!habitDoneToday) logRef.current()
+              }}
             >
               {logLabel}
-            </button>
+            </Button>
           )}
         </div>
       </div>
     ),
-    [navigate, id, logLabel, showLog, backLabel, habitDoneToday, canPlan, planLabel, canEdit]
+    [navigate, id, logLabel, showLog, backLabel, habitDoneToday, canPlan, planLabel, canEdit],
   )
 
-  if (loading) return <div className="muted" style={{ padding: 30 }}>Loading…</div>
-  if (error || !goal) return <div className="muted" style={{ padding: 30 }}>This goal isn’t available.</div>
+  if (loading)
+    return (
+      <div className="muted" style={{ padding: 30 }}>
+        Loading…
+      </div>
+    )
+  if (error || !goal)
+    return (
+      <div className="muted" style={{ padding: 30 }}>
+        This goal isn’t available.
+      </div>
+    )
 
   const c = goal.category ? CATEGORIES[goal.category] : null
   const firstUnreached = goal.milestones.findIndex((m) => !m.reached)
@@ -161,15 +238,32 @@ export function GoalDetail() {
   const dProg = isHabit ? goal.periodDone : isChecklist ? stepDone : goal.totalProgress
   // A per-person target ("read 12 EACH") makes the family ring target grow with the
   // household: 12 × members. A family-basis goal uses the flat target as stored.
-  const ringTarget = goal.targetBasis === 'per_person' && goal.target != null
-    ? goal.target * Math.max(1, goal.participants.length)
-    : goal.target
-  const dTarget = isHabit ? goal.habitTargetPerPeriod ?? goal.target : isChecklist ? stepTotal || null : ringTarget
+  const ringTarget =
+    goal.targetBasis === 'per_person' && goal.target != null
+      ? goal.target * Math.max(1, goal.participants.length)
+      : goal.target
+  const dTarget = isHabit
+    ? (goal.habitTargetPerPeriod ?? goal.target)
+    : isChecklist
+      ? stepTotal || null
+      : ringTarget
   const dUnit = isHabit
-    ? goal.habitPeriod === 'day' ? 'today' : goal.habitPeriod === 'month' ? 'this month' : 'this week'
-    : isChecklist ? 'steps' : goal.unit ?? ''
+    ? goal.habitPeriod === 'day'
+      ? 'today'
+      : goal.habitPeriod === 'month'
+        ? 'this month'
+        : 'this week'
+    : isChecklist
+      ? 'steps'
+      : (goal.unit ?? '')
   // The value a milestone threshold is compared against (matches the API's reached).
-  const milestoneAxis = isHabit ? goal.streakDays : isChecklist ? (stepTotal ? (stepDone / stepTotal) * 100 : 0) : goal.totalProgress
+  const milestoneAxis = isHabit
+    ? goal.streakDays
+    : isChecklist
+      ? stepTotal
+        ? (stepDone / stepTotal) * 100
+        : 0
+      : goal.totalProgress
 
   async function toggleStep(stepId: string, done: boolean) {
     setPendingSteps((prev) => ({ ...prev, [stepId]: done })) // flip instantly
@@ -177,7 +271,11 @@ export function GoalDetail() {
       await api.toggleStep(goal!.id, stepId, done)
       refetch() // the reconcile effect clears the override once confirmed
     } catch {
-      setPendingSteps((prev) => { const n = { ...prev }; delete n[stepId]; return n }) // revert
+      setPendingSteps((prev) => {
+        const n = { ...prev }
+        delete n[stepId]
+        return n
+      }) // revert
     }
   }
 
@@ -200,26 +298,58 @@ export function GoalDetail() {
         <div className="detail-hero-row">
           <Ring value={pctOf(dProg, dTarget) / 100}>
             <div>
-              <div className="hero-ring-num" style={{ fontSize: ringNumFont(fmtNum(dProg), 33) }}>{fmtNum(dProg)}</div>
-              <div className="hero-ring-sub">{isHabit ? dUnit : `of ${fmtNum(dTarget)}${isChecklist ? ' steps' : goal.unit ? ` ${goal.unit}` : ''}`}</div>
+              <div className="hero-ring-num" style={{ fontSize: ringNumFont(fmtNum(dProg), 33) }}>
+                {fmtNum(dProg)}
+              </div>
+              <div className="hero-ring-sub">
+                {isHabit
+                  ? dUnit
+                  : `of ${fmtNum(dTarget)}${isChecklist ? ' steps' : goal.unit ? ` ${goal.unit}` : ''}`}
+              </div>
             </div>
           </Ring>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <span className="cat-pill hero-pill">{c ? `${c.emoji} ${c.label}` : '⭐ Featured'}</span>
+            <span className="cat-pill hero-pill">
+              {c ? (
+                <>
+                  {<DataIcon value={c.emoji} kind="goal" />} {c.label}
+                </>
+              ) : (
+                <>
+                  <DataIcon value={'⭐'} kind="goal" />
+                  {' Featured'}
+                </>
+              )}
+            </span>
             <div className="wf-serif detail-hero-title">{goal.title}</div>
             <div className="detail-hero-sub">
               Started {fmtMonthDay(goal.createdAt)} · {pctOf(dProg, dTarget)}% complete
-              {goal.streakDays > 0 ? ` · 🔥 ${goal.streakDays}-day streak` : ''}
+              {goal.streakDays > 0 ? (
+                <>
+                  <>
+                    {' · '}
+                    <DataIcon value={'🔥'} kind="goal" />{' '}
+                  </>
+                  {goal.streakDays}
+                  {'-day streak'}
+                </>
+              ) : (
+                ''
+              )}
               {goal.deadline ? ` · by ${fmtMonthDay(goal.deadline)}` : ''}
             </div>
           </div>
           <div className="detail-week">
             <div className="detail-week-l">THIS WEEK</div>
             <div className="detail-week-n">
-              {currentPlan ? goalWeekPlanAmount(currentPlan, goal.unit) : `${fmtNum(goal.thisWeek)}${goal.unit ? ` ${goal.unit}` : ''}`}
+              {currentPlan
+                ? goalWeekPlanAmount(currentPlan, goal.unit)
+                : `${fmtNum(goal.thisWeek)}${goal.unit ? ` ${goal.unit}` : ''}`}
             </div>
             {laterPlans.map((t) => (
-              <div key={t.weekStart} className="detail-week-next">{goalWeekPlanLabel(t, goal.unit)}</div>
+              <div key={t.weekStart} className="detail-week-next">
+                {goalWeekPlanLabel(t, goal.unit)}
+              </div>
             ))}
           </div>
         </div>
@@ -228,18 +358,32 @@ export function GoalDetail() {
       <div className="detail-cols">
         <div className="detail-col">
           {isChecklist && (
-            <div className="card detail-card">
-              <div className="card-h" style={{ marginBottom: 12 }}>Steps · {stepDone}/{stepTotal}</div>
-              {stepState.length === 0 && <div className="tiny muted" style={{ fontWeight: 600 }}>No steps yet — add some with “Edit goal”.</div>}
+            <Card className="card detail-card">
+              <div className="card-h" style={{ marginBottom: 12 }}>
+                Steps · {stepDone}/{stepTotal}
+              </div>
+              {stepState.length === 0 && (
+                <div className="tiny muted" style={{ fontWeight: 600 }}>
+                  No steps yet — add some with “Edit goal”.
+                </div>
+              )}
               <div className="log-steps">
                 {stepState.map((s) => (
-                  <button key={s.id} type="button" className={`log-step-row ${s.done ? 'done' : ''}`} onClick={() => toggleStep(s.id, !s.done)}>
-                    <span className="log-step-box">{s.done ? '✓' : ''}</span>
+                  <Button
+                    variant="unstyled"
+                    key={s.id}
+                    type="button"
+                    className={`log-step-row ${s.done ? 'done' : ''}`}
+                    onClick={() => toggleStep(s.id, !s.done)}
+                  >
+                    <span className="log-step-box">
+                      {s.done ? <DataIcon value={'✓'} kind="goal" /> : ''}
+                    </span>
                     <span className="log-step-label">{s.label}</span>
-                  </button>
+                  </Button>
                 ))}
               </div>
-            </div>
+            </Card>
           )}
 
           <GoalDataViews goal={goal} />
@@ -249,31 +393,64 @@ export function GoalDetail() {
           {goal.autoFromCalendar && <ReviewList goalId={goal.id} variant="inline" />}
 
           {goal.milestones.length > 0 && (
-            <div className="card detail-card">
-              <div className="card-h" style={{ marginBottom: 18 }}>Milestones</div>
+            <Card className="card detail-card">
+              <div className="card-h" style={{ marginBottom: 18 }}>
+                Milestones
+              </div>
               <div className="mtrack">
                 {goal.milestones.map((m: GoalMilestone, i: number) => {
                   const state = m.reached ? 'done' : i === firstUnreached ? 'now' : ''
                   const toGo = Math.max(0, m.threshold - milestoneAxis)
-                  const toGoLabel = isHabit ? `${fmtNum(toGo)}-day streak to go` : isChecklist ? `${Math.ceil(toGo)}% to go` : `${fmtNum(toGo)} to go`
+                  const toGoLabel = isHabit
+                    ? `${fmtNum(toGo)}-day streak to go`
+                    : isChecklist
+                      ? `${Math.ceil(toGo)}% to go`
+                      : `${fmtNum(toGo)} to go`
                   return (
                     <div key={m.id} className={`mnode ${state}`}>
-                      <div className="mdot2">{m.emoji ?? '⛳'}</div>
+                      <div className="mdot2">
+                        <DataIcon value={m.emoji ?? '⛳'} kind="goal" />
+                      </div>
                       <div className="ml">{m.label}</div>
-                      <div className="mr">{m.reached ? 'reached' : i === firstUnreached ? toGoLabel : m.rewardText || '—'}</div>
+                      <div className="mr">
+                        {m.reached
+                          ? 'reached'
+                          : i === firstUnreached
+                            ? toGoLabel
+                            : m.rewardText || '—'}
+                      </div>
                     </div>
                   )
                 })}
               </div>
-            </div>
+            </Card>
           )}
 
-          <div className="card detail-card">
-            <div className="card-h" style={{ marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+          <Card className="card detail-card">
+            <div
+              className="card-h"
+              style={{
+                marginBottom: 8,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'baseline',
+              }}
+            >
               <span>Recent activity</span>
-              {canEdit && goal.recent.length > 0 && <span className="tiny muted" style={{ fontWeight: 600, textTransform: 'none', letterSpacing: 0 }}>tap to edit</span>}
+              {canEdit && goal.recent.length > 0 && (
+                <span
+                  className="tiny muted"
+                  style={{ fontWeight: 600, textTransform: 'none', letterSpacing: 0 }}
+                >
+                  tap to edit
+                </span>
+              )}
             </div>
-            {goal.recent.length === 0 && <div className="tiny muted" style={{ fontWeight: 600, padding: '8px 0' }}>No activity yet — log some progress.</div>}
+            {goal.recent.length === 0 && (
+              <div className="tiny muted" style={{ fontWeight: 600, padding: '8px 0' }}>
+                No activity yet — log some progress.
+              </div>
+            )}
             {goal.recent.map((r: GoalLogEntry) => {
               // Every row opens the sheet, checklist ticks included — an entry the server
               // owns still takes a note, and the sheet locks the fields it won't accept.
@@ -281,44 +458,71 @@ export function GoalDetail() {
               // back when every edit to such an entry was refused anyway.)
               const editable = canEdit
               return (
-              <div
-                key={r.id}
-                className="logrow"
-                role={editable ? 'button' : undefined}
-                tabIndex={editable ? 0 : undefined}
-                onClick={editable ? () => setEditEntry(r) : undefined}
-                style={editable ? { cursor: 'pointer' } : undefined}
-              >
-                <div className="lwhen">{fmtDay(r.loggedAt)}</div>
-                {r.participants.length > 0 ? (
-                  <AvatarStack members={r.participants} />
-                ) : (
-                  <PersonAv person={{}} />
-                )}
-                <div className="lwhat">{r.note || 'Logged progress'}</div>
-                <div className="lamt">
-                  +{fmtNum(r.amount)}
-                  {goal.unit ? ` ${goal.unit}` : ''}
+                <div
+                  key={r.id}
+                  className="logrow"
+                  role={editable ? 'button' : undefined}
+                  tabIndex={editable ? 0 : undefined}
+                  onClick={editable ? () => setEditEntry(r) : undefined}
+                  style={editable ? { cursor: 'pointer' } : undefined}
+                >
+                  <div className="lwhen">{fmtDay(r.loggedAt)}</div>
+                  {r.participants.length > 0 ? (
+                    <AvatarStack members={r.participants} />
+                  ) : (
+                    <PersonAv person={{}} />
+                  )}
+                  <div className="lwhat">{r.note || 'Logged progress'}</div>
+                  <div className="lamt">
+                    +{fmtNum(r.amount)}
+                    {goal.unit ? ` ${goal.unit}` : ''}
+                  </div>
                 </div>
-              </div>
               )
             })}
-          </div>
+          </Card>
 
           {canEdit && (
-            <button
+            <Button
+              variant="unstyled"
               type="button"
               onClick={del}
-              style={{ alignSelf: 'flex-start', border: 0, background: 'none', color: confirmDel ? 'var(--primary)' : 'var(--ink-3)', fontSize: 13, fontWeight: 700, cursor: 'pointer', padding: '4px 2px' }}
+              style={{
+                alignSelf: 'flex-start',
+                border: 0,
+                background: 'none',
+                color: confirmDel ? 'var(--primary)' : 'var(--ink-3)',
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: 'pointer',
+                padding: '4px 2px',
+              }}
             >
               {confirmDel ? 'Tap again to delete this goal' : 'Delete goal'}
-            </button>
+            </Button>
           )}
         </div>
       </div>
 
-      {editEntry && <EntryModal goal={goal} entry={editEntry} onClose={() => setEditEntry(null)} onSaved={refetch} />}
-      {logging && <LogModal goal={goal} canLogOthers={canManageGoals} selfPersonId={person?.id ?? null} canDelete={canEdit} onClose={() => setLogging(false)} onSaved={refetch} onDeleted={() => navigate('/goals')} />}
+      {editEntry && (
+        <EntryModal
+          goal={goal}
+          entry={editEntry}
+          onClose={() => setEditEntry(null)}
+          onSaved={refetch}
+        />
+      )}
+      {logging && (
+        <LogModal
+          goal={goal}
+          canLogOthers={canManageGoals}
+          selfPersonId={person?.id ?? null}
+          canDelete={canEdit}
+          onClose={() => setLogging(false)}
+          onSaved={refetch}
+          onDeleted={() => navigate('/goals')}
+        />
+      )}
       {planning && (
         <EventModal
           prefill={{

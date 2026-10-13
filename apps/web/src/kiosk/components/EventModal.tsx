@@ -1,13 +1,49 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router'
-import { api, usePersons, useGoals, useRhythms, goalsApi, goalCalendarApi, calendarsApi, mealsApi, localToday, invalidateGetCache, type AgendaEvent, type CalendarLink, type GoalStep } from '../../lib/api'
+import {
+  api,
+  usePersons,
+  useGoals,
+  useRhythms,
+  goalsApi,
+  goalCalendarApi,
+  calendarsApi,
+  mealsApi,
+  localToday,
+  invalidateGetCache,
+  type AgendaEvent,
+  type CalendarLink,
+  type GoalStep,
+} from '../../lib/api'
 import { suggestGoalForEvent } from '../../lib/goal-match'
 import { Icon } from '../icons'
-import { createEventLocal, updateEventLocal, deleteEventLocal, tombstoneEvent } from '../../lib/powersync/events-local'
-import { parseRepeat, buildRrule, describeRrule, weekdayCode, nthWeekdayOfMonth, type RepeatFreq, type CustomUnit, type MonthlyMode } from './recurrence'
+import {
+  createEventLocal,
+  updateEventLocal,
+  deleteEventLocal,
+  tombstoneEvent,
+} from '../../lib/powersync/events-local'
+import {
+  parseRepeat,
+  buildRrule,
+  describeRrule,
+  weekdayCode,
+  nthWeekdayOfMonth,
+  type RepeatFreq,
+  type CustomUnit,
+  type MonthlyMode,
+} from './recurrence'
 import { WeekdayChips } from './WeekdayChips'
 import { EventWhenField } from './EventWhenField'
 import { allDayExclusiveEnd, allDayLastDay } from './event-when'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { NativeSelect } from '@/components/ui/native-select'
+import { DataIcon } from '@/components/ui/data-icon'
+import { SelectField } from '@/components/ui/select-field'
+import { Modal } from '@/components/ui/modal'
+import { Checkbox } from '@/components/ui/checkbox'
 
 // Scope of an edit/delete to a recurring event, surfaced via a small chooser.
 type EditScope = 'this' | 'following' | 'all'
@@ -143,14 +179,18 @@ export function EventModal({
   const calendarGoals = goals.filter(
     (g) =>
       g.autoFromCalendar &&
-      (g.goalType === 'total' || g.goalType === 'count' || g.goalType === 'habit' || g.goalType === 'checklist')
+      (g.goalType === 'total' ||
+        g.goalType === 'count' ||
+        g.goalType === 'habit' ||
+        g.goalType === 'checklist'),
   )
   const [form, setForm] = useState(() => initialForm(event, date, time, prefill))
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
   const wasRecurring = !!event?.rrule || !!event?.occurrenceStart
   const [confirmDelete, setConfirmDelete] = useState(false)
-  const set = <K extends keyof typeof form>(k: K, v: (typeof form)[K]) => setForm((f) => ({ ...f, [k]: v }))
+  const set = <K extends keyof typeof form>(k: K, v: (typeof form)[K]) =>
+    setForm((f) => ({ ...f, [k]: v }))
 
   // Recurrence picker state. The end condition (Never / on a date / after N) is
   // separate: COUNT rides in the rrule, an end date rides in recurrenceEndAt. We
@@ -158,15 +198,19 @@ export function EventModal({
   // cleanly, then re-apply it from the end picker.
   const initialRrule = event?.rrule ?? null
   const initialRecurrenceEndAt = event?.recurrenceEndAt ?? null
-  const initialCount = initialRrule ? /;?COUNT=(\d+)/i.exec(initialRrule)?.[1] ?? null : null
+  const initialCount = initialRrule ? (/;?COUNT=(\d+)/i.exec(initialRrule)?.[1] ?? null) : null
   const [repeat, setRepeat] = useState(() => parseRepeat(initialRrule?.replace(/;?COUNT=\d+/i, '')))
   const [endMode, setEndMode] = useState<'never' | 'on' | 'after'>(
-    initialCount ? 'after' : initialRecurrenceEndAt ? 'on' : 'never'
+    initialCount ? 'after' : initialRecurrenceEndAt ? 'on' : 'never',
   )
-  const [until, setUntil] = useState(() => (initialRecurrenceEndAt ? localDateInput(initialRecurrenceEndAt) : ''))
+  const [until, setUntil] = useState(() =>
+    initialRecurrenceEndAt ? localDateInput(initialRecurrenceEndAt) : '',
+  )
   const [count, setCount] = useState(initialCount ? Number(initialCount) : 10)
   const [originalRrule, setOriginalRrule] = useState<string | null>(initialRrule)
-  const [originalRecurrenceEndAt, setOriginalRecurrenceEndAt] = useState<string | null>(initialRecurrenceEndAt)
+  const [originalRecurrenceEndAt, setOriginalRecurrenceEndAt] = useState<string | null>(
+    initialRecurrenceEndAt,
+  )
   const [seriesReady, setSeriesReady] = useState(!wasRecurring || !!initialRrule)
   const [seriesLoading, setSeriesLoading] = useState(wasRecurring && !initialRrule)
   const [seriesLoadError, setSeriesLoadError] = useState<string | null>(null)
@@ -181,7 +225,8 @@ export function EventModal({
     let alive = true
     setSeriesReady(false)
     setSeriesLoading(true)
-    void api.event(event.seriesId ?? event.id)
+    void api
+      .event(event.seriesId ?? event.id)
       .then(({ event: master }) => {
         if (!alive) return
         if (!master.rrule) throw new Error('Recurring series metadata is unavailable')
@@ -207,11 +252,15 @@ export function EventModal({
       })
       .catch(() => {
         if (!alive) return
-        setSeriesLoadError('Could not load this repeating series. Check your connection and try again.')
+        setSeriesLoadError(
+          'Could not load this repeating series. Check your connection and try again.',
+        )
         setSeriesReady(false)
         setSeriesLoading(false)
       })
-    return () => { alive = false }
+    return () => {
+      alive = false
+    }
   }, [event, initialRrule, seriesLoadAttempt, wasRecurring])
 
   // The event's start, used for the default weekly day and monthly nth-weekday.
@@ -219,7 +268,8 @@ export function EventModal({
   const weekday = weekdayCode(startDate)
   const baseRrule = buildRrule(repeat, startDate)
   // COUNT lives in the rule; an end date is passed separately as recurrenceEndAt.
-  const rrule = baseRrule && endMode === 'after' && count > 0 ? `${baseRrule};COUNT=${count}` : baseRrule
+  const rrule =
+    baseRrule && endMode === 'after' && count > 0 ? `${baseRrule};COUNT=${count}` : baseRrule
   const recurrenceEndAt = endMode === 'on' && until ? toIso(until, '23:59') : null
   const ruleSummary = (() => {
     const s = describeRrule(rrule, startDate)
@@ -233,16 +283,16 @@ export function EventModal({
         ? [event.personId]
         : []
     : []
-  const hasSeriesOnlyChanges = !!event && (
-    form.allDay !== event.allDay ||
-    form.isCountdown !== (event.isCountdown ?? false) ||
-    !sameIds(form.participantIds, originalParticipantIds) ||
-    form.goalId !== (event.goalId ?? '') ||
-    form.goalStepId !== (event.goalStepId ?? '') ||
-    form.rhythmId !== (event.rhythmId ?? '') ||
-    rrule !== originalRrule ||
-    !sameInstant(recurrenceEndAt, originalRecurrenceEndAt)
-  )
+  const hasSeriesOnlyChanges =
+    !!event &&
+    (form.allDay !== event.allDay ||
+      form.isCountdown !== (event.isCountdown ?? false) ||
+      !sameIds(form.participantIds, originalParticipantIds) ||
+      form.goalId !== (event.goalId ?? '') ||
+      form.goalStepId !== (event.goalStepId ?? '') ||
+      form.rhythmId !== (event.rhythmId ?? '') ||
+      rrule !== originalRrule ||
+      !sameInstant(recurrenceEndAt, originalRecurrenceEndAt))
 
   // "Counts toward" is gated on who's attending: with nobody selected there's
   // nothing to attribute, so the picker is hidden. Once people are chosen, only
@@ -283,7 +333,9 @@ export function EventModal({
       .goal(form.goalId)
       // Offer the steps still to do — plus, when editing, the one already linked
       // (even if done) so the current selection stays visible.
-      .then((d) => alive && setSteps(d.goal.steps.filter((s) => !s.done || s.id === form.goalStepId)))
+      .then(
+        (d) => alive && setSteps(d.goal.steps.filter((s) => !s.done || s.id === form.goalStepId)),
+      )
       .catch(() => alive && setSteps([]))
     return () => {
       alive = false
@@ -294,7 +346,8 @@ export function EventModal({
   // Drop a stale step when the goal changes to a non-checklist or a different one.
   useEffect(() => {
     if (!isChecklistGoal && form.goalStepId) set('goalStepId', '')
-    else if (form.goalStepId && steps.length && !steps.some((s) => s.id === form.goalStepId)) set('goalStepId', '')
+    else if (form.goalStepId && steps.length && !steps.some((s) => s.id === form.goalStepId))
+      set('goalStepId', '')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isChecklistGoal, steps])
 
@@ -312,7 +365,13 @@ export function EventModal({
   const [autoLinkedId, setAutoLinkedId] = useState<string | null>(null)
   // Instant client-side keyword/concept match — no network, shows immediately.
   const suggestion = useMemo(() => {
-    if (userTouchedGoal || form.goalId || form.participantIds.length === 0 || form.title.trim().length < 3) return null
+    if (
+      userTouchedGoal ||
+      form.goalId ||
+      form.participantIds.length === 0 ||
+      form.title.trim().length < 3
+    )
+      return null
     const g = suggestGoalForEvent(form.title, null, form.participantIds, calendarGoals)
     return g && !dismissed.has(g.id) ? g : null
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -336,7 +395,12 @@ export function EventModal({
   // has taught us it means "Get active"). The instant client chip shows meanwhile;
   // an `auto` result pre-links and overrides it.
   useEffect(() => {
-    if (userTouchedGoal || form.goalId || form.participantIds.length === 0 || form.title.trim().length < 3) {
+    if (
+      userTouchedGoal ||
+      form.goalId ||
+      form.participantIds.length === 0 ||
+      form.title.trim().length < 3
+    ) {
       setLlmSug(null)
       setLlmThinking(false)
       setSearchedEmpty(false)
@@ -347,7 +411,9 @@ export function EventModal({
     const ctrl = new AbortController()
     // auto → pre-link (override the instant chip). Non-auto → only fill the chip
     // when the instant client matcher found nothing (keep instant display for hits).
-    const apply = (s: { goalId: string; goalTitle: string; goalEmoji: string | null; auto: boolean } | null) => {
+    const apply = (
+      s: { goalId: string; goalTitle: string; goalEmoji: string | null; auto: boolean } | null,
+    ) => {
       if (!alive || userTouchedGoalRef.current) return
       if (s?.auto) {
         set('goalId', s.goalId)
@@ -382,7 +448,10 @@ export function EventModal({
     }, 10000)
     const timer = setTimeout(async () => {
       try {
-        const { suggestion: s } = await goalCalendarApi.suggestOne({ title: form.title.trim(), participantIds: form.participantIds }, ctrl.signal)
+        const { suggestion: s } = await goalCalendarApi.suggestOne(
+          { title: form.title.trim(), participantIds: form.participantIds },
+          ctrl.signal,
+        )
         settled = true
         clearTimeout(cap)
         llmCache.current.set(key, s)
@@ -421,7 +490,7 @@ export function EventModal({
   // the selected goal and the person hasn't overridden it.
   const autoLinkedGoal =
     autoLinkedId && form.goalId === autoLinkedId && !userTouchedGoal
-      ? calendarGoals.find((g) => g.id === autoLinkedId) ?? null
+      ? (calendarGoals.find((g) => g.id === autoLinkedId) ?? null)
       : null
 
   // For a planned-meal event, resolve its recipe so we can offer "View recipe".
@@ -430,8 +499,13 @@ export function EventModal({
   useEffect(() => {
     if (!isMeal || !event?.originRefId) return
     let alive = true
-    mealsApi.entry(event.originRefId).then((r) => alive && setRecipeId(r.recipeId)).catch(() => {})
-    return () => { alive = false }
+    mealsApi
+      .entry(event.originRefId)
+      .then((r) => alive && setRecipeId(r.recipeId))
+      .catch(() => {})
+    return () => {
+      alive = false
+    }
   }, [isMeal, event?.originRefId])
 
   // Calendar picker (create only): which Google calendar the event is written to.
@@ -518,9 +592,7 @@ export function EventModal({
         // A single occurrence has a deliberately narrow override schema. A split
         // creates a complete new master, so following/all carry every series field.
         await api.updateEvent(event!.seriesId ?? event!.id, {
-          ...(scope === 'this'
-            ? occurrencePayload
-            : { ...restPayload, rrule, recurrenceEndAt }),
+          ...(scope === 'this' ? occurrencePayload : { ...restPayload, rrule, recurrenceEndAt }),
           scope,
           occurrenceStart: event!.occurrenceStart,
         })
@@ -562,11 +634,14 @@ export function EventModal({
       // Prefer the local DB (instant, offline-capable); fall back to REST when
       // PowerSync isn't running.
       if (editing) {
-        if (!(await updateEventLocal(event!.id, draft))) await api.updateEvent(event!.id, restPayload)
+        if (!(await updateEventLocal(event!.id, draft)))
+          await api.updateEvent(event!.id, restPayload)
         invalidateGetCache(`/api/events/${event!.id}/insight`)
       } else {
         if (!(await createEventLocal({ ...draft, calendarId: chosenCal }))) {
-          await api.createEvent(ownerCals.length > 1 ? { ...restPayload, calendarId: chosenCal } : restPayload)
+          await api.createEvent(
+            ownerCals.length > 1 ? { ...restPayload, calendarId: chosenCal } : restPayload,
+          )
         }
       }
       // The week digest reflects this event — refresh it next time it's shown.
@@ -585,7 +660,10 @@ export function EventModal({
       if (scope === 'all') {
         await api.deleteEvent(event!.seriesId ?? event!.id)
       } else {
-        await api.deleteEvent(event!.seriesId ?? event!.id, { scope, occurrenceStart: event!.occurrenceStart })
+        await api.deleteEvent(event!.seriesId ?? event!.id, {
+          scope,
+          occurrenceStart: event!.occurrenceStart,
+        })
       }
       invalidateGetCache('/api/calendar/heads-up')
       onSaved()
@@ -636,11 +714,17 @@ export function EventModal({
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <Modal className="modal-overlay" onClose={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 420 }}>
-        <button type="button" className="modal-close" aria-label="Close" onClick={onClose}>
-          ×
-        </button>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="modal-close"
+          aria-label="Close"
+          onClick={onClose}
+        >
+          <DataIcon value={'×'} kind="calendar" />
+        </Button>
         <div className="wf-serif" style={{ fontSize: 22, fontWeight: 600, marginBottom: 14 }}>
           {editing ? (isMeal ? 'Planned meal' : 'Edit event') : 'New event'}
         </div>
@@ -662,57 +746,88 @@ export function EventModal({
             }}
           >
             <span style={{ flex: 1 }}>{seriesLoadError}</span>
-            <button
+            <Button
+              variant="ghost"
               type="button"
-              className="btn btn-ghost"
+
               disabled={seriesLoading}
               onClick={() => setSeriesLoadAttempt((attempt) => attempt + 1)}
               style={{ flexShrink: 0, padding: '7px 11px', fontSize: 13 }}
             >
               {seriesLoading ? 'Trying…' : 'Try again'}
-            </button>
+            </Button>
           </div>
         )}
 
         {saveError && (
-          <div role="alert" style={{ marginBottom: 14, color: 'var(--primary)', fontSize: 14, fontWeight: 650 }}>
+          <div
+            role="alert"
+            style={{ marginBottom: 14, color: 'var(--primary)', fontSize: 14, fontWeight: 650 }}
+          >
             {saveError}
           </div>
         )}
 
         {isMeal && recipeId && (
-          <button
+          <Button
+            variant="default"
             type="button"
-            className="btn btn-primary"
+
             style={{ width: '100%', justifyContent: 'center', marginBottom: 14 }}
-            onClick={() => { onClose(); navigate(`/meals/recipe/${recipeId}`) }}
+            onClick={() => {
+              onClose()
+              navigate(`/meals/recipe/${recipeId}`)
+            }}
           >
-            📖 View recipe
-          </button>
+            <>
+              <DataIcon value={'📖'} kind="meal" />
+              {' View recipe'}
+            </>
+          </Button>
         )}
 
         <form onSubmit={submit}>
-          <label className="field">
+          <Label className="field">
             <span>Title</span>
-            <input value={form.title} onChange={(e) => set('title', e.target.value)} placeholder="Soccer practice" autoFocus />
-          </label>
+            <Input
+              value={form.title}
+              onChange={(e) => set('title', e.target.value)}
+              placeholder="Soccer practice"
+              autoFocus
+            />
+          </Label>
 
           <EventWhenField
-            value={{ day: form.day, time: form.time, durationMin: form.durationMin, allDay: form.allDay, lastDay: form.lastDay }}
+            value={{
+              day: form.day,
+              time: form.time,
+              durationMin: form.durationMin,
+              allDay: form.allDay,
+              lastDay: form.lastDay,
+            }}
             onChange={(when) => setForm((f) => ({ ...f, ...when }))}
           />
 
-          <label className="field" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <input type="checkbox" checked={form.isCountdown} onChange={(e) => set('isCountdown', e.target.checked)} style={{ width: 'auto' }} />
-            <span style={{ margin: 0 }}>⏳ Show a countdown (build anticipation)</span>
-          </label>
+          <Label className="field" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Checkbox
+              checked={form.isCountdown}
+              onCheckedChange={(e) => set('isCountdown', e === true)}
+              style={{ width: 'auto' }}
+            />
+            <span style={{ margin: 0 }}>
+              <>
+                <DataIcon value={'⏳'} kind="calendar" />
+                {' Show a countdown (build anticipation)'}
+              </>
+            </span>
+          </Label>
 
           {/* One box for the whole repeat rule — frequency, the custom builder, and
               the end condition are all facets of the same thing, so they live
               together rather than in separate cards. */}
           <div className="field">
             <span>Repeats</span>
-            <select
+            <NativeSelect
               value={repeat.freq}
               onChange={(e) => setRepeat((r) => ({ ...r, freq: e.target.value as RepeatFreq }))}
               style={{ width: '100%' }}
@@ -722,13 +837,17 @@ export function EventModal({
                   {o.label}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
 
             {/* Weekly preset → which days (defaults to the event's own weekday). */}
             {repeat.freq === 'weekly' && (
               <div className="rep-grp">
                 <span className="rep-sub">On days</span>
-                <WeekdayChips value={repeat.byday} weekday={weekday} onChange={(next) => setRepeat((r) => ({ ...r, byday: next }))} />
+                <WeekdayChips
+                  value={repeat.byday}
+                  weekday={weekday}
+                  onChange={(next) => setRepeat((r) => ({ ...r, byday: next }))}
+                />
               </div>
             )}
 
@@ -739,18 +858,22 @@ export function EventModal({
               <div className="rep-grp">
                 <span className="rep-sub">Repeat every</span>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <input
+                  <Input
                     type="number"
                     min={1}
                     max={99}
                     value={repeat.interval}
-                    onChange={(e) => setRepeat((r) => ({ ...r, interval: clampInterval(e.target.value) }))}
+                    onChange={(e) =>
+                      setRepeat((r) => ({ ...r, interval: clampInterval(e.target.value) }))
+                    }
                     aria-label="Interval"
                     style={{ width: 76 }}
                   />
-                  <select
+                  <NativeSelect
                     value={repeat.unit}
-                    onChange={(e) => setRepeat((r) => ({ ...r, unit: e.target.value as CustomUnit }))}
+                    onChange={(e) =>
+                      setRepeat((r) => ({ ...r, unit: e.target.value as CustomUnit }))
+                    }
                     aria-label="Unit"
                     style={{ flex: 1 }}
                   >
@@ -758,31 +881,46 @@ export function EventModal({
                     <option value="week">{repeat.interval === 1 ? 'week' : 'weeks'}</option>
                     <option value="month">{repeat.interval === 1 ? 'month' : 'months'}</option>
                     <option value="year">{repeat.interval === 1 ? 'year' : 'years'}</option>
-                  </select>
+                  </NativeSelect>
                 </div>
 
                 {repeat.unit === 'week' && (
                   <div style={{ marginTop: 10 }}>
-                    <WeekdayChips value={repeat.byday} weekday={weekday} onChange={(next) => setRepeat((r) => ({ ...r, byday: next }))} />
+                    <WeekdayChips
+                      value={repeat.byday}
+                      weekday={weekday}
+                      onChange={(next) => setRepeat((r) => ({ ...r, byday: next }))}
+                    />
                   </div>
                 )}
 
                 {repeat.unit === 'month' && (
-                  <select
+                  <NativeSelect
                     value={repeat.monthlyMode}
-                    onChange={(e) => setRepeat((r) => ({ ...r, monthlyMode: e.target.value as MonthlyMode }))}
+                    onChange={(e) =>
+                      setRepeat((r) => ({ ...r, monthlyMode: e.target.value as MonthlyMode }))
+                    }
                     aria-label="Monthly pattern"
                     style={{ marginTop: 10, width: '100%' }}
                   >
                     <option value="day">On day {startDate.getDate()}</option>
-                    <option value="weekday">On the {ORDINAL_LABEL[nthWeekdayOfMonth(startDate)] ?? `${nthWeekdayOfMonth(startDate)}th`} {FULL_WEEKDAY[startDate.getDay()]}</option>
-                    <option value="lastWeekday">On the last {FULL_WEEKDAY[startDate.getDay()]}</option>
-                  </select>
+                    <option value="weekday">
+                      On the{' '}
+                      {ORDINAL_LABEL[nthWeekdayOfMonth(startDate)] ??
+                        `${nthWeekdayOfMonth(startDate)}th`}{' '}
+                      {FULL_WEEKDAY[startDate.getDay()]}
+                    </option>
+                    <option value="lastWeekday">
+                      On the last {FULL_WEEKDAY[startDate.getDay()]}
+                    </option>
+                  </NativeSelect>
                 )}
 
                 <details style={{ marginTop: 10 }}>
-                  <summary style={{ cursor: 'pointer', fontSize: 13, color: 'var(--ink-2)' }}>Advanced (raw RRULE)</summary>
-                  <input
+                  <summary style={{ cursor: 'pointer', fontSize: 13, color: 'var(--ink-2)' }}>
+                    Advanced (raw RRULE)
+                  </summary>
+                  <Input
                     style={{ marginTop: 8 }}
                     value={repeat.custom}
                     onChange={(e) => setRepeat((r) => ({ ...r, custom: e.target.value }))}
@@ -797,22 +935,35 @@ export function EventModal({
             {repeat.freq !== 'none' && (
               <div className="rep-grp">
                 <span className="rep-sub">Ends</span>
-                <select value={endMode} onChange={(e) => setEndMode(e.target.value as 'never' | 'on' | 'after')} style={{ width: '100%' }}>
+                <NativeSelect
+                  value={endMode}
+                  onChange={(e) => setEndMode(e.target.value as 'never' | 'on' | 'after')}
+                  style={{ width: '100%' }}
+                >
                   <option value="never">Never</option>
                   <option value="on">On a date</option>
                   <option value="after">After a number of times</option>
-                </select>
+                </NativeSelect>
                 {endMode === 'on' && (
-                  <input type="date" value={until} onChange={(e) => setUntil(e.target.value)} style={{ marginTop: 8 }} />
+                  <Input
+                    type="date"
+                    value={until}
+                    onChange={(e) => setUntil(e.target.value)}
+                    style={{ marginTop: 8 }}
+                  />
                 )}
                 {endMode === 'after' && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
-                    <input
+                    <Input
                       type="number"
                       min={1}
                       max={730}
                       value={count}
-                      onChange={(e) => setCount(Math.max(1, Math.min(730, Math.round(Number(e.target.value) || 1))))}
+                      onChange={(e) =>
+                        setCount(
+                          Math.max(1, Math.min(730, Math.round(Number(e.target.value) || 1))),
+                        )
+                      }
                       aria-label="Number of occurrences"
                       style={{ width: 76 }}
                     />
@@ -823,7 +974,14 @@ export function EventModal({
             )}
 
             {/* One live plain-English summary for the whole rule, at the bottom. */}
-            {repeat.freq !== 'none' && <div className="tiny muted rep-summary">↻ {ruleSummary}</div>}
+            {repeat.freq !== 'none' && (
+              <div className="tiny muted rep-summary">
+                <>
+                  <DataIcon value={'↻'} kind="calendar" />{' '}
+                </>
+                {ruleSummary}
+              </div>
+            )}
           </div>
 
           <div className="field">
@@ -833,13 +991,16 @@ export function EventModal({
                 const on = form.participantIds.includes(p.id)
                 const color = p.colorHex ?? '#6B6B70'
                 return (
-                  <button
+                  <Button
+                    variant="unstyled"
                     type="button"
                     key={p.id}
                     onClick={() =>
                       set(
                         'participantIds',
-                        on ? form.participantIds.filter((x) => x !== p.id) : [...form.participantIds, p.id]
+                        on
+                          ? form.participantIds.filter((x) => x !== p.id)
+                          : [...form.participantIds, p.id],
                       )
                     }
                     style={{
@@ -858,8 +1019,8 @@ export function EventModal({
                       cursor: 'pointer',
                     }}
                   >
-                    {p.avatarEmoji ?? '🙂'} {p.name}
-                  </button>
+                    <DataIcon value={p.avatarEmoji ?? '🙂'} kind="person" /> {p.name}
+                  </Button>
                 )
               })}
             </div>
@@ -868,12 +1029,12 @@ export function EventModal({
           {/* Only worth choosing when the owner has more than one calendar; with
               a single one we just use it. */}
           {!editing && ownerCals.length > 1 && (
-            <label className="field">
+            <Label className="field">
               <span>Calendar</span>
-              <select
+              <SelectField
                 value={calendarId}
-                onChange={(e) => {
-                  setCalendarId(e.target.value)
+                onValueChange={(e) => {
+                  setCalendarId(e)
                   setCalTouched(true)
                 }}
                 style={{ width: '100%' }}
@@ -881,52 +1042,86 @@ export function EventModal({
                 {ownerCals.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.summary ?? 'Calendar'}
-                    {c.isWriteTarget ? ' ★' : ''}
+                    {c.isWriteTarget ? (
+                      <>
+                        {' '}
+                        <DataIcon value={'★'} kind="calendar" />
+                      </>
+                    ) : (
+                      ''
+                    )}
                   </option>
                 ))}
-              </select>
-            </label>
+              </SelectField>
+            </Label>
           )}
 
-          <label className="field">
+          <Label className="field">
             <span>Location (optional)</span>
-            <input value={form.location} onChange={(e) => set('location', e.target.value)} placeholder="Field 3" />
-          </label>
+            <Input
+              value={form.location}
+              onChange={(e) => set('location', e.target.value)}
+              placeholder="Field 3"
+            />
+          </Label>
 
           {/* Smart suggestion — an untagged event that looks like a goal. The
               instant keyword match shows immediately; if it found nothing we ask
               the AI (spark bounces while it thinks). One tap links it; ✕ dismisses. */}
           {!shownSuggestion && llmThinking && (
             <div className="ev-suggest ev-suggest-thinking">
-              <span className="ai-spark thinking"><Icon name="spark" /></span>
+              <span className="ai-spark thinking">
+                <Icon name="spark" />
+              </span>
               <span className="ev-suggest-txt">Looking for a goal this counts toward…</span>
             </div>
           )}
           {/* Searched, nothing fit — say so (and let them pick below) instead of
               the spinner just disappearing. Only when there were goals to match. */}
-          {!shownSuggestion && !autoLinkedGoal && !llmThinking && searchedEmpty && relevantGoals.length > 0 && (
-            <div className="ev-suggest ev-suggest-none">
-              <span className="ev-suggest-txt muted">No matching goal — pick one below if it counts.</span>
-            </div>
-          )}
+          {!shownSuggestion &&
+            !autoLinkedGoal &&
+            !llmThinking &&
+            searchedEmpty &&
+            relevantGoals.length > 0 && (
+              <div className="ev-suggest ev-suggest-none">
+                <span className="ev-suggest-txt muted">
+                  No matching goal — pick one below if it counts.
+                </span>
+              </div>
+            )}
           {shownSuggestion && (
             <div className="ev-suggest">
-              <span className="ai-spark"><Icon name="spark" /></span>
+              <span className="ai-spark">
+                <Icon name="spark" />
+              </span>
               <span className="ev-suggest-txt">
                 Looks like this counts toward{' '}
-                <b>{shownSuggestion.emoji ? `${shownSuggestion.emoji} ` : ''}{shownSuggestion.title}</b>
+                <b>
+                  {shownSuggestion.emoji ? (
+                    <>{<DataIcon value={shownSuggestion.emoji} kind="calendar" />} </>
+                  ) : (
+                    ''
+                  )}
+                  {shownSuggestion.title}
+                </b>
               </span>
-              <button type="button" className="ev-suggest-link" onClick={() => set('goalId', shownSuggestion.id)}>
+              <Button
+                variant="unstyled"
+                type="button"
+                className="ev-suggest-link"
+                onClick={() => set('goalId', shownSuggestion.id)}
+              >
                 Link
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="unstyled"
                 type="button"
                 className="ev-suggest-x"
                 aria-label="Dismiss suggestion"
                 onClick={() => setDismissed((d) => new Set(d).add(shownSuggestion.id))}
               >
-                ✕
-              </button>
+                <DataIcon value={'✕'} kind="calendar" />
+              </Button>
             </div>
           )}
 
@@ -938,20 +1133,31 @@ export function EventModal({
               It's a normal selection — change it (or pick "No goal") to override. */}
           {autoLinkedGoal && (
             <div className="ev-suggest ev-suggest-auto">
-              <span className="ai-spark"><Icon name="spark" /></span>
+              <span className="ai-spark">
+                <Icon name="spark" />
+              </span>
               <span className="ev-suggest-txt">
-                Auto-linked to <b>{autoLinkedGoal.emoji ? `${autoLinkedGoal.emoji} ` : ''}{autoLinkedGoal.title}</b> — we’ve learned this. Change it below if needed.
+                Auto-linked to{' '}
+                <b>
+                  {autoLinkedGoal.emoji ? (
+                    <>{<DataIcon value={autoLinkedGoal.emoji} kind="calendar" />} </>
+                  ) : (
+                    ''
+                  )}
+                  {autoLinkedGoal.title}
+                </b>{' '}
+                — we’ve learned this. Change it below if needed.
               </span>
             </div>
           )}
 
           {relevantGoals.length > 0 && (
-            <label className="field">
+            <Label className="field">
               <span>Counts toward (optional)</span>
-              <select
+              <SelectField
                 value={form.goalId}
-                onChange={(e) => {
-                  set('goalId', e.target.value)
+                onValueChange={(e) => {
+                  set('goalId', e)
                   setUserTouchedGoal(true)
                   setAutoLinkedId(null)
                 }}
@@ -960,29 +1166,39 @@ export function EventModal({
                 <option value="">No goal</option>
                 {relevantGoals.map((g) => (
                   <option key={g.id} value={g.id}>
-                    {g.emoji ? `${g.emoji} ` : ''}
+                    {g.emoji ? <>{<DataIcon value={g.emoji} kind="calendar" />} </> : ''}
                     {g.title}
                   </option>
                 ))}
-              </select>
-            </label>
+              </SelectField>
+            </Label>
           )}
 
           {/* Checklist goal → pick which step this event completes; confirming the
               post-event recap ticks it. Hidden once every step is already done. */}
           {isChecklistGoal && steps.length > 0 && (
-            <label className="field">
+            <Label className="field">
               <span>Completes step</span>
-              <select value={form.goalStepId} onChange={(e) => set('goalStepId', e.target.value)} style={{ width: '100%' }}>
+              <SelectField
+                value={form.goalStepId}
+                onValueChange={(e) => set('goalStepId', e)}
+                style={{ width: '100%' }}
+              >
                 <option value="">No specific step</option>
                 {steps.map((s) => (
                   <option key={s.id} value={s.id}>
-                    {s.done ? '✓ ' : ''}
+                    {s.done ? (
+                      <>
+                        <DataIcon value={'✓'} kind="calendar" />{' '}
+                      </>
+                    ) : (
+                      ''
+                    )}
                     {s.label}
                   </option>
                 ))}
-              </select>
-            </label>
+              </SelectField>
+            </Label>
           )}
 
           {/* Rhythm ← event: the reverse of booking. A rhythm is settled by an event
@@ -991,27 +1207,28 @@ export function EventModal({
               register. Without this the rhythm went on asking to book the outing that was
               already there. */}
           {linkableRhythms.length > 0 && (
-            <label className="field">
+            <Label className="field">
               <span>Keeps a rhythm (optional)</span>
-              <select
+              <SelectField
                 value={form.rhythmId}
-                onChange={(e) => set('rhythmId', e.target.value)}
+                onValueChange={(e) => set('rhythmId', e)}
                 style={{ width: '100%' }}
               >
                 <option value="">No rhythm</option>
                 {linkableRhythms.map((r) => (
                   <option key={r.id} value={r.id}>
-                    {r.emoji ? `${r.emoji} ` : ''}
+                    {r.emoji ? <>{<DataIcon value={r.emoji} kind="calendar" />} </> : ''}
                     {r.title}
                   </option>
                 ))}
-              </select>
-            </label>
+              </SelectField>
+            </Label>
           )}
 
           <div style={{ display: 'flex', gap: 9, marginTop: 6, alignItems: 'center' }}>
             {editing && (
-              <button
+              <Button
+                variant="unstyled"
                 type="button"
                 onClick={del}
                 disabled={saving}
@@ -1027,54 +1244,83 @@ export function EventModal({
                 }}
               >
                 {confirmDelete ? 'Tap again to delete' : 'Delete'}
-              </button>
+              </Button>
             )}
-            <button
+            <Button
+              variant="default"
               type="submit"
-              className="btn btn-primary"
+
               disabled={!form.title.trim() || saving || (wasRecurring && !seriesReady)}
               style={{ flex: 1, justifyContent: 'center' }}
             >
               {saving ? 'Saving…' : editing ? 'Save' : 'Add event'}
-            </button>
+            </Button>
           </div>
         </form>
 
         {/* Recurring edit/delete scope chooser — which occurrences the action
             applies to. Sits over the modal as a small overlay. */}
         {scopePrompt && (
-          <div className="modal-overlay" onClick={() => { setScopePrompt(null); setSaving(false) }}>
-            <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 360 }}>
+          <Modal
+            className="modal-overlay"
+            onClose={() => {
+              setScopePrompt(null)
+              setSaving(false)
+            }}
+          >
+            <div
+              className="modal-card"
+              onClick={(e) => e.stopPropagation()}
+              style={{ maxWidth: 360 }}
+            >
               <div className="wf-serif" style={{ fontSize: 19, fontWeight: 600, marginBottom: 14 }}>
                 {scopePrompt === 'delete' ? 'Delete recurring event' : 'Edit recurring event'}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
                 {scopePrompt === 'save' && hasSeriesOnlyChanges && (
-                  <div style={{ color: 'var(--ink-2)', fontSize: 13, lineHeight: 1.45, marginBottom: 2 }}>
-                    Changes to all-day, countdown, people, goal, or repeat settings cannot apply to one event.
-                    Choose “This and following events” or “All events”.
+                  <div
+                    style={{
+                      color: 'var(--ink-2)',
+                      fontSize: 13,
+                      lineHeight: 1.45,
+                      marginBottom: 2,
+                    }}
+                  >
+                    Changes to all-day, countdown, people, goal, or repeat settings cannot apply to
+                    one event. Choose “This and following events” or “All events”.
                   </div>
                 )}
-                <button
+                <Button
+                  variant="ghost"
                   type="button"
-                  className="btn btn-ghost"
+
                   style={{ justifyContent: 'center' }}
                   disabled={scopePrompt === 'save' && hasSeriesOnlyChanges}
                   onClick={() => onScopeChosen('this')}
                 >
                   This event
-                </button>
-                <button type="button" className="btn btn-ghost" style={{ justifyContent: 'center' }} onClick={() => onScopeChosen('following')}>
+                </Button>
+                <Button
+                  variant="ghost"
+                  type="button"
+                  style={{ justifyContent: 'center' }}
+                  onClick={() => onScopeChosen('following')}
+                >
                   This and following events
-                </button>
-                <button type="button" className="btn btn-primary" style={{ justifyContent: 'center' }} onClick={() => onScopeChosen('all')}>
+                </Button>
+                <Button
+                  variant="default"
+                  type="button"
+                  style={{ justifyContent: 'center' }}
+                  onClick={() => onScopeChosen('all')}
+                >
                   All events
-                </button>
+                </Button>
               </div>
             </div>
-          </div>
+          </Modal>
         )}
       </div>
-    </div>
+    </Modal>
   )
 }

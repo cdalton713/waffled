@@ -14,14 +14,28 @@ import { wbIsOnline } from '../lib/waffledBiteStatus'
 import { WaffledBitePairModal } from './components/WaffledBitePairModal'
 import '../styles/overview.css'
 import '../styles/settings.css'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { DataIcon } from '@/components/ui/data-icon'
+import { Card as UICard } from '@/components/ui/card'
 
 const NIGHT_COLORS: Array<[string, string]> = [
-  ['amber', '#F0A94B'], ['peach', '#F28E6B'], ['blush', '#EF7FA6'],
-  ['lilac', '#A98BE8'], ['ocean', '#5AA7E0'], ['mint', '#5BC98B'],
+  ['amber', '#F0A94B'],
+  ['peach', '#F28E6B'],
+  ['blush', '#EF7FA6'],
+  ['lilac', '#A98BE8'],
+  ['ocean', '#5AA7E0'],
+  ['mint', '#5BC98B'],
 ]
 const SOUNDS: Array<[string, string]> = [
-  ['white', 'White noise'], ['ocean', 'Ocean waves'], ['rain', 'Gentle rain'],
-  ['fan', 'Box fan'], ['heartbeat', 'Heartbeat'], ['lullaby', 'Lullaby'], ['forest', 'Forest'],
+  ['white', 'White noise'],
+  ['ocean', 'Ocean waves'],
+  ['rain', 'Gentle rain'],
+  ['fan', 'Box fan'],
+  ['heartbeat', 'Heartbeat'],
+  ['lullaby', 'Lullaby'],
+  ['forest', 'Forest'],
 ]
 // The device generates its sounds itself; these two need real recordings it
 // doesn't carry yet, so they're shown but not selectable. Keep in step with
@@ -38,18 +52,41 @@ const ALARM_TONES_COMING_SOON = ['birdsong'] as const
 // localised. Migration 0095 rewrote the rows; the firmware's wb_tone_parse takes
 // both spellings, so no release had to be timed against it.
 const ALARM_TONES: Array<[string, string]> = [
-  ['sunriseChime', 'Sunrise chime'], ['birdsong', 'Birdsong'], ['softHarp', 'Soft harp'],
-  ['gentleBells', 'Gentle bells'], ['oceanTide', 'Ocean tide'], ['twinkleStars', 'Twinkle stars'],
+  ['sunriseChime', 'Sunrise chime'],
+  ['birdsong', 'Birdsong'],
+  ['softHarp', 'Soft harp'],
+  ['gentleBells', 'Gentle bells'],
+  ['oceanTide', 'Ocean tide'],
+  ['twinkleStars', 'Twinkle stars'],
 ]
 const SLEEP_TIMERS = [0, 15, 30, 60, 120]
-const DOW: Array<[number, string]> = [[0, 'S'], [1, 'M'], [2, 'T'], [3, 'W'], [4, 'T'], [5, 'F'], [6, 'S']]
+const DOW: Array<[number, string]> = [
+  [0, 'S'],
+  [1, 'M'],
+  [2, 'T'],
+  [3, 'W'],
+  [4, 'T'],
+  [5, 'F'],
+  [6, 'S'],
+]
 const QUIET_PRESETS = [10, 15, 20, 30, 60]
 const TIMER_PRESETS = [5, 10, 15, 20, 30]
 
-function pad(n: number): string { return n < 10 ? `0${n}` : `${n}` }
-function minToHHMM(min: number): string { const h = Math.floor(min / 60) % 24; return `${pad(h)}:${pad(min % 60)}` }
-function hhmmToMin(s: string): number { const [h, m] = s.split(':').map(Number); return (h || 0) * 60 + (m || 0) }
-function fmtMMSS(sec: number): string { const s = Math.max(0, Math.round(sec)); return `${Math.floor(s / 60)}:${pad(s % 60)}` }
+function pad(n: number): string {
+  return n < 10 ? `0${n}` : `${n}`
+}
+function minToHHMM(min: number): string {
+  const h = Math.floor(min / 60) % 24
+  return `${pad(h)}:${pad(min % 60)}`
+}
+function hhmmToMin(s: string): number {
+  const [h, m] = s.split(':').map(Number)
+  return (h || 0) * 60 + (m || 0)
+}
+function fmtMMSS(sec: number): string {
+  const s = Math.max(0, Math.round(sec))
+  return `${Math.floor(s / 60)}:${pad(s % 60)}`
+}
 function fmtAmPm(min: number): string {
   const h24 = Math.floor(min / 60) % 24
   const ampm = h24 >= 12 ? 'PM' : 'AM'
@@ -63,7 +100,12 @@ function fmtWhen(iso: string | null): string {
   if (!iso) return 'never'
   const d = new Date(iso)
   if (isNaN(d.getTime())) return 'never'
-  return d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+  return d.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  })
 }
 function schedName(days: number[]): string {
   const s = [...days].sort().join(',')
@@ -76,16 +118,33 @@ function schedName(days: number[]): string {
 // Card title bar with an optional "MOST USED"-style tag and an optional
 // subtitle line (e.g. "School days · up at 7:00 AM") — the subtitle sits
 // right under the title, above whatever body content the card renders.
-function Card({ title, sub, badge, accent, children }: {
-  title: string; sub?: string; badge?: string; accent?: boolean; children: React.ReactNode
+function Card({
+  title,
+  sub,
+  badge,
+  accent,
+  children,
+}: {
+  title: string
+  sub?: string
+  badge?: string
+  accent?: boolean
+  children: React.ReactNode
 }) {
   return (
     <div className={`card pp-card${accent ? ' wb-card-accent' : ''}`}>
-      <div className="card-h" style={{ marginBottom: sub ? 2 : 10, display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div
+        className="card-h"
+        style={{ marginBottom: sub ? 2 : 10, display: 'flex', alignItems: 'center', gap: 8 }}
+      >
         <span style={{ flex: 1 }}>{title}</span>
         {badge && <span className="wb-tag">{badge}</span>}
       </div>
-      {sub && <div className="tiny muted" style={{ fontWeight: 600, marginBottom: 10 }}>{sub}</div>}
+      {sub && (
+        <div className="tiny muted" style={{ fontWeight: 600, marginBottom: 10 }}>
+          {sub}
+        </div>
+      )}
       {children}
     </div>
   )
@@ -95,20 +154,46 @@ function Card({ title, sub, badge, accent, children }: {
 // them below (rotating chevron, `.cal-chev` — same pattern as Settings'
 // collapsible calendar accounts); without, it's a static-chevron row that
 // just runs `onClick` directly (e.g. unpair), matching Settings' MemberRow.
-function ListRow({ icon, title, sub, danger, open, onClick, children }: {
-  icon: string; title: string; sub?: string; danger?: boolean
-  open?: boolean; onClick: () => void; children?: React.ReactNode
+function ListRow({
+  icon,
+  title,
+  sub,
+  danger,
+  open,
+  onClick,
+  children,
+}: {
+  icon: string
+  title: string
+  sub?: string
+  danger?: boolean
+  open?: boolean
+  onClick: () => void
+  children?: React.ReactNode
 }) {
   const expandable = children !== undefined
   return (
     <>
       <div className="wb-list-row" role="button" tabIndex={0} onClick={onClick}>
-        <span className="set-ic2">{icon}</span>
-        <span style={{ flex: 1, minWidth: 0 }}>
-          <span className="set-row2-t" style={danger ? { color: 'var(--danger)' } : undefined}>{title}</span>
-          {sub && <span className="tiny muted" style={{ display: 'block', fontWeight: 600, marginTop: 1 }}>{sub}</span>}
+        <span className="set-ic2">
+          <DataIcon value={icon} kind="list" />
         </span>
-        <span className={expandable ? `cal-chev ${open ? 'open' : ''}` : 'set-chev'}>›</span>
+        <span style={{ flex: 1, minWidth: 0 }}>
+          <span className="set-row2-t" style={danger ? { color: 'var(--danger)' } : undefined}>
+            {title}
+          </span>
+          {sub && (
+            <span
+              className="tiny muted"
+              style={{ display: 'block', fontWeight: 600, marginTop: 1 }}
+            >
+              {sub}
+            </span>
+          )}
+        </span>
+        <span className={expandable ? `cal-chev ${open ? 'open' : ''}` : 'set-chev'}>
+          <DataIcon value={'›'} kind="list" />
+        </span>
       </div>
       {expandable && open && <div className="wb-list-body">{children}</div>}
     </>
@@ -117,8 +202,20 @@ function ListRow({ icon, title, sub, danger, open, onClick, children }: {
 
 // +/- buttons for quick nudges, plus a directly-typable value for an exact
 // number — +/- alone forced everything to land on a multiple of `step`.
-function Stepper({ value, onChange, step = 1, min, max, unit }: {
-  value: number; onChange: (v: number) => void; step?: number; min?: number; max?: number; unit?: string
+function Stepper({
+  value,
+  onChange,
+  step = 1,
+  min,
+  max,
+  unit,
+}: {
+  value: number
+  onChange: (v: number) => void
+  step?: number
+  min?: number
+  max?: number
+  unit?: string
 }) {
   const clamp = (v: number) => Math.max(min ?? -Infinity, Math.min(max ?? Infinity, v))
   const [text, setText] = useState(String(value))
@@ -130,8 +227,15 @@ function Stepper({ value, onChange, step = 1, min, max, unit }: {
   }
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-      <button type="button" className="btn btn-ghost" style={{ padding: '6px 12px' }} onClick={() => onChange(clamp(value - step))}>–</button>
-      <input
+      <Button
+        variant="ghost"
+        type="button"
+        style={{ padding: '6px 12px' }}
+        onClick={() => onChange(clamp(value - step))}
+      >
+        –
+      </Button>
+      <Input
         type="number"
         className="stepper-input"
         value={text}
@@ -139,40 +243,85 @@ function Stepper({ value, onChange, step = 1, min, max, unit }: {
         max={max}
         onChange={(e) => setText(e.target.value)}
         onBlur={(e) => commit(e.target.value)}
-        onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
+        }}
       />
-      {unit && <span className="tiny muted" style={{ fontWeight: 700 }}>{unit}</span>}
-      <button type="button" className="btn btn-ghost" style={{ padding: '6px 12px' }} onClick={() => onChange(clamp(value + step))}>+</button>
+      {unit && (
+        <span className="tiny muted" style={{ fontWeight: 700 }}>
+          {unit}
+        </span>
+      )}
+      <Button
+        variant="ghost"
+        type="button"
+        style={{ padding: '6px 12px' }}
+        onClick={() => onChange(clamp(value + step))}
+      >
+        +
+      </Button>
     </div>
   )
 }
 
-function ChipPicker<T extends string>({ options, value, onChange, comingSoon }: { options: Array<[T, string]>; value: T; onChange: (v: T) => void; comingSoon?: readonly string[] }) {
+function ChipPicker<T extends string>({
+  options,
+  value,
+  onChange,
+  comingSoon,
+}: {
+  options: Array<[T, string]>
+  value: T
+  onChange: (v: T) => void
+  comingSoon?: readonly string[]
+}) {
   return (
     <div className="rw-cur-pick">
       {options.map(([id, label]) => {
         const soon = comingSoon?.includes(id) ?? false
         return (
-          <button
+          <Button
+            variant="unstyled"
             key={id}
             type="button"
             disabled={soon}
             title={soon ? "This one needs a real recording the device doesn't have yet" : undefined}
             className={`rw-cur-chip ${value === id ? 'on' : ''}`}
             onClick={() => onChange(id)}
-          >{soon ? `${label} (soon)` : label}</button>
+          >
+            {soon ? `${label} (soon)` : label}
+          </Button>
         )
       })}
     </div>
   )
 }
 
-function Toggle({ on, onChange, label }: { on: boolean; onChange: (v: boolean) => void; label: string }) {
+function Toggle({
+  on,
+  onChange,
+  label,
+}: {
+  on: boolean
+  onChange: (v: boolean) => void
+  label: string
+}) {
   return (
-    <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontWeight: 700 }} onClick={(e) => { e.preventDefault(); onChange(!on) }}>
-      <span className={`toggle ${on ? 'on' : ''}`} role="switch" aria-checked={on} aria-label={label} />
+    <Label
+      style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontWeight: 700 }}
+      onClick={(e) => {
+        e.preventDefault()
+        onChange(!on)
+      }}
+    >
+      <span
+        className={`toggle ${on ? 'on' : ''}`}
+        role="switch"
+        aria-checked={on}
+        aria-label={label}
+      />
       <span>{label}</span>
-    </label>
+    </Label>
   )
 }
 
@@ -224,17 +373,33 @@ export function WaffledBiteDevice() {
   useTopbarFull(
     () => (
       <div style={{ display: 'flex', alignItems: 'center', width: '100%', gap: 14 }}>
-        <button className="pill" style={{ cursor: 'pointer' }} onClick={() => navigate(`/person/${id}`)}>‹ {person?.name ?? 'Back'}</button>
+        <Button
+          variant="unstyled"
+          className="pill"
+          style={{ cursor: 'pointer' }}
+          onClick={() => navigate(`/person/${id}`)}
+        >
+          <>
+            <DataIcon value={'‹'} kind="person" />{' '}
+          </>
+          {person?.name ?? 'Back'}
+        </Button>
       </div>
     ),
-    [navigate, id, person?.name]
+    [navigate, id, person?.name],
   )
 
   const enabled = moduleEnabled(household, 'waffledBites')
   const now = useNow(30_000)
   const online = device ? wbIsOnline(device.lastSeenAt, now) : false
-  const quietRemaining = useLocalCountdown(device?.runtimeState.quiet.remainingSec ?? 0, device?.runtimeState.quiet.running ?? false)
-  const timerRemaining = useLocalCountdown(device?.runtimeState.timer.remainingSec ?? 0, device?.runtimeState.timer.running ?? false)
+  const quietRemaining = useLocalCountdown(
+    device?.runtimeState.quiet.remainingSec ?? 0,
+    device?.runtimeState.quiet.running ?? false,
+  )
+  const timerRemaining = useLocalCountdown(
+    device?.runtimeState.timer.remainingSec ?? 0,
+    device?.runtimeState.timer.running ?? false,
+  )
 
   async function patchSettings(patch: WaffledBiteSettings) {
     if (!device) return
@@ -242,25 +407,48 @@ export function WaffledBiteDevice() {
     refetch()
   }
 
-  if (!enabled) return <div className="muted" style={{ padding: 30 }}>The Waffled-Bites module is off — turn it on in Settings → Modules.</div>
+  if (!enabled)
+    return (
+      <div className="muted" style={{ padding: 30 }}>
+        <>
+          {'The Waffled-Bites module is off — turn it on in Settings '}
+          <DataIcon value={'→'} kind="general" />
+          {' Modules.'}
+        </>
+      </div>
+    )
   // Only show the full-page loader on the very first fetch — every mutation below
   // (pause/resume/settings patch/etc.) calls refetch(), which flips `loading` back
   // to true; blanking the whole page on each one was a distracting flash. Once we
   // have a device, keep rendering it (slightly stale) until the refetch resolves.
-  if ((loading && !device) || !person) return <div className="muted" style={{ padding: 30 }}>Loading…</div>
+  if ((loading && !device) || !person)
+    return (
+      <div className="muted" style={{ padding: 30 }}>
+        Loading…
+      </div>
+    )
 
   if (!device) {
     return (
       <div style={{ padding: 30, textAlign: 'center' }}>
-        <div className="wf-serif" style={{ fontSize: 22, marginBottom: 8 }}>No Waffled-Bite paired yet</div>
-        <div className="muted tiny" style={{ fontWeight: 600, marginBottom: 18 }}>Pair {person.name}'s device to control it from here.</div>
-        <button type="button" className="btn btn-primary" onClick={() => setPairing(true)}>Pair a Waffled-Bite</button>
+        <div className="wf-serif" style={{ fontSize: 22, marginBottom: 8 }}>
+          No Waffled-Bite paired yet
+        </div>
+        <div className="muted tiny" style={{ fontWeight: 600, marginBottom: 18 }}>
+          Pair {person.name}'s device to control it from here.
+        </div>
+        <Button variant="default" type="button" onClick={() => setPairing(true)}>
+          Pair a Waffled-Bite
+        </Button>
         {pairing && (
           <WaffledBitePairModal
             personId={person.id}
             personName={person.name}
             onClose={() => setPairing(false)}
-            onPaired={() => { setPairing(false); refetch() }}
+            onPaired={() => {
+              setPairing(false)
+              refetch()
+            }}
           />
         )}
       </div>
@@ -273,13 +461,22 @@ export function WaffledBiteDevice() {
   // Field-by-field rather than `?? {...}`: every device paired before the alarm
   // had its own volume has an `alarm` object with no `volume` key, and a whole-
   // object fallback would leave it undefined for exactly those devices.
-  const alarm = { on: false, hour: 6, min: 45, tone: 'sunriseChime', volume: 80, ...(s.alarm ?? {}) }
+  const alarm = {
+    on: false,
+    hour: 6,
+    min: 45,
+    tone: 'sunriseChime',
+    volume: 80,
+    ...(s.alarm ?? {}),
+  }
   const display = s.display ?? { brightness: 85, nightDim: true }
   const schedules = s.schedules ?? []
   const quiet = device.runtimeState.quiet
   const timer = device.runtimeState.timer
   const primarySchedule = schedules[0]
-  const wakeLightSub = primarySchedule ? `${schedName(primarySchedule.days)} · up at ${fmtAmPm(primarySchedule.wakeMin)}` : 'No schedule set yet'
+  const wakeLightSub = primarySchedule
+    ? `${schedName(primarySchedule.days)} · up at ${fmtAmPm(primarySchedule.wakeMin)}`
+    : 'No schedule set yet'
   const soundSub = sound.on ? (SOUNDS.find(([id]) => id === sound.sound)?.[1] ?? 'Playing') : 'Off'
   const alarmSub = alarm.on ? fmtAmPm(alarm.hour * 60 + alarm.min) : 'Off'
   const screenSub = `${display.brightness}% by day · ${display.nightDim ? 'dark at night' : 'stays bright at night'}`
@@ -290,18 +487,26 @@ export function WaffledBiteDevice() {
   }
   function toggleScheduleDay(i: number, day: number) {
     const sch = schedules[i]
-    const days = sch.days.includes(day) ? sch.days.filter((d) => d !== day) : [...sch.days, day].sort()
+    const days = sch.days.includes(day)
+      ? sch.days.filter((d) => d !== day)
+      : [...sch.days, day].sort()
     updateSchedule(i, { days })
   }
 
   const unpair = () => {
-    if (confirm(`Unpair ${person.name}'s Waffled-Bite?`)) waffledBitesApi.unpair(device.id).then(() => navigate(`/person/${id}`))
+    if (confirm(`Unpair ${person.name}'s Waffled-Bite?`))
+      waffledBitesApi.unpair(device.id).then(() => navigate(`/person/${id}`))
   }
 
   return (
     <div className="wb-page">
       <div className="pp-hero">
-        <span className="pp-av" style={{ background: person.colorHex ? `${person.colorHex}22` : 'var(--panel)' }}>{person.avatarEmoji ?? '🙂'}</span>
+        <span
+          className="pp-av"
+          style={{ background: person.colorHex ? `${person.colorHex}22` : 'var(--panel)' }}
+        >
+          <DataIcon value={person.avatarEmoji ?? '🙂'} kind="person" />
+        </span>
         <div>
           <div className="wf-serif pp-name">{person.name}'s Waffled-Bite</div>
           <div className="pp-sub">{device.label} · paired</div>
@@ -311,12 +516,29 @@ export function WaffledBiteDevice() {
           <div
             className="tiny"
             style={{
-              fontWeight: 700, marginTop: 10, padding: '6px 10px', borderRadius: 999, display: 'inline-block',
+              fontWeight: 700,
+              marginTop: 10,
+              padding: '6px 10px',
+              borderRadius: 999,
+              display: 'inline-block',
               background: online ? '#DFF3E4' : 'var(--danger-t)',
               color: online ? '#2E7D4F' : 'var(--danger)',
             }}
           >
-            {online ? '🟢 Online' : `🔴 Offline · last seen ${fmtWhen(device.lastSeenAt)}`}
+            {online ? (
+              <>
+                <DataIcon value={'🟢'} kind="general" />
+                {' Online'}
+              </>
+            ) : (
+              <>
+                <>
+                  <DataIcon value={'🔴'} kind="general" />
+                  {' Offline · last seen '}
+                </>
+                {fmtWhen(device.lastSeenAt)}
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -325,43 +547,104 @@ export function WaffledBiteDevice() {
         <Card title="Quiet time" badge="MOST USED" accent>
           {quiet.active ? (
             <>
-              <div style={{ fontSize: 34, fontWeight: 800, fontVariantNumeric: 'tabular-nums', margin: '4px 0 6px' }}>{fmtMMSS(quietRemaining)}</div>
-              <div className="tiny muted" style={{ fontWeight: 600, marginBottom: 14 }}>{quiet.running ? 'Counting down on the device' : 'Paused'}</div>
+              <div
+                style={{
+                  fontSize: 34,
+                  fontWeight: 800,
+                  fontVariantNumeric: 'tabular-nums',
+                  margin: '4px 0 6px',
+                }}
+              >
+                {fmtMMSS(quietRemaining)}
+              </div>
+              <div className="tiny muted" style={{ fontWeight: 600, marginBottom: 14 }}>
+                {quiet.running ? 'Counting down on the device' : 'Paused'}
+              </div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <button type="button" className="btn btn-ghost" onClick={() => waffledBitesApi[quiet.running ? 'quietPause' : 'quietResume'](device.id).then(refetch)}>
-                  {quiet.running ? '⏸ Pause' : '▶ Resume'}
-                </button>
-                <button type="button" className="btn btn-ghost" onClick={() => waffledBitesApi.quietAddTime(device.id, 300).then(refetch)}>+5 min</button>
-                <button type="button" className="btn btn-primary" onClick={() => waffledBitesApi.quietEnd(device.id).then(refetch)}>End now</button>
+                <Button
+                  variant="ghost"
+                  type="button"
+                  onClick={() =>
+                    waffledBitesApi[quiet.running ? 'quietPause' : 'quietResume'](device.id).then(
+                      refetch,
+                    )
+                  }
+                >
+                  {quiet.running ? (
+                    <>
+                      <DataIcon value={'⏸'} kind="general" />
+                      {' Pause'}
+                    </>
+                  ) : (
+                    <>
+                      <DataIcon value={'▶'} kind="general" />
+                      {' Resume'}
+                    </>
+                  )}
+                </Button>
+                <Button
+                  variant="ghost"
+                  type="button"
+                  onClick={() => waffledBitesApi.quietAddTime(device.id, 300).then(refetch)}
+                >
+                  +5 min
+                </Button>
+                <Button
+                  variant="default"
+                  type="button"
+                  onClick={() => waffledBitesApi.quietEnd(device.id).then(refetch)}
+                >
+                  End now
+                </Button>
               </div>
             </>
           ) : (
             <>
-              <div className="tiny muted" style={{ fontWeight: 600, marginBottom: 10 }}>A calm stay-in-room countdown on the device.</div>
+              <div className="tiny muted" style={{ fontWeight: 600, marginBottom: 10 }}>
+                A calm stay-in-room countdown on the device.
+              </div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
                 {QUIET_PRESETS.map((m) => (
-                  <button key={m} type="button" className="btn btn-ghost" onClick={() => waffledBitesApi.quietStart(device.id, m * 60).then(refetch)}>
+                  <Button
+                    variant="ghost"
+                    key={m}
+                    type="button"
+                    onClick={() => waffledBitesApi.quietStart(device.id, m * 60).then(refetch)}
+                  >
                     {m >= 60 ? `${m / 60}h` : `${m}m`}
-                  </button>
+                  </Button>
                 ))}
               </div>
-              <div className="tiny muted" style={{ fontWeight: 700, marginBottom: 6 }}>Or a custom length</div>
+              <div className="tiny muted" style={{ fontWeight: 700, marginBottom: 6 }}>
+                Or a custom length
+              </div>
               <div className="field-row" style={{ alignItems: 'flex-end' }}>
-                <label className="field" style={{ flex: 1 }}>
+                <Label className="field" style={{ flex: 1 }}>
                   <span>Minutes</span>
                   {/* Capped at 180 (3h) — the server clamps quiet-time duration to 1-180 min
                       regardless (see quiet/start's Math.min(180*60, ...)), so a wider
                       range here would silently get truncated with no feedback. */}
-                  <input type="number" min={1} max={180} value={customQuietM} onChange={(e) => setCustomQuietM(Math.max(1, Math.min(180, Number(e.target.value) || 0)))} />
-                </label>
-                <button
+                  <Input
+                    type="number"
+                    min={1}
+                    max={180}
+                    value={customQuietM}
+                    onChange={(e) =>
+                      setCustomQuietM(Math.max(1, Math.min(180, Number(e.target.value) || 0)))
+                    }
+                  />
+                </Label>
+                <Button
+                  variant="default"
                   type="button"
-                  className="btn btn-primary"
+
                   disabled={customQuietM <= 0}
-                  onClick={() => waffledBitesApi.quietStart(device.id, customQuietM * 60).then(refetch)}
+                  onClick={() =>
+                    waffledBitesApi.quietStart(device.id, customQuietM * 60).then(refetch)
+                  }
                 >
                   Start
-                </button>
+                </Button>
               </div>
             </>
           )}
@@ -372,151 +655,396 @@ export function WaffledBiteDevice() {
             <div
               className="tiny"
               style={{
-                fontWeight: 700, marginBottom: 10, padding: '6px 10px', borderRadius: 999, display: 'inline-block',
-                background: device.runtimeState.wakeLight.state === 'wake' ? '#DFF3E4' : device.runtimeState.wakeLight.state === 'warn' ? '#FBEFD6' : '#E7E1F0',
-                color: device.runtimeState.wakeLight.state === 'wake' ? '#2E7D4F' : device.runtimeState.wakeLight.state === 'warn' ? '#9A6B12' : '#4A3F73',
+                fontWeight: 700,
+                marginBottom: 10,
+                padding: '6px 10px',
+                borderRadius: 999,
+                display: 'inline-block',
+                background:
+                  device.runtimeState.wakeLight.state === 'wake'
+                    ? '#DFF3E4'
+                    : device.runtimeState.wakeLight.state === 'warn'
+                      ? '#FBEFD6'
+                      : '#E7E1F0',
+                color:
+                  device.runtimeState.wakeLight.state === 'wake'
+                    ? '#2E7D4F'
+                    : device.runtimeState.wakeLight.state === 'warn'
+                      ? '#9A6B12'
+                      : '#4A3F73',
               }}
             >
               {device.runtimeState.wakeLight.state === 'sleep' && '🌙 Asleep right now'}
               {device.runtimeState.wakeLight.state === 'warn' && '🟡 Almost time to wake'}
-              {device.runtimeState.wakeLight.state === 'wake' && '🟢 Awake — can exit the wake screen'}
+              {device.runtimeState.wakeLight.state === 'wake' &&
+                '🟢 Awake — can exit the wake screen'}
             </div>
           )}
           {schedules.map((sch, i) => (
-            <div key={i} style={{ marginBottom: 14, paddingBottom: 14, borderBottom: i < schedules.length - 1 ? '1px solid var(--hair)' : 'none' }}>
-              {schedules.length > 1 && <div style={{ fontWeight: 700, marginBottom: 8 }}>{schedName(sch.days)}</div>}
+            <div
+              key={i}
+              style={{
+                marginBottom: 14,
+                paddingBottom: 14,
+                borderBottom: i < schedules.length - 1 ? '1px solid var(--hair)' : 'none',
+              }}
+            >
+              {schedules.length > 1 && (
+                <div style={{ fontWeight: 700, marginBottom: 8 }}>{schedName(sch.days)}</div>
+              )}
               <div className="chore-days" style={{ marginBottom: 10 }}>
                 {DOW.map(([d, label]) => (
-                  <button key={d} type="button" className={`chore-day ${sch.days.includes(d) ? 'on' : ''}`} onClick={() => toggleScheduleDay(i, d)}>{label}</button>
+                  <Button
+                    variant="unstyled"
+                    key={d}
+                    type="button"
+                    className={`chore-day ${sch.days.includes(d) ? 'on' : ''}`}
+                    onClick={() => toggleScheduleDay(i, d)}
+                  >
+                    {label}
+                  </Button>
                 ))}
               </div>
               <div className="field-row">
-                <label className="field">
-                  <span>🌙 Bedtime</span>
-                  <input
+                <Label className="field">
+                  <span>
+                    <>
+                      <DataIcon value={'🌙'} kind="general" />
+                      {' Bedtime'}
+                    </>
+                  </span>
+                  <Input
                     type="time"
                     value={sch.bedtimeMin != null ? minToHHMM(sch.bedtimeMin) : ''}
-                    onChange={(e) => updateSchedule(i, { bedtimeMin: e.target.value ? hhmmToMin(e.target.value) : undefined })}
+                    onChange={(e) =>
+                      updateSchedule(i, {
+                        bedtimeMin: e.target.value ? hhmmToMin(e.target.value) : undefined,
+                      })
+                    }
                   />
-                </label>
-                <label className="field">
-                  <span>🟢 Okay to get up</span>
-                  <input type="time" value={minToHHMM(sch.wakeMin)} onChange={(e) => updateSchedule(i, { wakeMin: hhmmToMin(e.target.value) })} />
-                </label>
+                </Label>
+                <Label className="field">
+                  <span>
+                    <>
+                      <DataIcon value={'🟢'} kind="general" />
+                      {' Okay to get up'}
+                    </>
+                  </span>
+                  <Input
+                    type="time"
+                    value={minToHHMM(sch.wakeMin)}
+                    onChange={(e) => updateSchedule(i, { wakeMin: hhmmToMin(e.target.value) })}
+                  />
+                </Label>
               </div>
-              <label className="field" style={{ marginTop: 10 }}>
-                <span>🟡 Yellow warning starts</span>
+              <Label className="field" style={{ marginTop: 10 }}>
+                <span>
+                  <>
+                    <DataIcon value={'🟡'} kind="general" />
+                    {' Yellow warning starts'}
+                  </>
+                </span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <input type="number" min={0} max={30} value={sch.leadMin} style={{ width: 64 }} onChange={(e) => updateSchedule(i, { leadMin: Number(e.target.value) || 0 })} />
-                  <span className="tiny muted" style={{ fontWeight: 700 }}>min before</span>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={30}
+                    value={sch.leadMin}
+                    style={{ width: 64 }}
+                    onChange={(e) => updateSchedule(i, { leadMin: Number(e.target.value) || 0 })}
+                  />
+                  <span className="tiny muted" style={{ fontWeight: 700 }}>
+                    min before
+                  </span>
                 </div>
-              </label>
+              </Label>
               {sch.bedtimeMin == null && (
-                <div className="tiny muted" style={{ marginTop: 6 }}>No bedtime set — this rule shows the day toggle above but never locks the device.</div>
+                <div className="tiny muted" style={{ marginTop: 6 }}>
+                  No bedtime set — this rule shows the day toggle above but never locks the device.
+                </div>
               )}
               {schedules.length > 1 && (
-                <button type="button" className="btn btn-ghost" style={{ marginTop: 6 }} onClick={() => patchSettings({ schedules: schedules.filter((_, idx) => idx !== i) })}>Remove</button>
+                <Button
+                  variant="ghost"
+                  type="button"
+                  style={{ marginTop: 6 }}
+                  onClick={() =>
+                    patchSettings({ schedules: schedules.filter((_, idx) => idx !== i) })
+                  }
+                >
+                  Remove
+                </Button>
               )}
             </div>
           ))}
-          <button type="button" className="btn btn-ghost" onClick={() => patchSettings({ schedules: [...schedules, { days: [], wakeMin: 7 * 60, leadMin: 10 }] })}>＋ Add another schedule</button>
+          <Button
+            variant="ghost"
+            type="button"
+            onClick={() =>
+              patchSettings({
+                schedules: [...schedules, { days: [], wakeMin: 7 * 60, leadMin: 10 }],
+              })
+            }
+          >
+            <>
+              <DataIcon value={'＋'} kind="general" />
+              {' Add another schedule'}
+            </>
+          </Button>
         </Card>
       </div>
 
       <div className="wb-section-label">Sleep environment</div>
-      <div className="wb-note">The wake-light locks the device into <b>this nightlight</b> at bedtime, then holds yellow → green until wake-up.</div>
+      <div className="wb-note">
+        The wake-light locks the device into <b>this nightlight</b>
+        <>
+          {' at bedtime, then holds yellow '}
+          <DataIcon value={'→'} kind="general" />
+          {' green until wake-up.'}
+        </>
+      </div>
 
       <div className="wb-row">
         <Card title="Nightlight">
-          <Toggle on={night.on} onChange={(v) => patchSettings({ night: { ...night, on: v } })} label={night.on ? 'On' : 'Off'} />
+          <Toggle
+            on={night.on}
+            onChange={(v) => patchSettings({ night: { ...night, on: v } })}
+            label={night.on ? 'On' : 'Off'}
+          />
           {night.on && (
             <div style={{ marginTop: 12 }}>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
                 {NIGHT_COLORS.map(([id, hex]) => {
                   const selected = night.color === id
                   return (
-                    <button
-                      key={id} type="button" aria-label={id} aria-pressed={selected}
+                    <Button
+                      variant="unstyled"
+                      key={id}
+                      type="button"
+                      aria-label={id}
+                      aria-pressed={selected}
                       onClick={() => patchSettings({ night: { ...night, color: id } })}
                       style={{
-                        width: 32, height: 32, borderRadius: 999, background: hex, cursor: 'pointer',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        width: 32,
+                        height: 32,
+                        borderRadius: 999,
+                        background: hex,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
                         border: selected ? '3px solid var(--ink)' : '2px solid var(--panel)',
-                        boxShadow: selected ? '0 0 0 2px var(--ink), 0 2px 6px rgba(0,0,0,.3)' : '0 0 0 1px var(--hair)',
+                        boxShadow: selected
+                          ? '0 0 0 2px var(--ink), 0 2px 6px rgba(0,0,0,.3)'
+                          : '0 0 0 1px var(--hair)',
                         transform: selected ? 'scale(1.12)' : 'scale(1)',
                         transition: 'transform .12s ease, box-shadow .12s ease',
                       }}
                     >
-                      {selected && <span style={{ color: '#fff', fontWeight: 900, fontSize: 15, lineHeight: 1, textShadow: '0 1px 2px rgba(0,0,0,.55)' }}>✓</span>}
-                    </button>
+                      {selected && (
+                        <span
+                          style={{
+                            color: '#fff',
+                            fontWeight: 900,
+                            fontSize: 15,
+                            lineHeight: 1,
+                            textShadow: '0 1px 2px rgba(0,0,0,.55)',
+                          }}
+                        >
+                          <DataIcon value={'✓'} kind="general" />
+                        </span>
+                      )}
+                    </Button>
                   )
                 })}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span className="tiny muted" style={{ fontWeight: 700 }}>Brightness</span>
-                <Stepper value={night.brightness} step={5} min={1} max={100} unit="%" onChange={(v) => patchSettings({ night: { ...night, brightness: v } })} />
+                <span className="tiny muted" style={{ fontWeight: 700 }}>
+                  Brightness
+                </span>
+                <Stepper
+                  value={night.brightness}
+                  step={5}
+                  min={1}
+                  max={100}
+                  unit="%"
+                  onChange={(v) => patchSettings({ night: { ...night, brightness: v } })}
+                />
               </div>
             </div>
           )}
         </Card>
 
-        <div className="card pp-card wb-list">
-          <ListRow icon="🔊" title="Sound machine" sub={soundSub} open={openSound} onClick={() => setOpenSound((v) => !v)}>
-            <Toggle on={sound.on} onChange={(v) => patchSettings({ sound: { ...sound, on: v } })} label={sound.on ? 'Playing' : 'Off'} />
+        <UICard className="card pp-card wb-list">
+          <ListRow
+            icon="🔊"
+            title="Sound machine"
+            sub={soundSub}
+            open={openSound}
+            onClick={() => setOpenSound((v) => !v)}
+          >
+            <Toggle
+              on={sound.on}
+              onChange={(v) => patchSettings({ sound: { ...sound, on: v } })}
+              label={sound.on ? 'Playing' : 'Off'}
+            />
             {sound.on && (
               <div style={{ marginTop: 12 }}>
-                <div className="tiny muted" style={{ fontWeight: 700, marginBottom: 6 }}>Sound</div>
-                <ChipPicker options={SOUNDS} value={sound.sound} comingSoon={SOUNDS_COMING_SOON} onChange={(id) => patchSettings({ sound: { ...sound, sound: id } })} />
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '12px 0' }}>
-                  <span className="tiny muted" style={{ fontWeight: 700 }}>Volume</span>
-                  <Stepper value={sound.volume} step={5} min={0} max={100} unit="%" onChange={(v) => patchSettings({ sound: { ...sound, volume: v } })} />
+                <div className="tiny muted" style={{ fontWeight: 700, marginBottom: 6 }}>
+                  Sound
                 </div>
-                <div className="tiny muted" style={{ fontWeight: 700, marginBottom: 6 }}>Sleep timer</div>
+                <ChipPicker
+                  options={SOUNDS}
+                  value={sound.sound}
+                  comingSoon={SOUNDS_COMING_SOON}
+                  onChange={(id) => patchSettings({ sound: { ...sound, sound: id } })}
+                />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '12px 0' }}>
+                  <span className="tiny muted" style={{ fontWeight: 700 }}>
+                    Volume
+                  </span>
+                  <Stepper
+                    value={sound.volume}
+                    step={5}
+                    min={0}
+                    max={100}
+                    unit="%"
+                    onChange={(v) => patchSettings({ sound: { ...sound, volume: v } })}
+                  />
+                </div>
+                <div className="tiny muted" style={{ fontWeight: 700, marginBottom: 6 }}>
+                  Sleep timer
+                </div>
                 <div style={{ display: 'flex', gap: 7 }}>
                   {SLEEP_TIMERS.map((m) => (
-                    <button key={m} type="button" className={`rw-cur-chip ${sound.timerMin === m ? 'on' : ''}`} onClick={() => patchSettings({ sound: { ...sound, timerMin: m } })}>
+                    <Button
+                      variant="unstyled"
+                      key={m}
+                      type="button"
+                      className={`rw-cur-chip ${sound.timerMin === m ? 'on' : ''}`}
+                      onClick={() => patchSettings({ sound: { ...sound, timerMin: m } })}
+                    >
                       {m === 0 ? 'Off' : m >= 60 ? `${m / 60}h` : `${m}m`}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>
             )}
           </ListRow>
-          <ListRow icon="⏰" title="Morning alarm" sub={alarmSub} open={openAlarm} onClick={() => setOpenAlarm((v) => !v)}>
-            <Toggle on={alarm.on} onChange={(v) => patchSettings({ alarm: { ...alarm, on: v } })} label={alarm.on ? 'On' : 'Off'} />
+          <ListRow
+            icon="⏰"
+            title="Morning alarm"
+            sub={alarmSub}
+            open={openAlarm}
+            onClick={() => setOpenAlarm((v) => !v)}
+          >
+            <Toggle
+              on={alarm.on}
+              onChange={(v) => patchSettings({ alarm: { ...alarm, on: v } })}
+              label={alarm.on ? 'On' : 'Off'}
+            />
             {alarm.on && (
               <div style={{ marginTop: 12 }}>
-                <label className="field" style={{ marginBottom: 10 }}>
+                <Label className="field" style={{ marginBottom: 10 }}>
                   <span>Time</span>
-                  <input type="time" value={minToHHMM(alarm.hour * 60 + alarm.min)} onChange={(e) => {
-                    const m = hhmmToMin(e.target.value)
-                    patchSettings({ alarm: { ...alarm, hour: Math.floor(m / 60), min: m % 60 } })
-                  }} />
-                </label>
-                <div className="tiny muted" style={{ fontWeight: 700, marginBottom: 6 }}>Alarm sound</div>
-                <ChipPicker options={ALARM_TONES} value={alarm.tone} comingSoon={ALARM_TONES_COMING_SOON} onChange={(t) => patchSettings({ alarm: { ...alarm, tone: t } })} />
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginTop: 12 }}>
-                  <span className="tiny muted" style={{ fontWeight: 700 }}>Volume</span>
-                  <Stepper value={alarm.volume} step={5} min={0} max={100} unit="%" onChange={(v) => patchSettings({ alarm: { ...alarm, volume: v } })} />
+                  <Input
+                    type="time"
+                    value={minToHHMM(alarm.hour * 60 + alarm.min)}
+                    onChange={(e) => {
+                      const m = hhmmToMin(e.target.value)
+                      patchSettings({ alarm: { ...alarm, hour: Math.floor(m / 60), min: m % 60 } })
+                    }}
+                  />
+                </Label>
+                <div className="tiny muted" style={{ fontWeight: 700, marginBottom: 6 }}>
+                  Alarm sound
+                </div>
+                <ChipPicker
+                  options={ALARM_TONES}
+                  value={alarm.tone}
+                  comingSoon={ALARM_TONES_COMING_SOON}
+                  onChange={(t) => patchSettings({ alarm: { ...alarm, tone: t } })}
+                />
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 10,
+                    marginTop: 12,
+                  }}
+                >
+                  <span className="tiny muted" style={{ fontWeight: 700 }}>
+                    Volume
+                  </span>
+                  <Stepper
+                    value={alarm.volume}
+                    step={5}
+                    min={0}
+                    max={100}
+                    unit="%"
+                    onChange={(v) => patchSettings({ alarm: { ...alarm, volume: v } })}
+                  />
                 </div>
               </div>
             )}
           </ListRow>
-        </div>
+        </UICard>
       </div>
 
       <div className="wb-section-label">Occasional</div>
       <Card title="Set a timer">
         {timer.active ? (
           <>
-            <div style={{ fontSize: 34, fontWeight: 800, fontVariantNumeric: 'tabular-nums', margin: '4px 0 6px' }}>{fmtMMSS(timerRemaining)}</div>
-            <div className="tiny muted" style={{ fontWeight: 600, marginBottom: 14 }}>{timer.running ? 'Counting down on the device' : 'Paused'}</div>
+            <div
+              style={{
+                fontSize: 34,
+                fontWeight: 800,
+                fontVariantNumeric: 'tabular-nums',
+                margin: '4px 0 6px',
+              }}
+            >
+              {fmtMMSS(timerRemaining)}
+            </div>
+            <div className="tiny muted" style={{ fontWeight: 600, marginBottom: 14 }}>
+              {timer.running ? 'Counting down on the device' : 'Paused'}
+            </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <button type="button" className="btn btn-ghost" onClick={() => waffledBitesApi[timer.running ? 'timerPause' : 'timerResume'](device.id).then(refetch)}>
-                {timer.running ? '⏸ Pause' : '▶ Resume'}
-              </button>
-              <button type="button" className="btn btn-ghost" onClick={() => waffledBitesApi.timerAddTime(device.id, 300).then(refetch)}>+5 min</button>
-              <button type="button" className="btn btn-primary" onClick={() => waffledBitesApi.timerEnd(device.id).then(refetch)}>End now</button>
+              <Button
+                variant="ghost"
+                type="button"
+                onClick={() =>
+                  waffledBitesApi[timer.running ? 'timerPause' : 'timerResume'](device.id).then(
+                    refetch,
+                  )
+                }
+              >
+                {timer.running ? (
+                  <>
+                    <DataIcon value={'⏸'} kind="general" />
+                    {' Pause'}
+                  </>
+                ) : (
+                  <>
+                    <DataIcon value={'▶'} kind="general" />
+                    {' Resume'}
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="ghost"
+                type="button"
+                onClick={() => waffledBitesApi.timerAddTime(device.id, 300).then(refetch)}
+              >
+                +5 min
+              </Button>
+              <Button
+                variant="default"
+                type="button"
+                onClick={() => waffledBitesApi.timerEnd(device.id).then(refetch)}
+              >
+                End now
+              </Button>
             </div>
           </>
         ) : (
@@ -526,36 +1054,60 @@ export function WaffledBiteDevice() {
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               {TIMER_PRESETS.map((m) => (
-                <button key={m} type="button" className="btn btn-ghost" onClick={() => waffledBitesApi.timerStart(device.id, m * 60).then(refetch)}>
-                  {m}m
-                </button>
-              ))}
-              <button type="button" className="btn btn-ghost" onClick={() => setCustomTimerOpen((v) => !v)}>Custom ＋</button>
-              {!customTimerOpen && (
-                <button
+                <Button
+                  variant="ghost"
+                  key={m}
                   type="button"
-                  className="btn btn-primary"
+                  onClick={() => waffledBitesApi.timerStart(device.id, m * 60).then(refetch)}
+                >
+                  {m}m
+                </Button>
+              ))}
+              <Button variant="ghost" type="button" onClick={() => setCustomTimerOpen((v) => !v)}>
+                <>
+                  {'Custom '}
+                  <DataIcon value={'＋'} kind="general" />
+                </>
+              </Button>
+              {!customTimerOpen && (
+                <Button
+                  variant="default"
+                  type="button"
+
                   style={{ marginLeft: 'auto' }}
-                  onClick={() => waffledBitesApi.timerStart(device.id, customTimerM * 60).then(refetch)}
+                  onClick={() =>
+                    waffledBitesApi.timerStart(device.id, customTimerM * 60).then(refetch)
+                  }
                 >
                   Start
-                </button>
+                </Button>
               )}
             </div>
             {customTimerOpen && (
               <div className="field-row" style={{ alignItems: 'flex-end', marginTop: 14 }}>
-                <label className="field" style={{ flex: 1 }}>
+                <Label className="field" style={{ flex: 1 }}>
                   <span>Minutes</span>
-                  <input type="number" min={1} max={180} value={customTimerM} onChange={(e) => setCustomTimerM(Math.max(1, Math.min(180, Number(e.target.value) || 0)))} />
-                </label>
-                <button
+                  <Input
+                    type="number"
+                    min={1}
+                    max={180}
+                    value={customTimerM}
+                    onChange={(e) =>
+                      setCustomTimerM(Math.max(1, Math.min(180, Number(e.target.value) || 0)))
+                    }
+                  />
+                </Label>
+                <Button
+                  variant="default"
                   type="button"
-                  className="btn btn-primary"
+
                   disabled={customTimerM <= 0}
-                  onClick={() => waffledBitesApi.timerStart(device.id, customTimerM * 60).then(refetch)}
+                  onClick={() =>
+                    waffledBitesApi.timerStart(device.id, customTimerM * 60).then(refetch)
+                  }
                 >
                   Start
-                </button>
+                </Button>
               </div>
             )}
           </>
@@ -563,16 +1115,41 @@ export function WaffledBiteDevice() {
       </Card>
 
       <div className="wb-section-label">Device</div>
-      <div className="card pp-card wb-list">
-        <ListRow icon="☀️" title="Screen & display" sub={screenSub} open={openScreen} onClick={() => setOpenScreen((v) => !v)}>
+      <UICard className="card pp-card wb-list">
+        <ListRow
+          icon="☀️"
+          title="Screen & display"
+          sub={screenSub}
+          open={openScreen}
+          onClick={() => setOpenScreen((v) => !v)}
+        >
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-            <span className="tiny muted" style={{ fontWeight: 700 }}>Brightness</span>
-            <Stepper value={display.brightness} step={10} min={10} max={100} unit="%" onChange={(v) => patchSettings({ display: { ...display, brightness: v } })} />
+            <span className="tiny muted" style={{ fontWeight: 700 }}>
+              Brightness
+            </span>
+            <Stepper
+              value={display.brightness}
+              step={10}
+              min={10}
+              max={100}
+              unit="%"
+              onChange={(v) => patchSettings({ display: { ...display, brightness: v } })}
+            />
           </div>
-          <Toggle on={display.nightDim} onChange={(v) => patchSettings({ display: { ...display, nightDim: v } })} label="Screen goes dark at night" />
+          <Toggle
+            on={display.nightDim}
+            onChange={(v) => patchSettings({ display: { ...display, nightDim: v } })}
+            label="Screen goes dark at night"
+          />
         </ListRow>
-        <ListRow icon="🔌" title="Unpair this Waffled-Bite" sub="Removes it from your family" danger onClick={unpair} />
-      </div>
+        <ListRow
+          icon="🔌"
+          title="Unpair this Waffled-Bite"
+          sub="Removes it from your family"
+          danger
+          onClick={unpair}
+        />
+      </UICard>
     </div>
   )
 }

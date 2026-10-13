@@ -64,7 +64,10 @@ const sampleEvent = {
   rhythmId: null as string | null,
 }
 
-function mockApi(patched: Record<string, unknown>[], rhythms: unknown[] = [schedulingRhythm, completionRhythm]) {
+function mockApi(
+  patched: Record<string, unknown>[],
+  rhythms: unknown[] = [schedulingRhythm, completionRhythm],
+) {
   globalThis.fetch = vi.fn(async (url: string, opts?: { method?: string; body?: string }) => {
     const u = String(url)
     if (u.includes('/api/persons')) return { ok: true, json: async () => ({ persons: [] }) }
@@ -81,16 +84,17 @@ const renderModal = (event: typeof sampleEvent) =>
   render(
     <MemoryRouter>
       <EventModal event={event} onClose={vi.fn()} onSaved={vi.fn()} />
-    </MemoryRouter>
+    </MemoryRouter>,
   )
 
 describe('EventModal — linking an event to a rhythm', () => {
   it('offers the household’s scheduling rhythms, and only those', async () => {
     mockApi([])
     renderModal(sampleEvent)
-    const picker = await screen.findByLabelText(/Keeps a rhythm/i)
+    const picker = await screen.findByRole('combobox', { name: /Keeps a rhythm/i })
     expect(picker).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: /Family outing/ })).toBeInTheDocument()
+    fireEvent.keyDown(picker, { key: 'ArrowDown' })
+    expect(await screen.findByRole('option', { name: /Family outing/ })).toBeInTheDocument()
     // A completion rhythm can never be settled by an event existing.
     expect(screen.queryByRole('option', { name: /furnace filter/i })).toBeNull()
   })
@@ -99,8 +103,9 @@ describe('EventModal — linking an event to a rhythm', () => {
     const patched: Record<string, unknown>[] = []
     mockApi(patched)
     renderModal(sampleEvent)
-    const picker = await screen.findByLabelText(/Keeps a rhythm/i)
-    fireEvent.change(picker, { target: { value: 'rh-1' } })
+    const picker = await screen.findByRole('combobox', { name: /Keeps a rhythm/i })
+    fireEvent.keyDown(picker, { key: 'ArrowDown' })
+    fireEvent.click(await screen.findByRole('option', { name: /Family outing/ }))
     fireEvent.click(screen.getByRole('button', { name: 'Save' }))
     await waitFor(() => expect(patched).toHaveLength(1))
     expect(patched[0]).toMatchObject({ rhythmId: 'rh-1' })
@@ -112,9 +117,10 @@ describe('EventModal — linking an event to a rhythm', () => {
     const patched: Record<string, unknown>[] = []
     mockApi(patched)
     renderModal({ ...sampleEvent, rhythmId: 'rh-1' })
-    const picker = await screen.findByLabelText(/Keeps a rhythm/i)
-    expect((picker as HTMLSelectElement).value).toBe('rh-1')
-    fireEvent.change(picker, { target: { value: '' } })
+    const picker = await screen.findByRole('combobox', { name: /Keeps a rhythm/i })
+    await waitFor(() => expect(picker).toHaveTextContent('Family outing'))
+    fireEvent.keyDown(picker, { key: 'ArrowDown' })
+    fireEvent.click(await screen.findByRole('option', { name: 'No rhythm' }))
     fireEvent.click(screen.getByRole('button', { name: 'Save' }))
     await waitFor(() => expect(patched).toHaveLength(1))
     expect(patched[0]).toHaveProperty('rhythmId', null)
@@ -124,6 +130,6 @@ describe('EventModal — linking an event to a rhythm', () => {
     mockApi([], [completionRhythm])
     renderModal(sampleEvent)
     await screen.findByDisplayValue('Zoo trip')
-    expect(screen.queryByLabelText(/Keeps a rhythm/i)).toBeNull()
+    expect(screen.queryByRole('combobox', { name: /Keeps a rhythm/i })).toBeNull()
   })
 })

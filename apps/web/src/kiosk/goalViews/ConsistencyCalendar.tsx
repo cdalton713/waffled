@@ -3,10 +3,31 @@
 // see WeekHeatmap, offered alongside this for habit goals.)
 import { monthLeadCells, toLocalDateKey } from '../../lib/goalStats'
 import type { DataViewProps } from './types'
+import { Button } from '@/components/ui/button'
+import { DataIcon } from '@/components/ui/data-icon'
 
-const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+const MONTH_NAMES = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+]
 
-export function ConsistencyCalendar({ goal, stats, onDayClick, headerRight, firstDay }: DataViewProps) {
+export function ConsistencyCalendar({
+  goal,
+  stats,
+  onDayClick,
+  headerRight,
+  firstDay,
+}: DataViewProps) {
   const todayDate = new Date(stats.today + 'T00:00:00')
   const year = todayDate.getFullYear()
   const month = todayDate.getMonth()
@@ -21,14 +42,15 @@ export function ConsistencyCalendar({ goal, stats, onDayClick, headerRight, firs
     const hit = !future && stats.dayEntry(dateKey).total > 0
     if (hit) hitsThisMonth++
     return (
-      <button
+      <Button
+        variant="unstyled"
         key={dateKey}
         type="button"
         className={`gdv-consistency-cell${hit ? ' hit' : ''}${future ? ' future' : ''}`}
         onClick={() => onDayClick(dateKey)}
       >
         {future ? day : ''}
-      </button>
+      </Button>
     )
   })
 
@@ -44,13 +66,29 @@ export function ConsistencyCalendar({ goal, stats, onDayClick, headerRight, firs
         {headerRight && <div className="gdv-head-grow">{headerRight}</div>}
       </div>
       <div className="gdv-month-grid gdv-consistency-grid">
-        {Array.from({ length: lead }, (_, i) => <div key={`lead-${i}`} />)}
+        {Array.from({ length: lead }, (_, i) => (
+          <div key={`lead-${i}`} />
+        ))}
         {cells}
       </div>
       <div className="gdv-footer">
-        <div className="gdv-stat"><div className="wf-serif gdv-stat-v" style={{ color: 'var(--primary)' }}>🔥 {stats.currentStreak}</div><div className="gdv-stat-l">current</div></div>
-        <div className="gdv-stat"><div className="wf-serif gdv-stat-v">{stats.longestStreak}</div><div className="gdv-stat-l">longest</div></div>
-        <div className="gdv-stat"><div className="wf-serif gdv-stat-v">{pct}%</div><div className="gdv-stat-l">this month</div></div>
+        <div className="gdv-stat">
+          <div className="wf-serif gdv-stat-v" style={{ color: 'var(--primary)' }}>
+            <>
+              <DataIcon value={'🔥'} kind="calendar" />{' '}
+            </>
+            {stats.currentStreak}
+          </div>
+          <div className="gdv-stat-l">current</div>
+        </div>
+        <div className="gdv-stat">
+          <div className="wf-serif gdv-stat-v">{stats.longestStreak}</div>
+          <div className="gdv-stat-l">longest</div>
+        </div>
+        <div className="gdv-stat">
+          <div className="wf-serif gdv-stat-v">{pct}%</div>
+          <div className="gdv-stat-l">this month</div>
+        </div>
       </div>
     </div>
   )

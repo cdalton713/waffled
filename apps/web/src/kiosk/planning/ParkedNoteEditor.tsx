@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { looseEndsApi } from '../../lib/api'
 import { ApiSendError } from '../../lib/api/client'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 
 /**
  * FIX A NOTE THAT IS ALREADY PARKED — its words, its tag, or both. The only other repair would be
@@ -55,9 +57,10 @@ export function ParkedNoteEditor({
   }, [])
 
   // The current tag is always representable, even when this surface's list omits it.
-  const chips: ParkedTag[] = tags.some((t) => t.stepKey === stepKey) || stepKey === null
-    ? tags
-    : [...tags, { stepKey, label: stepKey }]
+  const chips: ParkedTag[] =
+    tags.some((t) => t.stepKey === stepKey) || stepKey === null
+      ? tags
+      : [...tags, { stepKey, label: stepKey }]
 
   const disabled = !!busy || saving
   const trimmed = text.trim()
@@ -87,15 +90,15 @@ export function ParkedNoteEditor({
         setError(
           err instanceof ApiSendError && typeof err.body?.message === 'string'
             ? err.body.message
-            : "That didn't go through — try again."
-        )
+            : "That didn't go through — try again.",
+        ),
       )
       .finally(() => setSaving(false))
   }
 
   return (
     <form className="wp-pne" onSubmit={save} data-testid={`wp-pne-${id}`}>
-      <input
+      <Input
         ref={inputRef}
         className="wp-pne-in"
         value={text}
@@ -113,7 +116,8 @@ export function ParkedNoteEditor({
       />
       <div className="wp-pne-tags" role="group" aria-label="Which step should look at this?">
         {chips.map((t) => (
-          <button
+          <Button
+            variant="unstyled"
             key={t.stepKey}
             type="button"
             className={`wp-pne-tag${tag === t.stepKey ? ' on' : ''}`}
@@ -123,9 +127,10 @@ export function ParkedNoteEditor({
             onClick={() => setTag(t.stepKey)}
           >
             {t.label}
-          </button>
+          </Button>
         ))}
-        <button
+        <Button
+          variant="unstyled"
           type="button"
           className={`wp-pne-tag${tag === null ? ' on' : ''}`}
           disabled={disabled}
@@ -133,7 +138,7 @@ export function ParkedNoteEditor({
           onClick={() => setTag(null)}
         >
           No tag
-        </button>
+        </Button>
       </div>
       {error && (
         <p className="wp-pne-err" role="alert">
@@ -141,12 +146,23 @@ export function ParkedNoteEditor({
         </p>
       )}
       <div className="wp-pne-acts">
-        <button type="submit" className="btn btn-primary wp-pne-act" disabled={disabled || !trimmed}>
+        <Button
+          variant="default"
+          type="submit"
+          className="wp-pne-act"
+          disabled={disabled || !trimmed}
+        >
           Save
-        </button>
-        <button type="button" className="btn btn-ghost wp-pne-act" disabled={saving} onClick={onCancel}>
+        </Button>
+        <Button
+          variant="ghost"
+          type="button"
+          className="wp-pne-act"
+          disabled={saving}
+          onClick={onCancel}
+        >
           Cancel
-        </button>
+        </Button>
       </div>
     </form>
   )

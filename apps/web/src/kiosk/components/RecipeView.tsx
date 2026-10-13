@@ -1,36 +1,106 @@
 import { useEffect, useRef, useState } from 'react'
 import { Editable } from '../../lib/viewOnly'
 import { useNavigate } from 'react-router'
-import { mealBuilderApi, mealsApi, pantryApi, useRecipe, useRecordRecipeView, type RecipeIngredient, type RecipeMatch, type RecipeOverrides, type RecipeStep } from '../../lib/api'
+import {
+  mealBuilderApi,
+  mealsApi,
+  pantryApi,
+  useRecipe,
+  useRecordRecipeView,
+  type RecipeIngredient,
+  type RecipeMatch,
+  type RecipeOverrides,
+  type RecipeStep,
+} from '../../lib/api'
 import { ScheduleModal } from './ScheduleModal'
 import { RecipeGroceryModal } from './RecipeGroceryModal'
 import { CookConfirm } from './CookConfirm'
 import { useTopbarFull } from '../topbar-slot'
 import { fmtAmt } from '../../lib/amount'
 import '../../styles/recipe.css'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { DataIcon } from '@/components/ui/data-icon'
+import {
+  Heart,
+  ShoppingCart,
+  Pencil,
+  CalendarDays,
+  Share,
+  Clock,
+  Check,
+  Sparkles,
+} from 'lucide-react'
+import { Card } from '@/components/ui/card'
 
 // Favorite / edit / schedule as icon buttons. Rendered in the topbar (full-screen
 // route, on the back-button row) and inline (modal preview, which has no topbar).
-function RecipeActionIcons({ fav, onFav, onEdit, onSchedule, onAddToGrocery, onShare }: { fav: boolean; onFav: () => void; onEdit: () => void; onSchedule: () => void; onAddToGrocery: () => void; onShare: () => void }) {
+function RecipeActionIcons({
+  fav,
+  onFav,
+  onEdit,
+  onSchedule,
+  onAddToGrocery,
+  onShare,
+}: {
+  fav: boolean
+  onFav: () => void
+  onEdit: () => void
+  onSchedule: () => void
+  onAddToGrocery: () => void
+  onShare: () => void
+}) {
   return (
     <>
-      <button type="button" className={`icon-btn rd-fav ${fav ? 'on' : ''}`} aria-label="Favorite" aria-pressed={fav} onClick={onFav}>
-        <svg viewBox="0 0 24 24"><path d="M12 20s-7-4.6-9.2-9C1.3 8 2.6 4.7 5.8 4.5 8 4.3 9.4 5.8 12 8.6c2.6-2.8 4-4.3 6.2-4.1 3.2.2 4.5 3.5 3 6.5C19 15.4 12 20 12 20z" /></svg>
-      </button>
-      <button type="button" className="icon-btn" aria-label="Add to grocery" onClick={onAddToGrocery}>
-        <svg viewBox="0 0 24 24"><path d="M2.5 4h2.4l2.2 11.2a1.6 1.6 0 0 0 1.6 1.3h8.9a1.6 1.6 0 0 0 1.6-1.2l1.8-7.3H6.1M9.5 20.2a.9.9 0 1 1-1.8 0 .9.9 0 0 1 1.8 0zM18.6 20.2a.9.9 0 1 1-1.8 0 .9.9 0 0 1 1.8 0z" /></svg>
-      </button>
+      <Button
+        variant="unstyled"
+        type="button"
+        className={`icon-btn rd-fav ${fav ? 'on' : ''}`}
+        aria-label="Favorite"
+        aria-pressed={fav}
+        onClick={onFav}
+      >
+        <Heart aria-hidden="true" />
+      </Button>
+      <Button
+        variant="unstyled"
+        type="button"
+        className="icon-btn"
+        aria-label="Add to grocery"
+        onClick={onAddToGrocery}
+      >
+        <ShoppingCart aria-hidden="true" />
+      </Button>
       <Editable>
-        <button type="button" className="icon-btn" aria-label="Edit recipe" onClick={onEdit}>
-          <svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" /></svg>
-        </button>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="icon-btn"
+          aria-label="Edit recipe"
+          onClick={onEdit}
+        >
+          <Pencil aria-hidden="true" />
+        </Button>
       </Editable>
-      <button type="button" className="icon-btn" aria-label="Schedule" onClick={onSchedule}>
-        <svg viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="16" rx="3" /><path d="M3 9.5h18M8 2.5v4M16 2.5v4" /></svg>
-      </button>
-      <button type="button" className="icon-btn" aria-label="Share recipe" onClick={onShare}>
-        <svg viewBox="0 0 24 24"><path d="M12 15V4M8.5 7.5 12 4l3.5 3.5" /><path d="M6 11H5a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7a1 1 0 0 0-1-1h-1" /></svg>
-      </button>
+      <Button
+        variant="unstyled"
+        type="button"
+        className="icon-btn"
+        aria-label="Schedule"
+        onClick={onSchedule}
+      >
+        <CalendarDays aria-hidden="true" />
+      </Button>
+      <Button
+        variant="unstyled"
+        type="button"
+        className="icon-btn"
+        aria-label="Share recipe"
+        onClick={onShare}
+      >
+        <Share aria-hidden="true" />
+      </Button>
     </>
   )
 }
@@ -54,42 +124,105 @@ function downloadMarkdown(markdown: string, filename: string) {
 // "your notes". Self-contained by id so it renders identically whether it's the
 // full-screen route (RecipeDetail) or a modal preview (RecipeModal).
 
-function IngredientRow({ ing, ratio, onSub }: { ing: RecipeIngredient; ratio: number; onSub: (val: string) => void }) {
+function IngredientRow({
+  ing,
+  ratio,
+  onSub,
+}: {
+  ing: RecipeIngredient
+  ratio: number
+  onSub: (val: string) => void
+}) {
   const [checked, setChecked] = useState(false)
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState('')
-  const left = ing.amount != null ? `${fmtAmt(ing.amount * ratio)}${ing.unit ? ` ${ing.unit}` : ''}` : '—'
+  const left =
+    ing.amount != null ? `${fmtAmt(ing.amount * ratio)}${ing.unit ? ` ${ing.unit}` : ''}` : '—'
   const origName = ing.prepNote ? `${ing.name}, ${ing.prepNote}` : ing.name
 
   if (editing) {
     return (
       <div className="ring-row editing">
         <span className="ring-amt">{left}</span>
-        <input
+        <Input
           className="ring-sub-input"
           autoFocus
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           placeholder={`use instead of ${ing.name}…`}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') { onSub(draft); setEditing(false) }
+            if (e.key === 'Enter') {
+              onSub(draft)
+              setEditing(false)
+            }
             if (e.key === 'Escape') setEditing(false)
           }}
         />
-        <button type="button" className="ring-sub-ok" onClick={() => { onSub(draft); setEditing(false) }}>Save</button>
-        {ing.sub && <button type="button" className="ring-sub-clear" onClick={() => { onSub(''); setEditing(false) }}>Reset</button>}
+        <Button
+          variant="unstyled"
+          type="button"
+          className="ring-sub-ok"
+          onClick={() => {
+            onSub(draft)
+            setEditing(false)
+          }}
+        >
+          Save
+        </Button>
+        {ing.sub && (
+          <Button
+            variant="unstyled"
+            type="button"
+            className="ring-sub-clear"
+            onClick={() => {
+              onSub('')
+              setEditing(false)
+            }}
+          >
+            Reset
+          </Button>
+        )}
       </div>
     )
   }
   return (
     <div className={`ring-row checklist ${checked ? 'on' : ''} ${ing.sub ? 'subbed' : ''}`}>
-      <span className="ring-ck" aria-hidden role="button" tabIndex={0} onClick={() => setChecked((v) => !v)}>{checked ? '✓' : ''}</span>
-      <span className="ring-amt" onClick={() => setChecked((v) => !v)}>{left}</span>
+      <span
+        className="ring-ck"
+        aria-hidden
+        role="button"
+        tabIndex={0}
+        onClick={() => setChecked((v) => !v)}
+      >
+        {checked ? <DataIcon value={'✓'} kind="meal" /> : ''}
+      </span>
+      <span className="ring-amt" onClick={() => setChecked((v) => !v)}>
+        {left}
+      </span>
       <span className="ring-name" onClick={() => setChecked((v) => !v)}>
         {ing.sub ? ing.sub : origName}
-        {ing.sub && <span className="ring-was">↺ instead of {ing.name}</span>}
+        {ing.sub && (
+          <span className="ring-was">
+            <>
+              <DataIcon value={'↺'} kind="meal" />
+              {' instead of '}
+            </>
+            {ing.name}
+          </span>
+        )}
       </span>
-      <button type="button" className="ring-sub-btn" aria-label="Substitute" onClick={() => { setDraft(ing.sub ?? ''); setEditing(true) }}>⇄</button>
+      <Button
+        variant="unstyled"
+        type="button"
+        className="ring-sub-btn"
+        aria-label="Substitute"
+        onClick={() => {
+          setDraft(ing.sub ?? '')
+          setEditing(true)
+        }}
+      >
+        <DataIcon value={'⇄'} kind="meal" />
+      </Button>
     </div>
   )
 }
@@ -110,41 +243,113 @@ function StepRow({ s, onNote }: { s: RecipeStep; onNote: (val: string) => void }
         {(s.ingredients.length > 0 || timer) && (
           <div className="rd-step-meta">
             {s.ingredients.length > 0 && (
-              <span className="rd-uses"><b>Uses:</b> {s.ingredients.join(', ')}</span>
+              <span className="rd-uses">
+                <b>Uses:</b> {s.ingredients.join(', ')}
+              </span>
             )}
             {timer && (
               <span className="rd-timer" aria-label={`timer ${timer}`}>
-                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
+                <Clock aria-hidden="true" />
                 {timer}
               </span>
             )}
           </div>
         )}
-        {s.note && !editing && <div className="rd-step-note">📝 {s.note}</div>}
+        {s.note && !editing && (
+          <div className="rd-step-note">
+            <>
+              <DataIcon value={'📝'} kind="meal" />{' '}
+            </>
+            {s.note}
+          </div>
+        )}
         {editing ? (
           <div className="rd-step-noteedit">
-            <textarea autoFocus value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="add a note for this step…" />
+            <Textarea
+              autoFocus
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              placeholder="add a note for this step…"
+            />
             <div className="rd-step-noteactions">
-              <button type="button" className="pill btn-primary" style={{ color: 'var(--on-accent)', border: 0 }} onClick={() => { onNote(draft); setEditing(false) }}>Save</button>
-              {s.note && <button type="button" className="pill" onClick={() => { onNote(''); setEditing(false) }}>Remove</button>}
-              <button type="button" className="pill" onClick={() => setEditing(false)}>Cancel</button>
+              <Button
+                variant="unstyled"
+                type="button"
+                className="pill btn-primary"
+                style={{ color: 'var(--on-accent)', border: 0 }}
+                onClick={() => {
+                  onNote(draft)
+                  setEditing(false)
+                }}
+              >
+                Save
+              </Button>
+              {s.note && (
+                <Button
+                  variant="unstyled"
+                  type="button"
+                  className="pill btn-primary"
+                  onClick={() => {
+                    onNote('')
+                    setEditing(false)
+                  }}
+                >
+                  Remove
+                </Button>
+              )}
+              <Button
+                variant="unstyled"
+                type="button"
+                className="pill btn-primary"
+                onClick={() => setEditing(false)}
+              >
+                Cancel
+              </Button>
             </div>
           </div>
         ) : (
-          <button type="button" className="rd-step-addnote" onClick={() => { setDraft(s.note ?? ''); setEditing(true) }}>
+          <Button
+            variant="unstyled"
+            type="button"
+            className="rd-step-addnote"
+            onClick={() => {
+              setDraft(s.note ?? '')
+              setEditing(true)
+            }}
+          >
             {s.note ? 'Edit note' : '+ Add note'}
-          </button>
+          </Button>
         )}
       </div>
     </div>
   )
 }
 
-export function RecipeView({ id, onSelect, selectLabel, fullScreen }: { id: string; onSelect?: () => void; selectLabel?: string; fullScreen?: boolean }) {
+export function RecipeView({
+  id,
+  onSelect,
+  selectLabel,
+  fullScreen,
+}: {
+  id: string
+  onSelect?: () => void
+  selectLabel?: string
+  fullScreen?: boolean
+}) {
   const navigate = useNavigate()
   // onHand/toBuy default here so a caller (or a test) that stubs useRecipe without
   // them can't turn an absent count into a crash — absent means "no claim", same as null.
-  const { recipe, ingredients, steps, onHand = null, toBuy = 0, toBuyNames = [], loading, error, refetch } = useRecipe(id)
+  const {
+    recipe,
+    ingredients,
+    steps,
+    onHand = null,
+    toBuy = 0,
+    toBuyNames = [],
+    loading,
+    error,
+    refetch,
+  } = useRecipe(id)
   // Records the visit for the Recently-viewed rail — on the SCREEN, not in useRecipe
   // (the editor and Cook Mode fetch through that hook too).
   useRecordRecipeView(id)
@@ -180,7 +385,12 @@ export function RecipeView({ id, onSelect, selectLabel, fullScreen }: { id: stri
       setCooked(recipe.cookedCount)
       setNotes(recipe.userNotes ?? '')
       shareMd.current = null
-      mealsApi.recipeMarkdown(recipe.id).then((r) => { shareMd.current = r }).catch(() => {})
+      mealsApi
+        .recipeMarkdown(recipe.id)
+        .then((r) => {
+          shareMd.current = r
+        })
+        .catch(() => {})
     }
   }, [recipe])
 
@@ -223,7 +433,8 @@ export function RecipeView({ id, onSelect, selectLabel, fullScreen }: { id: stri
     })
   }
   function saveNotes() {
-    if (recipe && notes.trim() !== (recipe.userNotes ?? '')) mealsApi.updateRecipe(recipe.id, { userNotes: notes }).catch(() => {})
+    if (recipe && notes.trim() !== (recipe.userNotes ?? ''))
+      mealsApi.updateRecipe(recipe.id, { userNotes: notes }).catch(() => {})
   }
   function markCooked() {
     if (!recipe) return
@@ -232,7 +443,12 @@ export function RecipeView({ id, onSelect, selectLabel, fullScreen }: { id: stri
     mealsApi.markCooked(recipe.id).catch(() => setCooked((c) => Math.max(0, c - 1)))
     // Offer to update the pantry with what this recipe likely used (skipped silently
     // when the pantry module is off or nothing on hand matched).
-    pantryApi.forRecipe(recipe.id).then((m) => { if (m.length) setUsedMatches(m) }).catch(() => {})
+    pantryApi
+      .forRecipe(recipe.id)
+      .then((m) => {
+        if (m.length) setUsedMatches(m)
+      })
+      .catch(() => {})
   }
   const enc = encodeURIComponent
   const chip = (params: string) => navigate(`/meals/recipes?${params}`)
@@ -244,7 +460,17 @@ export function RecipeView({ id, onSelect, selectLabel, fullScreen }: { id: stri
     () =>
       fullScreen ? (
         <>
-          <button type="button" className="pill" onClick={() => navigate(-1)}>‹ Recipes</button>
+          <Button
+            variant="unstyled"
+            type="button"
+            className="pill btn-primary"
+            onClick={() => navigate(-1)}
+          >
+            <>
+              <DataIcon value={'‹'} kind="meal" />
+              {' Recipes'}
+            </>
+          </Button>
           {recipe && (
             <div className="rd-topbar-actions">
               <RecipeActionIcons
@@ -259,11 +485,21 @@ export function RecipeView({ id, onSelect, selectLabel, fullScreen }: { id: stri
           )}
         </>
       ) : null,
-    [fullScreen, fav, recipe?.id]
+    [fullScreen, fav, recipe?.id],
   )
 
-  if (loading) return <div className="muted" style={{ padding: 30 }}>Loading…</div>
-  if (error || !recipe) return <div className="muted" style={{ padding: 30 }}>This recipe isn’t available.</div>
+  if (loading)
+    return (
+      <div className="muted" style={{ padding: 30 }}>
+        Loading…
+      </div>
+    )
+  if (error || !recipe)
+    return (
+      <div className="muted" style={{ padding: 30 }}>
+        This recipe isn’t available.
+      </div>
+    )
 
   const base = recipe.servings || 4
   const current = servings ?? base
@@ -281,7 +517,12 @@ export function RecipeView({ id, onSelect, selectLabel, fullScreen }: { id: stri
   }
   function onGroceryAdded(added: number) {
     if (added < 0) setAddedNote('Couldn’t reach the grocery list — try again.')
-    else setAddedNote(added > 0 ? `Added ${added} item${added === 1 ? '' : 's'} to this week’s grocery list.` : 'Everything’s already on the list — nothing to add.')
+    else
+      setAddedNote(
+        added > 0
+          ? `Added ${added} item${added === 1 ? '' : 's'} to this week’s grocery list.`
+          : 'Everything’s already on the list — nothing to add.',
+      )
   }
 
   // "Build a meal around this" — start a plate seeded from this recipe: named after
@@ -295,7 +536,10 @@ export function RecipeView({ id, onSelect, selectLabel, fullScreen }: { id: stri
       const r = recipe!
       const cat = (r.category ?? r.mealType ?? '').toLowerCase()
       const meal = await mealBuilderApi.create({ name: r.title, servings: r.servings || 4 })
-      await mealBuilderApi.addDish(meal.id, { recipeId: r.id, role: cat === 'dessert' ? 'dessert' : 'main' })
+      await mealBuilderApi.addDish(meal.id, {
+        recipeId: r.id,
+        role: cat === 'dessert' ? 'dessert' : 'main',
+      })
       navigate(`/meals/build/${meal.id}`)
     } catch {
       setAddedNote('Couldn’t start a meal from this recipe — try again.')
@@ -309,7 +553,10 @@ export function RecipeView({ id, onSelect, selectLabel, fullScreen }: { id: stri
     // (Safari requires transient activation). Only fetch here if the prefetch hasn't
     // landed yet — that path can't use the native sheet, so it falls back to copy+download.
     const payload = shareMd.current ?? (await mealsApi.recipeMarkdown(recipe!.id).catch(() => null))
-    if (!payload) { setAddedNote('Couldn’t prepare the recipe to share — try again.'); return }
+    if (!payload) {
+      setAddedNote('Couldn’t prepare the recipe to share — try again.')
+      return
+    }
     const { markdown, filename } = payload
     const nav = navigator as Navigator & { canShare?: (d?: ShareData) => boolean }
     try {
@@ -338,22 +585,72 @@ export function RecipeView({ id, onSelect, selectLabel, fullScreen }: { id: stri
   // Categorical chips are what people scan — show the first few, tuck the rest behind
   // a "+N more" toggle. Free-form #hashtags drop to a quiet muted line (they're for
   // search, not scanning).
-  const chipTags: Array<{ key: string; label: string; cls?: string; params: string }> = []
-  if (fav) chipTags.push({ key: 'fav', label: '❤️ Favorites', cls: 'fav', params: 'fav=1' })
-  if (cooked === 0) chipTags.push({ key: 'new', label: '🆕 New', cls: 'new', params: 'new=1' })
-  if (recipe.collection) chipTags.push({ key: 'coll', label: `📁 ${recipe.collection}`, cls: 'coll', params: `collection=${enc(recipe.collection)}` })
-  if (recipe.cuisine) chipTags.push({ key: 'cuisine', label: `🌍 ${recipe.cuisine}`, params: `cuisine=${enc(recipe.cuisine)}` })
-  if (recipe.mealType) chipTags.push({ key: 'meal', label: recipe.mealType.replace('-', ' '), params: `q=${enc(recipe.mealType)}` })
-  if (recipe.protein) chipTags.push({ key: 'protein', label: `🥩 ${recipe.protein}`, params: `protein=${enc(recipe.protein)}` })
-  if (recipe.base) chipTags.push({ key: 'base', label: `🍚 ${recipe.base}`, params: `q=${enc(recipe.base)}` })
-  if (recipe.cookMethod) chipTags.push({ key: 'method', label: `🍳 ${recipe.cookMethod}`, params: `q=${enc(recipe.cookMethod)}` })
-  if (recipe.effort) chipTags.push({ key: 'effort', label: `⏱️ ${recipe.effort}`, params: `q=${enc(recipe.effort)}` })
-  for (const d of recipe.dietary) chipTags.push({ key: `d-${d}`, label: d, cls: 'diet', params: `diet=${enc(d)}` })
-  for (const v of recipe.vegetables) chipTags.push({ key: `v-${v}`, label: `🥬 ${v}`, cls: 'veg', params: `q=${enc(v)}` })
+  const chipTags: Array<{
+    key: string
+    label: string
+    icon?: string
+    cls?: string
+    params: string
+  }> = []
+  if (fav)
+    chipTags.push({ key: 'fav', icon: '❤️', label: 'Favorites', cls: 'fav', params: 'fav=1' })
+  if (cooked === 0)
+    chipTags.push({ key: 'new', icon: '🆕', label: 'New', cls: 'new', params: 'new=1' })
+  if (recipe.collection)
+    chipTags.push({
+      key: 'coll',
+      icon: '📁',
+      label: recipe.collection,
+      cls: 'coll',
+      params: `collection=${enc(recipe.collection)}`,
+    })
+  if (recipe.cuisine)
+    chipTags.push({
+      key: 'cuisine',
+      icon: '🌍',
+      label: recipe.cuisine,
+      params: `cuisine=${enc(recipe.cuisine)}`,
+    })
+  if (recipe.mealType)
+    chipTags.push({
+      key: 'meal',
+      label: recipe.mealType.replace('-', ' '),
+      params: `q=${enc(recipe.mealType)}`,
+    })
+  if (recipe.protein)
+    chipTags.push({
+      key: 'protein',
+      icon: '🥩',
+      label: recipe.protein,
+      params: `protein=${enc(recipe.protein)}`,
+    })
+  if (recipe.base)
+    chipTags.push({ key: 'base', icon: '🍚', label: recipe.base, params: `q=${enc(recipe.base)}` })
+  if (recipe.cookMethod)
+    chipTags.push({
+      key: 'method',
+      icon: '🍳',
+      label: recipe.cookMethod,
+      params: `q=${enc(recipe.cookMethod)}`,
+    })
+  if (recipe.effort)
+    chipTags.push({
+      key: 'effort',
+      icon: '⏱️',
+      label: recipe.effort,
+      params: `q=${enc(recipe.effort)}`,
+    })
+  for (const d of recipe.dietary)
+    chipTags.push({ key: `d-${d}`, label: d, cls: 'diet', params: `diet=${enc(d)}` })
+  for (const v of recipe.vegetables)
+    chipTags.push({ key: `v-${v}`, icon: '🥬', label: v, cls: 'veg', params: `q=${enc(v)}` })
   const VISIBLE_TAGS = 3
   const shownTags = showAllTags ? chipTags : chipTags.slice(0, VISIBLE_TAGS)
   const hiddenCount = chipTags.length - shownTags.length
-  const hashtags = [...recipe.addedTags, ...(recipe.tags ?? []).filter((t) => !recipe.addedTags.includes(t))]
+  const hashtags = [
+    ...recipe.addedTags,
+    ...(recipe.tags ?? []).filter((t) => !recipe.addedTags.includes(t)),
+  ]
 
   return (
     <div className="recipe-view">
@@ -362,9 +659,9 @@ export function RecipeView({ id, onSelect, selectLabel, fullScreen }: { id: stri
       {!fullScreen && (
         <div className="rd-actions">
           {onSelect && (
-            <button type="button" className="btn btn-primary rd-select" onClick={onSelect}>
+            <Button variant="default" type="button" className="rd-select" onClick={onSelect}>
               {selectLabel ?? 'Select'}
-            </button>
+            </Button>
           )}
           <RecipeActionIcons
             fav={fav}
@@ -384,25 +681,70 @@ export function RecipeView({ id, onSelect, selectLabel, fullScreen }: { id: stri
             {recipe.imageUrl ? (
               <img src={recipe.imageUrl} alt={recipe.title} />
             ) : (
-              <span className="rd-hero-emoji">{recipe.emoji ?? '🍽️'}</span>
+              <span className="rd-hero-emoji">
+                <DataIcon value={recipe.emoji ?? '🍽️'} kind="meal" />
+              </span>
             )}
           </div>
           <div className="wf-serif rd-title">{recipe.title}</div>
           <div className="rd-meta">
-            {recipe.cookTimeMinutes != null && <span>🕐 {recipe.cookTimeMinutes} min</span>}
-            <span>🍽️ Serves {base}</span>
-            {steps.length > 0 && <span>🪜 {steps.length} steps</span>}
-            {recipe.sourceName && <span>📖 {recipe.sourceName}</span>}
+            {recipe.cookTimeMinutes != null && (
+              <span>
+                <>
+                  <DataIcon value={'🕐'} kind="meal" />{' '}
+                </>
+                {recipe.cookTimeMinutes} min
+              </span>
+            )}
+            <span>
+              <>
+                <DataIcon value={'🍽️'} kind="meal" />
+                {' Serves '}
+              </>
+              {base}
+            </span>
+            {steps.length > 0 && (
+              <span>
+                <>
+                  <DataIcon value={'🪜'} kind="meal" />{' '}
+                </>
+                {steps.length} steps
+              </span>
+            )}
+            {recipe.sourceName && (
+              <span>
+                <>
+                  <DataIcon value={'📖'} kind="meal" />{' '}
+                </>
+                {recipe.sourceName}
+              </span>
+            )}
           </div>
 
           <div className="rd-tagrow">
             {shownTags.map((t) => (
-              <button key={t.key} className={`rd-tag ${t.cls ?? ''}`} onClick={() => chip(t.params)}>{t.label}</button>
+              <Button
+                variant="unstyled"
+                key={t.key}
+                className={`rd-tag ${t.cls ?? ''}`}
+                onClick={() => chip(t.params)}
+              >
+                {t.icon && (
+                  <>
+                    <DataIcon value={t.icon} kind="meal" />{' '}
+                  </>
+                )}
+                {t.label}
+              </Button>
             ))}
             {chipTags.length > VISIBLE_TAGS && (
-              <button className="rd-tag rd-tag-more" onClick={() => setShowAllTags((v) => !v)}>
+              <Button
+                variant="unstyled"
+                className="rd-tag rd-tag-more"
+                onClick={() => setShowAllTags((v) => !v)}
+              >
                 {showAllTags ? 'Show less' : `+${hiddenCount} more`}
-              </button>
+              </Button>
             )}
           </div>
           {hashtags.length > 0 && (
@@ -410,75 +752,146 @@ export function RecipeView({ id, onSelect, selectLabel, fullScreen }: { id: stri
           )}
 
           {steps.length > 0 && (
-            <button type="button" className="rd-cookbar" onClick={() => navigate(`/meals/recipe/${recipe.id}/cook`)}>
-              <span className="rd-cookbar-emoji" aria-hidden>👨‍🍳</span>
+            <Button
+              variant="unstyled"
+              type="button"
+              className="rd-cookbar"
+              onClick={() => navigate(`/meals/recipe/${recipe.id}/cook`)}
+            >
+              <span className="rd-cookbar-emoji" aria-hidden>
+                <DataIcon value={'👨‍🍳'} kind="meal" />
+              </span>
               Cook Mode
-            </button>
+            </Button>
           )}
 
           {/* A recipe is one dish; a meal is the whole plate around it. */}
           <div style={{ display: 'flex', margin: '12px 0 2px' }}>
-            <button
+            <Button
+              variant="default"
               type="button"
-              className="btn btn-primary rd-buildmeal"
+              className="rd-buildmeal"
               style={{ fontSize: 13.5, padding: '10px 18px' }}
               onClick={buildMeal}
               disabled={building}
             >
-              <span aria-hidden>🍽️</span>
+              <span aria-hidden>
+                <DataIcon value={'🍽️'} kind="meal" />
+              </span>
               {building ? 'Starting a meal…' : 'Build a meal around this'}
-            </button>
+            </Button>
           </div>
 
           <div className="rd-status-row">
-            <span className="st-lbl">{cooked > 0 ? `👨‍🍳 Cooked ${cooked}×` : 'Not cooked yet'}</span>
-            <button type="button" className="rd-markbtn" onClick={markCooked}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12l5 5 9-10" /></svg>
+            <span className="st-lbl">
+              {cooked > 0 ? (
+                <>
+                  <>
+                    <DataIcon value={'👨‍🍳'} kind="meal" />
+                    {' Cooked '}
+                  </>
+                  {cooked}
+                  <DataIcon value={'×'} kind="meal" />
+                </>
+              ) : (
+                'Not cooked yet'
+              )}
+            </span>
+            <Button variant="unstyled" type="button" className="rd-markbtn" onClick={markCooked}>
+              <Check
+                aria-hidden="true"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
               Mark cooked
-            </button>
+            </Button>
           </div>
 
-          <div className="card rd-ings">
+          <Card className="card rd-ings">
             <div className="rd-ings-head">
               <div className="card-h">Ingredients</div>
               <div className="rd-servings">
-                <span className="tiny muted" style={{ fontWeight: 700 }}>Servings</span>
-                <button type="button" aria-label="Fewer" onClick={() => setServings(Math.max(1, current - 1))}>−</button>
+                <span className="tiny muted" style={{ fontWeight: 700 }}>
+                  Servings
+                </span>
+                <Button
+                  variant="unstyled"
+                  type="button"
+                  aria-label="Fewer"
+                  onClick={() => setServings(Math.max(1, current - 1))}
+                >
+                  −
+                </Button>
                 <span className="rd-sv-n">{current}</span>
-                <button type="button" aria-label="More" onClick={() => setServings(current + 1)}>+</button>
+                <Button
+                  variant="unstyled"
+                  type="button"
+                  aria-label="More"
+                  onClick={() => setServings(current + 1)}
+                >
+                  +
+                </Button>
               </div>
             </div>
             {ingredients.map((ing) => (
-              <IngredientRow key={ing.id} ing={ing} ratio={ratio} onSub={(val) => setSub(ing.name, val)} />
+              <IngredientRow
+                key={ing.id}
+                ing={ing}
+                ratio={ratio}
+                onSub={(val) => setSub(ing.name, val)}
+              />
             ))}
-            <div className="tiny muted rd-sub-hint">Tap ⇄ to swap an ingredient — your swaps stick across re-imports.</div>
-          </div>
+            <div className="tiny muted rd-sub-hint">
+              <>
+                {'Tap '}
+                <DataIcon value={'⇄'} kind="meal" />
+                {' to swap an ingredient — your swaps stick across re-imports.'}
+              </>
+            </div>
+          </Card>
         </div>
 
         {/* right: on-hand banner + method */}
         <div className="rd-right">
           {(onHand !== null || toBuy > 0) && (
             <div className={`rd-ai${showToBuy && canExpand ? ' is-open' : ''}`}>
-              <div className="rd-ai-sp"><svg viewBox="0 0 24 24"><path d="M12 2.5l1.7 5.2 5.3 1.6-5.3 1.6L12 16l-1.7-5.1-5.3-1.6 5.3-1.6z" /></svg></div>
+              <div className="rd-ai-sp">
+                <Sparkles aria-hidden="true" />
+              </div>
               <div className="rd-ai-tx">
                 {onHand !== null && (
                   <>
-                    <b>{onHand.have} of {onHand.total}</b> {onHand.have === onHand.total ? 'ingredients on hand' : 'ingredients already on hand'}
+                    <b>
+                      {onHand.have} of {onHand.total}
+                    </b>{' '}
+                    {onHand.have === onHand.total
+                      ? 'ingredients on hand'
+                      : 'ingredients already on hand'}
                     {toBuy > 0 && ' — '}
                   </>
                 )}
                 {toBuy > 0 &&
                   (canExpand ? (
                     // A count you can't act on is just anxiety — open it into the names.
-                    <button
+                    <Button
+                      variant="unstyled"
                       type="button"
                       className="rd-ai-buy"
                       aria-expanded={showToBuy}
                       onClick={() => setShowToBuy((v) => !v)}
                     >
                       <b>{toBuy} to buy</b>
-                      <span className="rd-ai-caret">{showToBuy ? '\u25be' : '\u25b8'}</span>
-                    </button>
+                      <span className="rd-ai-caret">
+                        {showToBuy ? (
+                          <DataIcon value={'▾'} kind="meal" />
+                        ) : (
+                          <DataIcon value={'▸'} kind="meal" />
+                        )}
+                      </span>
+                    </Button>
                   ) : (
                     <>
                       <b>{toBuy} to buy</b>
@@ -494,22 +907,40 @@ export function RecipeView({ id, onSelect, selectLabel, fullScreen }: { id: stri
                 )}
               </div>
               {toBuy > 0 && (
-                <button type="button" className="rd-ai-go" onClick={addToGrocery}>Add to grocery</button>
+                <Button
+                  variant="unstyled"
+                  type="button"
+                  className="rd-ai-go"
+                  onClick={addToGrocery}
+                >
+                  Add to grocery
+                </Button>
               )}
             </div>
           )}
           {addedNote && <div className="rd-added tiny">{addedNote}</div>}
 
-          <div className="card rd-method">
-            <div className="card-h" style={{ marginBottom: 14 }}>Method</div>
-            {steps.length === 0 && <div className="muted tiny" style={{ fontWeight: 600 }}>No steps recorded for this recipe.</div>}
+          <Card className="card rd-method">
+            <div className="card-h" style={{ marginBottom: 14 }}>
+              Method
+            </div>
+            {steps.length === 0 && (
+              <div className="muted tiny" style={{ fontWeight: 600 }}>
+                No steps recorded for this recipe.
+              </div>
+            )}
             {steps.map((s) => (
               <StepRow key={s.stepNumber} s={s} onNote={(val) => setStepNote(s.stepNumber, val)} />
             ))}
 
             <div className="rd-notes">
-              <div className="card-h" style={{ fontSize: 16, margin: '6px 0 8px' }}>📝 Your notes</div>
-              <textarea
+              <div className="card-h" style={{ fontSize: 16, margin: '6px 0 8px' }}>
+                <>
+                  <DataIcon value={'📝'} kind="meal" />
+                  {' Your notes'}
+                </>
+              </div>
+              <Textarea
                 className="rd-notes-input"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
@@ -519,26 +950,41 @@ export function RecipeView({ id, onSelect, selectLabel, fullScreen }: { id: stri
               {recipe.notes && (
                 <details className="rd-srcnotes">
                   <summary>Recipe notes (from the source)</summary>
-                  <div className="tiny muted" style={{ whiteSpace: 'pre-wrap', marginTop: 6 }}>{recipe.notes}</div>
+                  <div className="tiny muted" style={{ whiteSpace: 'pre-wrap', marginTop: 6 }}>
+                    {recipe.notes}
+                  </div>
                 </details>
               )}
             </div>
-          </div>
+          </Card>
         </div>
       </div>
 
       {scheduling && (
-        <ScheduleModal recipe={recipe} onClose={() => setScheduling(false)} onScheduled={(label) => setAddedNote(`Scheduled for ${label}.`)} />
+        <ScheduleModal
+          recipe={recipe}
+          onClose={() => setScheduling(false)}
+          onScheduled={(label) => setAddedNote(`Scheduled for ${label}.`)}
+        />
       )}
       {pickingGrocery && (
-        <RecipeGroceryModal recipeId={recipe.id} title={recipe.title} ingredients={ingredients} ratio={ratio} onClose={() => setPickingGrocery(false)} onAdded={onGroceryAdded} />
+        <RecipeGroceryModal
+          recipeId={recipe.id}
+          title={recipe.title}
+          ingredients={ingredients}
+          ratio={ratio}
+          onClose={() => setPickingGrocery(false)}
+          onAdded={onGroceryAdded}
+        />
       )}
       {usedMatches && (
         <CookConfirm
           title={recipe.title}
           matches={usedMatches}
           onClose={() => setUsedMatches(null)}
-          onApplied={(n) => n > 0 && setAddedNote(`Pantry updated — ${n} item${n === 1 ? '' : 's'}.`)}
+          onApplied={(n) =>
+            n > 0 && setAddedNote(`Pantry updated — ${n} item${n === 1 ? '' : 's'}.`)
+          }
         />
       )}
     </div>

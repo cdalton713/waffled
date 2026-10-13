@@ -2,20 +2,35 @@
 // kiosk.css) the shell collapses to a header + drawer, so any Kitchen override that
 // sizes the shell must be scoped to wider screens or it rebuilds the tablet rail
 // inside a 393px viewport.
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
 import postcss, { type AtRule, type Node, type Rule } from 'postcss'
-import { describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
+import { compileStyles, compiledStyle } from '../test/styles'
 
-const css = readFileSync(join(__dirname, 'kitchen.css'), 'utf8')
-const root = postcss.parse(css)
+let root: ReturnType<typeof postcss.parse>
+beforeAll(async () => {
+  await compileStyles()
+  root = postcss.parse(
+    compiledStyle('kitchen.css').replace(/(\[[^\]=]+=)'([^']*)'(\])/g, '$1"$2"$3'),
+  )
+})
 
-const SHELL = /\.(wf-kiosk|rail|rail-item|rail-switch|rail-switch-av|topbar|tb-date|tb-time|tb-wx)\b/
-const LAYOUT = /^(grid-template-columns|width|height|min-height|padding|gap|font-size|border-radius|justify-content)$/
+const SHELL =
+  /\.(wf-kiosk|rail|rail-item|rail-switch|rail-switch-av|topbar|tb-date|tb-time|tb-wx)\b/
+const LAYOUT =
+  /^(grid-template-columns|width|height|min-height|padding|gap|font-size|border-radius|justify-content)$/
 
 function insideTabletMedia(rule: Rule): boolean {
-  for (let p: Node | undefined = rule.parent as Node | undefined; p; p = p.parent as Node | undefined) {
-    if (p.type === 'atrule' && (p as AtRule).name === 'media' && /min-width:\s*721px/.test((p as AtRule).params)) return true
+  for (
+    let p: Node | undefined = rule.parent as Node | undefined;
+    p;
+    p = p.parent as Node | undefined
+  ) {
+    if (
+      p.type === 'atrule' &&
+      (p as AtRule).name === 'media' &&
+      /min-width:\s*721px/.test((p as AtRule).params)
+    )
+      return true
   }
   return false
 }
@@ -37,7 +52,10 @@ describe('kitchen.css on a phone', () => {
     root.walkAtRules('media', (m) => {
       if (!/max-width:\s*720px/.test(m.params)) return
       m.walkRules((r) => {
-        if (/\.seg button$/.test(r.selector)) r.walkDecls('padding', (d) => { pad = d.value })
+        if (/\.seg button$/.test(r.selector))
+          r.walkDecls('padding', (d) => {
+            pad = d.value
+          })
       })
     })
     expect(pad).toBe('8px')
@@ -49,7 +67,12 @@ describe('kitchen.css buttons on a phone', () => {
     let ws: string | undefined
     root.walkAtRules('media', (m) => {
       if (!/max-width:\s*720px/.test(m.params)) return
-      m.walkRules((r) => { if (r.selector.endsWith(' .btn')) r.walkDecls('white-space', (d) => { ws = d.value }) })
+      m.walkRules((r) => {
+        if (r.selector.endsWith(' .btn'))
+          r.walkDecls('white-space', (d) => {
+            ws = d.value
+          })
+      })
     })
     expect(ws).toBe('nowrap')
   })
@@ -58,7 +81,9 @@ describe('kitchen.css buttons on a phone', () => {
 describe('kitchen.css re-skins hard-coded classic colours', () => {
   const kitchenRule = (sel: string) => {
     let found = false
-    root.walkRules((r) => { if (r.selector === `:root[data-palette="kitchen"] ${sel}`) found = true })
+    root.walkRules((r) => {
+      if (r.selector === `:root[data-palette="kitchen"] ${sel}`) found = true
+    })
     return found
   }
   it('gives the Reward Shop hero and reward thumbnails Kitchen colours', () => {

@@ -5,15 +5,58 @@ import { Lists } from './Lists'
 import { ListsModal } from './components/ListsModal'
 import { TopbarSlotProvider, useTopbarSlots } from './topbar-slot'
 
-const grocery = { id: 'g', name: 'Grocery', emoji: '🛒', listType: 'grocery', isAutoBuilt: true, sortMode: 'manual', itemCount: 15 }
-const packing = { id: 'pack', name: 'Lake trip packing', emoji: '🧳', listType: 'custom', isAutoBuilt: false, sortMode: 'manual', itemCount: 3 }
+const grocery = {
+  id: 'g',
+  name: 'Grocery',
+  emoji: '🛒',
+  listType: 'grocery',
+  isAutoBuilt: true,
+  sortMode: 'manual',
+  itemCount: 15,
+}
+const packing = {
+  id: 'pack',
+  name: 'Lake trip packing',
+  emoji: '🧳',
+  listType: 'custom',
+  isAutoBuilt: false,
+  sortMode: 'manual',
+  itemCount: 3,
+}
 
 const kelly = { personId: 'p2', name: 'Kelly', avatarEmoji: '🦊', colorHex: '#EC6049' }
 
 const packItems = [
-  { id: 'i1', name: 'Swimsuits', quantity: '×4', checked: false, checkedAt: null, section: 'Clothes', sortOrder: 0, assignee: kelly },
-  { id: 'i2', name: 'PJs & socks', quantity: null, checked: true, checkedAt: '2026-05-31T00:00:00Z', section: 'Clothes', sortOrder: 1, assignee: null },
-  { id: 'i3', name: 'Sunscreen', quantity: null, checked: false, checkedAt: null, section: 'Gear', sortOrder: 0, assignee: null },
+  {
+    id: 'i1',
+    name: 'Swimsuits',
+    quantity: '×4',
+    checked: false,
+    checkedAt: null,
+    section: 'Clothes',
+    sortOrder: 0,
+    assignee: kelly,
+  },
+  {
+    id: 'i2',
+    name: 'PJs & socks',
+    quantity: null,
+    checked: true,
+    checkedAt: '2026-05-31T00:00:00Z',
+    section: 'Clothes',
+    sortOrder: 1,
+    assignee: null,
+  },
+  {
+    id: 'i3',
+    name: 'Sunscreen',
+    quantity: null,
+    checked: false,
+    checkedAt: null,
+    section: 'Gear',
+    sortOrder: 0,
+    assignee: null,
+  },
 ]
 
 const persons = [
@@ -27,21 +70,74 @@ interface Sent {
   body: unknown
 }
 
-function mockApi(opts: { lists?: unknown[]; items?: unknown[]; sent?: Sent[]; created?: unknown; templates?: unknown[] }) {
+function mockApi(opts: {
+  lists?: unknown[]
+  items?: unknown[]
+  sent?: Sent[]
+  created?: unknown
+  templates?: unknown[]
+}) {
   globalThis.fetch = vi.fn(async (url: string, init?: { method?: string; body?: string }) => {
     const u = String(url)
     const method = init?.method ?? 'GET'
     const body = init?.body ? JSON.parse(init.body) : undefined
     opts.sent?.push({ method, url: u, body })
     if (u.includes('/api/persons')) return { ok: true, json: async () => ({ persons }) }
-    if (/\/api\/lists\/[^/]+\/order$/.test(u) && method === 'PUT') return { ok: true, json: async () => ({ ok: true }) }
-    if (/\/api\/lists\/[^/]+\/recent$/.test(u)) return { ok: true, json: async () => ({ items: [{ id: 'old', name: 'Bug spray', quantity: null, checked: true, checkedAt: '2026-05-01T00:00:00Z', section: 'Gear', sortOrder: 0, assignee: null }] }) }
-    if (/\/api\/list-items\/[^/]+\/readd$/.test(u)) return { ok: true, json: async () => ({ item: { id: 'old', name: 'Bug spray', quantity: null, checked: false, checkedAt: null, section: 'Gear', sortOrder: 0, assignee: null } }) }
+    if (/\/api\/lists\/[^/]+\/order$/.test(u) && method === 'PUT')
+      return { ok: true, json: async () => ({ ok: true }) }
+    if (/\/api\/lists\/[^/]+\/recent$/.test(u))
+      return {
+        ok: true,
+        json: async () => ({
+          items: [
+            {
+              id: 'old',
+              name: 'Bug spray',
+              quantity: null,
+              checked: true,
+              checkedAt: '2026-05-01T00:00:00Z',
+              section: 'Gear',
+              sortOrder: 0,
+              assignee: null,
+            },
+          ],
+        }),
+      }
+    if (/\/api\/list-items\/[^/]+\/readd$/.test(u))
+      return {
+        ok: true,
+        json: async () => ({
+          item: {
+            id: 'old',
+            name: 'Bug spray',
+            quantity: null,
+            checked: false,
+            checkedAt: null,
+            section: 'Gear',
+            sortOrder: 0,
+            assignee: null,
+          },
+        }),
+      }
     // add-bar autocomplete + "suggests" chips (must precede the list-detail regex)
     if (u.includes('/api/lists/suggestions')) {
       const q = new URL(u, 'http://x').searchParams.get('q')
-      if (q === 'wat') return { ok: true, json: async () => ({ suggestions: [{ name: 'Water bottles', source: 'catalog' }] }) }
-      return { ok: true, json: async () => ({ suggestions: q ? [] : [{ name: 'Bug spray', source: 'history' }, { name: 'Trash bags', source: 'history' }] }) }
+      if (q === 'wat')
+        return {
+          ok: true,
+          json: async () => ({ suggestions: [{ name: 'Water bottles', source: 'catalog' }] }),
+        }
+      return {
+        ok: true,
+        json: async () => ({
+          suggestions: q
+            ? []
+            : [
+                { name: 'Bug spray', source: 'history' },
+                { name: 'Trash bags', source: 'history' },
+              ],
+        }),
+      }
     }
     // list templates GET (must precede the list-detail regex, which would else
     // capture "templates" as an :id)
@@ -53,11 +149,34 @@ function mockApi(opts: { lists?: unknown[]; items?: unknown[]; sent?: Sent[]; cr
       return { ok: true, json: async () => ({ list: packing, items: opts.items ?? [] }) }
     }
     if (/\/api\/lists\/[^/]+\/items$/.test(u) && method === 'POST') {
-      return { ok: true, json: async () => ({ item: { id: 'new', name: body.name, quantity: null, checked: false, checkedAt: null, section: null, sortOrder: 99, assignee: null } }) }
+      return {
+        ok: true,
+        json: async () => ({
+          item: {
+            id: 'new',
+            name: body.name,
+            quantity: null,
+            checked: false,
+            checkedAt: null,
+            section: null,
+            sortOrder: 99,
+            assignee: null,
+          },
+        }),
+      }
     }
     // grocery board (auto-built view) — must precede the bare /api/lists check
     if (u.includes('/api/lists/grocery/board')) {
-      return { ok: true, json: async () => ({ list: grocery, weekStart: '2026-06-07', meals: [], items: [], staples: [] }) }
+      return {
+        ok: true,
+        json: async () => ({
+          list: grocery,
+          weekStart: '2026-06-07',
+          meals: [],
+          items: [],
+          staples: [],
+        }),
+      }
     }
     // list templates (must precede the bare /api/lists checks)
     if (/\/api\/lists\/[^/]+\/save-as-template$/.test(u) && method === 'POST') {
@@ -67,7 +186,12 @@ function mockApi(opts: { lists?: unknown[]; items?: unknown[]; sent?: Sent[]; cr
       return { ok: true, json: async () => ({ list: { ...packing, listType: 'custom' } }) }
     }
     if (/\/api\/lists\/templates\/[^/]+\/apply$/.test(u) && method === 'POST') {
-      return { ok: true, json: async () => ({ list: { ...packing, id: 'applied', name: body?.name ?? 'Applied', listType: 'custom' } }) }
+      return {
+        ok: true,
+        json: async () => ({
+          list: { ...packing, id: 'applied', name: body?.name ?? 'Applied', listType: 'custom' },
+        }),
+      }
     }
     if (/\/api\/lists\/[^/]+\/clear-completed$/.test(u) && method === 'POST') {
       return { ok: true, json: async () => ({ cleared: 1 }) }
@@ -75,13 +199,28 @@ function mockApi(opts: { lists?: unknown[]; items?: unknown[]; sent?: Sent[]; cr
     if (u.endsWith('/api/lists') && method === 'POST') {
       return { ok: true, json: async () => ({ list: opts.created }) }
     }
-    if (u.endsWith('/api/lists')) return { ok: true, json: async () => ({ lists: opts.lists ?? [] }) }
+    if (u.endsWith('/api/lists'))
+      return { ok: true, json: async () => ({ lists: opts.lists ?? [] }) }
     // bulk edit (must precede the single-item PATCH regex, which captures "bulk" as :id)
     if (u.endsWith('/api/list-items/bulk') && method === 'PATCH') {
-      return { ok: true, json: async () => ({ updated: (body?.ids?.length ?? 0) }) }
+      return { ok: true, json: async () => ({ updated: body?.ids?.length ?? 0 }) }
     }
     if (/\/api\/list-items\/[^/]+$/.test(u) && method === 'PATCH') {
-      return { ok: true, json: async () => ({ item: { id: u.split('/').pop(), name: 'Swimsuits', quantity: '×4', checked: body.checked ?? false, checkedAt: null, section: 'Clothes', sortOrder: 0, assignee: body.assignedTo === null ? null : kelly } }) }
+      return {
+        ok: true,
+        json: async () => ({
+          item: {
+            id: u.split('/').pop(),
+            name: 'Swimsuits',
+            quantity: '×4',
+            checked: body.checked ?? false,
+            checkedAt: null,
+            section: 'Clothes',
+            sortOrder: 0,
+            assignee: body.assignedTo === null ? null : kelly,
+          },
+        }),
+      }
     }
     return { ok: false, status: 404, json: async () => ({}) }
   }) as unknown as typeof fetch
@@ -91,7 +230,12 @@ function mockApi(opts: { lists?: unknown[]; items?: unknown[]; sent?: Sent[]; cr
 // board's "‹ Lists" back button is clickable from tests.
 function Slots() {
   const { right, full } = useTopbarSlots()
-  return <div>{full}{right}</div>
+  return (
+    <div>
+      {full}
+      {right}
+    </div>
+  )
 }
 
 function renderScreen() {
@@ -101,14 +245,14 @@ function renderScreen() {
         <Slots />
         <Lists />
       </TopbarSlotProvider>
-    </MemoryRouter>
+    </MemoryRouter>,
   )
 }
 
 // The grocery list auto-opens its board on load; the hub tests below first return
 // to the lists hub to exercise custom-list behavior.
 async function exitBoard() {
-  fireEvent.click(await screen.findByRole('button', { name: '‹ Lists' }))
+  fireEvent.click(await screen.findByRole('button', { name: 'Lists' }))
 }
 
 describe('Lists screen', () => {
@@ -124,7 +268,9 @@ describe('Lists screen', () => {
       expect(screen.queryByText('New list')).toBeNull()
       expect(screen.queryByText('Add item')).toBeNull()
       expect(screen.queryAllByRole('button', { name: /^Delete / })).toHaveLength(0)
-    } finally { setViewOnly(false) }
+    } finally {
+      setViewOnly(false)
+    }
   })
 
   it('renders the sidebar, header, summary, suggestions, and sectioned items', async () => {
@@ -135,7 +281,7 @@ describe('Lists screen', () => {
     // back in the hub, the only non-grocery list (packing) is auto-selected;
     // sidebar shows both lists with grocery's ✦ auto count
     expect(await screen.findByText('Grocery')).toBeInTheDocument()
-    expect(screen.getByText('✦ 15')).toBeInTheDocument()
+    expect(screen.getByText('15')).toBeInTheDocument()
     expect(screen.getAllByText('Lake trip packing').length).toBeGreaterThan(0)
 
     // header: name + "2 items · 1 done" (the count is active/unchecked only) + filter
@@ -154,7 +300,9 @@ describe('Lists screen', () => {
     // Completed section rather than lingering inline in its original section.
     // (Section names also appear as <option>s in the add-bar picker, so scope the
     // header-title queries to the section-name span.)
-    expect(await screen.findByText('Clothes', { selector: '.lists-section-name' })).toBeInTheDocument()
+    expect(
+      await screen.findByText('Clothes', { selector: '.lists-section-name' }),
+    ).toBeInTheDocument()
     expect(screen.getByText('Gear', { selector: '.lists-section-name' })).toBeInTheDocument()
     expect(screen.getByText('Swimsuits')).toBeInTheDocument()
     expect(screen.getByText('×4')).toBeInTheDocument()
@@ -168,7 +316,9 @@ describe('Lists screen', () => {
     await exitBoard()
 
     // the checked item (PJs & socks, section Clothes) no longer sits in Clothes…
-    const clothes = (await screen.findByText('Clothes', { selector: '.lists-section-name' })).closest('.lists-section') as HTMLElement
+    const clothes = (
+      await screen.findByText('Clothes', { selector: '.lists-section-name' })
+    ).closest('.lists-section') as HTMLElement
     expect(within(clothes).queryByText('PJs & socks')).toBeNull()
     expect(within(clothes).getByText('Swimsuits')).toBeInTheDocument()
 
@@ -187,12 +337,18 @@ describe('Lists screen', () => {
 
     // Sunscreen lives in Gear; drag it onto the Clothes section
     const sunscreen = (await screen.findByText('Sunscreen')).closest('.litem') as HTMLElement
-    const clothes = (await screen.findByText('Clothes', { selector: '.lists-section-name' })).closest('.lists-section') as HTMLElement
+    const clothes = (
+      await screen.findByText('Clothes', { selector: '.lists-section-name' })
+    ).closest('.lists-section') as HTMLElement
     fireEvent.dragStart(sunscreen)
     fireEvent.dragOver(clothes)
     fireEvent.drop(clothes)
 
-    await waitFor(() => expect(sent.some((s) => s.method === 'PATCH' && /\/api\/list-items\/i3$/.test(s.url))).toBe(true))
+    await waitFor(() =>
+      expect(sent.some((s) => s.method === 'PATCH' && /\/api\/list-items\/i3$/.test(s.url))).toBe(
+        true,
+      ),
+    )
     const patch = sent.find((s) => s.method === 'PATCH' && /\/api\/list-items\/i3$/.test(s.url))!
     expect(patch.body).toMatchObject({ category: 'Clothes' })
   })
@@ -205,7 +361,11 @@ describe('Lists screen', () => {
 
     // Only the checkbox toggles (not the row/name, which now opens the editor).
     fireEvent.click(await screen.findByRole('button', { name: 'Check Swimsuits' }))
-    await waitFor(() => expect(sent.some((s) => s.method === 'PATCH' && /\/api\/list-items\/i1$/.test(s.url))).toBe(true))
+    await waitFor(() =>
+      expect(sent.some((s) => s.method === 'PATCH' && /\/api\/list-items\/i1$/.test(s.url))).toBe(
+        true,
+      ),
+    )
     const patch = sent.find((s) => s.method === 'PATCH' && /\/api\/list-items\/i1$/.test(s.url))!
     expect(patch.body).toMatchObject({ checked: true })
   })
@@ -246,7 +406,9 @@ describe('Lists screen', () => {
     await exitBoard()
 
     fireEvent.click(await screen.findByText('Bug spray'))
-    await waitFor(() => expect(sent.some((s) => s.method === 'POST' && /\/items$/.test(s.url))).toBe(true))
+    await waitFor(() =>
+      expect(sent.some((s) => s.method === 'POST' && /\/items$/.test(s.url))).toBe(true),
+    )
     const post = sent.find((s) => s.method === 'POST' && /\/items$/.test(s.url))!
     expect(post.body).toMatchObject({ name: 'Bug spray' })
   })
@@ -261,8 +423,14 @@ describe('Lists screen', () => {
     fireEvent.focus(input)
     fireEvent.change(input, { target: { value: 'wat' } })
     fireEvent.mouseDown(await screen.findByRole('option', { name: 'Water bottles' }))
-    await waitFor(() => expect(sent.find((s) => s.method === 'POST' && /\/items$/.test(s.url))?.body).toMatchObject({ name: 'Water bottles' }))
-    expect(sent.find((s) => s.url.includes('/api/lists/suggestions?q=wat'))?.url).toContain('listId=pack')
+    await waitFor(() =>
+      expect(sent.find((s) => s.method === 'POST' && /\/items$/.test(s.url))?.body).toMatchObject({
+        name: 'Water bottles',
+      }),
+    )
+    expect(sent.find((s) => s.url.includes('/api/lists/suggestions?q=wat'))?.url).toContain(
+      'listId=pack',
+    )
   })
 
   it('adds a typed item from the add bar', async () => {
@@ -274,8 +442,12 @@ describe('Lists screen', () => {
     const input = await screen.findByLabelText('Add to this list')
     fireEvent.change(input, { target: { value: 'Water bottles' } })
     fireEvent.submit(input.closest('form')!)
-    await waitFor(() => expect(sent.some((s) => s.method === 'POST' && /\/items$/.test(s.url))).toBe(true))
-    expect(sent.find((s) => s.method === 'POST' && /\/items$/.test(s.url))!.body).toMatchObject({ name: 'Water bottles' })
+    await waitFor(() =>
+      expect(sent.some((s) => s.method === 'POST' && /\/items$/.test(s.url))).toBe(true),
+    )
+    expect(sent.find((s) => s.method === 'POST' && /\/items$/.test(s.url))!.body).toMatchObject({
+      name: 'Water bottles',
+    })
   })
 
   it('adds an item into a brand-new section created from the add bar', async () => {
@@ -285,34 +457,56 @@ describe('Lists screen', () => {
     await exitBoard()
 
     // create a new section in the add-bar picker …
-    fireEvent.change(await screen.findByLabelText('Section for new items'), { target: { value: '__new__' } })
-    fireEvent.change(await screen.findByLabelText('New section name'), { target: { value: 'Campsite' } })
+    fireEvent.change(await screen.findByLabelText('Section for new items'), {
+      target: { value: '__new__' },
+    })
+    fireEvent.change(await screen.findByLabelText('New section name'), {
+      target: { value: 'Campsite' },
+    })
     fireEvent.click(screen.getByRole('button', { name: 'Add' }))
     // … the picker keeps showing it (doesn't snap back to "No section") …
-    expect((screen.getByLabelText('Section for new items') as HTMLSelectElement).value).toBe('Campsite')
+    expect((screen.getByLabelText('Section for new items') as HTMLSelectElement).value).toBe(
+      'Campsite',
+    )
 
     // … and a typed item lands in that section
     const input = screen.getByLabelText('Add to this list')
     fireEvent.change(input, { target: { value: 'Firewood' } })
     fireEvent.submit(input.closest('form')!)
-    await waitFor(() => expect(sent.some((s) => s.method === 'POST' && /\/items$/.test(s.url))).toBe(true))
+    await waitFor(() =>
+      expect(sent.some((s) => s.method === 'POST' && /\/items$/.test(s.url))).toBe(true),
+    )
     // the add endpoint carries the section as `category`
-    expect(sent.find((s) => s.method === 'POST' && /\/items$/.test(s.url))!.body).toMatchObject({ name: 'Firewood', category: 'Campsite' })
+    expect(sent.find((s) => s.method === 'POST' && /\/items$/.test(s.url))!.body).toMatchObject({
+      name: 'Firewood',
+      category: 'Campsite',
+    })
   })
 
   // The "New list" trigger lives in the shared topbar slot (wired by KioskLayout,
   // out of this screen's scope), so the modal itself is exercised directly.
   it('creates a list from the New list modal', async () => {
     const sent: Sent[] = []
-    mockApi({ lists: [grocery, packing], items: packItems, sent, created: { ...packing, id: 'new', name: 'Costco' } })
+    mockApi({
+      lists: [grocery, packing],
+      items: packItems,
+      sent,
+      created: { ...packing, id: 'new', name: 'Costco' },
+    })
     const onCreated = vi.fn()
     render(<ListsModal onClose={() => {}} onCreated={onCreated} />)
 
-    fireEvent.change(screen.getByPlaceholderText('Lake trip packing'), { target: { value: 'Costco' } })
+    fireEvent.change(screen.getByPlaceholderText('Lake trip packing'), {
+      target: { value: 'Costco' },
+    })
     fireEvent.click(screen.getByRole('button', { name: /Create list/ }))
 
-    await waitFor(() => expect(sent.some((s) => s.method === 'POST' && s.url.endsWith('/api/lists'))).toBe(true))
-    expect(sent.find((s) => s.method === 'POST' && s.url.endsWith('/api/lists'))!.body).toMatchObject({ name: 'Costco' })
+    await waitFor(() =>
+      expect(sent.some((s) => s.method === 'POST' && s.url.endsWith('/api/lists'))).toBe(true),
+    )
+    expect(
+      sent.find((s) => s.method === 'POST' && s.url.endsWith('/api/lists'))!.body,
+    ).toMatchObject({ name: 'Costco' })
     await waitFor(() => expect(onCreated).toHaveBeenCalledWith('new'))
   })
 
@@ -326,14 +520,24 @@ describe('Lists screen', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'More actions' }))
     fireEvent.click(await screen.findByRole('button', { name: /Save as template/i }))
 
-    await waitFor(() => expect(sent.some((s) => s.method === 'POST' && /\/save-as-template$/.test(s.url))).toBe(true))
+    await waitFor(() =>
+      expect(sent.some((s) => s.method === 'POST' && /\/save-as-template$/.test(s.url))).toBe(true),
+    )
     const post = sent.find((s) => s.method === 'POST' && /\/save-as-template$/.test(s.url))!
     expect(post.url).toContain('/api/lists/pack/save-as-template')
   })
 
   it('shows a Templates section and uses one from its header action', async () => {
     const sent: Sent[] = []
-    const template = { id: 'tpl', name: 'Beach Day', emoji: '🏖️', listType: 'template', isAutoBuilt: false, sortMode: 'manual', itemCount: 4 }
+    const template = {
+      id: 'tpl',
+      name: 'Beach Day',
+      emoji: '🏖️',
+      listType: 'template',
+      isAutoBuilt: false,
+      sortMode: 'manual',
+      itemCount: 4,
+    }
     mockApi({ lists: [grocery, packing], items: packItems, sent, templates: [template] })
     renderScreen()
     await exitBoard()
@@ -346,12 +550,24 @@ describe('Lists screen', () => {
     // create modal pre-pointed at the template (name prefilled); submitting applies it
     fireEvent.click(await screen.findByRole('button', { name: /Use template/i }))
     fireEvent.click(await screen.findByRole('button', { name: /Create from template/i }))
-    await waitFor(() => expect(sent.some((s) => s.method === 'POST' && /\/api\/lists\/templates\/tpl\/apply$/.test(s.url))).toBe(true))
+    await waitFor(() =>
+      expect(
+        sent.some((s) => s.method === 'POST' && /\/api\/lists\/templates\/tpl\/apply$/.test(s.url)),
+      ).toBe(true),
+    )
   })
 
   it('moves a template back to lists from its header action', async () => {
     const sent: Sent[] = []
-    const template = { id: 'tpl', name: 'Beach Day', emoji: '🏖️', listType: 'template', isAutoBuilt: false, sortMode: 'manual', itemCount: 4 }
+    const template = {
+      id: 'tpl',
+      name: 'Beach Day',
+      emoji: '🏖️',
+      listType: 'template',
+      isAutoBuilt: false,
+      sortMode: 'manual',
+      itemCount: 4,
+    }
     mockApi({ lists: [grocery, packing], items: packItems, sent, templates: [template] })
     renderScreen()
     await exitBoard()
@@ -360,12 +576,24 @@ describe('Lists screen', () => {
     // "Move to Lists" lives in the ⋯ menu for a template
     fireEvent.click(await screen.findByRole('button', { name: 'More actions' }))
     fireEvent.click(await screen.findByRole('button', { name: /Move to Lists/i }))
-    await waitFor(() => expect(sent.some((s) => s.method === 'POST' && /\/api\/lists\/tpl\/unmark-template$/.test(s.url))).toBe(true))
+    await waitFor(() =>
+      expect(
+        sent.some((s) => s.method === 'POST' && /\/api\/lists\/tpl\/unmark-template$/.test(s.url)),
+      ).toBe(true),
+    )
   })
 
   it('applies a template from the New list modal picker', async () => {
     const sent: Sent[] = []
-    const template = { id: 'tpl', name: 'Beach Day', emoji: '🏖️', listType: 'template', isAutoBuilt: false, sortMode: 'manual', itemCount: 4 }
+    const template = {
+      id: 'tpl',
+      name: 'Beach Day',
+      emoji: '🏖️',
+      listType: 'template',
+      isAutoBuilt: false,
+      sortMode: 'manual',
+      itemCount: 4,
+    }
     mockApi({ lists: [grocery, packing], items: packItems, sent, templates: [template] })
     const onCreated = vi.fn()
     render(<ListsModal onClose={() => {}} onCreated={onCreated} />)
@@ -373,7 +601,11 @@ describe('Lists screen', () => {
     // the saved template is offered as an "apply" option
     fireEvent.click(await screen.findByRole('button', { name: /Beach Day/ }))
 
-    await waitFor(() => expect(sent.some((s) => s.method === 'POST' && /\/api\/lists\/templates\/tpl\/apply$/.test(s.url))).toBe(true))
+    await waitFor(() =>
+      expect(
+        sent.some((s) => s.method === 'POST' && /\/api\/lists\/templates\/tpl\/apply$/.test(s.url)),
+      ).toBe(true),
+    )
     await waitFor(() => expect(onCreated).toHaveBeenCalledWith('applied'))
   })
 
@@ -385,7 +617,9 @@ describe('Lists screen', () => {
     // Swimsuits shows under the Clothes section…
     expect(await screen.findByText('Swimsuits')).toBeInTheDocument()
     // …click the Clothes section header to collapse it → its items hide
-    const header = screen.getByText('Clothes', { selector: '.lists-section-name' }).closest('button') as HTMLElement
+    const header = screen
+      .getByText('Clothes', { selector: '.lists-section-name' })
+      .closest('button') as HTMLElement
     fireEvent.click(header)
     await waitFor(() => expect(screen.queryByText('Swimsuits')).toBeNull())
   })
@@ -413,7 +647,9 @@ describe('Lists screen', () => {
     await screen.findByText('Swimsuits')
 
     // collapse Clothes, so Swimsuits is hidden the way a user might have left it
-    const header = screen.getByText('Clothes', { selector: '.lists-section-name' }).closest('button') as HTMLElement
+    const header = screen
+      .getByText('Clothes', { selector: '.lists-section-name' })
+      .closest('button') as HTMLElement
     fireEvent.click(header)
     await waitFor(() => expect(screen.queryByText('Swimsuits')).toBeNull())
 
@@ -448,14 +684,18 @@ describe('Lists screen', () => {
     // remembered: clearing would otherwise hide a section the user never collapsed.
     fireEvent.change(screen.getByLabelText('Search this list'), { target: { value: 'sun' } })
     await waitFor(() => expect(screen.queryByText('Swimsuits')).toBeNull())
-    fireEvent.click(screen.getByText('Gear', { selector: '.lists-section-name' }).closest('button') as HTMLElement)
+    fireEvent.click(
+      screen
+        .getByText('Gear', { selector: '.lists-section-name' })
+        .closest('button') as HTMLElement,
+    )
 
     fireEvent.click(screen.getByRole('button', { name: 'Clear search' }))
     await waitFor(() => expect(screen.getByText('Swimsuits')).toBeInTheDocument())
     expect(screen.getByText('Sunscreen')).toBeInTheDocument()
   })
 
-  it("counts the whole Completed group, since Clear sweeps all of it", async () => {
+  it('counts the whole Completed group, since Clear sweeps all of it', async () => {
     // Two checked items, one of which matches the search: the count beside Clear
     // must describe what Clear deletes (both), not the filtered slice (one).
     const twoDone = [
@@ -496,13 +736,21 @@ describe('Lists screen', () => {
     // enter multi-select, pick Swimsuits, then STAGE a section change
     fireEvent.click(screen.getByRole('button', { name: /Select/i }))
     fireEvent.click(await screen.findByRole('button', { name: 'Select Swimsuits' }))
-    fireEvent.change(screen.getByLabelText('Set section for selected'), { target: { value: 'Gear' } })
+    fireEvent.change(screen.getByLabelText('Set section for selected'), {
+      target: { value: 'Gear' },
+    })
 
     // staging must NOT write yet — the change only commits on Done
-    expect(sent.some((s) => s.method === 'PATCH' && s.url.endsWith('/api/list-items/bulk'))).toBe(false)
+    expect(sent.some((s) => s.method === 'PATCH' && s.url.endsWith('/api/list-items/bulk'))).toBe(
+      false,
+    )
 
     fireEvent.click(screen.getByRole('button', { name: 'Done' }))
-    await waitFor(() => expect(sent.some((s) => s.method === 'PATCH' && s.url.endsWith('/api/list-items/bulk'))).toBe(true))
+    await waitFor(() =>
+      expect(sent.some((s) => s.method === 'PATCH' && s.url.endsWith('/api/list-items/bulk'))).toBe(
+        true,
+      ),
+    )
     const patch = sent.find((s) => s.method === 'PATCH' && s.url.endsWith('/api/list-items/bulk'))!
     // only the staged field is sent — untouched assignee/priority are left alone
     expect(patch.body).toEqual({ ids: ['i1'], patch: { section: 'Gear' } })
@@ -519,15 +767,25 @@ describe('Lists screen', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Select Swimsuits' }))
 
     // choose "New section…" → an inline input appears → name it → Add
-    fireEvent.change(screen.getByLabelText('Set section for selected'), { target: { value: '__new__' } })
-    fireEvent.change(await screen.findByLabelText('New section name'), { target: { value: 'Camping' } })
+    fireEvent.change(screen.getByLabelText('Set section for selected'), {
+      target: { value: '__new__' },
+    })
+    fireEvent.change(await screen.findByLabelText('New section name'), {
+      target: { value: 'Camping' },
+    })
     fireEvent.click(screen.getByRole('button', { name: 'Add' }))
 
     // the picker must now SHOW the created section selected (not snap back to blank)
-    expect((screen.getByLabelText('Set section for selected') as HTMLSelectElement).value).toBe('Camping')
+    expect((screen.getByLabelText('Set section for selected') as HTMLSelectElement).value).toBe(
+      'Camping',
+    )
 
     fireEvent.click(screen.getByRole('button', { name: 'Done' }))
-    await waitFor(() => expect(sent.some((s) => s.method === 'PATCH' && s.url.endsWith('/api/list-items/bulk'))).toBe(true))
+    await waitFor(() =>
+      expect(sent.some((s) => s.method === 'PATCH' && s.url.endsWith('/api/list-items/bulk'))).toBe(
+        true,
+      ),
+    )
     const patch = sent.find((s) => s.method === 'PATCH' && s.url.endsWith('/api/list-items/bulk'))!
     expect(patch.body).toEqual({ ids: ['i1'], patch: { section: 'Camping' } })
   })
@@ -552,14 +810,46 @@ describe('Lists screen', () => {
     // fired NO bulk PATCH against the previous list's items.
     await screen.findByRole('button', { name: /^\s*Select\s*$/ })
     expect(screen.queryByText(/ selected$/)).not.toBeInTheDocument()
-    expect(sent.some((s) => s.method === 'PATCH' && s.url.endsWith('/api/list-items/bulk'))).toBe(false)
+    expect(sent.some((s) => s.method === 'PATCH' && s.url.endsWith('/api/list-items/bulk'))).toBe(
+      false,
+    )
   })
 
   it('flattens into a highest-priority-first view when "By priority" is toggled on', async () => {
     const items = [
-      { id: 'a', name: 'Low item', quantity: null, checked: false, checkedAt: null, section: 'Clothes', sortOrder: 0, assignee: null, priority: 2 },
-      { id: 'b', name: 'Urgent item', quantity: null, checked: false, checkedAt: null, section: 'Gear', sortOrder: 1, assignee: null, priority: 5 },
-      { id: 'c', name: 'Normal item', quantity: null, checked: false, checkedAt: null, section: 'Clothes', sortOrder: 2, assignee: null, priority: 3 },
+      {
+        id: 'a',
+        name: 'Low item',
+        quantity: null,
+        checked: false,
+        checkedAt: null,
+        section: 'Clothes',
+        sortOrder: 0,
+        assignee: null,
+        priority: 2,
+      },
+      {
+        id: 'b',
+        name: 'Urgent item',
+        quantity: null,
+        checked: false,
+        checkedAt: null,
+        section: 'Gear',
+        sortOrder: 1,
+        assignee: null,
+        priority: 5,
+      },
+      {
+        id: 'c',
+        name: 'Normal item',
+        quantity: null,
+        checked: false,
+        checkedAt: null,
+        section: 'Clothes',
+        sortOrder: 2,
+        assignee: null,
+        priority: 3,
+      },
     ]
     mockApi({ lists: [grocery, packing], items })
     const { container } = renderScreen()
@@ -572,8 +862,14 @@ describe('Lists screen', () => {
 
     // toggle on → flat, highest-priority first, section titles gone
     fireEvent.click(screen.getByRole('button', { name: /Sort: manual/i }))
-    await waitFor(() => expect(screen.queryByText('Clothes', { selector: '.lists-section-name' })).not.toBeInTheDocument())
-    const titles = [...container.querySelectorAll('.lists-section-title')].map((el) => el.textContent)
+    await waitFor(() =>
+      expect(
+        screen.queryByText('Clothes', { selector: '.lists-section-name' }),
+      ).not.toBeInTheDocument(),
+    )
+    const titles = [...container.querySelectorAll('.lists-section-title')].map(
+      (el) => el.textContent,
+    )
     expect(titles).toEqual(['By priority'])
 
     const rows = [...container.querySelectorAll('.litem')].map((el) => el.textContent ?? '')
@@ -600,7 +896,7 @@ describe('Lists screen', () => {
       // 'PJs & socks' is checked, so it must not travel; sections become headers;
       // and the swimsuits are Kelly's, so they say so.
       expect(block.textContent).toBe(
-        ['CLOTHES', '- Swimsuits (×4) [Kelly]', '', 'GEAR', '- Sunscreen'].join('\n')
+        ['CLOTHES', '- Swimsuits (×4) [Kelly]', '', 'GEAR', '- Sunscreen'].join('\n'),
       )
     })
 
@@ -638,14 +934,27 @@ describe('Lists screen — recently crossed off', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'More actions' }))
     fireEvent.click(await screen.findByRole('button', { name: /Recently crossed off/i }))
     fireEvent.click(await screen.findByRole('button', { name: 'Add Bug spray back' }))
-    await waitFor(() => expect(sent.some((s) => s.method === 'POST' && s.url.endsWith('/api/list-items/old/readd'))).toBe(true))
+    await waitFor(() =>
+      expect(
+        sent.some((s) => s.method === 'POST' && s.url.endsWith('/api/list-items/old/readd')),
+      ).toBe(true),
+    )
   })
 })
 
 describe('Lists screen — saved order', () => {
   it('drops an item onto another to place it before that one, and saves the order', async () => {
     const sent: Sent[] = []
-    const hat = { id: 'i4', name: 'Hat', quantity: null, checked: false, checkedAt: null, section: 'Clothes', sortOrder: 2, assignee: null }
+    const hat = {
+      id: 'i4',
+      name: 'Hat',
+      quantity: null,
+      checked: false,
+      checkedAt: null,
+      section: 'Clothes',
+      sortOrder: 2,
+      assignee: null,
+    }
     mockApi({ lists: [grocery, packing], items: [...packItems, hat], sent })
     renderScreen()
     await exitBoard()
@@ -656,11 +965,17 @@ describe('Lists screen — saved order', () => {
     fireEvent.drop(swimsuits)
     await waitFor(() => expect(sent.some((s) => s.method === 'PUT')).toBe(true))
     expect(sent.find((s) => s.method === 'PUT')!.body).toEqual({ ids: ['i4', 'i1', 'i2', 'i3'] })
-    const clothes = screen.getByText('Clothes', { selector: '.lists-section-name' }).closest('.lists-section') as HTMLElement
-    expect(within(clothes).getAllByText(/Hat|Swimsuits/).map((e) => e.textContent)).toEqual(['Hat', 'Swimsuits'])
+    const clothes = screen
+      .getByText('Clothes', { selector: '.lists-section-name' })
+      .closest('.lists-section') as HTMLElement
+    expect(
+      within(clothes)
+        .getAllByText(/Hat|Swimsuits/)
+        .map((e) => e.textContent),
+    ).toEqual(['Hat', 'Swimsuits'])
   })
 
-  it('moves the item into the target row\'s section too', async () => {
+  it("moves the item into the target row's section too", async () => {
     const sent: Sent[] = []
     mockApi({ lists: [grocery, packing], items: packItems, sent })
     renderScreen()
@@ -670,8 +985,12 @@ describe('Lists screen — saved order', () => {
     fireEvent.dragStart(sunscreen)
     fireEvent.dragOver(swimsuits)
     fireEvent.drop(swimsuits)
-    await waitFor(() => expect(sent.some((s) => s.method === 'PATCH' && s.url.endsWith('/i3'))).toBe(true))
-    expect(sent.find((s) => s.method === 'PATCH' && s.url.endsWith('/i3'))!.body).toMatchObject({ category: 'Clothes' })
+    await waitFor(() =>
+      expect(sent.some((s) => s.method === 'PATCH' && s.url.endsWith('/i3'))).toBe(true),
+    )
+    expect(sent.find((s) => s.method === 'PATCH' && s.url.endsWith('/i3'))!.body).toMatchObject({
+      category: 'Clothes',
+    })
     expect(sent.find((s) => s.method === 'PUT')!.body).toEqual({ ids: ['i3', 'i1', 'i2'] })
   })
 })

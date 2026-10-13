@@ -6,6 +6,9 @@ import { isPastEvent } from './AgendaView'
 import { RhythmMark } from './RhythmMark'
 import { useEventsToday, usePersons, type AgendaEvent } from '../../lib/api'
 import { evVars, useEventColor } from '../../lib/event-color'
+import { Button } from '@/components/ui/button'
+import { DataIcon } from '@/components/ui/data-icon'
+import { Card } from '@/components/ui/card'
 
 function formatTime(e: AgendaEvent): string {
   if (e.allDay) return 'all day'
@@ -13,7 +16,17 @@ function formatTime(e: AgendaEvent): string {
   return `${d.getHours() % 12 || 12}:${String(d.getMinutes()).padStart(2, '0')}`
 }
 
-function AgendaRow({ event, past = false, color: colorProp, onClick }: { event: AgendaEvent; past?: boolean; color?: string; onClick: () => void }) {
+function AgendaRow({
+  event,
+  past = false,
+  color: colorProp,
+  onClick,
+}: {
+  event: AgendaEvent
+  past?: boolean
+  color?: string
+  onClick: () => void
+}) {
   const color = colorProp ?? event.personColor ?? '#A6A29B'
   return (
     <div
@@ -28,12 +41,23 @@ function AgendaRow({ event, past = false, color: colorProp, onClick }: { event: 
         cursor: 'pointer',
       }}
     >
-      <div style={{ width: 62, fontSize: 14, fontWeight: 700, color: 'var(--ink-2)', textAlign: 'right' }}>
+      <div
+        style={{
+          width: 62,
+          fontSize: 14,
+          fontWeight: 700,
+          color: 'var(--ink-2)',
+          textAlign: 'right',
+        }}
+      >
         {formatTime(event)}
       </div>
       <div style={{ width: 4, height: 34, borderRadius: 99, background: color }} />
       <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 16, fontWeight: 600 }}><RhythmMark event={event} />{event.title}</div>
+        <div style={{ fontSize: 16, fontWeight: 600 }}>
+          <RhythmMark event={event} />
+          {event.title}
+        </div>
         {event.location && <div className="tiny muted">{event.location}</div>}
       </div>
       <Avatars event={event} />
@@ -43,13 +67,39 @@ function AgendaRow({ event, past = false, color: colorProp, onClick }: { event: 
 
 // When the day is light (≤3 events), show roomier square-ish cards instead of
 // tight rows so the calendar doesn't look sparse.
-function AgendaBigCard({ event, past = false, color: colorProp, onClick }: { event: AgendaEvent; past?: boolean; color?: string; onClick: () => void }) {
+function AgendaBigCard({
+  event,
+  past = false,
+  color: colorProp,
+  onClick,
+}: {
+  event: AgendaEvent
+  past?: boolean
+  color?: string
+  onClick: () => void
+}) {
   const color = colorProp ?? event.personColor ?? '#A6A29B'
   return (
-    <div className={`agenda-bigcard${past ? ' past' : ''}`} onClick={onClick} role="button" tabIndex={0} style={{ borderTop: `3px solid ${color}`, ...evVars(color) }}>
+    <div
+      className={`agenda-bigcard${past ? ' past' : ''}`}
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+      style={{ borderTop: `3px solid ${color}`, ...evVars(color) }}
+    >
       <div className="ab-time ev-ink">{formatTime(event)}</div>
-      <div className="ab-title"><RhythmMark event={event} />{event.title}</div>
-      {event.location && <div className="tiny muted ab-loc">📍 {event.location}</div>}
+      <div className="ab-title">
+        <RhythmMark event={event} />
+        {event.title}
+      </div>
+      {event.location && (
+        <div className="tiny muted ab-loc">
+          <>
+            <DataIcon value={'📍'} kind="general" />{' '}
+          </>
+          {event.location}
+        </div>
+      )}
       <div className="ab-foot">
         <Avatars event={event} />
       </div>
@@ -59,12 +109,18 @@ function AgendaBigCard({ event, past = false, color: colorProp, onClick }: { eve
 
 // Participant avatars (stacked); falls back to the single person for older events.
 function Avatars({ event }: { event: AgendaEvent }) {
-  const people =
-    event.participants?.length
-      ? event.participants
-      : event.personEmoji
-        ? [{ id: '_', name: event.personName ?? '', colorHex: event.personColor, avatarEmoji: event.personEmoji }]
-        : []
+  const people = event.participants?.length
+    ? event.participants
+    : event.personEmoji
+      ? [
+          {
+            id: '_',
+            name: event.personName ?? '',
+            colorHex: event.personColor,
+            avatarEmoji: event.personEmoji,
+          },
+        ]
+      : []
   if (people.length === 0) return null
   return (
     <div style={{ display: 'flex' }}>
@@ -74,7 +130,7 @@ function Avatars({ event }: { event: AgendaEvent }) {
           className="av sm"
           style={{ background: `${a.colorHex ?? '#A6A29B'}22`, marginLeft: idx ? -8 : 0 }}
         >
-          {a.avatarEmoji ?? '🙂'}
+          <DataIcon value={a.avatarEmoji ?? '🙂'} kind="person" />
         </div>
       ))}
     </div>
@@ -98,7 +154,10 @@ export function AgendaCard() {
   const now = new Date()
 
   return (
-    <div className="card" style={{ padding: '22px 22px 8px', display: 'flex', flexDirection: 'column' }}>
+    <Card
+      className="card"
+      style={{ padding: '22px 22px 8px', display: 'flex', flexDirection: 'column' }}
+    >
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 6 }}>
         <div className="card-h" style={{ fontSize: 23 }}>
           Today
@@ -107,15 +166,45 @@ export function AgendaCard() {
           {shown.length} {shown.length === 1 ? 'event' : 'events'}
         </div>
         <div style={{ marginLeft: 'auto', position: 'relative' }}>
-          <button type="button" className="pill" onClick={() => setMenuOpen((o) => !o)} style={{ cursor: 'pointer' }}>
+          <Button
+            variant="unstyled"
+            type="button"
+            className="pill"
+            onClick={() => setMenuOpen((o) => !o)}
+            style={{ cursor: 'pointer' }}
+          >
             <Icon name="filter" />
             <span>{activePerson ? activePerson.name : 'All'}</span>
-          </button>
+          </Button>
           {menuOpen && (
             <>
-              <div onClick={() => setMenuOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 40 }} />
-              <div className="agenda-filter-menu" style={{ position: 'absolute', right: 0, top: 'calc(100% + 6px)', zIndex: 41, background: 'var(--card)', border: '1px solid var(--hair)', borderRadius: 'var(--r-md)', boxShadow: 'var(--sh-2)', padding: 6, minWidth: 160 }}>
-                <FilterOption label="Everyone" on={!filterId} onClick={() => { setFilterId(null); setMenuOpen(false) }} />
+              <div
+                onClick={() => setMenuOpen(false)}
+                style={{ position: 'fixed', inset: 0, zIndex: 40 }}
+              />
+              <div
+                className="agenda-filter-menu"
+                style={{
+                  position: 'absolute',
+                  right: 0,
+                  top: 'calc(100% + 6px)',
+                  zIndex: 41,
+                  background: 'var(--card)',
+                  border: '1px solid var(--hair)',
+                  borderRadius: 'var(--r-md)',
+                  boxShadow: 'var(--sh-2)',
+                  padding: 6,
+                  minWidth: 160,
+                }}
+              >
+                <FilterOption
+                  label="Everyone"
+                  on={!filterId}
+                  onClick={() => {
+                    setFilterId(null)
+                    setMenuOpen(false)
+                  }}
+                />
                 {persons.map((p) => (
                   <FilterOption
                     key={p.id}
@@ -123,7 +212,10 @@ export function AgendaCard() {
                     emoji={p.avatarEmoji ?? '🙂'}
                     color={p.colorHex ?? '#A6A29B'}
                     on={filterId === p.id}
-                    onClick={() => { setFilterId(p.id); setMenuOpen(false) }}
+                    onClick={() => {
+                      setFilterId(p.id)
+                      setMenuOpen(false)
+                    }}
                   />
                 ))}
               </div>
@@ -132,46 +224,104 @@ export function AgendaCard() {
         </div>
       </div>
 
-      {loading && <div className="muted" style={{ padding: '14px 4px' }}>Loading…</div>}
-      {error && <div className="muted" style={{ padding: '14px 4px' }}>Couldn't load the calendar — try reloading or signing in again.</div>}
+      {loading && (
+        <div className="muted" style={{ padding: '14px 4px' }}>
+          Loading…
+        </div>
+      )}
+      {error && (
+        <div className="muted" style={{ padding: '14px 4px' }}>
+          Couldn't load the calendar — try reloading or signing in again.
+        </div>
+      )}
       {!loading && !error && shown.length === 0 && (
         <div className="muted" style={{ padding: '14px 4px' }}>
-          {filterId ? `Nothing on ${activePerson?.name ?? 'their'} calendar today.` : 'Nothing on the calendar today.'}
+          {filterId
+            ? `Nothing on ${activePerson?.name ?? 'their'} calendar today.`
+            : 'Nothing on the calendar today.'}
         </div>
       )}
       {!loading && !error && shown.length > 0 && shown.length <= 3 ? (
         <div className="agenda-biggrid">
           {shown.map((e) => (
-            <AgendaBigCard key={e.id} event={e} past={isPastEvent(e, now)} color={colorOf(e)} onClick={() => setSelected(e)} />
+            <AgendaBigCard
+              key={e.id}
+              event={e}
+              past={isPastEvent(e, now)}
+              color={colorOf(e)}
+              onClick={() => setSelected(e)}
+            />
           ))}
         </div>
       ) : (
-        shown.map((e) => <AgendaRow key={e.id} event={e} past={isPastEvent(e, now)} color={colorOf(e)} onClick={() => setSelected(e)} />)
+        shown.map((e) => (
+          <AgendaRow
+            key={e.id}
+            event={e}
+            past={isPastEvent(e, now)}
+            color={colorOf(e)}
+            onClick={() => setSelected(e)}
+          />
+        ))
       )}
-      {selected && <EventModal event={selected} onClose={() => setSelected(null)} onSaved={refetch} />}
-    </div>
+      {selected && (
+        <EventModal event={selected} onClose={() => setSelected(null)} onSaved={refetch} />
+      )}
+    </Card>
   )
 }
 
 // One row in the Today filter dropdown.
-function FilterOption({ label, emoji, color, on, onClick }: { label: string; emoji?: string; color?: string; on: boolean; onClick: () => void }) {
+function FilterOption({
+  label,
+  emoji,
+  color,
+  on,
+  onClick,
+}: {
+  label: string
+  emoji?: string
+  color?: string
+  on: boolean
+  onClick: () => void
+}) {
   return (
-    <button
+    <Button
+      variant="unstyled"
       type="button"
       onClick={onClick}
       style={{
-        display: 'flex', alignItems: 'center', gap: 9, width: '100%', textAlign: 'left',
-        padding: '8px 10px', borderRadius: 8, border: 0, cursor: 'pointer', font: 'inherit', fontSize: 14, fontWeight: 600,
-        background: on ? 'var(--panel)' : 'transparent', color: 'var(--ink)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 9,
+        width: '100%',
+        textAlign: 'left',
+        padding: '8px 10px',
+        borderRadius: 8,
+        border: 0,
+        cursor: 'pointer',
+        font: 'inherit',
+        fontSize: 14,
+        fontWeight: 600,
+        background: on ? 'var(--panel)' : 'transparent',
+        color: 'var(--ink)',
       }}
     >
       {emoji ? (
-        <span className="av sm" style={{ background: `${color ?? '#A6A29B'}22` }}>{emoji}</span>
+        <span className="av sm" style={{ background: `${color ?? '#A6A29B'}22` }}>
+          <DataIcon value={emoji} kind="general" />
+        </span>
       ) : (
-        <span style={{ width: 26, textAlign: 'center' }}>👥</span>
+        <span style={{ width: 26, textAlign: 'center' }}>
+          <DataIcon value={'👥'} kind="general" />
+        </span>
       )}
       <span style={{ flex: 1 }}>{label}</span>
-      {on && <span style={{ color: 'var(--primary)', fontWeight: 800 }}>✓</span>}
-    </button>
+      {on && (
+        <span style={{ color: 'var(--primary)', fontWeight: 800 }}>
+          <DataIcon value={'✓'} kind="general" />
+        </span>
+      )}
+    </Button>
   )
 }

@@ -1,181 +1,182 @@
+@reference './ui.css';
 /* First-run setup + login screens (self-hosted auth). */
 .auth-screen {
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  padding: 24px;
-  background: var(--bg);
+  @apply [min-height:100vh];
+  @apply grid;
+  @apply [place-items:center];
+  @apply [padding:24px];
+  @apply [background:var(--bg)];
 }
 .auth-loading {
-  color: var(--ink-3);
-  font-weight: 600;
+  @apply [color:var(--ink-3)];
+  @apply font-semibold;
 }
 .auth-card {
-  width: 100%;
-  max-width: 420px;
-  background: var(--card);
-  border-radius: var(--r-lg);
-  box-shadow: var(--sh-2);
-  padding: 30px 28px 28px;
+  @apply [width:100%];
+  @apply [max-width:420px];
+  @apply [background:var(--card)];
+  @apply [border-radius:var(--r-lg)];
+  @apply [box-shadow:var(--sh-2)];
+  @apply [padding:30px_28px_28px];
 }
 .auth-logo {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: var(--ink);
-  color: var(--on-inverse);
-  font-size: 26px;
-  font-weight: 600;
-  display: grid;
-  place-items: center;
-  margin-bottom: 16px;
+  @apply [width:44px];
+  @apply [height:44px];
+  @apply [border-radius:12px];
+  @apply [background:var(--ink)];
+  @apply [color:var(--on-inverse)];
+  @apply [font-size:26px];
+  @apply font-semibold;
+  @apply grid;
+  @apply [place-items:center];
+  @apply [margin-bottom:16px];
 }
 .auth-logo-img {
-  width: 88px;
-  height: 88px;
-  border-radius: 20px;
-  object-fit: contain;
-  display: block;
-  margin: 0 auto 14px;
+  @apply [width:88px];
+  @apply [height:88px];
+  @apply [border-radius:20px];
+  @apply [object-fit:contain];
+  @apply block;
+  @apply [margin:0_auto_14px];
 }
 .auth-title {
-  font-size: 26px;
-  font-weight: 600;
-  line-height: 1.15;
+  @apply [font-size:26px];
+  @apply font-semibold;
+  @apply [line-height:1.15];
 }
 .auth-sub {
-  color: var(--ink-2);
-  font-weight: 500;
-  margin: 4px 0 20px;
+  @apply [color:var(--ink-2)];
+  @apply font-medium;
+  @apply [margin:4px_0_20px];
 }
 .auth-form {
-  display: flex;
-  flex-direction: column;
+  @apply flex;
+  @apply flex-col;
 }
 .auth-section {
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--ink-3);
-  margin-bottom: 6px;
+  @apply [font-size:12px];
+  @apply font-extrabold;
+  @apply [letter-spacing:0.04em];
+  @apply [text-transform:uppercase];
+  @apply [color:var(--ink-3)];
+  @apply [margin-bottom:6px];
 }
 .auth-label {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--ink-2);
-  margin: 10px 0 5px;
+  @apply [font-size:13px];
+  @apply font-bold;
+  @apply [color:var(--ink-2)];
+  @apply [margin:10px_0_5px];
 }
 .auth-input {
-  font: inherit;
-  font-size: 15px;
-  padding: 11px 13px;
-  border-radius: var(--r-md);
-  border: 1px solid var(--control-line);
-  background: var(--card-2);
-  color: var(--ink);
-  width: 100%;
-  box-sizing: border-box;
+  @apply [font:inherit];
+  @apply [font-size:15px];
+  @apply [padding:11px_13px];
+  @apply [border-radius:var(--r-md)];
+  @apply [border:1px_solid_var(--control-line)];
+  @apply [background:var(--card-2)];
+  @apply [color:var(--ink)];
+  @apply [width:100%];
+  @apply [box-sizing:border-box];
 }
 .auth-select {
-  cursor: pointer;
+  @apply cursor-pointer;
   /* keep the native dropdown affordance; just align it with .auth-input metrics */
-  height: 44px;
-  appearance: auto;
+  @apply [height:44px];
+  @apply [appearance:auto];
 }
 .auth-input:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 16%, transparent);
+  @apply [outline:none];
+  @apply [border-color:var(--primary)];
+  @apply [box-shadow:0_0_0_4px_color-mix(in_srgb,_var(--primary)_16%,_transparent)];
 }
 .auth-error {
-  color: var(--primary-d);
-  font-size: 13px;
-  font-weight: 600;
-  margin-top: 10px;
+  @apply [color:var(--primary-d)];
+  @apply [font-size:13px];
+  @apply font-semibold;
+  @apply [margin-top:10px];
 }
 .auth-submit {
-  width: 100%;
-  justify-content: center;
-  margin-top: 18px;
-  padding: 12px;
-  font-size: 15px;
+  @apply [width:100%];
+  @apply justify-center;
+  @apply [margin-top:18px];
+  @apply [padding:12px];
+  @apply [font-size:15px];
 }
 /* Make the disabled state read as disabled (the bare attribute doesn't dim it). */
 .auth-submit:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-  box-shadow: none;
+  @apply [opacity:0.45];
+  @apply [cursor:not-allowed];
+  @apply [box-shadow:none];
 }
 /* SSO button — distinct from the primary password submit (outlined). */
 .auth-sso {
-  border: 1px solid var(--hair);
-  background: var(--card-2);
-  color: var(--ink);
-  font-weight: 700;
+  @apply [border:1px_solid_var(--hair)];
+  @apply [background:var(--card-2)];
+  @apply [color:var(--ink)];
+  @apply font-bold;
 }
 .auth-sso:hover {
-  border-color: var(--primary);
+  @apply [border-color:var(--primary)];
 }
 /* "or" divider between SSO and password. */
 .auth-or {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 16px 0 2px;
-  color: var(--ink-3);
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  @apply flex;
+  @apply items-center;
+  @apply [gap:12px];
+  @apply [margin:16px_0_2px];
+  @apply [color:var(--ink-3)];
+  @apply [font-size:12px];
+  @apply font-bold;
+  @apply [text-transform:uppercase];
+  @apply [letter-spacing:0.04em];
 }
 .auth-or::before,
 .auth-or::after {
   content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--hair);
+  @apply [flex:1];
+  @apply [height:1px];
+  @apply [background:var(--hair)];
 }
 /* Segmented pairing-code input (6 boxes). */
 .pair-code {
-  display: flex;
-  gap: 10px;
-  justify-content: space-between;
+  @apply flex;
+  @apply [gap:10px];
+  @apply justify-between;
 }
 .pair-box {
-  flex: 1;
+  @apply [flex:1];
   /* An input's intrinsic width would otherwise set the auth card's minimum. */
-  width: 0;
-  min-width: 0;
-  height: 60px;
-  text-align: center;
-  font-size: 26px;
-  font-weight: 700;
-  text-transform: uppercase;
-  border: 1px solid var(--hair);
-  border-radius: 12px;
-  background: var(--card-2);
-  color: var(--ink);
+  @apply [width:0];
+  @apply [min-width:0];
+  @apply [height:60px];
+  @apply text-center;
+  @apply [font-size:26px];
+  @apply font-bold;
+  @apply [text-transform:uppercase];
+  @apply [border:1px_solid_var(--hair)];
+  @apply [border-radius:12px];
+  @apply [background:var(--card-2)];
+  @apply [color:var(--ink)];
 }
 .pair-box:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent);
+  @apply [outline:none];
+  @apply [border-color:var(--primary)];
+  @apply [box-shadow:0_0_0_3px_color-mix(in_srgb,_var(--primary)_18%,_transparent)];
 }
 
 /* Subtle link under the login form: turn this device into a shared kiosk. */
 .auth-kiosk-link {
-  display: block;
-  width: 100%;
-  margin-top: 18px;
-  background: none;
-  border: none;
-  color: var(--ink-3);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
+  @apply block;
+  @apply [width:100%];
+  @apply [margin-top:18px];
+  @apply [background:none];
+  @apply [border:none];
+  @apply [color:var(--ink-3)];
+  @apply [font-size:13px];
+  @apply font-semibold;
+  @apply cursor-pointer;
 }
 .auth-kiosk-link:hover {
-  color: var(--ink);
-  text-decoration: underline;
+  @apply [color:var(--ink)];
+  @apply [text-decoration:underline];
 }

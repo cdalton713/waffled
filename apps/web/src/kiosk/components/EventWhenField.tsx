@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useHousehold } from '../../lib/api'
 import { DayPicker } from './DayPicker'
 import { dayLabel, endOf, keepSpan, minutesUntil, timeLabel, timeSlots } from './event-when'
+import { Button } from '@/components/ui/button'
 
 export interface WhenValue {
   day: string
@@ -17,7 +18,13 @@ type Pill = 'startDate' | 'startTime' | 'endDate' | 'endTime'
 // All day, Starts and Ends in one field, like the iPhone editor's When card: dates and times are
 // pills that open their picker under the row. A timed event's length stays the source of truth,
 // so moving the start keeps it; rules and labels live in event-when.ts.
-export function EventWhenField({ value, onChange }: { value: WhenValue; onChange: (next: WhenValue) => void }) {
+export function EventWhenField({
+  value,
+  onChange,
+}: {
+  value: WhenValue
+  onChange: (next: WhenValue) => void
+}) {
   const { household } = useHousehold()
   const firstDay = household?.weekStart === 'monday' ? 1 : 0
   const [open, setOpen] = useState<Pill | null>(null)
@@ -27,10 +34,12 @@ export function EventWhenField({ value, onChange }: { value: WhenValue; onChange
     setOpen(null)
     onChange(next)
   }
-  const setEnd = (day: string, time: string) => pick({ ...value, durationMin: minutesUntil(value.day, value.time, day, time) })
+  const setEnd = (day: string, time: string) =>
+    pick({ ...value, durationMin: minutesUntil(value.day, value.time, day, time) })
 
   const pill = (id: Pill, name: string, text: string) => (
-    <button
+    <Button
+      variant="unstyled"
       type="button"
       className={`ew-pill ${open === id ? 'on' : ''}`}
       aria-label={name}
@@ -38,7 +47,7 @@ export function EventWhenField({ value, onChange }: { value: WhenValue; onChange
       onClick={() => setOpen((o) => (o === id ? null : id))}
     >
       {text}
-    </button>
+    </Button>
   )
 
   const picker = (ids: Pill[]) => {
@@ -51,7 +60,9 @@ export function EventWhenField({ value, onChange }: { value: WhenValue; onChange
             withYear
             firstDay={firstDay}
             selected={value.day}
-            onPick={(day) => pick({ ...value, day, lastDay: keepSpan(value.day, day, value.lastDay) })}
+            onPick={(day) =>
+              pick({ ...value, day, lastDay: keepSpan(value.day, day, value.lastDay) })
+            }
           />
         )
       case 'endDate':
@@ -64,7 +75,13 @@ export function EventWhenField({ value, onChange }: { value: WhenValue; onChange
             onPick={(day) => pick({ ...value, lastDay: day < value.day ? value.day : day })}
           />
         ) : (
-          <DayPicker className="ew-picker" withYear firstDay={firstDay} selected={end.day} onPick={(day) => setEnd(day, end.time)} />
+          <DayPicker
+            className="ew-picker"
+            withYear
+            firstDay={firstDay}
+            selected={end.day}
+            onPick={(day) => setEnd(day, end.time)}
+          />
         )
       case 'startTime':
         return <TimeList selected={value.time} onPick={(time) => pick({ ...value, time })} />
@@ -75,7 +92,8 @@ export function EventWhenField({ value, onChange }: { value: WhenValue; onChange
 
   return (
     <div className="field ew">
-      <button
+      <Button
+        variant="unstyled"
         type="button"
         role="switch"
         aria-checked={value.allDay}
@@ -85,7 +103,7 @@ export function EventWhenField({ value, onChange }: { value: WhenValue; onChange
       >
         <span>All day</span>
         <span className={`toggle ${value.allDay ? 'on' : ''}`} aria-hidden />
-      </button>
+      </Button>
       <div className="ew-row">
         <span className="ew-label">Starts</span>
         <div className="ew-pills">
@@ -117,7 +135,8 @@ function TimeList({ selected, onPick }: { selected: string; onPick: (time: strin
   return (
     <div className="ew-times" role="listbox" aria-label="Times" ref={list}>
       {timeSlots().map((t) => (
-        <button
+        <Button
+          variant="unstyled"
           type="button"
           key={t}
           role="option"
@@ -126,7 +145,7 @@ function TimeList({ selected, onPick }: { selected: string; onPick: (time: strin
           onClick={() => onPick(t)}
         >
           {timeLabel(t)}
-        </button>
+        </Button>
       ))}
     </div>
   )

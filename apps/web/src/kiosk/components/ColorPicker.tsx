@@ -1,8 +1,20 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { DataIcon } from '@/components/ui/data-icon'
 
 // The eight preset member swatches — shared by the member editor, the own-profile
 // card, and the household family-color setting.
-export const COLOR_SWATCHES = ['#2F7FED', '#EC6049', '#25A368', '#8B5CF6', '#E0A500', '#EC4899', '#14B8A6', '#6B7280']
+export const COLOR_SWATCHES = [
+  '#2F7FED',
+  '#EC6049',
+  '#25A368',
+  '#8B5CF6',
+  '#E0A500',
+  '#EC4899',
+  '#14B8A6',
+  '#6B7280',
+]
 
 const HEX = /^#[0-9a-fA-F]{6}$/
 
@@ -15,7 +27,15 @@ const HEX = /^#[0-9a-fA-F]{6}$/
 // previewed locally and `onChange` fires once, on the browser's `change` event
 // (the color the user settled on). React's own onChange can't tell the two apart,
 // hence the native listener.
-export function ColorPicker({ value, onChange, size = 30 }: { value: string | null; onChange: (hex: string) => void; size?: number }) {
+export function ColorPicker({
+  value,
+  onChange,
+  size = 30,
+}: {
+  value: string | null
+  onChange: (hex: string) => void
+  size?: number
+}) {
   const customRef = useRef<HTMLInputElement>(null)
   const [dragging, setDragging] = useState<string | null>(null)
   const commitRef = useRef(onChange)
@@ -49,26 +69,60 @@ export function ColorPicker({ value, onChange, size = 30 }: { value: string | nu
     padding: 0,
   })
   return (
-    <div style={{ display: 'flex', gap: 9, flexWrap: 'wrap', alignItems: 'center', position: 'relative' }}>
+    <div
+      style={{
+        display: 'flex',
+        gap: 9,
+        flexWrap: 'wrap',
+        alignItems: 'center',
+        position: 'relative',
+      }}
+    >
       {COLOR_SWATCHES.map((c) => (
-        <button type="button" key={c} aria-label={`color ${c}`} onClick={() => { setDragging(null); onChange(c) }} style={swatch(c, shown === c)} />
+        <Button
+          variant="unstyled"
+          type="button"
+          key={c}
+          aria-label={`color ${c}`}
+          onClick={() => {
+            setDragging(null)
+            onChange(c)
+          }}
+          style={swatch(c, shown === c)}
+        />
       ))}
-      <button
+      <Button
+        variant="unstyled"
         type="button"
         aria-label="Custom color"
         title="Custom color"
         onClick={() => customRef.current?.click()}
         style={{
-          ...swatch(isCustom ? (shown as string) : 'conic-gradient(#EC6049, #E0A500, #25A368, #2F7FED, #8B5CF6, #EC6049)', isCustom),
+          ...swatch(
+            isCustom
+              ? (shown as string)
+              : 'conic-gradient(#EC6049, #E0A500, #25A368, #2F7FED, #8B5CF6, #EC6049)',
+            isCustom,
+          ),
           display: 'grid',
           placeItems: 'center',
         }}
       >
         {!isCustom && (
-          <span style={{ color: '#fff', fontWeight: 800, fontSize: size * 0.45, textShadow: '0 1px 2px rgba(0,0,0,.45)', lineHeight: 1 }}>＋</span>
+          <span
+            style={{
+              color: '#fff',
+              fontWeight: 800,
+              fontSize: size * 0.45,
+              textShadow: '0 1px 2px rgba(0,0,0,.45)',
+              lineHeight: 1,
+            }}
+          >
+            <DataIcon value={'＋'} kind="general" />
+          </span>
         )}
-      </button>
-      <input
+      </Button>
+      <Input
         ref={customRef}
         type="color"
         aria-label="Pick a custom color"

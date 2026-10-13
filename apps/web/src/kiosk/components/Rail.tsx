@@ -6,8 +6,6 @@ import { moduleEnabled } from '../../lib/modules'
 import { Button } from '@/components/ui/button'
 import { DataIcon } from '@/components/ui/data-icon'
 
-
-
 function railClass({ isActive }: { isActive: boolean }) {
   return `rail-item ${isActive ? 'on' : ''}`
 }
@@ -28,7 +26,15 @@ function RailAccount({ onNavigate }: { onNavigate?: () => void }) {
 
   if (isKioskMode()) {
     return (
-      <Button variant="unstyled" className="rail-switch" onClick={() => { onNavigate?.(); void authApi.logout() }} title="Switch profile">
+      <Button
+        variant="unstyled"
+        className="rail-switch"
+        onClick={() => {
+          onNavigate?.()
+          void authApi.logout()
+        }}
+        title="Switch profile"
+      >
         {avatar}
         <span className="rail-switch-label">Switch</span>
       </Button>
@@ -38,7 +44,12 @@ function RailAccount({ onNavigate }: { onNavigate?: () => void }) {
   if (!person) return null
   const firstName = person.name?.split(' ')[0] || person.name
   return (
-    <Link to="/settings" className="rail-switch" title={`Signed in as ${person.name}`} onClick={onNavigate}>
+    <Link
+      to="/settings"
+      className="rail-switch"
+      title={`Signed in as ${person.name}`}
+      onClick={onNavigate}
+    >
       {avatar}
       <span className="rail-switch-label">{firstName}</span>
     </Link>
@@ -54,13 +65,26 @@ function RailLink({ screen, onNavigate }: { screen: Screen; onNavigate?: () => v
   )
 }
 
-export function Rail({ mobileOpen = false, onNavigate }: { mobileOpen?: boolean; onNavigate?: () => void }) {
+export function Rail({
+  mobileOpen = false,
+  onNavigate,
+}: {
+  mobileOpen?: boolean
+  onNavigate?: () => void
+}) {
   const { household } = useHousehold()
   // Hide nav entries for optional modules the household hasn't enabled.
   const screens = SCREENS.filter((s) => !s.module || moduleEnabled(household, s.module))
   return (
-    <nav id="primary-navigation" className={`rail${mobileOpen ? ' mobile-open' : ''}`} aria-label="Primary navigation">
-      <Link to="/" className="rail-logo" aria-label="Home" onClick={onNavigate}><img src="/logo.png" alt="Waffled" /></Link>
+    <nav
+      id="primary-navigation"
+      className={`rail${mobileOpen ? ' mobile-open' : ''}`}
+      aria-label="Primary navigation"
+      style={mobileOpen ? { pointerEvents: 'auto' } : undefined}
+    >
+      <Link to="/" className="rail-logo" aria-label="Home" onClick={onNavigate}>
+        <img src="/logo.png" alt="Waffled" />
+      </Link>
       {screens.map((s) => (
         <RailLink key={s.path} screen={s} onNavigate={onNavigate} />
       ))}

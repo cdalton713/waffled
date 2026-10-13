@@ -1,6 +1,24 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
-import { useGoals, useGoalLists, useHousehold, usePersons, goalDisplayProgress, goalDisplayTarget, goalFraction, goalWeekTargetLabel, fmtGoalNum, type Goal, type GoalList, type GoalListMember } from '../../lib/api'
+import {
+  useGoals,
+  useGoalLists,
+  useHousehold,
+  usePersons,
+  goalDisplayProgress,
+  goalDisplayTarget,
+  goalFraction,
+  goalWeekTargetLabel,
+  fmtGoalNum,
+  type Goal,
+  type GoalList,
+  type GoalListMember,
+} from '../../lib/api'
+import { Button } from '@/components/ui/button'
+import { DataIcon } from '@/components/ui/data-icon'
+import { Modal } from '@/components/ui/modal'
+import { ChevronDown, ChevronRight } from 'lucide-react'
+import { Card } from '@/components/ui/card'
 
 // Today card: a chosen goal's progress — the web counterpart of the iOS Today goal card.
 // A modal picker (grouped by goal list, like iOS) chooses My spotlight, Family spotlight,
@@ -20,13 +38,23 @@ function goalMeta(g: Goal): string {
   return `${p} of ${t}${g.unit ? ` ${g.unit}` : ''}`
 }
 
-function resolveGoal(goals: Goal[], pick: string, me: string | undefined, everyone: Set<string>): Goal | null {
+function resolveGoal(
+  goals: Goal[],
+  pick: string,
+  me: string | undefined,
+  everyone: Set<string>,
+): Goal | null {
   if (pick !== 'mine' && pick !== 'family') {
     const chosen = goals.find((g) => g.id === pick)
     if (chosen) return chosen
   }
-  const mine = (g: Goal) => !!me && g.participants.length > 0 && new Set(g.participants.map((p) => p.personId)).size === 1 && g.participants[0].personId === me
-  const family = (g: Goal) => everyone.size > 1 && [...everyone].every((id) => g.participants.some((p) => p.personId === id))
+  const mine = (g: Goal) =>
+    !!me &&
+    g.participants.length > 0 &&
+    new Set(g.participants.map((p) => p.personId)).size === 1 &&
+    g.participants[0].personId === me
+  const family = (g: Goal) =>
+    everyone.size > 1 && [...everyone].every((id) => g.participants.some((p) => p.personId === id))
   const spot = (g: Goal) => g.isSpotlight
   const feat = (g: Goal) => g.isFeatured
   const inScope = pick === 'family' ? family : mine
@@ -59,10 +87,19 @@ function groupGoals(goals: Goal[], lists: GoalList[], me: string | undefined): G
     ;(buckets.get(k) ?? buckets.set(k, []).get(k)!).push(g)
   }
   return [...buckets.keys()]
-    .sort((a, b) => rank(a) - rank(b) || (byId.get(a)?.name ?? 'Other').localeCompare(byId.get(b)?.name ?? 'Other'))
+    .sort(
+      (a, b) =>
+        rank(a) - rank(b) ||
+        (byId.get(a)?.name ?? 'Other').localeCompare(byId.get(b)?.name ?? 'Other'),
+    )
     .map((key) => ({
       key,
-      label: key === '__none__' ? 'Other goals' : rank(key) === 0 ? 'My goals' : byId.get(key)?.name ?? 'Goals',
+      label:
+        key === '__none__'
+          ? 'Other goals'
+          : rank(key) === 0
+            ? 'My goals'
+            : (byId.get(key)?.name ?? 'Goals'),
       members: byId.get(key)?.members ?? [],
       goals: buckets.get(key)!,
     }))
@@ -85,8 +122,23 @@ export function GoalSpotlightCard() {
 
   const grouped = groupGoals(goals, lists, me)
   const g = resolveGoal(goals, pick, me, everyone)
-  const tag = g?.isSpotlight ? '🌟 Spotlight' : g?.isFeatured ? '📌 Pinned' : 'Goal'
-  const pickLabel = pick === 'mine' ? 'My spotlight' : pick === 'family' ? 'Family spotlight' : goals.find((x) => x.id === pick)?.title ?? 'My spotlight'
+  const tag = g?.isSpotlight ? (
+    <>
+      <DataIcon value="🌟" kind="goal" /> Spotlight
+    </>
+  ) : g?.isFeatured ? (
+    <>
+      <DataIcon value="📌" kind="goal" /> Pinned
+    </>
+  ) : (
+    'Goal'
+  )
+  const pickLabel =
+    pick === 'mine'
+      ? 'My spotlight'
+      : pick === 'family'
+        ? 'Family spotlight'
+        : (goals.find((x) => x.id === pick)?.title ?? 'My spotlight')
 
   const choose = (v: string) => {
     setPick(v)
@@ -95,87 +147,262 @@ export function GoalSpotlightCard() {
   }
 
   return (
-    <div className="card gs-card" style={{ padding: '22px 22px 18px', display: 'flex', flexDirection: 'column' }}>
+    <Card
+      className="card gs-card"
+      style={{ padding: '22px 22px 18px', display: 'flex', flexDirection: 'column' }}
+    >
       <div className="gs-head">
-        <div className="card-h" style={{ fontSize: 23 }}>Goals</div>
+        <div className="card-h" style={{ fontSize: 23 }}>
+          Goals
+        </div>
         {goals.length > 1 && (
-          <button type="button" className="gs-pick-btn" onClick={() => setPicking(true)} title="Choose which goal to show">
+          <Button
+            variant="unstyled"
+            type="button"
+            className="gs-pick-btn"
+            onClick={() => setPicking(true)}
+            title="Choose which goal to show"
+          >
             <span className="gs-pick-label">{pickLabel}</span>
-            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
-          </button>
+            <ChevronDown
+              aria-hidden="true"
+              width="12"
+              height="12"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </Button>
         )}
-        <button type="button" className="pill gs-seeall" onClick={() => navigate('/goals')}>See all ›</button>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="pill gs-seeall"
+          onClick={() => navigate('/goals')}
+        >
+          <>
+            {'See all '}
+            <DataIcon value={'›'} kind="goal" />
+          </>
+        </Button>
       </div>
 
       {g ? (
-        <button type="button" onClick={() => navigate(`/goals/${g.id}`)} className="gs-goal-btn">
+        <Button
+          variant="unstyled"
+          type="button"
+          onClick={() => navigate(`/goals/${g.id}`)}
+          className="gs-goal-btn"
+        >
           <div style={{ display: 'flex', alignItems: 'center', gap: 13 }}>
-            <span style={{ fontSize: 26, width: 52, height: 52, display: 'grid', placeItems: 'center', borderRadius: 15, background: 'var(--panel)', flex: 'none' }}>{g.emoji ?? '🎯'}</span>
+            <span
+              style={{
+                fontSize: 26,
+                width: 52,
+                height: 52,
+                display: 'grid',
+                placeItems: 'center',
+                borderRadius: 15,
+                background: 'var(--panel)',
+                flex: 'none',
+              }}
+            >
+              <DataIcon value={g.emoji ?? '🎯'} kind="goal" />
+            </span>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div className="tiny" style={{ fontWeight: 800, color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '.03em' }}>{tag}</div>
-              <div className="wf-serif" style={{ fontSize: 20, fontWeight: 600, lineHeight: 1.12, marginTop: 2 }}>{g.title}</div>
+              <div
+                className="tiny"
+                style={{
+                  fontWeight: 800,
+                  color: 'var(--ink-3)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '.03em',
+                }}
+              >
+                {tag}
+              </div>
+              <div
+                className="wf-serif"
+                style={{ fontSize: 20, fontWeight: 600, lineHeight: 1.12, marginTop: 2 }}
+              >
+                {g.title}
+              </div>
             </div>
           </div>
-          <div style={{ height: 9, borderRadius: 99, background: 'var(--panel)', overflow: 'hidden', marginTop: 16 }}>
-            <div style={{ height: '100%', borderRadius: 99, background: 'var(--primary)', width: `${(goalFraction(g) * 100).toFixed(0)}%` }} />
+          <div
+            style={{
+              height: 9,
+              borderRadius: 99,
+              background: 'var(--panel)',
+              overflow: 'hidden',
+              marginTop: 16,
+            }}
+          >
+            <div
+              style={{
+                height: '100%',
+                borderRadius: 99,
+                background: 'var(--primary)',
+                width: `${(goalFraction(g) * 100).toFixed(0)}%`,
+              }}
+            />
           </div>
-          <div className="tiny" style={{ color: 'var(--ink-2)', fontWeight: 650, marginTop: 9 }}>{goalMeta(g)}</div>
+          <div className="tiny" style={{ color: 'var(--ink-2)', fontWeight: 650, marginTop: 9 }}>
+            {goalMeta(g)}
+          </div>
           {goalWeekTargetLabel(g) && <div className="tiny goal-week">{goalWeekTargetLabel(g)}</div>}
-        </button>
+        </Button>
       ) : (
-        <button type="button" onClick={() => navigate('/goals')} className="tiny muted" style={{ border: 0, background: 'none', padding: 0, cursor: 'pointer', fontWeight: 600, textAlign: 'left' }}>
-          {loading ? 'Loading…' : 'Set a family goal →'}
-        </button>
+        <Button
+          variant="unstyled"
+          type="button"
+          onClick={() => navigate('/goals')}
+          className="tiny muted"
+          style={{
+            border: 0,
+            background: 'none',
+            padding: 0,
+            cursor: 'pointer',
+            fontWeight: 600,
+            textAlign: 'left',
+          }}
+        >
+          {loading ? (
+            'Loading…'
+          ) : (
+            <>
+              {'Set a family goal '}
+              <DataIcon value={'→'} kind="goal" />
+            </>
+          )}
+        </Button>
       )}
 
       {picking && (
-        <div className="modal-overlay" onClick={() => setPicking(false)}>
+        <Modal className="modal-overlay" onClose={() => setPicking(false)}>
           <div className="modal-card gs-modal" onClick={(e) => e.stopPropagation()}>
-            <button type="button" className="modal-close" aria-label="Close" onClick={() => setPicking(false)}>×</button>
-            <div className="wf-serif" style={{ fontSize: 20, fontWeight: 600, marginBottom: 4 }}>Show on Today</div>
-            <div className="tiny muted" style={{ fontWeight: 600, marginBottom: 14 }}>Pick the goal this card follows.</div>
+            <Button
+              variant="unstyled"
+              type="button"
+              className="modal-close"
+              aria-label="Close"
+              onClick={() => setPicking(false)}
+            >
+              <DataIcon value={'×'} kind="goal" />
+            </Button>
+            <div className="wf-serif" style={{ fontSize: 20, fontWeight: 600, marginBottom: 4 }}>
+              Show on Today
+            </div>
+            <div className="tiny muted" style={{ fontWeight: 600, marginBottom: 14 }}>
+              Pick the goal this card follows.
+            </div>
             <div className="gs-picklist">
-              <PickRow emoji="✨" title="My spotlight" sub="Follows your spotlighted goal" on={pick === 'mine'} onClick={() => choose('mine')} />
-              <PickRow emoji="👪" title="Family spotlight" sub="Follows the family's spotlight" on={pick === 'family'} onClick={() => choose('family')} />
+              <PickRow
+                emoji="✨"
+                title="My spotlight"
+                sub="Follows your spotlighted goal"
+                on={pick === 'mine'}
+                onClick={() => choose('mine')}
+              />
+              <PickRow
+                emoji="👪"
+                title="Family spotlight"
+                sub="Follows the family's spotlight"
+                on={pick === 'family'}
+                onClick={() => choose('family')}
+              />
               {grouped.map((grp, i) => {
                 const open = openGroups[grp.key] ?? i === 0
                 return (
                   <div key={grp.key} className="gs-group">
-                    <button type="button" className="gs-group-h" onClick={() => toggleGroup(grp.key, open)} aria-expanded={open}>
-                      <svg className={`gs-group-chev ${open ? 'open' : ''}`} viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 6 15 12 9 18" /></svg>
+                    <Button
+                      variant="unstyled"
+                      type="button"
+                      className="gs-group-h"
+                      onClick={() => toggleGroup(grp.key, open)}
+                      aria-expanded={open}
+                    >
+                      <ChevronRight
+                        aria-hidden="true"
+                        className={`gs-group-chev ${open ? 'open' : ''}`}
+                        width="12"
+                        height="12"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
                       {grp.members.length > 0 && (
                         <span className="gs-group-avs">
                           {grp.members.slice(0, 4).map((m) => (
-                            <span key={m.personId} className="gs-group-av">{m.avatarEmoji ?? '🙂'}</span>
+                            <span key={m.personId} className="gs-group-av">
+                              <DataIcon value={m.avatarEmoji ?? '🙂'} kind="person" />
+                            </span>
                           ))}
                         </span>
                       )}
                       <span>{grp.label}</span>
                       <span className="gs-group-n">{grp.goals.length}</span>
-                    </button>
-                    {open && grp.goals.map((go) => (
-                      <PickRow key={go.id} emoji={go.emoji ?? '🎯'} title={go.title} sub={goalMeta(go)} on={pick === go.id} onClick={() => choose(go.id)} />
-                    ))}
+                    </Button>
+                    {open &&
+                      grp.goals.map((go) => (
+                        <PickRow
+                          key={go.id}
+                          emoji={go.emoji ?? '🎯'}
+                          title={go.title}
+                          sub={goalMeta(go)}
+                          on={pick === go.id}
+                          onClick={() => choose(go.id)}
+                        />
+                      ))}
                   </div>
                 )
               })}
             </div>
           </div>
-        </div>
+        </Modal>
       )}
-    </div>
+    </Card>
   )
 }
 
-function PickRow({ emoji, title, sub, on, onClick }: { emoji: string; title: string; sub: string; on: boolean; onClick: () => void }) {
+function PickRow({
+  emoji,
+  title,
+  sub,
+  on,
+  onClick,
+}: {
+  emoji: string
+  title: string
+  sub: string
+  on: boolean
+  onClick: () => void
+}) {
   return (
-    <button type="button" className={`gs-pickrow ${on ? 'on' : ''}`} onClick={onClick}>
-      <span className="gs-pickrow-emoji">{emoji}</span>
+    <Button
+      variant="unstyled"
+      type="button"
+      className={`gs-pickrow ${on ? 'on' : ''}`}
+      onClick={onClick}
+    >
+      <span className="gs-pickrow-emoji">
+        <DataIcon value={emoji} kind="goal" />
+      </span>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div className="gs-pickrow-t">{title}</div>
-        <div className="tiny muted" style={{ fontWeight: 600 }}>{sub}</div>
+        <div className="tiny muted" style={{ fontWeight: 600 }}>
+          {sub}
+        </div>
       </div>
-      {on && <span className="gs-pickrow-check">✓</span>}
-    </button>
+      {on && (
+        <span className="gs-pickrow-check">
+          <DataIcon value={'✓'} kind="goal" />
+        </span>
+      )}
+    </Button>
   )
 }

@@ -3,6 +3,8 @@
 // chicken must not move the potato salad — and switching tabs returns you to exactly
 // where you left that dish.
 import '../../styles/cookmode.css'
+import { Button } from '@/components/ui/button'
+import { DataIcon } from '@/components/ui/data-icon'
 
 export interface CookTabInfo {
   recipeId: string
@@ -28,9 +30,14 @@ export function CookTabs({
     <div className="cm-tabs" role="tablist" aria-label="Dishes on this plate">
       {tabs.map((t, k) => {
         const active = k === activeIndex
-        const progress = t.done ? 'Done' : t.total > 0 ? `Step ${t.stepIndex + 1} of ${t.total}` : 'No steps'
+        const progress = t.done
+          ? 'Done'
+          : t.total > 0
+            ? `Step ${t.stepIndex + 1} of ${t.total}`
+            : 'No steps'
         return (
-          <button
+          <Button
+            variant="unstyled"
             key={t.recipeId}
             type="button"
             role="tab"
@@ -39,13 +46,13 @@ export function CookTabs({
             onClick={() => onSelect(k)}
           >
             <span className="cm-tab-emoji" aria-hidden>
-              {t.emoji ?? '🍽️'}
+              <DataIcon value={t.emoji ?? '🍽️'} kind="meal" />
             </span>
             <span className="cm-tab-text">
               <span className="cm-tab-title">{t.title}</span>
               <span className="cm-tab-prog">{progress}</span>
             </span>
-          </button>
+          </Button>
         )
       })}
     </div>

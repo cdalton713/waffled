@@ -19,6 +19,10 @@ import {
 import { BookRhythmModal } from './components/BookRhythmModal'
 import { RhythmModal } from './components/RhythmModal'
 import '../styles/rhythms.css'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { DataIcon } from '@/components/ui/data-icon'
 
 // The rhythms register — the whole list, what state each one is in, and where new
 // ones get made.
@@ -62,9 +66,11 @@ function completedToday(iso: string | null): boolean {
   const done = new Date(iso)
   if (Number.isNaN(done.getTime())) return false
   const now = new Date()
-  return done.getFullYear() === now.getFullYear()
-    && done.getMonth() === now.getMonth()
-    && done.getDate() === now.getDate()
+  return (
+    done.getFullYear() === now.getFullYear() &&
+    done.getMonth() === now.getMonth() &&
+    done.getDate() === now.getDate()
+  )
 }
 
 function capitalize(text: string): string {
@@ -176,8 +182,13 @@ function RhythmRow({
   }
 
   return (
-    <div className={`rhy-reg${urgency === 'now' ? ' now' : ''}${paused ? ' off' : ''}`} ref={rowRef}>
-      <div className="rhy-tile" aria-hidden>{rhythm.emoji ?? (scheduling ? '🗓️' : '🔁')}</div>
+    <div
+      className={`rhy-reg${urgency === 'now' ? ' now' : ''}${paused ? ' off' : ''}`}
+      ref={rowRef}
+    >
+      <div className="rhy-tile" aria-hidden>
+        <DataIcon value={rhythm.emoji ?? (scheduling ? '🗓️' : '🔁')} kind="rhythm" />
+      </div>
 
       <div className="rhy-reg-main">
         <div className="rhy-name">
@@ -187,7 +198,12 @@ function RhythmRow({
               though: a skip settles a period and has no time, so the label follows
               `bookedAt` rather than announcing a calendar entry that isn't there. */}
           {scheduling && rhythm.satisfied && !paused && (
-            <span className="rhy-tick" aria-label={rhythm.bookedAt ? 'on the calendar' : 'handled without a booking'}>✓</span>
+            <span
+              className="rhy-tick"
+              aria-label={rhythm.bookedAt ? 'on the calendar' : 'handled without a booking'}
+            >
+              <DataIcon value={'✓'} kind="rhythm" />
+            </span>
           )}
           {personColor && <i className="rhy-dot" style={{ background: personColor }} aria-hidden />}
         </div>
@@ -197,47 +213,86 @@ function RhythmRow({
               computed by the list, but nothing nudges about it and nothing can be done
               with it — so "not on the calendar yet" would be a complaint about a
               situation we have deliberately stopped caring about. */}
-          {paused ? <> · <b>paused</b></> : scheduling ? (
+          {paused ? (
+            <>
+              {' '}
+              · <b>paused</b>
+            </>
+          ) : scheduling ? (
             // No current period means the grid hasn't started: the server tiles periods
             // from startsOn up to now, so a rhythm anchored in the future has none yet.
             // Falling through to "not on the calendar yet" was flatly wrong for an
             // auto-scheduled one, whose series was booked the moment it was made — and it
             // was said in bold, about a rhythm sitting on the calendar. iOS already had
             // this branch; web dropped straight past it.
-            !rhythm.currentPeriodStart && rhythm.startsOn
-              ? <> · periods start <b>{shortDate(rhythm.startsOn)}</b></>
-            : rhythm.satisfied
+            !rhythm.currentPeriodStart && rhythm.startsOn ? (
+              <>
+                {' '}
+                · periods start <b>{shortDate(rhythm.startsOn)}</b>
+              </>
+            ) : rhythm.satisfied ? (
               // Two ways to be settled, and only one of them involves the calendar.
-              ? rhythm.bookedAt
-                ? <> · on the calendar for <b>{bookedWhen(rhythm.bookedAt, rhythm.bookedAllDay)}</b></>
-                : <> · <b>handled without a booking</b></>
-              // Three different empty periods, and they are not the same problem.
-              // A live series with one gap is missing ONE event, exactly like a
-              // hand-booked row is — so it gets the same offer, and only the sentence
-              // differs, because "yet" would blame the reader for a slot the rhythm had
-              // promised to fill itself. A series that is GONE is missing the recurrence,
-              // which is the one case worth a different button.
-              : rhythm.autoSchedule
-                ? rhythm.hasSeries
-                  ? <> · <b>nothing on the calendar this time</b></>
-                  : <> · <b>the series needs putting back</b></>
-                // One node, not "<b>not on the calendar</b> yet" as the mock has it: a
-                // phrase split across elements is unfindable by the text people actually
-                // read, which is how a screen reader and a test both see the page.
-                : <> · <b>not on the calendar yet</b></>
+              rhythm.bookedAt ? (
+                <>
+                  {' '}
+                  · on the calendar for <b>{bookedWhen(rhythm.bookedAt, rhythm.bookedAllDay)}</b>
+                </>
+              ) : (
+                <>
+                  {' '}
+                  · <b>handled without a booking</b>
+                </>
+              )
+            ) : // Three different empty periods, and they are not the same problem.
+            // A live series with one gap is missing ONE event, exactly like a
+            // hand-booked row is — so it gets the same offer, and only the sentence
+            // differs, because "yet" would blame the reader for a slot the rhythm had
+            // promised to fill itself. A series that is GONE is missing the recurrence,
+            // which is the one case worth a different button.
+            rhythm.autoSchedule ? (
+              rhythm.hasSeries ? (
+                <>
+                  {' '}
+                  · <b>nothing on the calendar this time</b>
+                </>
+              ) : (
+                <>
+                  {' '}
+                  · <b>the series needs putting back</b>
+                </>
+              )
+            ) : (
+              // One node, not "<b>not on the calendar</b> yet" as the mock has it: a
+              // phrase split across elements is unfindable by the text people actually
+              // read, which is how a screen reader and a test both see the page.
+              <>
+                {' '}
+                · <b>not on the calendar yet</b>
+              </>
+            )
+          ) : rhythm.lastCompletedAt ? (
+            <>
+              {' '}
+              · last done <b>{shortDate(rhythm.lastCompletedAt)}</b>
+            </>
           ) : (
-            rhythm.lastCompletedAt
-              ? <> · last done <b>{shortDate(rhythm.lastCompletedAt)}</b></>
-              : <> · <b>never done</b></>
+            <>
+              {' '}
+              · <b>never done</b>
+            </>
           )}
           {personName ? ` · ${personName}` : ''}
           {rhythm.notes ? ` · ${rhythm.notes}` : ''}
         </div>
         {pct !== null && (
-          <div className="rhy-track"><div style={{ width: `${pct}%` }} /></div>
+          <div className="rhy-track">
+            <div style={{ width: `${pct}%` }} />
+          </div>
         )}
         {failed && (
-          <div className="rhy-failed" role="status">That didn't go through — try again.</div>
+          <div className="rhy-failed" role="status">
+            That didn't go through — try again.
+          </div>
         )}
       </div>
 
@@ -246,31 +301,45 @@ function RhythmRow({
           <b>{cd.num}</b>
           <span>{cd.unit}</span>
         </div>
-      ) : <div />}
+      ) : (
+        <div />
+      )}
 
       <div className="rhy-actcell">
         {showAction && !scheduling && (
-          <button
+          <Button
+            variant="unstyled"
             type="button"
             className={`btn ${doneToday ? 'btn-ghost rhy-done' : primary ? 'btn-primary' : 'btn-ghost'}`}
             disabled={busy || doneToday}
-            onClick={() => { if (!doneToday) run(() => rhythmsApi.complete(rhythm.id)) }}
+            onClick={() => {
+              if (!doneToday) run(() => rhythmsApi.complete(rhythm.id))
+            }}
           >
-            {doneToday ? 'Done today ✓' : 'I did it'}
-          </button>
+            {doneToday ? (
+              <>
+                {'Done today '}
+                <DataIcon value={'✓'} kind="rhythm" />
+              </>
+            ) : (
+              'I did it'
+            )}
+          </Button>
         )}
         {showAction && needsBooking && period && (
-          <button
+          <Button
+            variant="unstyled"
             type="button"
             className={`btn ${primary ? 'btn-primary' : 'btn-ghost'}`}
             onClick={() => onBook(period)}
           >
             {needsSeriesBack ? 'Put it back' : 'Book a time'}
-          </button>
+          </Button>
         )}
       </div>
 
-      <button
+      <Button
+        variant="unstyled"
         type="button"
         className="rhy-more"
         aria-label={`More for ${rhythm.title}`}
@@ -278,18 +347,22 @@ function RhythmRow({
         onClick={() => setMenu((m) => !m)}
       >
         ···
-      </button>
+      </Button>
 
       {menu && (
         <div className="rhy-menu" role="menu">
           {!scheduling && (
-            <button
+            <Button
+              variant="unstyled"
               type="button"
               aria-label={`Mark ${rhythm.title} done on another day`}
-              onClick={() => { setBackdate(todayKey()); setMenu(false) }}
+              onClick={() => {
+                setBackdate(todayKey())
+                setMenu(false)
+              }}
             >
               Mark done on another day
-            </button>
+            </Button>
           )}
           {/* "It's asking and I can't do it today." Offered only while the rhythm is
               actually asking — there is nothing to push a Steady row away from, and a
@@ -304,16 +377,17 @@ function RhythmRow({
               completed, a full cycle from being due. There was nothing to push. The band is
               right for what it does; it was the wrong gate for this verb. */}
           {!paused && !scheduling && urgency === 'now' && rhythm.nextDueAt && (
-            <button
+            <Button
+              variant="unstyled"
               type="button"
               aria-label={`Push ${rhythm.title} out a week`}
               disabled={busy}
-              onClick={() => run(() =>
-                rhythmsApi.update(rhythm.id, { nextDueAt: pushOut(rhythm.nextDueAt)! })
-              )}
+              onClick={() =>
+                run(() => rhythmsApi.update(rhythm.id, { nextDueAt: pushOut(rhythm.nextDueAt)! }))
+              }
             >
               Push it out a week
-            </button>
+            </Button>
           )}
           {/* A period can be booked long before its runway opens — that is the case
               /attention structurally cannot report, and the reason the list carries
@@ -321,16 +395,21 @@ function RhythmRow({
               quietly remove the capability rather than just quieten it, so it moves
               in here instead of disappearing. */}
           {needsBooking && period && !showAction && (
-            <button
+            <Button
+              variant="unstyled"
               type="button"
               aria-label={`${needsSeriesBack ? 'Put the series back on the calendar' : 'Book a time'} for ${rhythm.title}`}
-              onClick={() => { setMenu(false); onBook(period) }}
+              onClick={() => {
+                setMenu(false)
+                onBook(period)
+              }}
             >
               {needsSeriesBack ? 'Put it back on the calendar' : 'Book a time'}
-            </button>
+            </Button>
           )}
           {needsBooking && period && (
-            <button
+            <Button
+              variant="unstyled"
               type="button"
               aria-label={`Mark this period handled for ${rhythm.title}`}
               title="Settles this period without putting anything on the calendar — whether you sorted it another way or it simply isn't happening."
@@ -338,13 +417,22 @@ function RhythmRow({
               onClick={() => run(() => rhythmsApi.skip(rhythm.id, period.periodStart))}
             >
               Mark handled
-            </button>
+            </Button>
           )}
-          <button type="button" aria-label={`Edit ${rhythm.title}`} onClick={() => { setMenu(false); onEdit() }}>
+          <Button
+            variant="unstyled"
+            type="button"
+            aria-label={`Edit ${rhythm.title}`}
+            onClick={() => {
+              setMenu(false)
+              onEdit()
+            }}
+          >
             Edit rhythm
-          </button>
+          </Button>
           <hr />
-          <button
+          <Button
+            variant="unstyled"
             type="button"
             className="warn"
             aria-label={`${paused ? 'Resume' : 'Pause'} ${rhythm.title}`}
@@ -352,7 +440,7 @@ function RhythmRow({
             onClick={() => run(() => rhythmsApi.update(rhythm.id, { isActive: paused }))}
           >
             {paused ? 'Resume this rhythm' : 'Pause this rhythm'}
-          </button>
+          </Button>
         </div>
       )}
 
@@ -362,18 +450,19 @@ function RhythmRow({
           the register's one useful fact ("it last happened on…") becomes a guess. */}
       {backdate !== null && (
         <div className="rhy-backdate">
-          <label className="field rhy-backdate-f">
+          <Label className="field rhy-backdate-f">
             <span>When did you do it?</span>
-            <input
+            <Input
               type="date"
               value={backdate}
               max={todayKey()}
               onChange={(e) => setBackdate(e.target.value)}
             />
-          </label>
-          <button
+          </Label>
+          <Button
+            variant="default"
             type="button"
-            className="btn btn-primary"
+
             disabled={busy || !backdate || backdate > todayKey()}
             onClick={() => {
               // Midday, not midnight: a date-only value read as local midnight can land
@@ -393,8 +482,10 @@ function RhythmRow({
             }}
           >
             Log it
-          </button>
-          <button type="button" className="btn btn-ghost" onClick={() => setBackdate(null)}>Cancel</button>
+          </Button>
+          <Button variant="ghost" type="button" onClick={() => setBackdate(null)}>
+            Cancel
+          </Button>
         </div>
       )}
     </div>
@@ -462,15 +553,19 @@ export function Rhythms() {
       <div className="rhy-screen-head">
         <div>
           <div className="rhy-screen-title wf-serif">Rhythms</div>
-          <div className="rhy-screen-sub">
-            Things that should keep happening. Soonest first.
-          </div>
+          <div className="rhy-screen-sub">Things that should keep happening. Soonest first.</div>
         </div>
-        <Editable><button type="button" className="btn btn-primary" onClick={() => setCreating(true)}>New rhythm</button></Editable>
+        <Editable>
+          <Button variant="default" type="button" onClick={() => setCreating(true)}>
+            New rhythm
+          </Button>
+        </Editable>
       </div>
 
       {loading && <div className="rhy-empty">Loading…</div>}
-      {error && <div className="rhy-empty">Couldn't load your rhythms — reload or sign in again.</div>}
+      {error && (
+        <div className="rhy-empty">Couldn't load your rhythms — reload or sign in again.</div>
+      )}
 
       {!loading && !error && rhythms.length === 0 && (
         <div className="rhy-empty">
@@ -498,19 +593,34 @@ export function Rhythms() {
 
       {paused.length > 0 && (
         <div className="rhy-regs rhy-paused-card">
-          <button type="button" className="rhy-paused-toggle" onClick={() => setShowPaused((s) => !s)}>
+          <Button
+            variant="unstyled"
+            type="button"
+            className="rhy-paused-toggle"
+            onClick={() => setShowPaused((s) => !s)}
+          >
             {/* Named rather than counted — "2 paused" makes you open it to find out
                 which, every single time. */}
             {paused.length} paused — {paused.map((r) => r.title).join(', ')}
-            <span aria-hidden>{showPaused ? '⌃' : '⌄'}</span>
-          </button>
+            <span aria-hidden>
+              {showPaused ? (
+                <DataIcon value={'⌃'} kind="rhythm" />
+              ) : (
+                <DataIcon value={'⌄'} kind="rhythm" />
+              )}
+            </span>
+          </Button>
           {showPaused && paused.map((r) => row(r, 'paused'))}
         </div>
       )}
 
       {creating && <RhythmModal onClose={() => setCreating(false)} onSaved={changed} />}
-      {editing && <RhythmModal rhythm={editing} onClose={() => setEditing(null)} onSaved={changed} />}
-      {booking && <BookRhythmModal item={booking} onClose={() => setBooking(null)} onBooked={changed} />}
+      {editing && (
+        <RhythmModal rhythm={editing} onClose={() => setEditing(null)} onSaved={changed} />
+      )}
+      {booking && (
+        <BookRhythmModal item={booking} onClose={() => setBooking(null)} onBooked={changed} />
+      )}
     </div>
   )
 }

@@ -2,17 +2,21 @@ import { Suspense, lazy, useEffect, useRef, useState } from 'react'
 import { RecipeModal } from './RecipeModal'
 import { MealCard } from './MealCard'
 import { mealBuilderApi, type Meal, type Recipe } from '../../lib/api'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { DataIcon } from '@/components/ui/data-icon'
+import { Modal } from '@/components/ui/modal'
 
 // The full editor, opened in a modal over the picker. Lazy so picking a recipe
 // doesn't pay for the editor's weight until you decide to write one.
 const RecipeEditorBody = lazy(() =>
-  import('../RecipeEditor').then((m) => ({ default: m.RecipeEditorBody }))
+  import('../RecipeEditor').then((m) => ({ default: m.RecipeEditorBody })),
 )
 
 // The Meal Builder's own body, so "＋ New meal" builds a plate with the real plate
 // editor rather than a second, lesser one. Lazy for the same reason as above.
 const MealBuilderBody = lazy(() =>
-  import('../MealBuilder').then((m) => ({ default: m.MealBuilderBody }))
+  import('../MealBuilder').then((m) => ({ default: m.MealBuilderBody })),
 )
 
 // Shared meal-type vocabulary + the category→gradient mapping.
@@ -103,7 +107,7 @@ export function RecipeBrowser({
   selectLabel?: string
 }) {
   const browse = !onPick
-  const [filter, setFilter] = useState<'all' | MealType>(browse ? 'all' : slot ?? 'dinner')
+  const [filter, setFilter] = useState<'all' | MealType>(browse ? 'all' : (slot ?? 'dinner'))
   const [q, setQ] = useState('')
   const [preview, setPreview] = useState<Recipe | null>(null)
   // Writing a recipe from inside the picker. The slot being filled lives in the
@@ -131,12 +135,26 @@ export function RecipeBrowser({
   // Free-text search across title + metadata, then the meal-type filter chip.
   const matchesQuery = (r: Recipe) =>
     !query ||
-    [r.title, r.cuisine, r.protein, r.base, r.cookMethod, r.category, ...(r.tags ?? []), ...(r.vegetables ?? []), ...(r.dietary ?? []), r.collection]
+    [
+      r.title,
+      r.cuisine,
+      r.protein,
+      r.base,
+      r.cookMethod,
+      r.category,
+      ...(r.tags ?? []),
+      ...(r.vegetables ?? []),
+      ...(r.dietary ?? []),
+      r.collection,
+    ]
       .filter(Boolean)
       .join(' ')
       .toLowerCase()
       .includes(query)
-  const shown = recipes.filter((r) => (filter === 'all' || !r.category || r.category.toLowerCase() === filter) && matchesQuery(r))
+  const shown = recipes.filter(
+    (r) =>
+      (filter === 'all' || !r.category || r.category.toLowerCase() === filter) && matchesQuery(r),
+  )
   const FILTERS: Array<'all' | MealType> = ['all', ...MEALS]
   // A plate has no breakfast/lunch/dinner category of its own, so the meal-type
   // chips leave saved meals alone — they show whenever meals are on offer.
@@ -149,24 +167,51 @@ export function RecipeBrowser({
   return (
     <div className="meals-picker">
       <div className="picker-search">
-        <input className="cal-search" placeholder="Search recipes by name, cuisine, ingredient…" value={q} onChange={(e) => setQ(e.target.value)} />
+        <Input
+          className="cal-search"
+          placeholder="Search recipes by name, cuisine, ingredient…"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+        />
         {/* Browsing the library? It has its own New recipe button in the topbar. */}
         {!browse && (
-          <button type="button" className="btn btn-primary picker-new" onClick={() => setCreating(true)}>
-            ＋ New recipe
-          </button>
+          <Button
+            variant="default"
+            type="button"
+            className="picker-new"
+            onClick={() => setCreating(true)}
+          >
+            <>
+              <DataIcon value={'＋'} kind="meal" />
+              {' New recipe'}
+            </>
+          </Button>
         )}
         {/* Gated exactly as the plate CARDS are: a caller with nowhere to schedule a
             plate to doesn't advertise plates, so it must not offer to build one. */}
         {onPickMeal && (
-          <button type="button" className="btn btn-ghost picker-new" onClick={() => setBuilding(true)}>
-            ＋ New meal
-          </button>
+          <Button
+            variant="ghost"
+            type="button"
+            className="picker-new"
+            onClick={() => setBuilding(true)}
+          >
+            <>
+              <DataIcon value={'＋'} kind="meal" />
+              {' New meal'}
+            </>
+          </Button>
         )}
       </div>
       <div className="picker-filters">
         {FILTERS.map((f) => (
-          <div key={f} className={`mp-filter tag ${f === filter ? 'on' : ''}`} onClick={() => setFilter(f)} role="button" tabIndex={0}>
+          <div
+            key={f}
+            className={`mp-filter tag ${f === filter ? 'on' : ''}`}
+            onClick={() => setFilter(f)}
+            role="button"
+            tabIndex={0}
+          >
             {f === 'all' ? 'All' : MEAL_LABEL[f]}
           </div>
         ))}
@@ -181,48 +226,144 @@ export function RecipeBrowser({
             that is exactly what somebody typing a dish nobody saved is asking. */}
         {freeText && (
           <div className="rc mp-card" role="button" tabIndex={0} onClick={() => onFreeText!(typed)}>
-            <div className="rc-img" style={{ background: 'linear-gradient(135deg,#e8e3d7,#d0c7b3)', fontSize: 34, display: 'grid', placeItems: 'center' }}>✍️</div>
+            <div
+              className="rc-img"
+              style={{
+                background: 'linear-gradient(135deg,#e8e3d7,#d0c7b3)',
+                fontSize: 34,
+                display: 'grid',
+                placeItems: 'center',
+              }}
+            >
+              <DataIcon value={'✍️'} kind="meal" />
+            </div>
             <div className="rc-b" style={{ padding: '12px 14px 14px' }}>
-              <div className="rc-t" style={{ fontSize: 16 }}>“{typed}”</div>
-              <div className="rc-m"><span>Plan it as typed — no recipe needed</span></div>
+              <div className="rc-t" style={{ fontSize: 16 }}>
+                “{typed}”
+              </div>
+              <div className="rc-m">
+                <span>Plan it as typed — no recipe needed</span>
+              </div>
               <div className="mp-actions">
-                <button type="button" className="pill btn-primary mp-select" onClick={(e) => { e.stopPropagation(); onFreeText!(typed) }}>Select</button>
+                <Button
+                  variant="unstyled"
+                  type="button"
+                  className="pill btn-primary mp-select"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onFreeText!(typed)
+                  }}
+                >
+                  Select
+                </Button>
               </div>
             </div>
           </div>
         )}
         {onEatingOut && (
           <div className="rc mp-card" role="button" tabIndex={0} onClick={onEatingOut}>
-            <div className="rc-img" style={{ background: 'linear-gradient(135deg,#d9e7f6,#bcd0e9)', fontSize: 34, display: 'grid', placeItems: 'center' }}>🍴</div>
+            <div
+              className="rc-img"
+              style={{
+                background: 'linear-gradient(135deg,#d9e7f6,#bcd0e9)',
+                fontSize: 34,
+                display: 'grid',
+                placeItems: 'center',
+              }}
+            >
+              <DataIcon value={'🍴'} kind="meal" />
+            </div>
             <div className="rc-b" style={{ padding: '12px 14px 14px' }}>
-              <div className="rc-t" style={{ fontSize: 16 }}>Eating out</div>
-              <div className="rc-m"><span>No cooking tonight</span></div>
+              <div className="rc-t" style={{ fontSize: 16 }}>
+                Eating out
+              </div>
+              <div className="rc-m">
+                <span>No cooking tonight</span>
+              </div>
               <div className="mp-actions">
-                <button type="button" className="pill btn-primary mp-select" onClick={(e) => { e.stopPropagation(); onEatingOut() }}>Select</button>
+                <Button
+                  variant="unstyled"
+                  type="button"
+                  className="pill btn-primary mp-select"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onEatingOut()
+                  }}
+                >
+                  Select
+                </Button>
               </div>
             </div>
           </div>
         )}
         {onLeftovers && (
           <div className="rc mp-card" role="button" tabIndex={0} onClick={onLeftovers}>
-            <div className="rc-img" style={{ background: 'linear-gradient(135deg,#f0e6d2,#e0cfa8)', fontSize: 34, display: 'grid', placeItems: 'center' }}>🥡</div>
+            <div
+              className="rc-img"
+              style={{
+                background: 'linear-gradient(135deg,#f0e6d2,#e0cfa8)',
+                fontSize: 34,
+                display: 'grid',
+                placeItems: 'center',
+              }}
+            >
+              <DataIcon value={'🥡'} kind="meal" />
+            </div>
             <div className="rc-b" style={{ padding: '12px 14px 14px' }}>
-              <div className="rc-t" style={{ fontSize: 16 }}>Leftovers</div>
-              <div className="rc-m"><span>Finish up a previous meal</span></div>
+              <div className="rc-t" style={{ fontSize: 16 }}>
+                Leftovers
+              </div>
+              <div className="rc-m">
+                <span>Finish up a previous meal</span>
+              </div>
               <div className="mp-actions">
-                <button type="button" className="pill btn-primary mp-select" onClick={(e) => { e.stopPropagation(); onLeftovers() }}>Select</button>
+                <Button
+                  variant="unstyled"
+                  type="button"
+                  className="pill btn-primary mp-select"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onLeftovers()
+                  }}
+                >
+                  Select
+                </Button>
               </div>
             </div>
           </div>
         )}
         {onTrySomething && (
           <div className="rc mp-card" role="button" tabIndex={0} onClick={onTrySomething}>
-            <div className="rc-img" style={{ background: 'linear-gradient(135deg,#efdcf3,#d9bce9)', fontSize: 34, display: 'grid', placeItems: 'center' }}>✨</div>
+            <div
+              className="rc-img"
+              style={{
+                background: 'linear-gradient(135deg,#efdcf3,#d9bce9)',
+                fontSize: 34,
+                display: 'grid',
+                placeItems: 'center',
+              }}
+            >
+              <DataIcon value={'✨'} kind="meal" />
+            </div>
             <div className="rc-b" style={{ padding: '12px 14px 14px' }}>
-              <div className="rc-t" style={{ fontSize: 16 }}>Try something new</div>
-              <div className="rc-m"><span>Cook a brand-new dish</span></div>
+              <div className="rc-t" style={{ fontSize: 16 }}>
+                Try something new
+              </div>
+              <div className="rc-m">
+                <span>Cook a brand-new dish</span>
+              </div>
               <div className="mp-actions">
-                <button type="button" className="pill btn-primary mp-select" onClick={(e) => { e.stopPropagation(); onTrySomething() }}>Select</button>
+                <Button
+                  variant="unstyled"
+                  type="button"
+                  className="pill btn-primary mp-select"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onTrySomething()
+                  }}
+                >
+                  Select
+                </Button>
               </div>
             </div>
           </div>
@@ -242,22 +383,61 @@ export function RecipeBrowser({
         {loading && <div className="muted picker-empty">Loading recipes…</div>}
         {!loading && shown.length === 0 && meals.length === 0 && !freeText && (
           <div className="muted picker-empty">
-            {filter === 'all' ? 'No recipes yet.' : `No ${MEAL_LABEL[filter].toLowerCase()} recipes yet — tag a recipe with this meal to see it here.`}
+            {filter === 'all'
+              ? 'No recipes yet.'
+              : `No ${MEAL_LABEL[filter].toLowerCase()} recipes yet — tag a recipe with this meal to see it here.`}
           </div>
         )}
         {shown.map((r) => (
-          <div key={r.id} className="rc mp-card" role="button" tabIndex={0} onClick={() => (onView ? onView(r) : setPreview(r))}>
-            <div className={`rc-img ${gradClass(r)}`}>{r.emoji ?? '🍽️'}</div>
+          <div
+            key={r.id}
+            className="rc mp-card"
+            role="button"
+            tabIndex={0}
+            onClick={() => (onView ? onView(r) : setPreview(r))}
+          >
+            <div className={`rc-img ${gradClass(r)}`}>
+              <DataIcon value={r.emoji ?? '🍽️'} kind="meal" />
+            </div>
             <div className="rc-b" style={{ padding: '12px 14px 14px' }}>
-              <div className="rc-t" style={{ fontSize: 16 }}>{r.title}</div>
+              <div className="rc-t" style={{ fontSize: 16 }}>
+                {r.title}
+              </div>
               <div className="rc-m">
-                {r.cookTimeMinutes != null && <span>🕐 {r.cookTimeMinutes} min</span>}
+                {r.cookTimeMinutes != null && (
+                  <span>
+                    <>
+                      <DataIcon value={'🕐'} kind="meal" />{' '}
+                    </>
+                    {r.cookTimeMinutes} min
+                  </span>
+                )}
                 {r.category && <span>{r.category}</span>}
               </div>
               <div className="mp-actions">
-                <button type="button" className="pill" onClick={(e) => { e.stopPropagation(); onView ? onView(r) : setPreview(r) }}>View</button>
+                <Button
+                  variant="unstyled"
+                  type="button"
+                  className="pill"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onView ? onView(r) : setPreview(r)
+                  }}
+                >
+                  View
+                </Button>
                 {onPick && (
-                  <button type="button" className="pill btn-primary mp-select" onClick={(e) => { e.stopPropagation(); onPick(r) }}>Select</button>
+                  <Button
+                    variant="unstyled"
+                    type="button"
+                    className="pill btn-primary mp-select"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onPick(r)
+                    }}
+                  >
+                    Select
+                  </Button>
                 )}
               </div>
             </div>
@@ -270,18 +450,35 @@ export function RecipeBrowser({
           recipeId={preview.id}
           onClose={() => setPreview(null)}
           onSelect={onPick ? () => onPick(preview) : undefined}
-          selectLabel={onPick ? selectLabel ?? 'Select' : undefined}
+          selectLabel={onPick ? (selectLabel ?? 'Select') : undefined}
         />
       )}
 
       {building && onPickMeal && (
-        <div className="modal-overlay picker-plate-overlay">
-          <div className="modal-card picker-new-card picker-plate-card" onClick={(e) => e.stopPropagation()}>
-            <button type="button" className="modal-close" aria-label="Close" onClick={closeBuilder}>×</button>
+        <Modal className="modal-overlay picker-plate-overlay">
+          <div
+            className="modal-card picker-new-card picker-plate-card"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Button
+              variant="unstyled"
+              type="button"
+              className="modal-close"
+              aria-label="Close"
+              onClick={closeBuilder}
+            >
+              <DataIcon value={'×'} kind="meal" />
+            </Button>
             {/* No heading of our own: the builder's first line IS the plate's name,
                 editable in place, and a "New meal" title above a name field whose
                 placeholder is also "New meal" just says it twice. */}
-            <Suspense fallback={<div className="muted" style={{ padding: 30 }}>Loading…</div>}>
+            <Suspense
+              fallback={
+                <div className="muted" style={{ padding: 30 }}>
+                  Loading…
+                </div>
+              }
+            >
               <MealBuilderBody
                 // A plate built here goes in the library, like a recipe written here
                 // does — and being saved is what makes scheduling copy it.
@@ -299,26 +496,43 @@ export function RecipeBrowser({
               />
             </Suspense>
           </div>
-        </div>
+        </Modal>
       )}
 
       {creating && onPick && (
-        <div className="modal-overlay">
+        <Modal className="modal-overlay">
           <div className="modal-card picker-new-card" onClick={(e) => e.stopPropagation()}>
-            <button type="button" className="modal-close" aria-label="Close" onClick={() => setCreating(false)}>×</button>
+            <Button
+              variant="unstyled"
+              type="button"
+              className="modal-close"
+              aria-label="Close"
+              onClick={() => setCreating(false)}
+            >
+              <DataIcon value={'×'} kind="meal" />
+            </Button>
             <div className="wf-serif picker-new-h">New recipe</div>
-            <Suspense fallback={<div className="muted" style={{ padding: 30 }}>Loading…</div>}>
+            <Suspense
+              fallback={
+                <div className="muted" style={{ padding: 30 }}>
+                  Loading…
+                </div>
+              }
+            >
               <RecipeEditorBody
                 mode="create"
                 // Saving fills the slot with what was just written — that's the
                 // whole point of creating from here, so there's no second "now
                 // select it".
-                onSaved={(saved) => { setCreating(false); onPick(saved) }}
+                onSaved={(saved) => {
+                  setCreating(false)
+                  onPick(saved)
+                }}
                 onCancel={() => setCreating(false)}
               />
             </Suspense>
           </div>
-        </div>
+        </Modal>
       )}
     </div>
   )

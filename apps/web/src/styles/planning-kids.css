@@ -1,3 +1,5 @@
+@reference './ui.css';
+
 /* Weekly Planning · step 9 — Kids (planning/steps/KidsStep.tsx).
 
    THE ONE STEP THE KIDS THEMSELVES READ: a nine-year-old and a six-year-old are standing at
@@ -8,155 +10,419 @@
    than sharing them: the two are meant to be one control, but a step may only edit its own
    stylesheet. Keep them in step by hand until it is promoted to a shared component. */
 
-.wpk { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
-.wpk-note { color: var(--ink-3); font-weight: 600; max-width: 58ch; line-height: 1.55; margin: auto 0; }
+.wpk {
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:18px];
+  @apply [min-width:0];
+}
+.wpk-note {
+  @apply [color:var(--ink-3)];
+  @apply font-semibold;
+  @apply [max-width:58ch];
+  @apply [line-height:1.55];
+  @apply [margin:auto_0];
+}
 
 /* The kids' NAMES are the heading — this card is addressed to the child in front of it. */
 .wpk-title {
-  font-family: var(--serif); font-size: 22px; font-weight: 600; letter-spacing: -0.02em;
-  color: var(--ink); margin: 0;
+  @apply [font-family:var(--serif)];
+  @apply [font-size:22px];
+  @apply font-semibold;
+  @apply [letter-spacing:-0.02em];
+  @apply [color:var(--ink)];
+  @apply [margin:0];
 }
 
 /* ── The per-kid picker · PHONE ONLY ────────────────────────────────────────── */
 /* On anything wider both cards are on screen, and a picker would change nothing. */
-.wpk-tabs { display: none; }
+.wpk-tabs {
+  @apply hidden;
+}
 .wpk-tab {
-  display: inline-flex; align-items: center; gap: 8px;
-  font: inherit; font-size: 14px; font-weight: 700; letter-spacing: -0.01em;
-  color: var(--ink-2); background: var(--panel);
-  border: 1px solid transparent; border-radius: 999px; padding: 7px 14px 7px 7px; cursor: pointer;
+  @apply inline-flex;
+  @apply items-center;
+  @apply [gap:8px];
+  @apply [font:inherit];
+  @apply [font-size:14px];
+  @apply font-bold;
+  @apply [letter-spacing:-0.01em];
+  @apply [color:var(--ink-2)];
+  @apply [background:var(--panel)];
+  @apply [border:1px_solid_transparent];
+  @apply [border-radius:999px];
+  @apply [padding:7px_14px_7px_7px];
+  @apply cursor-pointer;
 }
-.wpk-tab.on { color: var(--ink); background: var(--card); border-color: var(--line); box-shadow: var(--sh-1); }
+.wpk-tab.on {
+  @apply [color:var(--ink)];
+  @apply [background:var(--card)];
+  @apply [border-color:var(--line)];
+  @apply [box-shadow:var(--sh-1)];
+}
 .wpk-tab-face {
-  flex: none; width: 28px; height: 28px; border-radius: 999px;
-  display: grid; place-items: center; font-size: 15px; line-height: 1;
+  @apply [flex:none];
+  @apply [width:28px];
+  @apply [height:28px];
+  @apply [border-radius:999px];
+  @apply grid;
+  @apply [place-items:center];
+  @apply [font-size:15px];
+  @apply [line-height:1];
 }
-.wpk-tab-n { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 12ch; }
+.wpk-tab-n {
+  @apply overflow-hidden;
+  @apply [text-overflow:ellipsis];
+  @apply whitespace-nowrap;
+  @apply [max-width:12ch];
+}
 
 /* ── The cards ──────────────────────────────────────────────────────────────── */
-.wpk-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px; align-items: start; }
+.wpk-cards {
+  @apply grid;
+  @apply [grid-template-columns:repeat(auto-fit,_minmax(320px,_1fr))];
+  @apply [gap:18px];
+  @apply [align-items:start];
+}
 
 .wpk-card {
-  display: flex; flex-direction: column; gap: 18px; min-width: 0;
-  background: var(--card); border: 1px solid var(--hair); border-radius: var(--r-lg);
-  padding: 20px;
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:18px];
+  @apply [min-width:0];
+  @apply [background:var(--card)];
+  @apply [border:1px_solid_var(--hair)];
+  @apply [border-radius:var(--r-lg)];
+  @apply [padding:20px];
 }
 
-.wpk-h { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.wpk-h {
+  @apply flex;
+  @apply items-center;
+  @apply [gap:14px];
+  @apply [min-width:0];
+}
 .wpk-face {
-  flex: none; width: 54px; height: 54px; border-radius: 999px;
-  display: grid; place-items: center; font-size: 28px; line-height: 1;
+  @apply [flex:none];
+  @apply [width:54px];
+  @apply [height:54px];
+  @apply [border-radius:999px];
+  @apply grid;
+  @apply [place-items:center];
+  @apply [font-size:28px];
+  @apply [line-height:1];
 }
-.wpk-id { flex: 1; min-width: 0; }
-.wpk-nm { font-family: var(--serif); font-size: 24px; font-weight: 600; letter-spacing: -0.02em; color: var(--ink); }
-.wpk-ag { margin-top: 1px; font-size: 12.5px; font-weight: 650; color: var(--ink-3); }
+.wpk-id {
+  @apply [flex:1];
+  @apply [min-width:0];
+}
+.wpk-nm {
+  @apply [font-family:var(--serif)];
+  @apply [font-size:24px];
+  @apply font-semibold;
+  @apply [letter-spacing:-0.02em];
+  @apply [color:var(--ink)];
+}
+.wpk-ag {
+  @apply [margin-top:1px];
+  @apply [font-size:12.5px];
+  @apply [font-weight:650];
+  @apply [color:var(--ink-3)];
+}
 .wpk-stars {
-  flex: none; display: inline-flex; align-items: center; gap: 5px;
-  font-size: 15px; font-weight: 750; letter-spacing: -0.01em; color: var(--ink);
-  background: var(--panel); border-radius: 999px; padding: 6px 12px;
+  @apply [flex:none];
+  @apply inline-flex;
+  @apply items-center;
+  @apply [gap:5px];
+  @apply [font-size:15px];
+  @apply [font-weight:750];
+  @apply [letter-spacing:-0.01em];
+  @apply [color:var(--ink)];
+  @apply [background:var(--panel)];
+  @apply [border-radius:999px];
+  @apply [padding:6px_12px];
 }
 
-.wpk-sec { display: flex; flex-direction: column; gap: 9px; min-width: 0; }
+.wpk-sec {
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:9px];
+  @apply [min-width:0];
+}
 .wpk-lab {
-  font-size: 11.5px; font-weight: 750; letter-spacing: 0.06em; text-transform: uppercase;
-  color: var(--ink-3);
+  @apply [font-size:11.5px];
+  @apply [font-weight:750];
+  @apply [letter-spacing:0.06em];
+  @apply [text-transform:uppercase];
+  @apply [color:var(--ink-3)];
 }
 
 /* ── Their week ─────────────────────────────────────────────────────────────── */
-.wpk-chips { display: flex; flex-wrap: wrap; gap: 7px; list-style: none; margin: 0; padding: 0; }
-.wpk-chip {
-  display: inline-flex; align-items: baseline; gap: 7px; max-width: 100%;
-  font-size: 13.5px; font-weight: 650; color: var(--ink);
-  background: var(--panel); border-radius: 999px; padding: 6px 13px;
+.wpk-chips {
+  @apply flex;
+  @apply flex-wrap;
+  @apply [gap:7px];
+  @apply [list-style:none];
+  @apply [margin:0];
+  @apply [padding:0];
 }
-.wpk-chip-t { flex: none; font-size: 12px; font-weight: 750; color: var(--ink-3); }
-.wpk-chip-n { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wpk-chip {
+  @apply inline-flex;
+  @apply items-baseline;
+  @apply [gap:7px];
+  @apply [max-width:100%];
+  @apply [font-size:13.5px];
+  @apply [font-weight:650];
+  @apply [color:var(--ink)];
+  @apply [background:var(--panel)];
+  @apply [border-radius:999px];
+  @apply [padding:6px_13px];
+}
+.wpk-chip-t {
+  @apply [flex:none];
+  @apply [font-size:12px];
+  @apply [font-weight:750];
+  @apply [color:var(--ink-3)];
+}
+.wpk-chip-n {
+  @apply [min-width:0];
+  @apply overflow-hidden;
+  @apply [text-overflow:ellipsis];
+  @apply whitespace-nowrap;
+}
 /* Still open from before the week. The alarm colour, quietly. */
-.wpk-chip.late { background: var(--danger-t, var(--panel)); }
-.wpk-chip.late .wpk-chip-t { color: var(--danger-tx); }
+.wpk-chip.late {
+  @apply [background:var(--danger-t,_var(--panel))];
+}
+.wpk-chip.late .wpk-chip-t {
+  @apply [color:var(--danger-tx)];
+}
 
 /* ── One thing to focus on ──────────────────────────────────────────────────── */
-.wpk-opts { display: flex; flex-direction: column; gap: 10px; }
+.wpk-opts {
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:10px];
+}
 
 .wpk-opt {
-  display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;
-  font: inherit; color: var(--ink);
-  background: var(--card-2); border: 1px solid var(--hair); border-radius: var(--r-md);
-  padding: 14px 16px; cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  @apply flex;
+  @apply items-center;
+  @apply [gap:14px];
+  @apply [width:100%];
+  @apply text-left;
+  @apply [font:inherit];
+  @apply [color:var(--ink)];
+  @apply [background:var(--card-2)];
+  @apply [border:1px_solid_var(--hair)];
+  @apply [border-radius:var(--r-md)];
+  @apply [padding:14px_16px];
+  @apply cursor-pointer;
+  @apply [transition:border-color_0.15s_ease,_background_0.15s_ease];
 }
-.wpk-opt:hover:not(:disabled) { border-color: var(--line); }
-.wpk-opt:disabled { opacity: 0.55; cursor: default; }
-.wpk-opt.on { border-color: var(--primary); background: var(--primary-t); }
+.wpk-opt:hover:not(:disabled) {
+  @apply [border-color:var(--line)];
+}
+.wpk-opt:disabled {
+  @apply [opacity:0.55];
+  @apply cursor-default;
+}
+.wpk-opt.on {
+  @apply [border-color:var(--primary)];
+  @apply [background:var(--primary-t)];
+}
 /* `:hover:not(:disabled)` outscores `.on`, so without this the chosen option loses its border
    the moment the cursor crosses it. */
-.wpk-opt.on:hover:not(:disabled) { border-color: var(--primary); }
+.wpk-opt.on:hover:not(:disabled) {
+  @apply [border-color:var(--primary)];
+}
 /* The escape hatch. Deliberately the quietest thing in the list and deliberately last. */
-.wpk-opt.more { background: transparent; border-style: dashed; color: var(--ink-3); font-weight: 700; justify-content: center; }
+.wpk-opt.more {
+  @apply [background:transparent];
+  @apply [border-style:dashed];
+  @apply [color:var(--ink-3)];
+  @apply font-bold;
+  @apply justify-center;
+}
 
 /* Their own words, chosen: an ANSWER now, so it takes `.on`'s border and tint but keeps the
    escape hatch's centring. */
-.wpk-opt.wpk-opt-own { justify-content: center; font-weight: 700; }
+.wpk-opt.wpk-opt-own {
+  @apply justify-center;
+  @apply font-bold;
+}
 
-.wpk-opt-e { flex: none; font-size: 26px; line-height: 1; }
-.wpk-opt-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.wpk-opt-e {
+  @apply [flex:none];
+  @apply [font-size:26px];
+  @apply [line-height:1];
+}
+.wpk-opt-main {
+  @apply [flex:1];
+  @apply [min-width:0];
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:3px];
+}
 /* Sized for the reader, who is nine. */
-.wpk-opt-t { font-size: 17px; font-weight: 700; letter-spacing: -0.015em; line-height: 1.25; }
-.wpk-opt-s { font-size: 13px; font-weight: 600; color: var(--ink-2); line-height: 1.4; }
-.wpk-routed { display: block; font-size: 11.5px; font-weight: 700; color: var(--primary-d); }
+.wpk-opt-t {
+  @apply [font-size:17px];
+  @apply font-bold;
+  @apply [letter-spacing:-0.015em];
+  @apply [line-height:1.25];
+}
+.wpk-opt-s {
+  @apply [font-size:13px];
+  @apply font-semibold;
+  @apply [color:var(--ink-2)];
+  @apply [line-height:1.4];
+}
+.wpk-routed {
+  @apply block;
+  @apply [font-size:11.5px];
+  @apply font-bold;
+  @apply [color:var(--primary-d)];
+}
 
 /* The number is on the goal's OWN axis — see goalDisplayProgress in lib/api. Never an
    inline read of totalProgress, which would show a habit's lifetime count. */
-.wpk-opt-num { flex: none; display: flex; align-items: baseline; gap: 3px; }
-.wpk-num { font-size: 22px; font-weight: 750; letter-spacing: -0.02em; }
-.wpk-den { font-size: 13px; font-weight: 650; color: var(--ink-2); }
+.wpk-opt-num {
+  @apply [flex:none];
+  @apply flex;
+  @apply items-baseline;
+  @apply [gap:3px];
+}
+.wpk-num {
+  @apply [font-size:22px];
+  @apply [font-weight:750];
+  @apply [letter-spacing:-0.02em];
+}
+.wpk-den {
+  @apply [font-size:13px];
+  @apply [font-weight:650];
+  @apply [color:var(--ink-2)];
+}
 
 /* ── Something to look forward to ───────────────────────────────────────────── */
-.wpk-fwd { display: flex; flex-wrap: wrap; gap: 8px; }
-.wpk-fchip {
-  display: inline-flex; align-items: center; gap: 8px; max-width: 100%;
-  font: inherit; font-size: 15px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink);
-  background: var(--card-2); border: 1px solid var(--hair); border-radius: 999px;
-  padding: 9px 15px; cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease;
+.wpk-fwd {
+  @apply flex;
+  @apply flex-wrap;
+  @apply [gap:8px];
 }
-.wpk-fchip:hover:not(:disabled) { border-color: var(--line); }
-.wpk-fchip:disabled { opacity: 0.55; cursor: default; }
-.wpk-fchip.on { border-color: var(--primary); background: var(--primary-t); }
-.wpk-fchip.on:hover:not(:disabled) { border-color: var(--primary); }
-.wpk-fchip.more { background: transparent; border-style: dashed; color: var(--ink-3); }
-.wpk-fchip.wpk-fchip-own { font-weight: 700; }
-.wpk-fchip-n { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wpk-fchip {
+  @apply inline-flex;
+  @apply items-center;
+  @apply [gap:8px];
+  @apply [max-width:100%];
+  @apply [font:inherit];
+  @apply [font-size:15px];
+  @apply font-bold;
+  @apply [letter-spacing:-0.01em];
+  @apply [color:var(--ink)];
+  @apply [background:var(--card-2)];
+  @apply [border:1px_solid_var(--hair)];
+  @apply [border-radius:999px];
+  @apply [padding:9px_15px];
+  @apply cursor-pointer;
+  @apply [transition:border-color_0.15s_ease,_background_0.15s_ease];
+}
+.wpk-fchip:hover:not(:disabled) {
+  @apply [border-color:var(--line)];
+}
+.wpk-fchip:disabled {
+  @apply [opacity:0.55];
+  @apply cursor-default;
+}
+.wpk-fchip.on {
+  @apply [border-color:var(--primary)];
+  @apply [background:var(--primary-t)];
+}
+.wpk-fchip.on:hover:not(:disabled) {
+  @apply [border-color:var(--primary)];
+}
+.wpk-fchip.more {
+  @apply [background:transparent];
+  @apply [border-style:dashed];
+  @apply [color:var(--ink-3)];
+}
+.wpk-fchip.wpk-fchip-own {
+  @apply font-bold;
+}
+.wpk-fchip-n {
+  @apply [min-width:0];
+  @apply overflow-hidden;
+  @apply [text-overflow:ellipsis];
+  @apply whitespace-nowrap;
+}
 
 /* ── The read-back ──────────────────────────────────────────────────────────── */
 /* A statement, not a status line — "the part they'll actually remember". */
 .wpk-said {
-  display: flex; align-items: center; gap: 16px; min-width: 0;
-  background: var(--panel); border-radius: var(--r-md); padding: 18px;
+  @apply flex;
+  @apply items-center;
+  @apply [gap:16px];
+  @apply [min-width:0];
+  @apply [background:var(--panel)];
+  @apply [border-radius:var(--r-md)];
+  @apply [padding:18px];
 }
-.wpk-said-e { flex: none; font-size: 34px; line-height: 1; }
-.wpk-said-b { flex: 1; min-width: 0; }
+.wpk-said-e {
+  @apply [flex:none];
+  @apply [font-size:34px];
+  @apply [line-height:1];
+}
+.wpk-said-b {
+  @apply [flex:1];
+  @apply [min-width:0];
+}
 .wpk-big {
-  font-family: var(--serif); font-size: 23px; font-weight: 600; letter-spacing: -0.02em;
-  color: var(--ink); line-height: 1.2;
+  @apply [font-family:var(--serif)];
+  @apply [font-size:23px];
+  @apply font-semibold;
+  @apply [letter-spacing:-0.02em];
+  @apply [color:var(--ink)];
+  @apply [line-height:1.2];
 }
-.wpk-cap { margin-top: 5px; font-size: 12.5px; font-weight: 650; color: var(--ink-3); }
+.wpk-cap {
+  @apply [margin-top:5px];
+  @apply [font-size:12.5px];
+  @apply [font-weight:650];
+  @apply [color:var(--ink-3)];
+}
 
 /* ── The escape hatch's form ────────────────────────────────────────────────── */
 /* `.field` is the app's own text control (kiosk.css): the box, the focus ring and the ink all
    come from there, so this never grows a second control next to the app's own. */
-.wpk-type { display: flex; gap: 8px; align-items: center; }
-.wpk-type-f { flex: 1; min-width: 0; padding: 0; }
-.wpk-type-f input { width: 100%; }
+.wpk-type {
+  @apply flex;
+  @apply [gap:8px];
+  @apply items-center;
+}
+.wpk-type-f {
+  @apply [flex:1];
+  @apply [min-width:0];
+  @apply [padding:0];
+}
+.wpk-type-f input {
+  @apply [width:100%];
+}
 
 /* ── Phone: one kid at a time ───────────────────────────────────────────────── */
 @media (max-width: 760px) {
   .wpk-tabs {
-    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-    padding-bottom: 14px; border-bottom: 1px solid var(--hair);
+    @apply flex;
+    @apply items-center;
+    @apply [gap:8px];
+    @apply flex-wrap;
+    @apply [padding-bottom:14px];
+    @apply [border-bottom:1px_solid_var(--hair)];
   }
-  .wpk-cards { grid-template-columns: 1fr; }
+  .wpk-cards {
+    @apply [grid-template-columns:1fr];
+  }
   /* BOTH cards stay in the DOM — the picker only decides which is on screen, so the two sizes
      render the same markup. */
-  .wpk-card:not(.on) { display: none; }
+  .wpk-card:not(.on) {
+    @apply hidden;
+  }
 }

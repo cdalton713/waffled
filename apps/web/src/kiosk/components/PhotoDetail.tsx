@@ -2,6 +2,11 @@ import { useState } from 'react'
 import { api, type Photo } from '../../lib/api'
 import { AlbumPicker } from './AlbumPicker'
 import { ConfirmDialog } from './ConfirmDialog'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { DataIcon } from '@/components/ui/data-icon'
+import { Card } from '@/components/ui/card'
 
 // Photo detail overlay — a back-pill topbar with "Set as screensaver / ✏️ Edit /
 // 🗑", the big photo stage on the left, and the Details / "Part of memory" AI
@@ -11,7 +16,11 @@ import { ConfirmDialog } from './ConfirmDialog'
 
 function fmtDate(iso: string | null): string {
   if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+  return new Date(iso).toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  })
 }
 function fmtWeekday(iso: string | null): string {
   if (!iso) return ''
@@ -89,24 +98,69 @@ export function PhotoDetail({
   }
 
   return (
-    <div className="ph-saver" style={{ zIndex: 900, background: '#efece6', color: 'var(--ink)', display: 'block', cursor: 'default' }}>
-      <div className="wf-kiosk wf" style={{ position: 'absolute', inset: 0, background: '#efece6' }}>
+    <div
+      className="ph-saver"
+      style={{
+        zIndex: 900,
+        background: '#efece6',
+        color: 'var(--ink)',
+        display: 'block',
+        cursor: 'default',
+      }}
+    >
+      <div
+        className="wf-kiosk wf"
+        style={{ position: 'absolute', inset: 0, background: '#efece6' }}
+      >
         <div className="kiosk-main" style={{ gridColumn: '1 / -1' }}>
           <div className="topbar">
-            <button type="button" className="pill" style={{ cursor: 'pointer' }} onClick={onClose}>‹ Photos</button>
+            <Button
+              variant="unstyled"
+              type="button"
+              className="pill"
+              style={{ cursor: 'pointer' }}
+              onClick={onClose}
+            >
+              <>
+                <DataIcon value={'‹'} kind="photo" />
+                {' Photos'}
+              </>
+            </Button>
             <div className="tb-right">
               {!editing && (
-                <button type="button" className="pill" style={{ cursor: 'pointer' }} onClick={startEdit}>✏️ Edit</button>
+                <Button
+                  variant="unstyled"
+                  type="button"
+                  className="pill"
+                  style={{ cursor: 'pointer' }}
+                  onClick={startEdit}
+                >
+                  <>
+                    <DataIcon value={'✏️'} kind="photo" />
+                    {' Edit'}
+                  </>
+                </Button>
               )}
-              <button type="button" className="icon-btn" style={{ cursor: 'pointer' }} aria-label="Delete photo" onClick={() => setConfirmDel(true)}>
-                🗑
-              </button>
+              <Button
+                variant="unstyled"
+                type="button"
+                className="icon-btn"
+                style={{ cursor: 'pointer' }}
+                aria-label="Delete photo"
+                onClick={() => setConfirmDel(true)}
+              >
+                <DataIcon value={'🗑'} kind="photo" />
+              </Button>
             </div>
           </div>
 
           <div className="photo-detail">
             <div className="pd-stage" style={{ background: bg }}>
-              {photo.imageUrl ? <img src={photo.imageUrl} alt={photo.caption} /> : photo.emoji ?? '🏖️'}
+              {photo.imageUrl ? (
+                <img src={photo.imageUrl} alt={photo.caption} />
+              ) : (
+                <DataIcon value={photo.emoji ?? '🏖️'} kind="photo" />
+              )}
               <div className="pd-stage-cap">
                 {photo.caption && <div className="wf-serif">{photo.caption}</div>}
                 <div className="pd-stage-sub">
@@ -117,75 +171,139 @@ export function PhotoDetail({
             </div>
 
             <div className="pd-side">
-              <div className="card" style={{ padding: '18px 20px' }}>
+              <Card className="card" style={{ padding: '18px 20px' }}>
                 <div className="card-h" style={{ fontSize: 17, marginBottom: 10 }}>
                   Details
                 </div>
 
                 {editing ? (
                   <div className="pd-edit">
-                    <label className="ap-field-label">
+                    <Label className="ap-field-label">
                       Caption
-                      <input className="field" placeholder="Caption" value={caption} onChange={(e) => setCaption(e.target.value)} />
-                    </label>
-                    <label className="ap-field-label">
+                      <Input
+                        className="field"
+                        placeholder="Caption"
+                        value={caption}
+                        onChange={(e) => setCaption(e.target.value)}
+                      />
+                    </Label>
+                    <Label className="ap-field-label">
                       Album
                       <AlbumPicker value={album} onChange={setAlbum} albums={albums} />
-                    </label>
-                    <label className="ap-field-label">
+                    </Label>
+                    <Label className="ap-field-label">
                       Date
-                      <input className="field" type="date" value={takenDate} onChange={(e) => setTakenDate(e.target.value)} />
-                    </label>
+                      <Input
+                        className="field"
+                        type="date"
+                        value={takenDate}
+                        onChange={(e) => setTakenDate(e.target.value)}
+                      />
+                    </Label>
                     <div className="ap-form-row">
-                      <button
+                      <Button
+                        variant="unstyled"
                         type="button"
                         className={`pill ap-fav ${isFavorite ? 'on' : ''}`}
                         aria-pressed={isFavorite}
                         onClick={() => setIsFavorite((v) => !v)}
                       >
-                        {isFavorite ? '❤️' : '🤍'} Favorite
-                      </button>
+                        {isFavorite ? (
+                          <DataIcon value={'❤️'} kind="photo" />
+                        ) : (
+                          <DataIcon value={'🤍'} kind="photo" />
+                        )}{' '}
+                        Favorite
+                      </Button>
                     </div>
                     <div className="pd-edit-actions">
-                      <button type="button" className="pill" onClick={() => setEditing(false)}>Cancel</button>
-                      <button type="button" className="btn btn-primary" disabled={saving} onClick={save}>
+                      <Button
+                        variant="unstyled"
+                        type="button"
+                        className="pill"
+                        onClick={() => setEditing(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button variant="default" type="button" disabled={saving} onClick={save}>
                         {saving ? 'Saving…' : 'Save'}
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 ) : (
                   <>
                     <div className="set-row" style={{ padding: '11px 0' }}>
-                      <div className="set-tx"><div className="st1">Album</div></div>
+                      <div className="set-tx">
+                        <div className="st1">Album</div>
+                      </div>
                       {photo.memory && onOpenAlbum ? (
-                        <button type="button" className="pd-album-link" style={{ marginLeft: 'auto' }} onClick={() => onOpenAlbum(photo.memory!)}>
-                          {photo.memory} <span aria-hidden>›</span>
-                        </button>
+                        <Button
+                          variant="unstyled"
+                          type="button"
+                          className="pd-album-link"
+                          style={{ marginLeft: 'auto' }}
+                          onClick={() => onOpenAlbum(photo.memory!)}
+                        >
+                          {photo.memory}{' '}
+                          <span aria-hidden>
+                            <DataIcon value={'›'} kind="photo" />
+                          </span>
+                        </Button>
                       ) : (
-                        <div className="tiny muted" style={{ fontWeight: 600, marginLeft: 'auto' }}>{photo.memory ?? '—'}</div>
+                        <div className="tiny muted" style={{ fontWeight: 600, marginLeft: 'auto' }}>
+                          {photo.memory ?? '—'}
+                        </div>
                       )}
                     </div>
                     <div className="set-row" style={{ padding: '11px 0' }}>
-                      <div className="set-tx"><div className="st1">Added by</div></div>
-                      <span className="tiny muted" style={{ fontWeight: 600, marginLeft: 'auto' }}>{photo.uploadedBy?.name ?? '—'}</span>
+                      <div className="set-tx">
+                        <div className="st1">Added by</div>
+                      </div>
+                      <span className="tiny muted" style={{ fontWeight: 600, marginLeft: 'auto' }}>
+                        {photo.uploadedBy?.name ?? '—'}
+                      </span>
                     </div>
                     <div className="set-row" style={{ padding: '11px 0' }}>
-                      <div className="set-tx"><div className="st1">Date</div></div>
-                      <div className="tiny muted" style={{ fontWeight: 600, marginLeft: 'auto' }}>{fmtDate(photo.takenAt ?? photo.createdAt)}</div>
+                      <div className="set-tx">
+                        <div className="st1">Date</div>
+                      </div>
+                      <div className="tiny muted" style={{ fontWeight: 600, marginLeft: 'auto' }}>
+                        {fmtDate(photo.takenAt ?? photo.createdAt)}
+                      </div>
                     </div>
                     <div className="set-row" style={{ padding: '11px 0', borderBottom: 0 }}>
-                      <div className="set-tx"><div className="st1">Favorite</div></div>
-                      <div className="tiny muted" style={{ fontWeight: 600, marginLeft: 'auto' }}>{photo.isFavorite ? '❤️ Yes' : 'No'}</div>
+                      <div className="set-tx">
+                        <div className="st1">Favorite</div>
+                      </div>
+                      <div className="tiny muted" style={{ fontWeight: 600, marginLeft: 'auto' }}>
+                        {photo.isFavorite ? (
+                          <>
+                            <DataIcon value={'❤️'} kind="photo" />
+                            {' Yes'}
+                          </>
+                        ) : (
+                          'No'
+                        )}
+                      </div>
                     </div>
                   </>
                 )}
-              </div>
+              </Card>
 
               {photo.memory && onOpenAlbum && (
-                <button type="button" className="pd-album-cta" onClick={() => onOpenAlbum(photo.memory!)}>
-                  <span>View all {memoryCount} in “{photo.memory}”</span>
-                  <span aria-hidden>›</span>
-                </button>
+                <Button
+                  variant="unstyled"
+                  type="button"
+                  className="pd-album-cta"
+                  onClick={() => onOpenAlbum(photo.memory!)}
+                >
+                  <span>
+                    View all {memoryCount} in “{photo.memory}”
+                  </span>
+                  <span aria-hidden>
+                    <DataIcon value={'›'} kind="photo" />
+                  </span>
+                </Button>
               )}
             </div>
           </div>

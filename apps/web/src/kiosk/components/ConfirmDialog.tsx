@@ -5,6 +5,7 @@ import { useState, type FormEvent } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
 
 export function ConfirmDialog({
   title,
@@ -41,29 +42,51 @@ export function ConfirmDialog({
   }
 
   return (
-    <Dialog open onOpenChange={(open) => { if (!open) onClose() }}>
-      <DialogContent showCloseButton={false} style={{ maxWidth: 400 }} {...(!message ? { 'aria-describedby': undefined } : {})}>
-      <form onSubmit={confirm}>
-        <DialogTitle style={{ marginBottom: message || input ? 8 : 16 }}>{title}</DialogTitle>
-        {message && <DialogDescription style={{ marginBottom: input ? 14 : 18 }}>{message}</DialogDescription>}
-        {input && (
-          <label className="field" style={{ marginBottom: 16 }}>
-            {input.label && <span>{input.label}</span>}
-            <Input value={value} onChange={(e) => setValue(e.target.value)} placeholder={input.placeholder} autoFocus />
-          </label>
-        )}
-        <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-          <Button type="button" variant="ghost" onClick={onClose} disabled={busy}>{cancelLabel}</Button>
-          <Button
-            type="submit"
-            variant={danger ? 'destructive' : 'default'}
-            style={danger ? { background: 'var(--danger)', borderColor: 'transparent' } : undefined}
-            disabled={busy || (!!input && !value.trim())}
-          >
-            {busy ? 'Working…' : confirmLabel}
-          </Button>
-        </div>
-      </form>
+    <Dialog
+      open
+      onOpenChange={(open) => {
+        if (!open) onClose()
+      }}
+    >
+      <DialogContent
+        showCloseButton={false}
+        style={{ maxWidth: 400 }}
+        {...(!message ? { 'aria-describedby': undefined } : {})}
+      >
+        <form onSubmit={confirm}>
+          <DialogTitle style={{ marginBottom: message || input ? 8 : 16 }}>{title}</DialogTitle>
+          {message && (
+            <DialogDescription style={{ marginBottom: input ? 14 : 18 }}>
+              {message}
+            </DialogDescription>
+          )}
+          {input && (
+            <Label className="field" style={{ marginBottom: 16 }}>
+              {input.label && <span>{input.label}</span>}
+              <Input
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
+                placeholder={input.placeholder}
+                autoFocus
+              />
+            </Label>
+          )}
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+            <Button type="button" variant="ghost" onClick={onClose} disabled={busy}>
+              {cancelLabel}
+            </Button>
+            <Button
+              type="submit"
+              variant={danger ? 'destructive' : 'default'}
+              style={
+                danger ? { background: 'var(--danger)', borderColor: 'transparent' } : undefined
+              }
+              disabled={busy || (!!input && !value.trim())}
+            >
+              {busy ? 'Working…' : confirmLabel}
+            </Button>
+          </div>
+        </form>
       </DialogContent>
     </Dialog>
   )

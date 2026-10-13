@@ -1,5 +1,10 @@
 import { useState, type FormEvent } from 'react'
 import { countdownsApi, type Countdown } from '../../lib/api'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { DataIcon } from '@/components/ui/data-icon'
+import { Modal } from '@/components/ui/modal'
 
 // Edit a STANDALONE countdown (the "add anything" kind) straight from the calendar —
 // rename it, move its date, or remove it. Event-sourced countdowns are edited through
@@ -44,27 +49,55 @@ export function CountdownEditModal({
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <Modal className="modal-overlay" onClose={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 400 }}>
-        <button type="button" className="modal-close" aria-label="Close" onClick={onClose}>×</button>
-        <div className="wf-serif" style={{ fontSize: 20, fontWeight: 600, marginBottom: 14 }}>Edit countdown</div>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="modal-close"
+          aria-label="Close"
+          onClick={onClose}
+        >
+          <DataIcon value={'×'} kind="general" />
+        </Button>
+        <div className="wf-serif" style={{ fontSize: 20, fontWeight: 600, marginBottom: 14 }}>
+          Edit countdown
+        </div>
         <form onSubmit={save}>
-          <label className="field">
+          <Label className="field">
             <span>Name</span>
-            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Disney trip" autoFocus />
-          </label>
-          <label className="field">
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Disney trip"
+              autoFocus
+            />
+          </Label>
+          <Label className="field">
             <span>Counting down to</span>
-            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-          </label>
+            <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+          </Label>
           <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
-            <button type="button" className="btn btn-ghost" onClick={remove} disabled={busy} style={{ color: 'var(--danger)' }}>Remove</button>
-            <button type="submit" className="btn btn-primary" disabled={!title.trim() || busy} style={{ flex: 1, justifyContent: 'center' }}>
+            <Button
+              variant="ghost"
+              type="button"
+              onClick={remove}
+              disabled={busy}
+              style={{ color: 'var(--danger)' }}
+            >
+              Remove
+            </Button>
+            <Button
+              variant="default"
+              type="submit"
+              disabled={!title.trim() || busy}
+              style={{ flex: 1, justifyContent: 'center' }}
+            >
               {busy ? 'Saving…' : 'Save'}
-            </button>
+            </Button>
           </div>
         </form>
       </div>
-    </div>
+    </Modal>
   )
 }

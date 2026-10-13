@@ -6,8 +6,6 @@ import { CaptureBar } from './CaptureBar'
 import { Button } from '@/components/ui/button'
 import { DataIcon } from '@/components/ui/data-icon'
 
-
-
 // Weather widget with a hover/tap popover that says where the reading comes from.
 function WeatherWidget({ wx }: { wx: Weather }) {
   const [open, setOpen] = useState(false)
@@ -22,7 +20,8 @@ function WeatherWidget({ wx }: { wx: Weather }) {
   }, [open])
   return (
     <div className="tb-wx-wrap" ref={ref}>
-      <Button variant="unstyled"
+      <Button
+        variant="unstyled"
         type="button"
         className="tb-wx"
         aria-label="Weather details"
@@ -31,15 +30,22 @@ function WeatherWidget({ wx }: { wx: Weather }) {
           setOpen((o) => !o)
         }}
       >
-        <span aria-hidden="true">{<DataIcon value={wx.emoji} kind="general" />}</span>
+        <span aria-hidden="true">{<DataIcon value={wx.emoji} kind="weather" />}</span>
         {wx.tempF}°
       </Button>
       <div className={`tb-wx-pop ${open ? 'open' : ''}`} role="tooltip">
         <div className="tb-wx-pop-t">
-          {<DataIcon value={wx.emoji} kind="general" />} {wx.tempF}°{wx.label ? ` · ${wx.label}` : ''}
+          {<DataIcon value={wx.emoji} kind="weather" />} {wx.tempF}°
+          {wx.label ? ` · ${wx.label}` : ''}
         </div>
         <div className="tb-wx-pop-s">{wx.location ? `Weather for ${wx.location}` : 'Weather'}</div>
-        <div className="tb-wx-pop-s muted"><>{"via Open-Meteo · change in Settings "}<DataIcon value={"→"} kind="general" />{" Location"}</></div>
+        <div className="tb-wx-pop-s muted">
+          <>
+            {'via Open-Meteo · change in Settings '}
+            <DataIcon value={'→'} kind="general" />
+            {' Location'}
+          </>
+        </div>
       </div>
     </div>
   )
@@ -55,13 +61,23 @@ function useNow(): Date {
 }
 
 function formatDate(d: Date, tz?: string): string {
-  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric', timeZone: tz || undefined })
+  return d.toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'long',
+    day: 'numeric',
+    timeZone: tz || undefined,
+  })
 }
 
 function formatTime(d: Date, tz?: string): string {
   // 12-hour without the AM/PM suffix (matches the design), in the household tz
   return d
-    .toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: tz || undefined })
+    .toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: tz || undefined,
+    })
     .replace(/\s?[AP]M$/i, '')
 }
 

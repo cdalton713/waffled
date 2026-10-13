@@ -1,6 +1,7 @@
 import type { AgendaEvent } from '../../lib/api'
 import { evVars } from '../../lib/event-color'
 import '../../styles/planning-calendar.css'
+import { Button } from '@/components/ui/button'
 
 export function chipWhen(e: AgendaEvent): string {
   if (e.allDay) return 'All day'
@@ -12,7 +13,13 @@ export function chipWhen(e: AgendaEvent): string {
 // One event as a planning step draws it. `.ev-tint` + `evVars` is the same chip painting every
 // other calendar surface uses, so the unassigned/household case falls out of `useEventColor`.
 // Shared by the Calendar step's week and Family night's event picker.
-export function PlanningEventChip({ e, color, label, disabled, onClick }: {
+export function PlanningEventChip({
+  e,
+  color,
+  label,
+  disabled,
+  onClick,
+}: {
   e: AgendaEvent
   color: string
   label: string
@@ -21,7 +28,8 @@ export function PlanningEventChip({ e, color, label, disabled, onClick }: {
 }) {
   const avatar = e.personEmoji ?? (e.personName ? e.personName.slice(0, 1).toUpperCase() : null)
   return (
-    <button
+    <Button
+      variant="unstyled"
       type="button"
       className={`wpc-chip ev-tint${avatar ? '' : ' bare'}`}
       style={evVars(color)}
@@ -36,6 +44,6 @@ export function PlanningEventChip({ e, color, label, disabled, onClick }: {
           {avatar}
         </i>
       )}
-    </button>
+    </Button>
   )
 }

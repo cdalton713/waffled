@@ -1,4 +1,14 @@
-import { Fragment, lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode, type PointerEvent as ReactPointerEvent } from 'react'
+import {
+  Fragment,
+  lazy,
+  Suspense,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+  type PointerEvent as ReactPointerEvent,
+} from 'react'
 import { Editable } from '../lib/viewOnly'
 import { AgendaCard } from './components/AgendaCard'
 import { TonightCardSlot, WeekDinnersCard } from './components/MealsColumn'
@@ -15,6 +25,8 @@ import { GettingStartedBar } from './onboarding/GettingStarted'
 import { useTopbarRight } from './topbar-slot'
 import { useTodayLayout, useHousehold, type LayoutScope, type StoredLayout } from '../lib/api'
 import { moduleEnabled, rewardsEnabled } from '../lib/modules'
+import { Button } from '@/components/ui/button'
+import { DataIcon } from '@/components/ui/data-icon'
 
 // Pantry is an optional module that defaults to off, and its card is the only one
 // whose module isn't already on Today's critical path. Loading it on demand keeps it
@@ -22,7 +34,9 @@ import { moduleEnabled, rewardsEnabled } from '../lib/modules'
 // renders nothing until its own fetch lands, so a null fallback shows nothing extra.
 const PantryCard = lazy(() => import('./PantryCard').then((m) => ({ default: m.PantryCard })))
 // Rhythms is the same case: optional, off by default, and silent on a quiet day.
-const RhythmsCard = lazy(() => import('./components/RhythmsCard').then((m) => ({ default: m.RhythmsCard })))
+const RhythmsCard = lazy(() =>
+  import('./components/RhythmsCard').then((m) => ({ default: m.RhythmsCard })),
+)
 
 // The cards that can live on Today, keyed the same as the stored layout. `fill`
 // cards are long, scrollable lists (agenda, grocery) — they take the spare room in
@@ -40,10 +54,24 @@ const CARDS: Record<string, { label: string; node: ReactNode; fill?: boolean }> 
   countdowns: { label: 'Countdowns', node: <CountdownsCard /> },
   familyNight: { label: 'Family Night', node: <FamilyNightCard /> },
   goals: { label: 'Goals', node: <GoalSpotlightCard /> },
-  pantry: { label: 'Pantry', node: <Suspense fallback={null}><PantryCard /></Suspense> },
+  pantry: {
+    label: 'Pantry',
+    node: (
+      <Suspense fallback={null}>
+        <PantryCard />
+      </Suspense>
+    ),
+  },
   // Renders nothing on a quiet day (like Tonight with no dinner planned) — the
   // label still lists it in Customize so it can be hidden/brought back.
-  rhythms: { label: 'Rhythms', node: <Suspense fallback={null}><RhythmsCard /></Suspense> },
+  rhythms: {
+    label: 'Rhythms',
+    node: (
+      <Suspense fallback={null}>
+        <RhythmsCard />
+      </Suspense>
+    ),
+  },
 }
 
 // Layout helpers (pure). A card lives in exactly one column.
@@ -55,7 +83,8 @@ function removeCard(layout: string[][], card: string): string[][] {
 function appendToColumn(layout: string[][], card: string, preferCol?: number): string[][] {
   const cols = layout.map((c) => [...c])
   let target = preferCol != null && preferCol >= 0 && preferCol < cols.length ? preferCol : 0
-  if (preferCol == null) for (let i = 1; i < cols.length; i++) if (cols[i].length < cols[target].length) target = i
+  if (preferCol == null)
+    for (let i = 1; i < cols.length; i++) if (cols[i].length < cols[target].length) target = i
   cols[target] = [...cols[target], card]
   return cols
 }
@@ -65,7 +94,13 @@ function appendToColumn(layout: string[][], card: string, preferCol?: number): s
 // when it's on, not hidden, and not already placed. Preserves a user-placed
 // position once saved. `hidden` wins — a card the user explicitly hid never
 // auto-reappears just because its module is on.
-function applyModuleCard(layout: string[][], card: string, show: boolean, hidden: string[], preferCol?: number): string[][] {
+function applyModuleCard(
+  layout: string[][],
+  card: string,
+  show: boolean,
+  hidden: string[],
+  preferCol?: number,
+): string[][] {
   const present = layout.some((col) => col.includes(card))
   if (hidden.includes(card)) return present ? removeCard(layout, card) : layout
   if (show && !present) return appendToColumn(layout, card, preferCol)
@@ -110,11 +145,14 @@ export function Today() {
   // Optional-module cards: shown when the module is enabled and not hidden from Today.
   // Pantry appears when on (not in the default layout); chores/meals/grocery cards
   // ship in the default layout, so we only strip them when their module is off.
-  const showPantry = moduleEnabled(household, 'pantry') && household?.settings?.pantry?.showOnToday !== false
+  const showPantry =
+    moduleEnabled(household, 'pantry') && household?.settings?.pantry?.showOnToday !== false
   const showChores = moduleEnabled(household, 'chores')
   const showMeals = moduleEnabled(household, 'meals')
   const showGrocery = moduleEnabled(household, 'lists')
-  const showFamilyNight = moduleEnabled(household, 'familyNight') && household?.settings?.familyNight?.showOnToday !== false
+  const showFamilyNight =
+    moduleEnabled(household, 'familyNight') &&
+    household?.settings?.familyNight?.showOnToday !== false
   const showGoals = moduleEnabled(household, 'goals')
   const showRhythms = moduleEnabled(household, 'rhythms')
   // Whether each card is available to show at all (its module is on). Cards with
@@ -132,7 +170,7 @@ export function Today() {
       lists: showGrocery, // same module — the Lists card pins a custom list
       rhythms: showRhythms,
     }),
-    [showPantry, showFamilyNight, showGoals, showChores, showMeals, showGrocery, showRhythms]
+    [showPantry, showFamilyNight, showGoals, showChores, showMeals, showGrocery, showRhythms],
   )
   const isAvailable = (card: string) => cardAvailable[card] ?? true
   const effectiveResolved = useMemo<StoredLayout>(() => {
@@ -150,7 +188,16 @@ export function Today() {
     // Default-off module, so it can never be in a saved layout — inject like pantry.
     cols = applyModuleCard(cols, 'rhythms', showRhythms, hidden, 0)
     return { cols, hidden }
-  }, [resolved, showPantry, showFamilyNight, showGoals, showChores, showMeals, showGrocery, showRhythms])
+  }, [
+    resolved,
+    showPantry,
+    showFamilyNight,
+    showGoals,
+    showChores,
+    showMeals,
+    showGrocery,
+    showRhythms,
+  ])
   const [editing, setEditing] = useState(false)
   const [layout, setLayout] = useState<string[][]>(effectiveResolved.cols)
   const [hidden, setHidden] = useState<string[]>(effectiveResolved.hidden)
@@ -211,15 +258,24 @@ export function Today() {
       ) : (
         <div className="tb-today-actions">
           <Editable>
-            <button type="button" className="pill today-customize" disabled={loading} onClick={() => setEditing(true)}>
-              ⠿ Customize
+            <Button
+              variant="unstyled"
+              type="button"
+              className="pill today-customize"
+              disabled={loading}
+              onClick={() => setEditing(true)}
+            >
+              <>
+                <DataIcon value={'⠿'} kind="general" />
+                {' Customize'}
+              </>
               {source === 'user' && <span className="today-src-tag">personal</span>}
-            </button>
+            </Button>
           </Editable>
           <CaptureBar />
         </div>
       ),
-    [editing, source, loading]
+    [editing, source, loading],
   )
 
   function startDrag(e: ReactPointerEvent, card: string) {
@@ -277,16 +333,45 @@ export function Today() {
 
   return (
     <div className={`today-wrap ${editing ? 'today-editing' : ''}`}>
-      <Editable><GettingStartedBar /></Editable>
+      <Editable>
+        <GettingStartedBar />
+      </Editable>
       {(showChores || rewardsEnabled(household)) && <ApprovalsBar />}
       {moduleEnabled(household, 'goals') && <GoalRecapBar />}
 
       {editing && (
         <div className="today-toolbar">
           <span className="tiny muted today-toolbar-hint">Drag a card by its bar to rearrange</span>
-          <button type="button" className="pill" style={{ cursor: 'pointer' }} disabled={saving} onClick={cancel}>Cancel</button>
-          <button type="button" className="pill" style={{ cursor: 'pointer' }} disabled={saving} onClick={resetDefault}>Reset to defaults</button>
-          <button type="button" className="pill btn-primary" style={{ color: 'var(--on-accent)', border: 0, cursor: 'pointer' }} disabled={saving} onClick={() => persist('user')}>Save for me</button>
+          <Button
+            variant="unstyled"
+            type="button"
+            className="pill btn-primary"
+            style={{ cursor: 'pointer' }}
+            disabled={saving}
+            onClick={cancel}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="unstyled"
+            type="button"
+            className="pill btn-primary"
+            style={{ cursor: 'pointer' }}
+            disabled={saving}
+            onClick={resetDefault}
+          >
+            Reset to defaults
+          </Button>
+          <Button
+            variant="unstyled"
+            type="button"
+            className="pill btn-primary"
+            style={{ color: 'var(--on-accent)', border: 0, cursor: 'pointer' }}
+            disabled={saving}
+            onClick={() => persist('user')}
+          >
+            Save for me
+          </Button>
         </div>
       )}
 
@@ -298,17 +383,22 @@ export function Today() {
               if (!def) return null
               return (
                 <Fragment key={card}>
-                  {editing && drag && target?.col === ci && target?.index === idx && <div className="today-drop-line" />}
+                  {editing && drag && target?.col === ci && target?.index === idx && (
+                    <div className="today-drop-line" />
+                  )}
                   {editing ? (
                     // In edit mode cards collapse to a compact chip (just the labeled drag
                     // bar) so a long list — a 60-item grocery card — can't dominate the board
                     // and bury the cards below it.
                     <div className="today-card-wrap compact" data-card={card}>
                       <div className="today-card-bar" onPointerDown={(e) => startDrag(e, card)}>
-                        <span className="today-card-grip">⠿</span>
+                        <span className="today-card-grip">
+                          <DataIcon value={'⠿'} kind="general" />
+                        </span>
                         <span className="today-card-name">{def.label}</span>
                         {def.fill && <span className="today-card-fillhint">list</span>}
-                        <button
+                        <Button
+                          variant="unstyled"
                           type="button"
                           className="today-card-hide"
                           title="Hide from Today"
@@ -316,8 +406,8 @@ export function Today() {
                           onPointerDown={(e) => e.stopPropagation()}
                           onClick={() => hideCard(card)}
                         >
-                          ×
-                        </button>
+                          <DataIcon value={'×'} kind="general" />
+                        </Button>
                       </div>
                     </div>
                   ) : (
@@ -326,7 +416,9 @@ export function Today() {
                 </Fragment>
               )
             })}
-            {editing && drag && target?.col === ci && target?.index === col.length && <div className="today-drop-line" />}
+            {editing && drag && target?.col === ci && target?.index === col.length && (
+              <div className="today-drop-line" />
+            )}
             {editing && col.length === 0 && <div className="today-col-empty">Drop a card here</div>}
           </div>
         ))}
@@ -336,14 +428,26 @@ export function Today() {
         <div className="today-hidden-tray">
           <div className="today-hidden-tray-h">Hidden cards</div>
           {hiddenShowable.length === 0 ? (
-            <div className="today-hidden-empty">Tap × on a card to hide it from Today. Hidden cards appear here to add back.</div>
+            <div className="today-hidden-empty">
+              <>
+                {'Tap '}
+                <DataIcon value={'×'} kind="general" />
+                {' on a card to hide it from Today. Hidden cards appear here to add back.'}
+              </>
+            </div>
           ) : (
             <div className="today-hidden-chips">
               {hiddenShowable.map((card) => (
-                <button key={card} type="button" className="today-hidden-chip" onClick={() => showCard(card)}>
+                <Button
+                  variant="unstyled"
+                  key={card}
+                  type="button"
+                  className="today-hidden-chip"
+                  onClick={() => showCard(card)}
+                >
                   <span className="plus">+</span>
                   {CARDS[card].label}
-                </button>
+                </Button>
               ))}
             </div>
           )}
@@ -352,7 +456,10 @@ export function Today() {
 
       {drag && (
         <div className="today-drag-ghost" style={{ left: pos.x, top: pos.y }}>
-          ⠿ {CARDS[drag.card]?.label}
+          <>
+            <DataIcon value={'⠿'} kind="general" />{' '}
+          </>
+          {CARDS[drag.card]?.label}
         </div>
       )}
     </div>

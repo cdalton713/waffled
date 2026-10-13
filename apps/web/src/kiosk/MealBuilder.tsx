@@ -8,6 +8,9 @@ import { MealBuilderLibrary } from './components/MealBuilderLibrary'
 import { MealBuilderBar } from './components/MealBuilderBar'
 import { MealBuilderScheduleModal } from './components/MealBuilderScheduleModal'
 import '../styles/mealbuilder.css'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { DataIcon } from '@/components/ui/data-icon'
 
 const NEW_NAME = 'New meal'
 
@@ -110,7 +113,11 @@ export function MealBuilderBody({
     if (idRef.current) return idRef.current
     if (!createRef.current) {
       createRef.current = mealBuilderApi
-        .create({ name: nameRef.current.trim() || NEW_NAME, servings: servingsRef.current, isSaved: startSaved ?? false })
+        .create({
+          name: nameRef.current.trim() || NEW_NAME,
+          servings: servingsRef.current,
+          isSaved: startSaved ?? false,
+        })
         .then((m) => {
           idRef.current = m.id
           return m.id
@@ -250,12 +257,15 @@ export function MealBuilderBody({
     <div className="mb-shell">
       <header className="mb-head">
         {onBack && (
-          <button type="button" className="pill mb-back" onClick={onBack}>
-            ‹ Meals
-          </button>
+          <Button variant="unstyled" type="button" className="pill mb-back" onClick={onBack}>
+            <>
+              <DataIcon value={'‹'} kind="meal" />
+              {' Meals'}
+            </>
+          </Button>
         )}
         <div className="mb-head-b">
-          <input
+          <Input
             className="mb-name"
             aria-label="Meal name"
             value={name}

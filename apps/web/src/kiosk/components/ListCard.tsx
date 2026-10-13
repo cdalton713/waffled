@@ -1,5 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useLists, useListDetail, groceryApi, type ListItem } from '../../lib/api'
+import { NativeSelect } from '@/components/ui/native-select'
+import { Button } from '@/components/ui/button'
+import { DataIcon } from '@/components/ui/data-icon'
+import { Card } from '@/components/ui/card'
 
 // The Today "Lists" card — pins ONE of the household's custom lists so the school
 // run / hardware run / packing list sits on the board next to everything else.
@@ -13,15 +17,16 @@ export const TODAY_LIST_PICK_KEY = 'waffled.todayListPick'
 
 export function ListCard() {
   const { lists, loading: listsLoading, error: listsError } = useLists()
-  const [pick, setPick] = useState<string | null>(
-    () => (typeof localStorage !== 'undefined' ? localStorage.getItem(TODAY_LIST_PICK_KEY) : null)
+  const [pick, setPick] = useState<string | null>(() =>
+    typeof localStorage !== 'undefined' ? localStorage.getItem(TODAY_LIST_PICK_KEY) : null,
   )
 
   // The grocery board has its own Today card; offering it here too would be two
   // cards fighting over one list. Templates aren't real lists you shop from.
   const pickable = useMemo(
-    () => lists.filter((l) => l.listType !== 'grocery' && l.listType !== 'template' && !l.isAutoBuilt),
-    [lists]
+    () =>
+      lists.filter((l) => l.listType !== 'grocery' && l.listType !== 'template' && !l.isAutoBuilt),
+    [lists],
   )
 
   // A pinned list that has since been deleted must not leave the card blank and
@@ -65,19 +70,35 @@ export function ListCard() {
   const open = items.filter((i) => !i.checked && !done.has(i.id))
 
   return (
-    <div className="card" style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column' }}>
+    <Card
+      className="card"
+      style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column' }}
+    >
       {/* The card lives in a narrow column, so the title truncates and the picker
           carries no visible label — its accessible name does the work. */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
         <div
           className="card-h"
-          style={{ fontSize: 17, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+          style={{
+            fontSize: 17,
+            minWidth: 0,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
           title={active?.name}
         >
-          {active ? `${active.emoji ? `${active.emoji} ` : ''}${active.name}` : 'Lists'}
+          {active ? (
+            <>
+              {active.emoji ? <>{<DataIcon value={active.emoji} kind="list" />} </> : ''}
+              {active.name}
+            </>
+          ) : (
+            'Lists'
+          )}
         </div>
         {pickable.length > 1 && (
-          <select
+          <NativeSelect
             className="sel"
             aria-label="Which list"
             style={{ marginLeft: 'auto', maxWidth: 130 }}
@@ -85,9 +106,11 @@ export function ListCard() {
             onChange={(e) => choose(e.target.value)}
           >
             {pickable.map((l) => (
-              <option key={l.id} value={l.id}>{l.name}</option>
+              <option key={l.id} value={l.id}>
+                {l.name}
+              </option>
             ))}
-          </select>
+          </NativeSelect>
         )}
       </div>
 
@@ -105,33 +128,60 @@ export function ListCard() {
         </div>
       )}
       {active && loading && <div className="tiny muted">Loading…</div>}
-      {active && error && <div className="tiny muted">Couldn't load the list — reload or sign in again.</div>}
+      {active && error && (
+        <div className="tiny muted">Couldn't load the list — reload or sign in again.</div>
+      )}
       {active && !loading && !error && open.length === 0 && (
-        <div className="tiny muted" style={{ paddingBottom: 6 }}>All done here. 🎉</div>
+        <div className="tiny muted" style={{ paddingBottom: 6 }}>
+          <>
+            {'All done here. '}
+            <DataIcon value={'🎉'} kind="list" />
+          </>
+        </div>
       )}
 
       <div className="gc-scroll">
         {open.map((item) => (
-          <div key={item.id} className="gitem" style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 7 }}>
-            <button
+          <div
+            key={item.id}
+            className="gitem"
+            style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 7 }}
+          >
+            <Button
+              variant="unstyled"
               type="button"
               onClick={() => check(item)}
               aria-label={`Check off ${item.name}`}
               style={{
-                display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0,
-                background: 'none', border: 0, padding: 0, font: 'inherit',
-                textAlign: 'left', cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                flex: 1,
+                minWidth: 0,
+                background: 'none',
+                border: 0,
+                padding: 0,
+                font: 'inherit',
+                textAlign: 'left',
+                cursor: 'pointer',
               }}
             >
               <span className="gcheck" />
-              <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <span
+                style={{
+                  minWidth: 0,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
                 {item.name}
                 {item.quantity ? <span className="tiny muted"> ({item.quantity})</span> : null}
               </span>
-            </button>
+            </Button>
           </div>
         ))}
       </div>
-    </div>
+    </Card>
   )
 }

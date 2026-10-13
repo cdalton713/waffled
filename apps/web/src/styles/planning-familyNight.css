@@ -1,3 +1,5 @@
+@reference './ui.css';
+
 /* Weekly Planning · step 4 — Family night (FamilyNightStep.tsx).
 
    The step's whole job is to be READ and left alone, so this stylesheet stays small on
@@ -6,54 +8,54 @@
    one inline colour in the TSX is a person's own colorHex, tinted. */
 
 .wpfn {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  padding: 4px 28px 26px;
-  overflow-y: auto;
-  height: 100%;
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:14px];
+  @apply [padding:4px_28px_26px];
+  @apply overflow-y-auto;
+  @apply [height:100%];
 }
 
 /* ── The gathering ───────────────────────────────────────────────────────────── */
 
 .wpfn-card {
-  background: var(--card);
-  border-radius: var(--r-lg);
-  box-shadow: var(--sh-2);
-  padding: 18px 20px 8px;
-  transition: opacity .16s ease;
+  @apply [background:var(--card)];
+  @apply [border-radius:var(--r-lg)];
+  @apply [box-shadow:var(--sh-2)];
+  @apply [padding:18px_20px_8px];
+  @apply [transition:opacity_.16s_ease];
 }
 /* Called off, not deleted: the week stays legible so Undo has something to undo. */
 .wpfn-card.skipped {
-  opacity: 0.5;
+  @apply [opacity:0.5];
 }
 
 .wpfn-h {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 12px;
+  @apply flex;
+  @apply items-baseline;
+  @apply [gap:12px];
+  @apply flex-wrap;
+  @apply [margin-bottom:12px];
 }
 .wpfn-t {
-  font-family: var(--serif);
-  font-size: 23px;
-  font-weight: 700;
-  color: var(--ink);
+  @apply [font-family:var(--serif)];
+  @apply [font-size:23px];
+  @apply font-bold;
+  @apply [color:var(--ink)];
 }
 .wpfn-rec {
-  font-size: 12.5px;
-  font-weight: 700;
-  color: var(--ink-2);
-  background: var(--panel);
-  border-radius: 999px;
-  padding: 3px 11px;
+  @apply [font-size:12.5px];
+  @apply font-bold;
+  @apply [color:var(--ink-2)];
+  @apply [background:var(--panel)];
+  @apply [border-radius:999px];
+  @apply [padding:3px_11px];
 }
 .wpfn-when {
-  margin-left: auto;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--ink-2);
+  @apply [margin-left:auto];
+  @apply [font-size:14px];
+  @apply font-bold;
+  @apply [color:var(--ink-2)];
 }
 
 /* ── The theme line ──────────────────────────────────────────────────────────── */
@@ -61,72 +63,120 @@
    above it, because this is one optional sentence and not a form. */
 
 .wpfn-theme.field {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 14px;
+  @apply flex;
+  @apply items-center;
+  @apply [gap:12px];
+  @apply [margin-bottom:14px];
 }
 
 /* Same shape as the theme line, because it is the same kind of thing: a sentence somebody
    types, saved on blur. Starts in the label's column so the emoji column stays the rail. */
 .wpfn-detail.field {
-  grid-column: 2 / -1;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 12px;
-  background: var(--card-2);
+  @apply [grid-column:2_/_-1];
+  @apply flex;
+  @apply items-center;
+  @apply [gap:10px];
+  @apply [padding:9px_12px];
+  @apply [background:var(--card-2)];
 }
 .wpfn-detail.field > span {
-  flex: none;
-  font-size: 11.5px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--ink-3);
+  @apply [flex:none];
+  @apply [font-size:11.5px];
+  @apply font-extrabold;
+  @apply [letter-spacing:0.05em];
+  @apply [text-transform:uppercase];
+  @apply [color:var(--ink-3)];
 }
-.wpfn-detail.field input { flex: 1; min-width: 0; font-size: 14px; }
+.wpfn-detail.field input {
+  @apply [flex:1];
+  @apply [min-width:0];
+  @apply [font-size:14px];
+}
 
 /* ── This week on the calendar ────────────────────────────────────────────────── */
 /* Distinct from the STANDING recurring series: that is a household setting, this is one
    dated gathering. Confusing the two is the only way to read the row wrong. */
 .wpfn-cal {
-  display: flex;
-  align-items: flex-start;
-  gap: 13px;
-  padding: 12px 2px 2px;
-  border-top: 1px solid var(--hair);
+  @apply flex;
+  @apply items-start;
+  @apply [gap:13px];
+  @apply [padding:12px_2px_2px];
+  @apply [border-top:1px_solid_var(--hair)];
 }
-.wpfn-cal-emoji { flex: none; font-size: 20px; line-height: 1.2; }
-.wpfn-cal-main { flex: 1; min-width: 0; }
-.wpfn-cal-t { font-size: 14.5px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); }
-.wpfn-cal-s { margin-top: 2px; font-size: 12.5px; font-weight: 600; color: var(--ink-2); line-height: 1.45; }
-.wpfn-cal-acts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 9px; }
-.wpfn-cal-act { flex: none; padding: 8px 14px; font-size: 13px; }
+.wpfn-cal-emoji {
+  @apply [flex:none];
+  @apply [font-size:20px];
+  @apply [line-height:1.2];
+}
+.wpfn-cal-main {
+  @apply [flex:1];
+  @apply [min-width:0];
+}
+.wpfn-cal-t {
+  @apply [font-size:14.5px];
+  @apply font-bold;
+  @apply [letter-spacing:-0.01em];
+  @apply [color:var(--ink)];
+}
+.wpfn-cal-s {
+  @apply [margin-top:2px];
+  @apply [font-size:12.5px];
+  @apply font-semibold;
+  @apply [color:var(--ink-2)];
+  @apply [line-height:1.45];
+}
+.wpfn-cal-acts {
+  @apply flex;
+  @apply flex-wrap;
+  @apply [gap:8px];
+  @apply [margin-top:9px];
+}
+.wpfn-cal-act {
+  @apply [flex:none];
+  @apply [padding:8px_14px];
+  @apply [font-size:13px];
+}
 
 .wpfn-cal-list {
-  margin: 10px 0 0;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  max-height: 220px;
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  @apply [margin:10px_0_0];
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:10px];
+  @apply [max-height:220px];
+  @apply overflow-y-auto;
+  @apply [overscroll-behavior:contain];
 }
-.wpfn-cal-dow { font-size: 11px; font-weight: 800; color: var(--ink-3); margin-bottom: 5px; }
-.wpfn-cal-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.wpfn-cal-chips .wpc-chip:disabled { opacity: 0.55; cursor: default; }
-.wpfn-cal-empty { font-size: 12.5px; font-weight: 600; color: var(--ink-3); padding: 4px 2px; }
+.wpfn-cal-dow {
+  @apply [font-size:11px];
+  @apply font-extrabold;
+  @apply [color:var(--ink-3)];
+  @apply [margin-bottom:5px];
+}
+.wpfn-cal-chips {
+  @apply flex;
+  @apply flex-wrap;
+  @apply [gap:6px];
+}
+.wpfn-cal-chips .wpc-chip:disabled {
+  @apply [opacity:0.55];
+  @apply cursor-default;
+}
+.wpfn-cal-empty {
+  @apply [font-size:12.5px];
+  @apply font-semibold;
+  @apply [color:var(--ink-3)];
+  @apply [padding:4px_2px];
+}
 .wpfn-theme.field > span {
-  margin-bottom: 0;
-  flex: none;
-  text-transform: uppercase;
-  letter-spacing: .06em;
-  font-size: 11.5px;
+  @apply [margin-bottom:0];
+  @apply [flex:none];
+  @apply [text-transform:uppercase];
+  @apply [letter-spacing:.06em];
+  @apply [font-size:11.5px];
 }
 .wpfn-theme.field input {
-  flex: 1;
-  min-width: 0;
+  @apply [flex:1];
+  @apply [min-width:0];
 }
 
 /* ── A part ──────────────────────────────────────────────────────────────────── */
@@ -134,149 +184,174 @@
 .wpfn-row {
   /* A grid rather than a flex row: the part has TWO lines — who has it and what it IS —
      and the second has to sit under the label rather than beside the faces. */
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  column-gap: 13px;
-  row-gap: 9px;
-  padding: 11px 2px;
-  border-top: 1px solid var(--hair);
+  @apply grid;
+  @apply [grid-template-columns:auto_minmax(0,_1fr)_auto];
+  @apply items-center;
+  @apply [column-gap:13px];
+  @apply [row-gap:9px];
+  @apply [padding:11px_2px];
+  @apply [border-top:1px_solid_var(--hair)];
 }
 .wpfn-emoji {
-  font-size: 24px;
-  line-height: 1;
-  flex: none;
-  width: 30px;
-  text-align: center;
+  @apply [font-size:24px];
+  @apply [line-height:1];
+  @apply [flex:none];
+  @apply [width:30px];
+  @apply text-center;
 }
 .wpfn-main {
-  flex: 1;
-  min-width: 0;
+  @apply [flex:1];
+  @apply [min-width:0];
 }
 .wpfn-label {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--ink);
+  @apply [font-size:16px];
+  @apply font-bold;
+  @apply [color:var(--ink)];
 }
 .wpfn-sug {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--ink-3);
-  margin-top: 2px;
+  @apply [font-size:12.5px];
+  @apply font-semibold;
+  @apply [color:var(--ink-3)];
+  @apply [margin-top:2px];
 }
 .wpfn-sug.pinned {
-  color: var(--person-3-tx);
+  @apply [color:var(--person-3-tx)];
 }
 
 .wpfn-faces {
-  display: flex;
-  gap: 7px;
-  flex: none;
-  flex-wrap: wrap;
-  justify-content: flex-end;
+  @apply flex;
+  @apply [gap:7px];
+  @apply [flex:none];
+  @apply flex-wrap;
+  @apply justify-end;
 }
 /* Deliberately the Tasks step's face — tapping a face means the same thing on both. */
 .wpfn-face {
-  width: 34px;
-  height: 34px;
-  flex: none;
-  border: 1px solid var(--hair-2);
-  border-radius: 999px;
-  display: inline-grid;
-  place-items: center;
-  font-size: 17px;
-  line-height: 1;
-  cursor: pointer;
-  transition: transform .12s ease, border-color .12s ease, box-shadow .12s ease;
+  @apply [width:34px];
+  @apply [height:34px];
+  @apply [flex:none];
+  @apply [border:1px_solid_var(--hair-2)];
+  @apply [border-radius:999px];
+  @apply [display:inline-grid];
+  @apply [place-items:center];
+  @apply [font-size:17px];
+  @apply [line-height:1];
+  @apply cursor-pointer;
+  @apply [transition:transform_.12s_ease,_border-color_.12s_ease,_box-shadow_.12s_ease];
 }
 .wpfn-face:hover:not(:disabled) {
-  transform: translateY(-2px);
-  border-color: var(--person-3);
+  @apply [transform:translateY(-2px)];
+  @apply [border-color:var(--person-3)];
 }
 .wpfn-face.on {
-  border-color: var(--person-3);
-  box-shadow: 0 0 0 2px var(--ring);
+  @apply [border-color:var(--person-3)];
+  @apply [box-shadow:0_0_0_2px_var(--ring)];
 }
 .wpfn-face:disabled {
-  cursor: default;
-  opacity: 0.5;
+  @apply cursor-default;
+  @apply [opacity:0.5];
 }
 
 /* ── The sentence under it ───────────────────────────────────────────────────── */
 
 .wpfn-note {
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.5;
-  color: var(--ink-2);
-  padding: 0 4px;
+  @apply [font-size:13px];
+  @apply font-semibold;
+  @apply [line-height:1.5];
+  @apply [color:var(--ink-2)];
+  @apply [padding:0_4px];
 }
 .wpfn-note b {
-  color: var(--ink);
+  @apply [color:var(--ink)];
 }
 
 /* ── The week is off ─────────────────────────────────────────────────────────── */
 
 .wpfn-skipbar {
-  display: flex;
-  align-items: center;
-  gap: 13px;
-  background: var(--panel);
-  border-radius: var(--r-lg);
-  padding: 14px 16px;
+  @apply flex;
+  @apply items-center;
+  @apply [gap:13px];
+  @apply [background:var(--panel)];
+  @apply [border-radius:var(--r-lg)];
+  @apply [padding:14px_16px];
 }
 .wpfn-skip-emoji {
-  font-size: 22px;
-  line-height: 1;
-  flex: none;
+  @apply [font-size:22px];
+  @apply [line-height:1];
+  @apply [flex:none];
 }
 .wpfn-skip-main {
-  flex: 1;
-  min-width: 0;
+  @apply [flex:1];
+  @apply [min-width:0];
 }
 .wpfn-skip-t {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--ink);
+  @apply [font-size:15px];
+  @apply font-bold;
+  @apply [color:var(--ink)];
 }
 .wpfn-skip-s {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--ink-2);
-  line-height: 1.45;
-  margin-top: 2px;
+  @apply [font-size:12.5px];
+  @apply font-semibold;
+  @apply [color:var(--ink-2)];
+  @apply [line-height:1.45];
+  @apply [margin-top:2px];
 }
 
 .wpfn-err {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--danger-tx);
-  padding: 0 4px;
+  @apply [font-size:13px];
+  @apply font-bold;
+  @apply [color:var(--danger-tx)];
+  @apply [padding:0_4px];
 }
 
 /* ── Phone ───────────────────────────────────────────────────────────────────── */
 
 @media (max-width: 620px) {
   .wpfn {
-    padding: 4px 16px 22px;
+    @apply [padding:4px_16px_22px];
   }
   .wpfn-row {
-    flex-wrap: wrap;
+    @apply flex-wrap;
   }
   .wpfn-faces {
-    width: 100%;
-    justify-content: flex-start;
-    padding-left: 43px; /* under the label, clear of the emoji gutter */
+    @apply [width:100%];
+    @apply justify-start;
+    @apply [padding-left:43px]; /* under the label, clear of the emoji gutter */
   }
   .wpfn-when {
-    margin-left: 0;
-    width: 100%;
+    @apply [margin-left:0];
+    @apply [width:100%];
   }
 }
 
-.wpfn-modal { width: min(460px, 92vw); display: flex; flex-direction: column; gap: 12px; }
-.wpfn-modal .field { margin-bottom: 0; }
-.wpfn-modal-t { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; }
-.wpfn-modal-s { font-size: 13px; font-weight: 600; color: var(--ink-3); margin-top: -8px; }
-.wpfn-modal-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.wpfn-modal-acts { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+.wpfn-modal {
+  @apply [width:min(460px,_92vw)];
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:12px];
+}
+.wpfn-modal .field {
+  @apply [margin-bottom:0];
+}
+.wpfn-modal-t {
+  @apply [font-size:22px];
+  @apply font-semibold;
+  @apply [letter-spacing:-0.02em];
+}
+.wpfn-modal-s {
+  @apply [font-size:13px];
+  @apply font-semibold;
+  @apply [color:var(--ink-3)];
+  @apply [margin-top:-8px];
+}
+.wpfn-modal-row {
+  @apply grid;
+  @apply [grid-template-columns:1fr_1fr];
+  @apply [gap:10px];
+}
+.wpfn-modal-acts {
+  @apply flex;
+  @apply justify-end;
+  @apply [gap:8px];
+  @apply [margin-top:4px];
+}

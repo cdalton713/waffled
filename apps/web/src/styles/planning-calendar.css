@@ -1,3 +1,5 @@
+@reference './ui.css';
+
 /* Weekly Planning · step 2 — Calendar (kiosk/planning/steps/CalendarStep.tsx).
 
    THE POINT OF THE LAYOUT: the week is DAY ROWS, not columns. Seven columns were tried first
@@ -11,114 +13,279 @@
 
 /* `.wp-body` is a flex column with `min-height: 0` and its own scroll, so the week takes the
    slack and never pushes the footer off screen. */
-.wpc { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.wpc {
+  @apply [flex:1];
+  @apply [min-height:0];
+  @apply flex;
+  @apply flex-col;
+}
 
 /* ── The header line ────────────────────────────────────────────────────────── */
-.wpc-head { display: flex; align-items: flex-end; gap: 16px; margin-bottom: 12px; flex-wrap: wrap; }
-.wpc-head-l { min-width: 0; flex: 1; }
-.wpc-range { font-size: 23px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.15; }
-.wpc-sum { margin: 3px 0 0; font-size: 12.5px; font-weight: 600; color: var(--ink-2); line-height: 1.45; }
+.wpc-head {
+  @apply flex;
+  @apply items-end;
+  @apply [gap:16px];
+  @apply [margin-bottom:12px];
+  @apply flex-wrap;
+}
+.wpc-head-l {
+  @apply [min-width:0];
+  @apply [flex:1];
+}
+.wpc-range {
+  @apply [font-size:23px];
+  @apply font-semibold;
+  @apply [letter-spacing:-0.02em];
+  @apply [line-height:1.15];
+}
+.wpc-sum {
+  @apply [margin:3px_0_0];
+  @apply [font-size:12.5px];
+  @apply font-semibold;
+  @apply [color:var(--ink-2)];
+  @apply [line-height:1.45];
+}
 
 /* A dark pill, not the coral primary: the step's affirmative lives in the shell's footer, and
    two coral buttons would compete. */
-.wpc-new { flex: none; background: var(--ink); color: var(--on-inverse); padding: 11px 20px; font-size: 14px; }
-.wpc-new:disabled { opacity: 0.4; cursor: default; }
+.wpc-new {
+  @apply [flex:none];
+  @apply [background:var(--ink)];
+  @apply [color:var(--on-inverse)];
+  @apply [padding:11px_20px];
+  @apply [font-size:14px];
+}
+.wpc-new:disabled {
+  @apply [opacity:0.4];
+  @apply cursor-default;
+}
 
 /* ── The week ───────────────────────────────────────────────────────────────── */
 /* One card. Rows never scroll individually — a busy day collapses behind "+N more". */
 .wpc-week {
-  background: var(--card); border: 1px solid var(--hair); border-radius: var(--r-lg);
-  overflow: hidden; min-height: 0; overflow-y: auto;
+  @apply [background:var(--card)];
+  @apply [border:1px_solid_var(--hair)];
+  @apply [border-radius:var(--r-lg)];
+  @apply overflow-hidden;
+  @apply [min-height:0];
+  @apply overflow-y-auto;
 }
 
 .wpc-row {
-  display: grid; grid-template-columns: 74px minmax(0, 1fr) auto;
-  align-items: center; gap: 12px;
-  padding: 10px 14px; border-bottom: 1px solid var(--hair-2);
+  @apply grid;
+  @apply [grid-template-columns:74px_minmax(0,_1fr)_auto];
+  @apply items-center;
+  @apply [gap:12px];
+  @apply [padding:10px_14px];
+  @apply [border-bottom:1px_solid_var(--hair-2)];
 }
-.wpc-row:last-child { border-bottom: 0; }
+.wpc-row:last-child {
+  @apply [border-bottom:0];
+}
 /* A day with nothing on it is the opportunity, so it is tinted rather than blank. */
-.wpc-row.free { background: var(--card-2); }
-
-.wpc-when { min-width: 0; }
-.wpc-dow {
-  display: block; font-size: 10px; font-weight: 800; letter-spacing: 0.09em;
-  text-transform: uppercase; color: var(--ink-3);
+.wpc-row.free {
+  @apply [background:var(--card-2)];
 }
-.wpc-date { display: block; font-size: 19px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.2; }
-.wpc-row.today .wpc-dow, .wpc-row.today .wpc-date { color: var(--primary-d); }
 
-.wpc-evs { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; }
+.wpc-when {
+  @apply [min-width:0];
+}
+.wpc-dow {
+  @apply block;
+  @apply [font-size:10px];
+  @apply font-extrabold;
+  @apply [letter-spacing:0.09em];
+  @apply [text-transform:uppercase];
+  @apply [color:var(--ink-3)];
+}
+.wpc-date {
+  @apply block;
+  @apply [font-size:19px];
+  @apply font-semibold;
+  @apply [letter-spacing:-0.02em];
+  @apply [line-height:1.2];
+}
+.wpc-row.today .wpc-dow,
+.wpc-row.today .wpc-date {
+  @apply [color:var(--primary-d)];
+}
+
+.wpc-evs {
+  @apply flex;
+  @apply flex-wrap;
+  @apply items-center;
+  @apply [gap:6px];
+  @apply [min-width:0];
+}
 
 /* One chip per event: the time and the title in the owner's colour. The colour itself is
    resolved in JS (lib/event-color.ts) — this file only supplies the geometry. */
 .wpc-chip {
-  display: inline-flex; align-items: center; gap: 7px; min-width: 0; max-width: 100%;
-  border-radius: 999px; padding: 5px 6px 5px 11px;
+  @apply inline-flex;
+  @apply items-center;
+  @apply [gap:7px];
+  @apply [min-width:0];
+  @apply [max-width:100%];
+  @apply [border-radius:999px];
+  @apply [padding:5px_6px_5px_11px];
 }
 /* No avatar to show — the chip ends on its title, so the right edge takes the bubble's padding. */
-.wpc-chip.bare { padding-right: 11px; }
+.wpc-chip.bare {
+  @apply [padding-right:11px];
+}
 /* Both cells inherit the chip's ink; the time is only quieter, never a second colour — a
    hardcoded one would go illegible on a solid chip. */
-.wpc-chip-w { flex: none; font-size: 11px; font-weight: 750; opacity: 0.72; white-space: nowrap; }
+.wpc-chip-w {
+  @apply [flex:none];
+  @apply [font-size:11px];
+  @apply [font-weight:750];
+  @apply [opacity:0.72];
+  @apply whitespace-nowrap;
+}
 .wpc-chip-t {
-  min-width: 0; font-size: 12.5px; font-weight: 650;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  @apply [min-width:0];
+  @apply [font-size:12.5px];
+  @apply [font-weight:650];
+  @apply overflow-hidden;
+  @apply [text-overflow:ellipsis];
+  @apply whitespace-nowrap;
 }
 /* The bubble derives from the chip's own ink, so it reads on a tint and on a solid fill. */
 .wpc-chip-av {
-  width: 20px; height: 20px; flex: none; border-radius: 999px;
-  display: grid; place-items: center; font-size: 11px; font-style: normal; font-weight: 700;
-  background: color-mix(in srgb, currentColor 16%, transparent);
+  @apply [width:20px];
+  @apply [height:20px];
+  @apply [flex:none];
+  @apply [border-radius:999px];
+  @apply grid;
+  @apply [place-items:center];
+  @apply [font-size:11px];
+  @apply [font-style:normal];
+  @apply font-bold;
+  @apply [background:color-mix(in_srgb,_currentColor_16%,_transparent)];
 }
 
 /* The threshold's whole point: a day over four events keeps its row one line tall, rather
    than the step navigating away mid-session. */
 .wpc-more {
-  flex: none; border: 0; border-radius: 999px; padding: 5px 11px; cursor: pointer;
-  font: inherit; font-size: 11px; font-weight: 750; line-height: 1.2;
-  background: var(--panel); color: var(--ink-2);
+  @apply [flex:none];
+  @apply [border:0];
+  @apply [border-radius:999px];
+  @apply [padding:5px_11px];
+  @apply cursor-pointer;
+  @apply [font:inherit];
+  @apply [font-size:11px];
+  @apply [font-weight:750];
+  @apply [line-height:1.2];
+  @apply [background:var(--panel)];
+  @apply [color:var(--ink-2)];
 }
-.wpc-more:hover, .wpc-more:focus-visible { color: var(--ink); }
+.wpc-more:hover,
+.wpc-more:focus-visible {
+  @apply [color:var(--ink)];
+}
 
-.wpc-none { font-size: 12.5px; font-weight: 600; color: var(--ink-3); }
+.wpc-none {
+  @apply [font-size:12.5px];
+  @apply font-semibold;
+  @apply [color:var(--ink-3)];
+}
 
 /* The row's own add: the same size on every row whether the day is empty or full. */
 .wpc-add {
-  flex: none; width: 30px; height: 30px; border-radius: 999px;
-  display: grid; place-items: center;
-  border: 1.5px dashed var(--line); background: none;
-  font: inherit; font-size: 16px; font-weight: 600; line-height: 1;
-  color: var(--ink-3); cursor: pointer;
+  @apply [flex:none];
+  @apply [width:30px];
+  @apply [height:30px];
+  @apply [border-radius:999px];
+  @apply grid;
+  @apply [place-items:center];
+  @apply [border:1.5px_dashed_var(--line)];
+  @apply [background:none];
+  @apply [font:inherit];
+  @apply [font-size:16px];
+  @apply font-semibold;
+  @apply [line-height:1];
+  @apply [color:var(--ink-3)];
+  @apply cursor-pointer;
 }
-.wpc-add:hover:not(:disabled), .wpc-add:focus-visible { border-color: var(--primary); color: var(--primary-d); }
-.wpc-add:disabled { opacity: 0.3; cursor: default; }
+.wpc-add:hover:not(:disabled),
+.wpc-add:focus-visible {
+  @apply [border-color:var(--primary)];
+  @apply [color:var(--primary-d)];
+}
+.wpc-add:disabled {
+  @apply [opacity:0.3];
+  @apply cursor-default;
+}
 
 /* ── Below the card ─────────────────────────────────────────────────────────── */
 /* What the card is, and how the busy-day collapse behaves. Said once, quietly, under the week. */
-.wpc-note { margin: 10px 0 0; font-size: 12px; font-weight: 600; color: var(--ink-3); line-height: 1.5; }
-.wpc-note-q { margin-top: 3px; opacity: 0.8; }
+.wpc-note {
+  @apply [margin:10px_0_0];
+  @apply [font-size:12px];
+  @apply font-semibold;
+  @apply [color:var(--ink-3)];
+  @apply [line-height:1.5];
+}
+.wpc-note-q {
+  @apply [margin-top:3px];
+  @apply [opacity:0.8];
+}
 
 /* ── Narrow (phone) ──────────────────────────────────────────────────────────
    The same content and the same single action, laid out for a thumb. */
 @media (max-width: 720px) {
-  .wpc-head { align-items: flex-start; }
-  .wpc-new { width: 100%; justify-content: center; }
+  .wpc-head {
+    @apply items-start;
+  }
+  .wpc-new {
+    @apply [width:100%];
+    @apply justify-center;
+  }
 
   .wpc-row {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas: 'when add' 'evs evs';
-    align-items: center; row-gap: 8px; padding: 12px 13px;
+    @apply [grid-template-columns:minmax(0,_1fr)_auto];
+    @apply [grid-template-areas:'when_add'_'evs_evs'];
+    @apply items-center;
+    @apply [row-gap:8px];
+    @apply [padding:12px_13px];
   }
-  .wpc-when { grid-area: when; display: flex; align-items: baseline; gap: 8px; }
-  .wpc-add { grid-area: add; width: 34px; height: 34px; font-size: 18px; }
-  .wpc-evs { grid-area: evs; flex-direction: column; align-items: stretch; }
+  .wpc-when {
+    @apply [grid-area:when];
+    @apply flex;
+    @apply items-baseline;
+    @apply [gap:8px];
+  }
+  .wpc-add {
+    @apply [grid-area:add];
+    @apply [width:34px];
+    @apply [height:34px];
+    @apply [font-size:18px];
+  }
+  .wpc-evs {
+    @apply [grid-area:evs];
+    @apply flex-col;
+    @apply items-stretch;
+  }
   /* Full-width chips: a thumb target, and a title that wraps instead of ellipsising. */
-  .wpc-chip { max-width: none; }
-  .wpc-chip-t { white-space: normal; }
-  .wpc-more { align-self: flex-start; }
+  .wpc-chip {
+    @apply [max-width:none];
+  }
+  .wpc-chip-t {
+    @apply [white-space:normal];
+  }
+  .wpc-more {
+    @apply [align-self:flex-start];
+  }
 }
 
 /* A chip is a button, so it opens the shared modal on its event; keep the chip's own look. */
-button.wpc-chip { border: 0; font: inherit; cursor: pointer; text-align: left; }
-button.wpc-chip:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+button.wpc-chip {
+  @apply [border:0];
+  @apply [font:inherit];
+  @apply cursor-pointer;
+  @apply text-left;
+}
+button.wpc-chip:focus-visible {
+  @apply [outline:2px_solid_var(--primary)];
+  @apply [outline-offset:2px];
+}

@@ -16,16 +16,21 @@ Folder-scoped notes; loads when working under `apps/web`. See the repo-root
    modal/button/toggle/timer already exists, use it — don't reinvent a worse copy.
 
 The shared vocabulary (grep these before hand-rolling):
-- **Modals:** there's no `<Modal>` wrapper — the pattern is `.modal-overlay` (fixed,
-  backdrop, centers its child) wrapping `.modal-card` (white rounded card) + a
-  `.modal-close` × button. Copy `components/ListsModal.tsx` / `ChoreModal.tsx`. (A
-  bare `.modal`/`.modal-backdrop` are **undefined** — using them = an un-centered,
-  unstyled mess.) CSS: `styles/kiosk.css`.
-- **Buttons:** `className="btn btn-primary"` (purple primary — **both** classes; `btn`
-  alone or `btn-primary` alone loses the pill), `btn btn-ghost` (secondary/Cancel),
-  `btn-ai` (gradient). CSS: `styles/waffled.css`.
-- **Toggle:** the `.toggle` pill (`<span className={`toggle ${on?'on':''}`}>` inside a
-  label) — not a raw checkbox. See `Settings.tsx`.
+- **Shared controls:** use `src/components/ui` for Button, Input, Textarea, Label,
+  Card, Checkbox and Switch. `Button` variants preserve the Waffled pill styles;
+  `unstyled` supports existing screen-specific controls.
+- **Modals:** use `Modal` with the existing `.modal-card` surface and an `onClose`
+  handler. The wrapper supplies the Radix portal, Escape, focus handling and backdrop.
+  A visible heading names the dialog; pass `title` or `aria-label` for a surface without one.
+- **Selection and icons:** use `SelectField` when choices contain icons; use
+  `NativeSelect` for plain native choices. `DataIcon` renders legacy saved values as
+  Lucide icons. `IconPicker` writes compatible values; `allowText` also accepts currency
+  text. Render currency values with `IconValue`. Keep user-written text unchanged.
+- **Styles:** preserve the existing tokens and selectors in `src/styles`; their
+  declarations use Tailwind `@apply` with `@reference` to `ui.css`. Preflight is not
+  enabled because the original document defaults are part of the existing style.
+- **Data attributes:** shadcn uses `data-slot` internally. Meal drag targets must use
+  `data-meal-slot` to identify the business cell before reading its slot key.
 - **Labeled inputs in modals:** the `.field` / `.field-row` pattern (`styles/kiosk.css`).
   Pill selects use `.sel`.
 - **Settings cards:** plain white card = `.set-card`. `.set-tray` is the *darker beige*

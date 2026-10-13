@@ -52,9 +52,25 @@ const capabilities = ['chore.manage', 'chore.approve', 'reward.manage', 'goal.ma
 const permissionRow = Object.fromEntries(capabilities.map((capability) => [capability, false]))
 const permissions = { adult: permissionRow, teen: permissionRow, kid: permissionRow }
 const empty = {
-  balances: [], chores: [], countdowns: [], currencies: [], entries: [], events: [],
-  goals: [], groups: [], instances: [], items: [], lists: [], meals: [], members: [],
-  people: [], persons: [], photos: [], recipes: [], rewards: [], suggestions: [],
+  balances: [],
+  chores: [],
+  countdowns: [],
+  currencies: [],
+  entries: [],
+  events: [],
+  goals: [],
+  groups: [],
+  instances: [],
+  items: [],
+  lists: [],
+  meals: [],
+  members: [],
+  people: [],
+  persons: [],
+  photos: [],
+  recipes: [],
+  rewards: [],
+  suggestions: [],
 }
 
 async function mockApi(page: Page) {
@@ -63,24 +79,44 @@ async function mockApi(page: Page) {
     let body: unknown = empty
 
     if (path === '/api/auth/status') body = { initialized: true, methods: ['password'] }
-    else if (path === '/api/auth/login') body = { accessToken: 'test-access', refreshToken: 'test-refresh', expiresIn: 900 }
-    else if (path === '/api/household') body = { provisioned: true, household, person, memberships: [], pendingInvites: [] }
+    else if (path === '/api/auth/login')
+      body = { accessToken: 'test-access', refreshToken: 'test-refresh', expiresIn: 900 }
+    else if (path === '/api/household')
+      body = { provisioned: true, household, person, memberships: [], pendingInvites: [] }
     else if (path === '/api/household/settings') {
       body = {
         household,
-        members: [{ ...person, hasLogin: true, loginEmail: 'alex@example.test', hasPassword: true, hasPin: false, isOwner: true }],
+        members: [
+          {
+            ...person,
+            hasLogin: true,
+            loginEmail: 'alex@example.test',
+            hasPassword: true,
+            hasPin: false,
+            isOwner: true,
+          },
+        ],
       }
     } else if (path === '/api/persons') body = { persons: [person] }
-    else if (path === '/api/permissions') body = { permissions, capabilities, roles: ['adult', 'teen', 'kid'] }
+    else if (path === '/api/permissions')
+      body = { permissions, capabilities, roles: ['adult', 'teen', 'kid'] }
     else if (path === '/api/weather') body = { weather: null }
     else if (path === '/api/updates') body = { enabled: false, updateAvailable: false }
     else if (path === '/api/calendar/status') body = { connected: false, configured: false }
     else if (path === '/api/powersync/token') {
-      await route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'disabled in browser tests' }) })
+      await route.fulfill({
+        status: 503,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: 'disabled in browser tests' }),
+      })
       return
     }
 
-    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) })
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(body),
+    })
   })
 }
 
@@ -134,7 +170,9 @@ test.beforeEach(async ({ page }) => {
   await mockApi(page)
 })
 
-test('every screen loads its own chunk without falling back to the error card', async ({ page }) => {
+test('every screen loads its own chunk without falling back to the error card', async ({
+  page,
+}) => {
   const problems: string[] = []
   let current = '(before navigation)'
 
@@ -187,7 +225,10 @@ test('every screen loads its own chunk without falling back to the error card', 
   expect(problems).toEqual([])
 })
 
-test('a screen nobody opened still works after the display goes offline', async ({ page, context }) => {
+test('a screen nobody opened still works after the display goes offline', async ({
+  page,
+  context,
+}) => {
   // The whole point of precaching from the build manifest. Before that, the worker
   // scraped index.html — which cannot name a code-split chunk — so a kiosk that lost
   // its network could open Today and nothing else. Settings is never visited here
@@ -200,5 +241,5 @@ test('a screen nobody opened still works after the display goes offline', async 
   await expect(page.getByRole('navigation')).toBeVisible()
 
   await page.goto('/settings')
-  await expect(page.getByText('Family & People', { exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Family & People', exact: true })).toBeVisible()
 })

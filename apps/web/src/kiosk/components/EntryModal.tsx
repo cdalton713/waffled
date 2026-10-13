@@ -1,5 +1,9 @@
 import { useState, type FormEvent } from 'react'
 import { api, localToday, type Goal, type GoalLogEntry } from '../../lib/api'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { DataIcon } from '@/components/ui/data-icon'
+import { Modal } from '@/components/ui/modal'
 
 // Edit or remove a single logged entry from a goal's Recent activity. Amount is
 // editable for numeric goals (total/count); habits just carry a note + date. An entry
@@ -30,12 +34,17 @@ export function EntryModal({
   // UTC instant) instead put an evening log on tomorrow's date, and since a save
   // always sends `loggedOn`, editing just the note moved the entry off the day you
   // were looking at. Fall back only for a server too old to send dateKey.
-  const [loggedOn, setLoggedOn] = useState<string>(entry.dateKey || new Date(entry.loggedAt).toISOString().slice(0, 10))
+  const [loggedOn, setLoggedOn] = useState<string>(
+    entry.dateKey || new Date(entry.loggedAt).toISOString().slice(0, 10),
+  )
   // Who took part — editable when the goal has more than one member. Prefilled from the
   // people this entry currently credits.
   const showWho = !locked && goal.participants.length > 1
-  const [who, setWho] = useState<string[]>((entry.participants ?? []).map((p) => p.personId).filter((id): id is string => !!id))
-  const toggleWho = (id: string) => setWho((w) => (w.includes(id) ? w.filter((x) => x !== id) : [...w, id]))
+  const [who, setWho] = useState<string[]>(
+    (entry.participants ?? []).map((p) => p.personId).filter((id): id is string => !!id),
+  )
+  const toggleWho = (id: string) =>
+    setWho((w) => (w.includes(id) ? w.filter((x) => x !== id) : [...w, id]))
   const [saving, setSaving] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -48,19 +57,25 @@ export function EntryModal({
     setSaving(true)
     setError(null)
     try {
-      await api.editGoalLog(goal.id, entry.id, locked
-        ? { note: note.trim() || null }
-        : {
-            ...(numeric ? { amount: logAmount } : {}),
-            ...(showWho ? { personIds: who } : {}),
-            note: note.trim() || null,
-            loggedOn,
-          })
+      await api.editGoalLog(
+        goal.id,
+        entry.id,
+        locked
+          ? { note: note.trim() || null }
+          : {
+              ...(numeric ? { amount: logAmount } : {}),
+              ...(showWho ? { personIds: who } : {}),
+              note: note.trim() || null,
+              loggedOn,
+            },
+      )
       onSaved()
       onClose()
     } catch (err) {
       setSaving(false)
-      setError((err as { body?: { message?: string } })?.body?.message ?? 'Could not save this change.')
+      setError(
+        (err as { body?: { message?: string } })?.body?.message ?? 'Could not save this change.',
+      )
     }
   }
 
@@ -78,16 +93,30 @@ export function EntryModal({
     } catch (err) {
       setSaving(false)
       setConfirmDelete(false)
-      setError((err as { body?: { message?: string } })?.body?.message ?? 'Could not delete this entry.')
+      setError(
+        (err as { body?: { message?: string } })?.body?.message ?? 'Could not delete this entry.',
+      )
     }
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <Modal className="modal-overlay" onClose={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 420 }}>
-        <button type="button" className="modal-close" aria-label="Close" onClick={onClose}>×</button>
-        <div className="wf-serif" style={{ fontSize: 20, fontWeight: 600, marginBottom: 2 }}>Edit entry</div>
-        <div className="muted" style={{ fontSize: 14, marginBottom: 16 }}>{goal.title}</div>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="modal-close"
+          aria-label="Close"
+          onClick={onClose}
+        >
+          <DataIcon value={'×'} kind="general" />
+        </Button>
+        <div className="wf-serif" style={{ fontSize: 20, fontWeight: 600, marginBottom: 2 }}>
+          Edit entry
+        </div>
+        <div className="muted" style={{ fontSize: 14, marginBottom: 16 }}>
+          {goal.title}
+        </div>
 
         <form onSubmit={save}>
           {numeric && (
@@ -95,14 +124,44 @@ export function EntryModal({
               <div className="flabel">Amount</div>
               {isCount ? (
                 <div className="log-stepper">
-                  <button type="button" className="log-step" aria-label="Less" disabled={logAmount <= 1} onClick={() => setAmount((a) => Math.max(1, Math.round(a) - 1))}>−</button>
-                  <span className="log-step-val">{logAmount}{goal.unit ? ` ${goal.unit}` : ''}</span>
-                  <button type="button" className="log-step" aria-label="More" onClick={() => setAmount((a) => Math.round(a) + 1)}>＋</button>
+                  <Button
+                    variant="unstyled"
+                    type="button"
+                    className="log-step"
+                    aria-label="Less"
+                    disabled={logAmount <= 1}
+                    onClick={() => setAmount((a) => Math.max(1, Math.round(a) - 1))}
+                  >
+                    −
+                  </Button>
+                  <span className="log-step-val">
+                    {logAmount}
+                    {goal.unit ? ` ${goal.unit}` : ''}
+                  </span>
+                  <Button
+                    variant="unstyled"
+                    type="button"
+                    className="log-step"
+                    aria-label="More"
+                    onClick={() => setAmount((a) => Math.round(a) + 1)}
+                  >
+                    <DataIcon value={'＋'} kind="general" />
+                  </Button>
                 </div>
               ) : (
                 <div className="log-custom">
-                  <input type="number" step="any" value={amount} onChange={(e) => setAmount(Number(e.target.value))} aria-label="amount" />
-                  {goal.unit && <span className="tiny muted" style={{ fontWeight: 600 }}>{goal.unit}</span>}
+                  <Input
+                    type="number"
+                    step="any"
+                    value={amount}
+                    onChange={(e) => setAmount(Number(e.target.value))}
+                    aria-label="amount"
+                  />
+                  {goal.unit && (
+                    <span className="tiny muted" style={{ fontWeight: 600 }}>
+                      {goal.unit}
+                    </span>
+                  )}
                 </div>
               )}
             </>
@@ -110,16 +169,36 @@ export function EntryModal({
 
           {showWho && (
             <>
-              <div className="flabel" style={{ marginTop: 16 }}>Who took part?</div>
+              <div className="flabel" style={{ marginTop: 16 }}>
+                Who took part?
+              </div>
               <div className="log-who">
                 {goal.participants.map((p) => {
                   const on = who.includes(p.personId)
                   return (
-                    <button key={p.personId} type="button" className={`log-person ${on ? 'on' : ''}`} onClick={() => toggleWho(p.personId)}>
-                      <div className="av md" style={{ background: `${p.colorHex ?? '#A6A29B'}22` }}>{p.avatarEmoji ?? '🙂'}</div>
-                      <span className="log-check" style={{ background: on ? 'var(--person-3)' : 'var(--card)', borderColor: on ? 'var(--person-3)' : 'var(--hair)' }}>{on ? '✓' : ''}</span>
-                      <span className="tiny" style={{ fontWeight: 700, color: 'var(--ink-2)' }}>{p.name.split(' ')[0]}</span>
-                    </button>
+                    <Button
+                      variant="unstyled"
+                      key={p.personId}
+                      type="button"
+                      className={`log-person ${on ? 'on' : ''}`}
+                      onClick={() => toggleWho(p.personId)}
+                    >
+                      <div className="av md" style={{ background: `${p.colorHex ?? '#A6A29B'}22` }}>
+                        <DataIcon value={p.avatarEmoji ?? '🙂'} kind="person" />
+                      </div>
+                      <span
+                        className="log-check"
+                        style={{
+                          background: on ? 'var(--person-3)' : 'var(--card)',
+                          borderColor: on ? 'var(--person-3)' : 'var(--hair)',
+                        }}
+                      >
+                        {on ? <DataIcon value={'✓'} kind="person" /> : ''}
+                      </span>
+                      <span className="tiny" style={{ fontWeight: 700, color: 'var(--ink-2)' }}>
+                        {p.name.split(' ')[0]}
+                      </span>
+                    </Button>
                   )
                 })}
               </div>
@@ -128,40 +207,90 @@ export function EntryModal({
 
           {locked ? (
             <div className="tiny muted" style={{ marginTop: 16 }}>
-              This entry came from a checklist tick, a calendar event or Apple Health — its
-              amount and date are kept in step with that. You can still leave a note.
+              This entry came from a checklist tick, a calendar event or Apple Health — its amount
+              and date are kept in step with that. You can still leave a note.
             </div>
           ) : (
             <>
-          <div className="flabel" style={{ marginTop: 16 }}>When?</div>
-          {/* Capped at today, same as the log modal — you can catch a log up, not
+              <div className="flabel" style={{ marginTop: 16 }}>
+                When?
+              </div>
+              {/* Capped at today, same as the log modal — you can catch a log up, not
               schedule one in the future. Never below the day already in the field,
               though: `loggedOn` is the HOUSEHOLD's day and the cap is the BROWSER's,
               and a household ahead of the device has already turned the page. A cap
               under the seeded value makes the input :invalid, and since Save is a
               submit button, native validation would swallow the save silently. */}
-          <input className="log-note" type="date" max={loggedOn > localToday() ? loggedOn : localToday()} value={loggedOn} onChange={(e) => setLoggedOn(e.target.value || loggedOn)} aria-label="Date this happened" />
+              <Input
+                className="log-note"
+                type="date"
+                max={loggedOn > localToday() ? loggedOn : localToday()}
+                value={loggedOn}
+                onChange={(e) => setLoggedOn(e.target.value || loggedOn)}
+                aria-label="Date this happened"
+              />
             </>
           )}
 
-          <div className="flabel" style={{ marginTop: 16 }}>Note <span style={{ textTransform: 'none', letterSpacing: 0, fontWeight: 600, color: 'var(--ink-3)' }}>· optional</span></div>
-          <input className="log-note" value={note} onChange={(e) => setNote(e.target.value)} placeholder="What happened" />
+          <div className="flabel" style={{ marginTop: 16 }}>
+            Note{' '}
+            <span
+              style={{
+                textTransform: 'none',
+                letterSpacing: 0,
+                fontWeight: 600,
+                color: 'var(--ink-3)',
+              }}
+            >
+              · optional
+            </span>
+          </div>
+          <Input
+            className="log-note"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="What happened"
+          />
 
-          {error && <div className="tiny" style={{ fontWeight: 700, color: 'var(--primary)', marginTop: 10 }}>{error}</div>}
+          {error && (
+            <div
+              className="tiny"
+              style={{ fontWeight: 700, color: 'var(--primary)', marginTop: 10 }}
+            >
+              {error}
+            </div>
+          )}
 
-          <button type="submit" className="btn btn-primary" disabled={saving} style={{ width: '100%', justifyContent: 'center', marginTop: 18 }}>
+          <Button
+            variant="default"
+            type="submit"
+            disabled={saving}
+            style={{ width: '100%', justifyContent: 'center', marginTop: 18 }}
+          >
             {saving ? 'Saving…' : 'Save changes'}
-          </button>
+          </Button>
         </form>
-        {!locked && <button
-          type="button"
-          onClick={del}
-          disabled={saving}
-          style={{ display: 'block', margin: '14px auto 0', border: 0, background: 'none', color: confirmDelete ? 'var(--primary)' : 'var(--ink-3)', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}
-        >
-          {confirmDelete ? 'Tap again to delete this entry' : 'Delete entry'}
-        </button>}
+        {!locked && (
+          <Button
+            variant="unstyled"
+            type="button"
+            onClick={del}
+            disabled={saving}
+            style={{
+              display: 'block',
+              margin: '14px auto 0',
+              border: 0,
+              background: 'none',
+              color: confirmDelete ? 'var(--primary)' : 'var(--ink-3)',
+              fontSize: 13,
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            {confirmDelete ? 'Tap again to delete this entry' : 'Delete entry'}
+          </Button>
+        )}
       </div>
-    </div>
+    </Modal>
   )
 }

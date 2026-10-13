@@ -60,7 +60,11 @@ function stampServiceWorkerPlugin(): Plugin {
 // (apps/api/.local/media), which the stack's Caddy never sees. Serve a file from
 // there when it exists; anything else falls through to the /media proxy below.
 const DEV_MEDIA_DIR = resolve(__dirname, process.env.WAFFLED_DEV_MEDIA_DIR ?? '../api/.local/media')
-const MEDIA_TYPES: Record<string, string> = { jpg: 'image/jpeg', png: 'image/png', webp: 'image/webp' }
+const MEDIA_TYPES: Record<string, string> = {
+  jpg: 'image/jpeg',
+  png: 'image/png',
+  webp: 'image/webp',
+}
 function devMediaPlugin(): Plugin {
   return {
     name: 'waffled:dev-media',
@@ -69,8 +73,12 @@ function devMediaPlugin(): Plugin {
       server.middlewares.use('/media', (req, res, next) => {
         const rel = decodeURIComponent((req.url ?? '').split('?')[0])
         const file = resolve(DEV_MEDIA_DIR, `.${rel}`)
-        if (!file.startsWith(DEV_MEDIA_DIR + sep) || !existsSync(file) || !statSync(file).isFile()) return next()
-        res.setHeader('content-type', MEDIA_TYPES[file.split('.').pop() ?? ''] ?? 'application/octet-stream')
+        if (!file.startsWith(DEV_MEDIA_DIR + sep) || !existsSync(file) || !statSync(file).isFile())
+          return next()
+        res.setHeader(
+          'content-type',
+          MEDIA_TYPES[file.split('.').pop() ?? ''] ?? 'application/octet-stream',
+        )
         createReadStream(file).pipe(res)
       })
     },
@@ -126,6 +134,17 @@ export default defineConfig({
     // per-screen split also wins least where it matters most: a kiosk runs for weeks
     // and opens every screen eventually, so it fetches all 12 sheets regardless.
     cssCodeSplit: false,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (
+            id.includes('/node_modules/') &&
+            (id.includes('/@radix-ui/') || id.includes('/radix-ui@'))
+          )
+            return 'ui-primitives'
+        },
+      },
+    },
   },
   server: {
     port: 5175,

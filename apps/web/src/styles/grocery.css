@@ -1,352 +1,368 @@
+@reference './ui.css';
 /* ===== Grocery board (auto-built view — "Grocery / Auto-built" mock) ===== */
 .grocery-board {
-  flex: 1;
-  display: grid;
-  grid-template-columns: 1fr 340px;
-  gap: 22px;
-  padding: 2px 30px 24px;
-  min-height: 0;
-  overflow-y: auto;
-  align-content: start;
+  @apply [flex:1];
+  @apply grid;
+  @apply [grid-template-columns:1fr_340px];
+  @apply [gap:22px];
+  @apply [padding:2px_30px_24px];
+  @apply [min-height:0];
+  @apply overflow-y-auto;
+  @apply [align-content:start];
 }
 .grocery-main {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
+  @apply flex;
+  @apply flex-col;
+  @apply [min-width:0];
 }
 .grocery-head {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  margin-bottom: 12px;
+  @apply flex;
+  @apply items-baseline;
+  @apply [gap:12px];
+  @apply [margin-bottom:12px];
 }
 .grocery-title {
-  font-size: 26px;
+  @apply [font-size:26px];
 }
 .grocery-head .seg button {
-  cursor: pointer;
+  @apply cursor-pointer;
 }
 .grocery-add {
-  margin-bottom: 16px;
+  @apply [margin-bottom:16px];
 }
 
 /* two-column flow of aisle sections (like the mock) */
 /* Two real columns (not CSS multi-column) so collapsing a section never reflows
    sections across columns — each section is assigned a fixed column in JS. */
 .grocery-cols {
-  display: flex;
-  align-items: flex-start;
-  gap: 18px;
+  @apply flex;
+  @apply items-start;
+  @apply [gap:18px];
 }
 .grocery-col {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
+  @apply [flex:1];
+  @apply [min-width:0];
+  @apply flex;
+  @apply flex-col;
 }
 .grocery-section {
-  margin-bottom: 18px;
+  @apply [margin-bottom:18px];
 }
 /* A group that claimed no rows of its own — every item it wants is listed under an
    earlier meal. Says so instead of rendering an empty section. */
 .grocery-section-note {
-  padding: 2px 6px 10px;
-  font-style: italic;
+  @apply [padding:2px_6px_10px];
+  @apply [font-style:italic];
 }
 .grocery-section-h {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12.5px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--ink-3);
-  margin: 0 -6px 8px;
-  padding: 4px 6px;
-  border-radius: 8px;
-  cursor: pointer;
-  user-select: none;
-  transition: background 0.12s ease, color 0.12s ease;
+  @apply flex;
+  @apply items-center;
+  @apply [gap:8px];
+  @apply [font-size:12.5px];
+  @apply font-extrabold;
+  @apply [letter-spacing:0.04em];
+  @apply [text-transform:uppercase];
+  @apply [color:var(--ink-3)];
+  @apply [margin:0_-6px_8px];
+  @apply [padding:4px_6px];
+  @apply [border-radius:8px];
+  @apply cursor-pointer;
+  @apply select-none;
+  @apply [transition:background_0.12s_ease,_color_0.12s_ease];
 }
 /* Make the collapse affordance obvious on hover. */
 .grocery-section-h:hover {
-  background: var(--panel);
-  color: var(--ink-2);
+  @apply [background:var(--panel)];
+  @apply [color:var(--ink-2)];
 }
 /* The collapse chevron sits a touch smaller than the calendar's so it doesn't
    dwarf the uppercase section label, and is solid enough to read as a control. */
 .grocery-section-h .cal-chev {
-  font-size: 18px;
-  color: var(--ink-3);
+  @apply [font-size:18px];
+  @apply [color:var(--ink-3)];
 }
 .grocery-section-h .ga-emo {
-  display: inline-grid;
-  place-items: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 8px;
-  background: var(--panel);
-  font-size: 14px;
+  @apply [display:inline-grid];
+  @apply [place-items:center];
+  @apply [width:24px];
+  @apply [height:24px];
+  @apply [border-radius:8px];
+  @apply [background:var(--panel)];
+  @apply [font-size:14px];
 }
 .grocery-section-h .ga-n {
-  margin-left: 2px;
-  color: var(--ink-3);
-  font-weight: 700;
+  @apply [margin-left:2px];
+  @apply [color:var(--ink-3)];
+  @apply font-bold;
 }
 
 /* meal-type badge on by-meal section headers */
 .meal-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 10.5px;
-  font-weight: 800;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  padding: 3px 8px;
-  border-radius: 999px;
-  background: var(--panel);
-  color: var(--ink-2);
+  @apply inline-flex;
+  @apply items-center;
+  @apply [gap:4px];
+  @apply [font-size:10.5px];
+  @apply font-extrabold;
+  @apply [letter-spacing:0.03em];
+  @apply [text-transform:uppercase];
+  @apply [padding:3px_8px];
+  @apply [border-radius:999px];
+  @apply [background:var(--panel)];
+  @apply [color:var(--ink-2)];
 }
-.meal-badge.mt-breakfast { background: var(--warn-t); color: var(--warn); }
-.meal-badge.mt-lunch { background: var(--success-t); color: var(--success-tx); }
-.meal-badge.mt-dinner { background: var(--person-1-t); color: var(--person-1-tx); }
-.meal-badge.mt-snack { background: var(--person-2-t); color: var(--person-2-tx); }
+.meal-badge.mt-breakfast {
+  @apply [background:var(--warn-t)];
+  @apply [color:var(--warn)];
+}
+.meal-badge.mt-lunch {
+  @apply [background:var(--success-t)];
+  @apply [color:var(--success-tx)];
+}
+.meal-badge.mt-dinner {
+  @apply [background:var(--person-1-t)];
+  @apply [color:var(--person-1-tx)];
+}
+.meal-badge.mt-snack {
+  @apply [background:var(--person-2-t)];
+  @apply [color:var(--person-2-tx)];
+}
 /* recipe on the list but not on this week's plan */
-.meal-badge.mt-unscheduled { background: color-mix(in srgb, var(--ink-3) 14%, transparent); color: var(--ink-2); }
+.meal-badge.mt-unscheduled {
+  @apply [background:color-mix(in_srgb,_var(--ink-3)_14%,_transparent)];
+  @apply [color:var(--ink-2)];
+}
 
 /* rail: divider + caption above the unscheduled recipes (legend for their dots) */
 .grocery-rail-div {
-  height: 1px;
-  background: var(--hair);
-  margin: 12px 0 10px;
+  @apply [height:1px];
+  @apply [background:var(--hair)];
+  @apply [margin:12px_0_10px];
 }
 .grocery-rail-sub {
-  font-size: 10.5px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--ink-3);
-  margin-bottom: 8px;
+  @apply [font-size:10.5px];
+  @apply font-extrabold;
+  @apply [letter-spacing:0.04em];
+  @apply [text-transform:uppercase];
+  @apply [color:var(--ink-3)];
+  @apply [margin-bottom:8px];
 }
 
 /* rail meal-type selector */
 .rail-seg {
-  display: flex;
-  width: 100%;
+  @apply flex;
+  @apply [width:100%];
 }
 .rail-seg button {
-  flex: 1;
-  cursor: pointer;
+  @apply [flex:1];
+  @apply cursor-pointer;
 }
 
 .gitem {
-  display: flex;
-  align-items: center;
-  gap: 13px;
-  padding: 14px 16px;
-  background: var(--card);
-  border-radius: var(--r-lg);
-  box-shadow: var(--sh-1);
-  margin-bottom: 9px;
-  cursor: pointer;
+  @apply flex;
+  @apply items-center;
+  @apply [gap:13px];
+  @apply [padding:14px_16px];
+  @apply [background:var(--card)];
+  @apply [border-radius:var(--r-lg)];
+  @apply [box-shadow:var(--sh-1)];
+  @apply [margin-bottom:9px];
+  @apply cursor-pointer;
 }
 .gitem.done {
-  background: var(--card-2);
-  box-shadow: none;
+  @apply [background:var(--card-2)];
+  @apply [box-shadow:none];
 }
 .gck {
-  width: 20px;
-  height: 20px;
-  border-radius: 7px;
-  border: 2px solid var(--hair);
-  background: var(--card);
-  flex: none;
-  display: grid;
-  place-items: center;
+  @apply [width:20px];
+  @apply [height:20px];
+  @apply [border-radius:7px];
+  @apply [border:2px_solid_var(--hair)];
+  @apply [background:var(--card)];
+  @apply [flex:none];
+  @apply grid;
+  @apply [place-items:center];
 }
 .gitem.done .gck {
-  background: var(--person-3);
-  border-color: var(--person-3);
+  @apply [background:var(--person-3)];
+  @apply [border-color:var(--person-3)];
 }
 /* name + ambient attribution stack; takes the row's flexible space */
 .gitem-body {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  @apply [flex:1];
+  @apply [min-width:0];
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:2px];
 }
 .gnm {
-  font-size: 16px;
-  font-weight: 600;
-  min-width: 0;
+  @apply [font-size:16px];
+  @apply font-semibold;
+  @apply [min-width:0];
 }
 .gitem.done .gnm {
-  text-decoration: line-through;
-  color: var(--ink-3);
+  @apply [text-decoration:line-through];
+  @apply [color:var(--ink-3)];
 }
 
 /* Ambient attribution line — small, muted, secondary metadata weight. Used both
    on the grocery board (.gitem) and the generic Lists item (.litem .lnm). */
 .gattr {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 11.5px;
-  font-weight: 600;
-  color: var(--ink-3);
-  line-height: 1.2;
+  @apply inline-flex;
+  @apply items-center;
+  @apply [gap:4px];
+  @apply [font-size:11.5px];
+  @apply font-semibold;
+  @apply [color:var(--ink-3)];
+  @apply [line-height:1.2];
 }
 /* On the Lists item, the name is a single inline span — float attribution after
    it as a quiet secondary line. */
 .lnm .gattr {
-  margin-left: 8px;
+  @apply [margin-left:8px];
 }
 .gattr-av {
-  display: inline-grid;
-  place-items: center;
-  width: 16px;
-  height: 16px;
-  border-radius: 999px;
-  background: var(--panel);
-  font-size: 10px;
+  @apply [display:inline-grid];
+  @apply [place-items:center];
+  @apply [width:16px];
+  @apply [height:16px];
+  @apply [border-radius:999px];
+  @apply [background:var(--panel)];
+  @apply [font-size:10px];
 }
 .gattr-meal {
-  color: var(--ink-3);
+  @apply [color:var(--ink-3)];
 }
 .gdots {
-  display: inline-flex;
-  gap: 4px;
-  flex: none;
+  @apply inline-flex;
+  @apply [gap:4px];
+  @apply [flex:none];
 }
 .gdot {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
+  @apply [width:8px];
+  @apply [height:8px];
+  @apply [border-radius:999px];
 }
 .gqty {
-  font-size: 13.5px;
-  font-weight: 700;
-  color: var(--ink-2);
-  flex: none;
-  min-width: 44px;
-  text-align: right;
+  @apply [font-size:13.5px];
+  @apply font-bold;
+  @apply [color:var(--ink-2)];
+  @apply [flex:none];
+  @apply [min-width:44px];
+  @apply text-right;
 }
 
 /* per-item edit / delete + clear-checked */
 .gitem-acts {
-  display: flex;
-  gap: 2px;
-  flex: none;
+  @apply flex;
+  @apply [gap:2px];
+  @apply [flex:none];
 }
 .gact {
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-  font-size: 14px;
-  line-height: 1;
-  padding: 5px 7px;
-  border-radius: 8px;
-  color: var(--ink-2);
-  opacity: 0.5;
+  @apply [border:0];
+  @apply [background:transparent];
+  @apply cursor-pointer;
+  @apply [font-size:14px];
+  @apply [line-height:1];
+  @apply [padding:5px_7px];
+  @apply [border-radius:8px];
+  @apply [color:var(--ink-2)];
+  @apply [opacity:0.5];
 }
 .gact:hover {
-  opacity: 1;
-  background: var(--panel);
+  @apply [opacity:1];
+  @apply [background:var(--panel)];
 }
 .gact.ok {
-  color: var(--on-accent);
-  background: var(--primary);
-  opacity: 1;
+  @apply [color:var(--on-accent)];
+  @apply [background:var(--primary)];
+  @apply [opacity:1];
 }
 .gitem.editing {
-  display: flex;
-  flex-direction: column;
+  @apply flex;
+  @apply flex-col;
   /* Both rows span the card. Without this each .gedit-line sized itself to its own
      max-content — the name+qty row to one width, the aisle+store+buttons row to a
      wider one — so the two rows sat at different widths and the lower one spilled
      out of the card at mid widths. */
-  align-items: stretch;
-  gap: 8px;
-  padding: 9px 12px;
-  background: var(--card);
-  border-radius: var(--r-lg);
-  box-shadow: var(--sh-1);
-  margin-bottom: 9px;
+  @apply items-stretch;
+  @apply [gap:8px];
+  @apply [padding:9px_12px];
+  @apply [background:var(--card)];
+  @apply [border-radius:var(--r-lg)];
+  @apply [box-shadow:var(--sh-1)];
+  @apply [margin-bottom:9px];
 }
 .gedit-line {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  min-width: 0;
+  @apply flex;
+  @apply items-center;
+  @apply [gap:8px];
+  @apply [width:100%];
+  @apply [min-width:0];
   /* the store input is the first thing to wrap, rather than squeezing the aisle
      select and the save/cancel buttons until they clip */
-  flex-wrap: wrap;
+  @apply flex-wrap;
 }
 .gedit-line > .gact {
-  flex: none;
+  @apply [flex:none];
 }
 .gedit-sec {
-  flex: 1 1 132px;
-  min-width: 0;
-  font: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  border: 0;
-  background: var(--panel);
-  border-radius: 10px;
-  padding: 8px 10px;
-  color: var(--ink);
+  @apply [flex:1_1_132px];
+  @apply [min-width:0];
+  @apply [font:inherit];
+  @apply [font-size:14px];
+  @apply font-semibold;
+  @apply [border:0];
+  @apply [background:var(--panel)];
+  @apply [border-radius:10px];
+  @apply [padding:8px_10px];
+  @apply [color:var(--ink)];
 }
 .gedit-name {
-  flex: 2 1 140px;
-  min-width: 0;
-  font: inherit;
-  font-size: 15px;
-  font-weight: 600;
-  border: 0;
-  background: var(--panel);
-  border-radius: 10px;
-  padding: 8px 12px;
+  @apply [flex:2_1_140px];
+  @apply [min-width:0];
+  @apply [font:inherit];
+  @apply [font-size:15px];
+  @apply font-semibold;
+  @apply [border:0];
+  @apply [background:var(--panel)];
+  @apply [border-radius:10px];
+  @apply [padding:8px_12px];
 }
 .gedit-qty {
   /* wide enough for "1½ lb" without stealing the name's room */
-  flex: 0 1 96px;
-  width: auto;
-  min-width: 0;
-  font: inherit;
-  font-size: 14px;
-  border: 0;
-  background: var(--panel);
-  border-radius: 10px;
-  padding: 8px 10px;
+  @apply [flex:0_1_96px];
+  @apply [width:auto];
+  @apply [min-width:0];
+  @apply [font:inherit];
+  @apply [font-size:14px];
+  @apply [border:0];
+  @apply [background:var(--panel)];
+  @apply [border-radius:10px];
+  @apply [padding:8px_10px];
 }
 /* Free-text store input in the item editor (backed by a datalist of prior stores). */
 .gedit-store {
-  flex: 1 1 110px;
-  min-width: 0;
-  font: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  border: 0;
-  background: var(--panel);
-  border-radius: 10px;
-  padding: 8px 10px;
-  color: var(--ink);
+  @apply [flex:1_1_110px];
+  @apply [min-width:0];
+  @apply [font:inherit];
+  @apply [font-size:14px];
+  @apply font-semibold;
+  @apply [border:0];
+  @apply [background:var(--panel)];
+  @apply [border-radius:10px];
+  @apply [padding:8px_10px];
+  @apply [color:var(--ink)];
 }
 /* The small store tag shown on an item row when a store is assigned. */
 .gstore {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--ink-2);
-  background: var(--panel);
-  border-radius: 999px;
-  padding: 2px 9px;
-  flex: none;
-  white-space: nowrap;
+  @apply [font-size:12px];
+  @apply font-bold;
+  @apply [color:var(--ink-2)];
+  @apply [background:var(--panel)];
+  @apply [border-radius:999px];
+  @apply [padding:2px_9px];
+  @apply [flex:none];
+  @apply whitespace-nowrap;
 }
 
 /* "You already have this" — the pantry match on a grocery row.
@@ -361,219 +377,228 @@
    this" chips (.pl-chip.ok, .pl-badge.green), so the badge reads as the pantry speaking
    on a surface that isn't the pantry. */
 .gpantry {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  align-self: flex-start;
-  margin-top: 1px;
-  font-size: 11.5px;
-  font-weight: 700;
-  color: var(--success-tx);
-  background: var(--success-t);
-  border-radius: 999px;
-  padding: 1px 8px;
-  max-width: 100%;
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  @apply inline-flex;
+  @apply items-center;
+  @apply [gap:4px];
+  @apply [align-self:flex-start];
+  @apply [margin-top:1px];
+  @apply [font-size:11.5px];
+  @apply font-bold;
+  @apply [color:var(--success-tx)];
+  @apply [background:var(--success-t)];
+  @apply [border-radius:999px];
+  @apply [padding:1px_8px];
+  @apply [max-width:100%];
+  @apply [min-width:0];
+  @apply whitespace-nowrap;
+  @apply overflow-hidden;
+  @apply [text-overflow:ellipsis];
 }
 /* A checked-off row has already been dealt with — let its badge recede with the rest. */
 .gitem.done .gpantry {
-  opacity: 0.5;
+  @apply [opacity:0.5];
 }
 
 .grocery-clear {
-  cursor: pointer;
+  @apply cursor-pointer;
 }
 
 /* Completed (checked items tuck here) */
 .grocery-done {
-  margin-top: 10px;
+  @apply [margin-top:10px];
 }
 .grocery-done-h {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 4px;
-  cursor: pointer;
-  user-select: none;
-  font-weight: 700;
-  font-size: 14px;
-  color: var(--ink-2);
-  border-top: 1px solid var(--hair-2);
+  @apply flex;
+  @apply items-center;
+  @apply [gap:8px];
+  @apply [padding:12px_4px];
+  @apply cursor-pointer;
+  @apply select-none;
+  @apply font-bold;
+  @apply [font-size:14px];
+  @apply [color:var(--ink-2)];
+  @apply [border-top:1px_solid_var(--hair-2)];
 }
 .grocery-done-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 9px;
-  padding-top: 4px;
+  @apply grid;
+  @apply [grid-template-columns:repeat(auto-fill,_minmax(240px,_1fr))];
+  @apply [gap:9px];
+  @apply [padding-top:4px];
 }
 
 /* right rail */
 .grocery-rail {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  min-width: 0;
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:18px];
+  @apply [min-width:0];
 }
 .grocery-railcard {
-  padding: 20px 22px;
+  @apply [padding:20px_22px];
 }
 .gdinner {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--hair-2);
+  @apply flex;
+  @apply items-center;
+  @apply [gap:11px];
+  @apply [padding:10px_0];
+  @apply [border-bottom:1px_solid_var(--hair-2)];
 }
 /* rows that drill into a recipe (parity with the iOS rail) */
-.gdinner.link { cursor: pointer; }
-.gdinner.link:hover .gdinner-t { color: var(--ink); }
+.gdinner.link {
+  @apply cursor-pointer;
+}
+.gdinner.link:hover .gdinner-t {
+  @apply [color:var(--ink)];
+}
 .gdinner-chev {
-  flex: none;
-  font-size: 15px;
-  font-weight: 800;
-  color: var(--ink-3);
-  line-height: 1;
+  @apply [flex:none];
+  @apply [font-size:15px];
+  @apply font-extrabold;
+  @apply [color:var(--ink-3)];
+  @apply [line-height:1];
 }
 .gdinner:last-child {
-  border-bottom: 0;
+  @apply [border-bottom:0];
 }
 .gdinner-c {
-  width: 12px;
-  height: 12px;
-  border-radius: 4px;
-  flex: none;
+  @apply [width:12px];
+  @apply [height:12px];
+  @apply [border-radius:4px];
+  @apply [flex:none];
 }
 .gdinner-day {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--ink-2);
-  width: 34px;
-  flex: none;
+  @apply [font-size:13px];
+  @apply font-bold;
+  @apply [color:var(--ink-2)];
+  @apply [width:34px];
+  @apply [flex:none];
 }
 .gdinner-t {
-  flex: 1;
-  font-size: 14.5px;
-  font-weight: 600;
-  min-width: 0;
+  @apply [flex:1];
+  @apply [font-size:14.5px];
+  @apply font-semibold;
+  @apply [min-width:0];
 }
 .gdinner-e {
-  font-size: 18px;
-  flex: none;
+  @apply [font-size:18px];
+  @apply [flex:none];
 }
 /* Per-row remove for an off-plan (Unscheduled) recipe. Kept always visible (not
    hover-only) so it's tappable on a touch kiosk; darkens to danger on interaction.
    Stops the row's drill-into-recipe click. */
 .gdinner-x {
-  flex: none;
-  border: 0;
-  background: none;
-  cursor: pointer;
-  font-size: 18px;
-  line-height: 1;
-  color: var(--ink-3);
-  padding: 2px 4px;
-  opacity: .5;
-  transition: opacity .12s, color .12s;
+  @apply [flex:none];
+  @apply [border:0];
+  @apply [background:none];
+  @apply cursor-pointer;
+  @apply [font-size:18px];
+  @apply [line-height:1];
+  @apply [color:var(--ink-3)];
+  @apply [padding:2px_4px];
+  @apply [opacity:.5];
+  @apply [transition:opacity_.12s,_color_.12s];
 }
-.gdinner:hover .gdinner-x { opacity: 1; }
+.gdinner:hover .gdinner-x {
+  @apply [opacity:1];
+}
 .gdinner-x:hover,
-.gdinner-x:focus-visible { opacity: 1; color: var(--danger-tx); }
+.gdinner-x:focus-visible {
+  @apply [opacity:1];
+  @apply [color:var(--danger-tx)];
+}
 .grocery-staples {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  @apply flex;
+  @apply flex-wrap;
+  @apply [gap:8px];
 }
 .staple-chip {
-  font-size: 13px;
-  font-weight: 600;
-  padding: 7px 13px;
-  border-radius: 999px;
-  background: var(--panel);
-  color: var(--ink-2);
-  border: 0;
-  cursor: pointer;
+  @apply [font-size:13px];
+  @apply font-semibold;
+  @apply [padding:7px_13px];
+  @apply [border-radius:999px];
+  @apply [background:var(--panel)];
+  @apply [color:var(--ink-2)];
+  @apply [border:0];
+  @apply cursor-pointer;
 }
 .staple-chip:hover {
-  background: var(--person-3-t);
-  color: var(--success-tx);
+  @apply [background:var(--person-3-t)];
+  @apply [color:var(--success-tx)];
 }
 .staple-chip.editable {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  cursor: default;
+  @apply inline-flex;
+  @apply items-center;
+  @apply [gap:6px];
+  @apply cursor-default;
 }
 .staple-chip.editable button {
-  border: 0;
-  background: none;
-  color: var(--ink-3);
-  font-size: 15px;
-  line-height: 1;
-  cursor: pointer;
+  @apply [border:0];
+  @apply [background:none];
+  @apply [color:var(--ink-3)];
+  @apply [font-size:15px];
+  @apply [line-height:1];
+  @apply cursor-pointer;
 }
 .staple-chip.editable button:hover {
-  color: var(--primary-d);
+  @apply [color:var(--primary-d)];
 }
 
 @media (max-width: 1000px) {
   .grocery-board {
-    grid-template-columns: 1fr;
+    @apply [grid-template-columns:1fr];
   }
   .grocery-cols {
-    flex-direction: column;
+    @apply flex-col;
   }
 }
 @media (max-width: 720px) {
   .grocery-board {
-    padding: 2px 16px 20px;
+    @apply [padding:2px_16px_20px];
   }
   .grocery-head {
-    flex-wrap: wrap;
-    row-gap: 10px;
+    @apply flex-wrap;
+    @apply [row-gap:10px];
   }
   .grocery-title,
   .grocery-count {
-    white-space: nowrap;
+    @apply whitespace-nowrap;
   }
   .grocery-head .lists-search-wrap {
-    flex: 1 1 100%;
+    @apply [flex:1_1_100%];
   }
   .grocery-head .lists-search {
-    width: 100%;
+    @apply [width:100%];
   }
 }
 
 .grocery-count {
-  font-size: 14px;
+  @apply [font-size:14px];
 }
 .grocery-refresh {
-  cursor: pointer;
-  font-size: 12.5px;
-  padding: 5px 12px;
+  @apply cursor-pointer;
+  @apply [font-size:12.5px];
+  @apply [padding:5px_12px];
 }
 
 /* dinner thumbnail tile (matches the mock's rounded recipe thumb) */
 .gdinner-e {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  display: grid;
-  place-items: center;
-  font-size: 18px;
-  flex: none;
+  @apply [width:34px];
+  @apply [height:34px];
+  @apply [border-radius:10px];
+  @apply grid;
+  @apply [place-items:center];
+  @apply [font-size:18px];
+  @apply [flex:none];
 }
 .grocery-railfoot {
-  display: flex;
-  gap: 10px;
-  margin-top: 16px;
+  @apply flex;
+  @apply [gap:10px];
+  @apply [margin-top:16px];
 }
 .grocery-railfoot .btn {
-  flex: 1;
-  justify-content: center;
-  cursor: pointer;
+  @apply [flex:1];
+  @apply justify-center;
+  @apply cursor-pointer;
 }
 
 /* ---- rail: a Meal Builder plate --------------------------------------------
@@ -582,56 +607,56 @@
    indented under it and wear the plate's color (dots are per-meal), so the rail
    still reads as one line per meal until you ask for the detail. */
 .gdinner-plate .gdinner-t {
-  font-weight: 700;
+  @apply font-bold;
 }
 .gplate-n {
-  flex: none;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--ink-2);
-  background: color-mix(in srgb, var(--ink-3) 12%, transparent);
-  border-radius: 999px;
-  padding: 3px 8px;
-  white-space: nowrap;
+  @apply [flex:none];
+  @apply [font-size:10px];
+  @apply font-extrabold;
+  @apply [letter-spacing:0.04em];
+  @apply [text-transform:uppercase];
+  @apply [color:var(--ink-2)];
+  @apply [background:color-mix(in_srgb,_var(--ink-3)_12%,_transparent)];
+  @apply [border-radius:999px];
+  @apply [padding:3px_8px];
+  @apply whitespace-nowrap;
 }
 .gdinner-plate .cal-chev {
-  font-size: 18px;
+  @apply [font-size:18px];
 }
 /* the dish preview reuses the recipe-thumb tile, widened for a few emoji */
 .gplate-strip {
-  flex: none;
-  min-width: 34px;
-  height: 34px;
-  padding: 0 7px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  gap: 1px;
-  font-size: 13px;
-  line-height: 1;
+  @apply [flex:none];
+  @apply [min-width:34px];
+  @apply [height:34px];
+  @apply [padding:0_7px];
+  @apply [border-radius:10px];
+  @apply flex;
+  @apply items-center;
+  @apply [gap:1px];
+  @apply [font-size:13px];
+  @apply [line-height:1];
 }
 .gdish {
-  padding-left: 20px;
+  @apply [padding-left:20px];
 }
 .gdish .gdinner-t {
-  font-size: 13.5px;
-  font-weight: 600;
-  color: var(--ink-2);
+  @apply [font-size:13.5px];
+  @apply font-semibold;
+  @apply [color:var(--ink-2)];
 }
 .gdish.link:hover .gdinner-t {
-  color: var(--ink);
+  @apply [color:var(--ink)];
 }
 /* lighter dot than the plate's own — same color, one step back */
 .gdish-c {
-  width: 8px;
-  height: 8px;
-  border-radius: 3px;
-  opacity: 0.5;
+  @apply [width:8px];
+  @apply [height:8px];
+  @apply [border-radius:3px];
+  @apply [opacity:0.5];
 }
 .gdish .gdinner-e {
-  width: 26px;
-  height: 26px;
-  font-size: 15px;
+  @apply [width:26px];
+  @apply [height:26px];
+  @apply [font-size:15px];
 }

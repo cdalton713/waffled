@@ -6,6 +6,10 @@ import { MultiSelect } from './components/MultiSelect'
 import { MealCard } from './components/MealCard'
 import { useRecipes, useRecentRecipes, useSavedMeals, type Recipe } from '../lib/api'
 import './../styles/recipe.css'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { NativeSelect } from '@/components/ui/native-select'
+import { DataIcon } from '@/components/ui/data-icon'
 
 const GRAD_BY_CATEGORY: Record<string, string> = {
   breakfast: 'g-pan',
@@ -19,7 +23,19 @@ function gradClass(r: Recipe): string {
 }
 
 function haystack(r: Recipe): string {
-  return [r.title, r.cuisine, r.protein, r.base, r.mealType, r.effort, r.cookMethod, r.collection, ...(r.tags ?? []), ...r.vegetables, ...r.dietary]
+  return [
+    r.title,
+    r.cuisine,
+    r.protein,
+    r.base,
+    r.mealType,
+    r.effort,
+    r.cookMethod,
+    r.collection,
+    ...(r.tags ?? []),
+    ...r.vegetables,
+    ...r.dietary,
+  ]
     .filter(Boolean)
     .join(' ')
     .toLowerCase()
@@ -83,7 +99,8 @@ export function RecipesLibrary() {
   }, [recipes])
 
   const ql = q.trim().toLowerCase()
-  const has = (arr: string[], v: string | null) => arr.length === 0 || (v != null && arr.includes(v))
+  const has = (arr: string[], v: string | null) =>
+    arr.length === 0 || (v != null && arr.includes(v))
   const filtered = recipes.filter(
     (r) =>
       (!fav || r.isFavorite) &&
@@ -92,7 +109,7 @@ export function RecipesLibrary() {
       has(cuisines, r.cuisine) &&
       has(proteins, r.protein) &&
       (diets.length === 0 || diets.some((d) => r.dietary.includes(d))) &&
-      (!ql || haystack(r).includes(ql))
+      (!ql || haystack(r).includes(ql)),
   )
 
   const sorted = [...filtered].sort((a, b) => {
@@ -104,9 +121,17 @@ export function RecipesLibrary() {
 
   // The structured filters are recipe metadata a plate doesn't carry, so with any of them
   // on this is a recipe list. Free-text search, by contrast, spans both.
-  const structuredFilter = fav || newOnly || collections.length > 0 || cuisines.length > 0 || proteins.length > 0 || diets.length > 0
+  const structuredFilter =
+    fav ||
+    newOnly ||
+    collections.length > 0 ||
+    cuisines.length > 0 ||
+    proteins.length > 0 ||
+    diets.length > 0
   const mealList = savedMeals ?? []
-  const shownMeals = structuredFilter ? [] : [...mealList].sort((a, b) => a.name.localeCompare(b.name))
+  const shownMeals = structuredFilter
+    ? []
+    : [...mealList].sort((a, b) => a.name.localeCompare(b.name))
   // "Meals" HIDES the recipes rather than narrowing them — the counts still read against
   // the whole library, so "1 of 2" tells you what you're not seeing.
   const shownRecipes = mealsOnly ? [] : sorted
@@ -115,33 +140,80 @@ export function RecipesLibrary() {
 
   const anyFilter = structuredFilter || mealsOnly || ql
   function clearAll() {
-    setFav(false); setNewOnly(false); setCollections([]); setCuisines([]); setProteins([]); setDiets([]); setQ(''); setMealsOnly(false)
+    setFav(false)
+    setNewOnly(false)
+    setCollections([])
+    setCuisines([])
+    setProteins([])
+    setDiets([])
+    setQ('')
+    setMealsOnly(false)
   }
 
   // THE LIBRARY IS GENUINELY EMPTY — not merely "nothing is showing". A search with no hits
   // also shows nothing, and hiding the search box there would strand somebody with a query
   // they can no longer clear. So this needs both sources loaded, both empty, and nothing
   // typed or toggled.
-  const libraryEmpty = !loading && !error && !mealsLoading && recipes.length === 0 && mealList.length === 0 && !anyFilter
+  const libraryEmpty =
+    !loading &&
+    !error &&
+    !mealsLoading &&
+    recipes.length === 0 &&
+    mealList.length === 0 &&
+    !anyFilter
 
   useTopbarFull(
     () => (
       <div style={{ display: 'flex', alignItems: 'center', width: '100%', gap: 14 }}>
-        <button className="pill" style={{ cursor: 'pointer' }} onClick={() => navigate('/meals')}>‹ Meals</button>
-        <div className="wf-serif" style={{ fontSize: 20, fontWeight: 600 }}>Recipes</div>
+        <Button
+          variant="unstyled"
+          className="pill btn-primary"
+          style={{ cursor: 'pointer' }}
+          onClick={() => navigate('/meals')}
+        >
+          <>
+            <DataIcon value={'‹'} kind="meal" />
+            {' Meals'}
+          </>
+        </Button>
+        <div className="wf-serif" style={{ fontSize: 20, fontWeight: 600 }}>
+          Recipes
+        </div>
         {/* The only in-app way to start an empty plate. Deliberately the bare route
             with no id: the builder creates the meal lazily on the first dish, so
             abandoning this screen leaves no orphan behind. */}
-        <Editable><button className="pill" style={{ marginLeft: 'auto', cursor: 'pointer' }} onClick={() => navigate('/meals/build')}>＋ New meal</button></Editable>
+        <Editable>
+          <Button
+            variant="unstyled"
+            className="pill btn-primary"
+            style={{ marginLeft: 'auto', cursor: 'pointer' }}
+            onClick={() => navigate('/meals/build')}
+          >
+            <>
+              <DataIcon value={'＋'} kind="meal" />
+              {' New meal'}
+            </>
+          </Button>
+        </Editable>
         {/* ONE primary on the screen. With an empty library the whole page is a call
             to add the first recipe, so the header's copy of that button would be the
             second — which is what made the old empty state read as a mistake. */}
         {!libraryEmpty && !viewOnly && (
-          <button className="pill btn-primary" style={{ color: 'var(--on-accent)', border: 0, cursor: 'pointer' }} onClick={() => navigate('/meals/recipe/new')}>＋ New recipe</button>
+          <Button
+            variant="unstyled"
+            className="pill btn-primary"
+            style={{ color: 'var(--on-accent)', border: 0, cursor: 'pointer' }}
+            onClick={() => navigate('/meals/recipe/new')}
+          >
+            <>
+              <DataIcon value={'＋'} kind="meal" />
+              {' New recipe'}
+            </>
+          </Button>
         )}
       </div>
     ),
-    [navigate, libraryEmpty, viewOnly]
+    [navigate, libraryEmpty, viewOnly],
   )
 
   if (libraryEmpty) {
@@ -150,16 +222,21 @@ export function RecipesLibrary() {
         {/* No count, no sort, no filters: with nothing to count or narrow they are
             controls that cannot do their job. One thing to say, one thing to do. */}
         <div className="recipes-empty">
-          <div className="recipes-empty-e" aria-hidden>🍳</div>
+          <div className="recipes-empty-e" aria-hidden>
+            <DataIcon value={'🍳'} kind="meal" />
+          </div>
           <div className="recipes-empty-t wf-serif">No recipes yet</div>
           <div className="recipes-empty-s">
             Add your first and it turns up everywhere it&apos;s useful — the meal planner, the
             grocery list, Cook Mode.
           </div>
           <Editable>
-            <button type="button" className="btn btn-primary" onClick={() => navigate('/meals/recipe/new')}>
-              ＋ New recipe
-            </button>
+            <Button variant="default" type="button" onClick={() => navigate('/meals/recipe/new')}>
+              <>
+                <DataIcon value={'＋'} kind="meal" />
+                {' New recipe'}
+              </>
+            </Button>
           </Editable>
         </div>
       </div>
@@ -169,32 +246,110 @@ export function RecipesLibrary() {
   return (
     <div className="recipes-lib">
       <div className="recipes-head">
-        <input className="recipes-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search recipes & meals, cuisine, protein, a veggie…" aria-label="Search recipes and meals" />
-        <select className="recipes-filter recipes-sort" value={sort} onChange={(e) => setSort(e.target.value)} aria-label="Sort">
+        <Input
+          className="recipes-search"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Search recipes & meals, cuisine, protein, a veggie…"
+          aria-label="Search recipes and meals"
+        />
+        <NativeSelect
+          className="recipes-filter recipes-sort"
+          value={sort}
+          onChange={(e) => setSort(e.target.value)}
+          aria-label="Sort"
+        >
           {SORTS.map((s) => (
-            <option key={s.key} value={s.key}>Sort: {s.label}</option>
+            <option key={s.key} value={s.key}>
+              Sort: {s.label}
+            </option>
           ))}
-        </select>
-        <button type="button" className={`pill ${fav ? 'btn-primary' : ''}`} style={{ cursor: 'pointer', color: fav ? 'var(--on-accent)' : undefined, border: fav ? 0 : undefined }} onClick={() => setFav((v) => !v)}>
-          {fav ? '❤️' : '🤍'} Favorites
-        </button>
-        <button type="button" className={`pill ${newOnly ? 'btn-primary' : ''}`} style={{ cursor: 'pointer', color: newOnly ? 'var(--on-accent)' : undefined, border: newOnly ? 0 : undefined }} onClick={() => setNewOnly((v) => !v)}>
-          🆕 New
-        </button>
+        </NativeSelect>
+        <Button
+          variant="unstyled"
+          type="button"
+          className={`pill ${fav ? 'btn-primary' : ''}`}
+          style={{
+            cursor: 'pointer',
+            color: fav ? 'var(--on-accent)' : undefined,
+            border: fav ? 0 : undefined,
+          }}
+          onClick={() => setFav((v) => !v)}
+        >
+          {fav ? <DataIcon value={'❤️'} kind="meal" /> : <DataIcon value={'🤍'} kind="meal" />}{' '}
+          Favorites
+        </Button>
+        <Button
+          variant="unstyled"
+          type="button"
+          className={`pill ${newOnly ? 'btn-primary' : ''}`}
+          style={{
+            cursor: 'pointer',
+            color: newOnly ? 'var(--on-accent)' : undefined,
+            border: newOnly ? 0 : undefined,
+          }}
+          onClick={() => setNewOnly((v) => !v)}
+        >
+          <>
+            <DataIcon value={'🆕'} kind="meal" />
+            {' New'}
+          </>
+        </Button>
         {/* Sits with Favorites/New because it is the same kind of control — a
             one-tap view of the library, not a metadata narrowing. */}
-        <button type="button" className={`pill ${mealsOnly ? 'btn-primary' : ''}`} style={{ cursor: 'pointer', color: mealsOnly ? 'var(--on-accent)' : undefined, border: mealsOnly ? 0 : undefined }} aria-pressed={mealsOnly} aria-label="Show only meals" onClick={() => setMealsOnly((v) => !v)}>
-          🍽️ Meals
-        </button>
+        <Button
+          variant="unstyled"
+          type="button"
+          className={`pill ${mealsOnly ? 'btn-primary' : ''}`}
+          style={{
+            cursor: 'pointer',
+            color: mealsOnly ? 'var(--on-accent)' : undefined,
+            border: mealsOnly ? 0 : undefined,
+          }}
+          aria-pressed={mealsOnly}
+          aria-label="Show only meals"
+          onClick={() => setMealsOnly((v) => !v)}
+        >
+          <>
+            <DataIcon value={'🍽️'} kind="meal" />
+            {' Meals'}
+          </>
+        </Button>
       </div>
 
       <div className="recipes-filters">
-        <MultiSelect label="Collection" options={collOpts} selected={collections} onChange={setCollections} />
-        <MultiSelect label="Cuisine" options={cuisineOpts} selected={cuisines} onChange={setCuisines} />
-        <MultiSelect label="Protein" options={proteinOpts} selected={proteins} onChange={setProteins} />
+        <MultiSelect
+          label="Collection"
+          options={collOpts}
+          selected={collections}
+          onChange={setCollections}
+        />
+        <MultiSelect
+          label="Cuisine"
+          options={cuisineOpts}
+          selected={cuisines}
+          onChange={setCuisines}
+        />
+        <MultiSelect
+          label="Protein"
+          options={proteinOpts}
+          selected={proteins}
+          onChange={setProteins}
+        />
         <MultiSelect label="Dietary" options={dietOpts} selected={diets} onChange={setDiets} />
-        <span className="tiny muted recipes-count">{shownCount} of {totalCount}</span>
-        {anyFilter ? <button type="button" className="pill recipes-clear" onClick={clearAll}>Clear</button> : null}
+        <span className="tiny muted recipes-count">
+          {shownCount} of {totalCount}
+        </span>
+        {anyFilter ? (
+          <Button
+            variant="unstyled"
+            type="button"
+            className="pill recipes-clear"
+            onClick={clearAll}
+          >
+            Clear
+          </Button>
+        ) : null}
       </div>
 
       {/* A shortcut back to what you just had open, above the library proper. Hidden
@@ -206,20 +361,22 @@ export function RecipesLibrary() {
           <div className="recents-h">
             <span className="recents-title">Recently viewed</span>
             <div className="recents-scope">
-              <button
+              <Button
+                variant="unstyled"
                 type="button"
                 className={`pill ${recent.scope === 'me' ? 'on' : ''}`}
                 onClick={() => recent.setScope('me')}
               >
                 Me
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="unstyled"
                 type="button"
                 className={`pill ${recent.scope === 'household' ? 'on' : ''}`}
                 onClick={() => recent.setScope('household')}
               >
                 Everyone
-              </button>
+              </Button>
             </div>
           </div>
           <div className="recents-row">
@@ -230,10 +387,19 @@ export function RecipesLibrary() {
                 tabIndex={0}
                 className="recents-card"
                 onClick={() => navigate(`/meals/recipe/${r.id}`)}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(`/meals/recipe/${r.id}`) } }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    navigate(`/meals/recipe/${r.id}`)
+                  }
+                }}
               >
                 <div className={`recents-img ${gradClass(r)}`}>
-                  {r.imageUrl ? <img className="rc-img-photo" src={r.imageUrl} alt="" /> : (r.emoji ?? '🍽️')}
+                  {r.imageUrl ? (
+                    <img className="rc-img-photo" src={r.imageUrl} alt="" />
+                  ) : (
+                    <DataIcon value={r.emoji ?? '🍽️'} kind="meal" />
+                  )}
                 </div>
                 <div className="recents-t">{r.title}</div>
               </div>
@@ -242,19 +408,30 @@ export function RecipesLibrary() {
         </div>
       )}
 
-      {error && <div className="muted" style={{ padding: 20 }}>Couldn't load recipes — try reloading or signing in again.</div>}
+      {error && (
+        <div className="muted" style={{ padding: 20 }}>
+          Couldn't load recipes — try reloading or signing in again.
+        </div>
+      )}
       {/* The empty LIBRARY is handled above, as its own screen. What is left here is
           the empty RESULT — the search and filters are still on show, so the way out
           is the Clear beside them rather than a second primary jammed mid-sentence. */}
       {!error && !loading && shownCount === 0 && (
-        <div className="muted" style={{ padding: 20, fontWeight: 600 }}>Nothing matches these filters.</div>
+        <div className="muted" style={{ padding: 20, fontWeight: 600 }}>
+          Nothing matches these filters.
+        </div>
       )}
 
       <div className="recipes-grid">
         {/* Saved meals lead the grid — a plate is a bigger idea than one dish, and
             leading with them keeps the badge visible instead of buried. */}
         {shownMeals.map((m) => (
-          <MealCard key={m.id} meal={m} className="recipes-card" onOpen={() => navigate(`/meals/build/${m.id}`)} />
+          <MealCard
+            key={m.id}
+            meal={m}
+            className="recipes-card"
+            onOpen={() => navigate(`/meals/build/${m.id}`)}
+          />
         ))}
         {shownRecipes.map((r) => (
           <div
@@ -263,22 +440,81 @@ export function RecipesLibrary() {
             tabIndex={0}
             className="rc recipes-card"
             onClick={() => navigate(`/meals/recipe/${r.id}`)}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(`/meals/recipe/${r.id}`) } }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                navigate(`/meals/recipe/${r.id}`)
+              }
+            }}
           >
             <div className={`rc-img ${gradClass(r)}`}>
-              {r.imageUrl ? <img className="rc-img-photo" src={r.imageUrl} alt={r.title} /> : (r.emoji ?? '🍽️')}
-              {r.isFavorite && <span className="recipes-fav">❤️</span>}
-              {r.cookedCount === 0 && <span className="recipes-new" title="Never cooked" style={{ position: 'absolute', top: 8, left: 10, fontSize: 16 }}>🆕</span>}
+              {r.imageUrl ? (
+                <img className="rc-img-photo" src={r.imageUrl} alt={r.title} />
+              ) : (
+                <DataIcon value={r.emoji ?? '🍽️'} kind="meal" />
+              )}
+              {r.isFavorite && (
+                <span className="recipes-fav">
+                  <DataIcon value={'❤️'} kind="meal" />
+                </span>
+              )}
+              {r.cookedCount === 0 && (
+                <span
+                  className="recipes-new"
+                  title="Never cooked"
+                  style={{ position: 'absolute', top: 8, left: 10, fontSize: 16 }}
+                >
+                  <DataIcon value={'🆕'} kind="meal" />
+                </span>
+              )}
             </div>
             <div className="rc-b" style={{ padding: '12px 14px 14px' }}>
-              <div className="rc-t" style={{ fontSize: 16 }}>{r.title}</div>
-              <div className="rc-m">
-                {r.cuisine && <span>🌍 {r.cuisine}</span>}
-                {r.protein && <span>🥩 {r.protein}</span>}
-                {r.cookTimeMinutes != null && <span>🕐 {r.cookTimeMinutes}m</span>}
-                {r.cookedCount > 0 && <span>👨‍🍳 {r.cookedCount}×</span>}
+              <div className="rc-t" style={{ fontSize: 16 }}>
+                {r.title}
               </div>
-              {r.collection && <div className="recipes-coll">📁 {r.collection}</div>}
+              <div className="rc-m">
+                {r.cuisine && (
+                  <span>
+                    <>
+                      <DataIcon value={'🌍'} kind="meal" />{' '}
+                    </>
+                    {r.cuisine}
+                  </span>
+                )}
+                {r.protein && (
+                  <span>
+                    <>
+                      <DataIcon value={'🥩'} kind="meal" />{' '}
+                    </>
+                    {r.protein}
+                  </span>
+                )}
+                {r.cookTimeMinutes != null && (
+                  <span>
+                    <>
+                      <DataIcon value={'🕐'} kind="meal" />{' '}
+                    </>
+                    {r.cookTimeMinutes}m
+                  </span>
+                )}
+                {r.cookedCount > 0 && (
+                  <span>
+                    <>
+                      <DataIcon value={'👨‍🍳'} kind="meal" />{' '}
+                    </>
+                    {r.cookedCount}
+                    <DataIcon value={'×'} kind="meal" />
+                  </span>
+                )}
+              </div>
+              {r.collection && (
+                <div className="recipes-coll">
+                  <>
+                    <DataIcon value={'📁'} kind="meal" />{' '}
+                  </>
+                  {r.collection}
+                </div>
+              )}
             </div>
           </div>
         ))}

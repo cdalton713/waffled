@@ -2,6 +2,22 @@ import '@testing-library/jest-dom/vitest'
 import { vi, beforeEach, afterEach } from 'vitest'
 import { resetReachability } from '../lib/api/reachability'
 
+// jsdom has no layout scrolling; Radix Select scrolls its focused option.
+Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
+  configurable: true,
+  value: vi.fn(),
+})
+if (!globalThis.ResizeObserver) {
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    },
+  )
+}
+
 class TestStorage implements Storage {
   private readonly values = new Map<string, string>()
 
@@ -53,6 +69,17 @@ beforeEach(() => {
   testLocalStorage.clear()
   globalThis.fetch = vi.fn(async () => ({
     ok: true,
-    json: async () => ({ persons: [], items: [], lists: [], people: [], instances: [], entries: [], events: [], goals: [], photos: [], recipes: [] }),
+    json: async () => ({
+      persons: [],
+      items: [],
+      lists: [],
+      people: [],
+      instances: [],
+      entries: [],
+      events: [],
+      goals: [],
+      photos: [],
+      recipes: [],
+    }),
   })) as unknown as typeof fetch
 })

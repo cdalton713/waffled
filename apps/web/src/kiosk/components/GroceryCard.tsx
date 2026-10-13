@@ -2,6 +2,10 @@ import { useState, type FormEvent } from 'react'
 import { useViewOnly } from '../../lib/viewOnly'
 import { Icon } from '../icons'
 import { useGrocery } from '../../lib/api'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { DataIcon } from '@/components/ui/data-icon'
+import { Card } from '@/components/ui/card'
 
 // Real, interactive grocery list: tap to check off, type to add. Backed by
 // /api/lists/grocery.
@@ -19,7 +23,10 @@ export function GroceryCard() {
   }
 
   return (
-    <div className="card" style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column' }}>
+    <Card
+      className="card"
+      style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column' }}
+    >
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
         <div className="card-h" style={{ fontSize: 17 }}>
           Grocery
@@ -33,13 +40,20 @@ export function GroceryCard() {
       {loading && <div className="tiny muted">Loading…</div>}
       {error && <div className="tiny muted">Couldn't load the list — reload or sign in again.</div>}
       {!loading && !error && items.length === 0 && (
-        <div className="tiny muted" style={{ paddingBottom: 6 }}>Nothing on the list yet.</div>
+        <div className="tiny muted" style={{ paddingBottom: 6 }}>
+          Nothing on the list yet.
+        </div>
       )}
 
       <div className="gc-scroll">
         {items.map((item) => (
-          <div key={item.id} className="gitem" style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 7 }}>
-            <button
+          <div
+            key={item.id}
+            className="gitem"
+            style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 7 }}
+          >
+            <Button
+              variant="unstyled"
               type="button"
               onClick={() => toggle(item.id, !item.checked)}
               aria-label={`Toggle ${item.name}`}
@@ -68,16 +82,17 @@ export function GroceryCard() {
               >
                 {item.name}
               </span>
-            </button>
+            </Button>
             {!viewOnly && (
-            <button
-              type="button"
-              className="gitem-del"
-              onClick={() => remove(item.id)}
-              aria-label={`Remove ${item.name}`}
-            >
-              ×
-            </button>
+              <Button
+                variant="unstyled"
+                type="button"
+                className="gitem-del"
+                onClick={() => remove(item.id)}
+                aria-label={`Remove ${item.name}`}
+              >
+                <DataIcon value={'×'} kind="list" />
+              </Button>
             )}
           </div>
         ))}
@@ -85,7 +100,7 @@ export function GroceryCard() {
 
       {!error && !viewOnly && (
         <form onSubmit={submit} style={{ paddingTop: 8 }}>
-          <input
+          <Input
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             placeholder="Add item"
@@ -104,6 +119,6 @@ export function GroceryCard() {
           />
         </form>
       )}
-    </div>
+    </Card>
   )
 }
