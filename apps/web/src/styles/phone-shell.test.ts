@@ -71,4 +71,10 @@ describe('phone layout', () => {
     expect(phoneDecl('.meals-grid', 'grid-template-columns', 'meals.css')).toBe('22px repeat(7, minmax(0, 1fr))')
     expect(phoneDecl('.meals-screen', 'padding', 'meals.css')).toBe('0 16px 20px')
   })
+
+  it('lets the meal builder flow and scroll as one page on a phone', () => {
+    expect(phoneDecl('.mb-shell', 'height', 'mealbuilder.css')).toBe('auto')
+    expect(phoneDecl('.mb-plate', 'max-height', 'mealbuilder.css')).toBe('none')
+    expect(phoneDecl('.mb-body', 'padding', 'mealbuilder.css')).toBe('0 16px 16px')
+  })
 })
