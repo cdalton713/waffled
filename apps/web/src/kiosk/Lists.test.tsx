@@ -34,6 +34,12 @@ function mockApi(opts: { lists?: unknown[]; items?: unknown[]; sent?: Sent[]; cr
     const body = init?.body ? JSON.parse(init.body) : undefined
     opts.sent?.push({ method, url: u, body })
     if (u.includes('/api/persons')) return { ok: true, json: async () => ({ persons }) }
+    // add-bar autocomplete + "suggests" chips (must precede the list-detail regex)
+    if (u.includes('/api/lists/suggestions')) {
+      const q = new URL(u, 'http://x').searchParams.get('q')
+      if (q === 'wat') return { ok: true, json: async () => ({ suggestions: [{ name: 'Water bottles', source: 'catalog' }] }) }
+      return { ok: true, json: async () => ({ suggestions: q ? [] : [{ name: 'Bug spray', source: 'history' }, { name: 'Trash bags', source: 'history' }] }) }
+    }
     // list templates GET (must precede the list-detail regex, which would else
     // capture "templates" as an :id)
     if (u.endsWith('/api/lists/templates') && method === 'GET') {
@@ -240,6 +246,20 @@ describe('Lists screen', () => {
     await waitFor(() => expect(sent.some((s) => s.method === 'POST' && /\/items$/.test(s.url))).toBe(true))
     const post = sent.find((s) => s.method === 'POST' && /\/items$/.test(s.url))!
     expect(post.body).toMatchObject({ name: 'Bug spray' })
+  })
+
+  it('adds a suggestion picked from the add bar', async () => {
+    const sent: Sent[] = []
+    mockApi({ lists: [grocery, packing], items: packItems, sent })
+    renderScreen()
+    await exitBoard()
+
+    const input = await screen.findByLabelText('Add to this list')
+    fireEvent.focus(input)
+    fireEvent.change(input, { target: { value: 'wat' } })
+    fireEvent.mouseDown(await screen.findByRole('option', { name: 'Water bottles' }))
+    await waitFor(() => expect(sent.find((s) => s.method === 'POST' && /\/items$/.test(s.url))?.body).toMatchObject({ name: 'Water bottles' }))
+    expect(sent.find((s) => s.url.includes('/api/lists/suggestions?q=wat'))?.url).toContain('listId=pack')
   })
 
   it('adds a typed item from the add bar', async () => {

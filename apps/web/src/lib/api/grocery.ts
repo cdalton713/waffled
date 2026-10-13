@@ -80,6 +80,11 @@ export interface ListItem {
   sourceMealIds?: string[]
 }
 
+export interface ItemSuggestion {
+  name: string
+  source: 'history' | 'catalog'
+}
+
 export interface ListDetail {
   list: ListSummary | { id: string; name: string; emoji: string | null; listType: string; isAutoBuilt: boolean; sortMode: string }
   items: ListItem[]
@@ -160,6 +165,12 @@ export const groceryApi = {
   // The household's previously-used store names (most-used first) — quick-select for
   // a grocery item's store field.
   stores: () => apiGet<{ stores: string[] }>('/api/lists/stores').then((r) => r.stores),
+  // Add-bar autocomplete: household history first, then a grocery catalog. An empty
+  // query returns the most-bought names not already on the list.
+  suggestions: (q: string, listId: string | null) => {
+    const params = new URLSearchParams({ ...(q ? { q } : {}), ...(listId ? { listId } : {}) })
+    return apiGet<{ suggestions: ItemSuggestion[] }>(`/api/lists/suggestions?${params}`).then((r) => r.suggestions)
+  },
   // Bulk-edit section/store/assignee/priority across a multi-selection (one round-trip).
   bulkPatchItems: (ids: string[], patch: { section?: string | null; store?: string | null; assignedTo?: string | null; priority?: number }) =>
     apiSend<{ updated: number }>('PATCH', '/api/list-items/bulk', { ids, patch }).then((r) => r.updated).then(tap('grocery')),

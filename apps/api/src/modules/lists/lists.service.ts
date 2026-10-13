@@ -4,6 +4,7 @@
 // (CLOTHES / GEAR / FOR THE KIDS via `category`), a freeform quantity ("×4"),
 // an assignee (avatar) and a checked state. The grocery list keeps its existing
 // get-or-create endpoints (the Today dashboard's Grocery card depends on them).
+import { catalogItems, rankSuggestions, type Suggestion } from '../../integrations/anylist/catalog'
 import { getPool, query } from '../../platform/db'
 import { type Tenant } from '../households/households'
 import { getRecipe, listIngredients, getOverrides } from '../meals/meals.service'
@@ -1248,6 +1249,29 @@ export async function listStores(householdId: string): Promise<string[]> {
     [householdId]
   )
   return rows.map((r) => r.store)
+}
+
+// Add-bar suggestions: names the household has put on any list before (crossed-off and
+// cleared ones included), most-used first, then AnyList's public catalog. With no query,
+// the most-bought names. Anything already unchecked on `listId` is left out.
+export async function suggestItemNames(householdId: string, q: string, listId: string | null): Promise<Suggestion[]> {
+  const { rows } = await query<{ name: string; uses: number }>(
+    `select (array_agg(name order by created_at desc))[1] as name, count(*)::int as uses
+       from list_items
+      where household_id = $1 and btrim(name) <> ''
+      group by lower(btrim(name))
+     having not bool_or(list_id = $2::uuid and deleted_at is null and not checked)
+      order by count(*) desc, max(created_at) desc
+      limit 2000`,
+    [householdId, listId]
+  )
+  const history = rows.map((r) => ({ name: r.name, popularity: r.uses }))
+  if (!q.trim()) return history.slice(0, 8).map((h) => ({ name: h.name, source: 'history' as const }))
+  const onList = new Set((await query<{ n: string }>(
+    `select lower(btrim(name)) as n from list_items where household_id = $1 and list_id = $2::uuid and deleted_at is null and not checked`,
+    [householdId, listId])).rows.map((r) => r.n))
+  const catalog = (await catalogItems()).filter((c) => !onList.has(c.name.toLowerCase()))
+  return rankSuggestions(q, history, catalog)
 }
 
 export function presentList(l: ListRow) {

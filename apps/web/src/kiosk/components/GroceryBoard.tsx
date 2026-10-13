@@ -12,6 +12,7 @@ import { AISLE_ORDER } from './share-list'
 import { filterListItems } from './list-search'
 import '../../styles/grocery.css'
 import { CHECK } from './CheckGlyph'
+import { ItemAutocomplete, useItemSuggest } from './ItemAutocomplete'
 
 // Aisles offered in the "move to section" picker. 'Other' is omitted — the board
 // treats an 'Other' category as auto-filed anyway, so "Auto (by name)" covers it.
@@ -341,6 +342,7 @@ export function GroceryBoard({ onBack }: { onBack: () => void }) {
   // shop ahead without touching this week's list.
   const [weekStart, setWeekStart] = useState<string | null>(null)
   const { board, loading, error, refetch } = useGroceryBoard(weekStart ?? undefined)
+  const suggest = useItemSuggest(board?.list.id)
   const navigate = useNavigate()
   const [view, setView] = useState<'aisle' | 'meal' | 'store'>('aisle')
   // "Share list": hand the unchecked items to a phone as text / share sheet / QR.
@@ -796,7 +798,15 @@ export function GroceryBoard({ onBack }: { onBack: () => void }) {
         <Editable>
           <form className="ai-bar grocery-add" onSubmit={onAdd}>
             <div className="ai-spark" aria-hidden><Icon name="spark" /></div>
-            <input ref={addRef} value={draft} onChange={(e) => setDraft(e.target.value)} placeholder={'Add to groceries… “bananas and oat milk”'} aria-label="Add to groceries" />
+            <ItemAutocomplete
+              ref={addRef}
+              value={draft}
+              onChange={setDraft}
+              onPick={addItem}
+              suggest={suggest}
+              placeholder={'Add to groceries… “bananas and oat milk”'}
+              aria-label="Add to groceries"
+            />
             <div className="mic" aria-hidden><Icon name="mic" /></div>
           </form>
         </Editable>

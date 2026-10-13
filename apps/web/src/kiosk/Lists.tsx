@@ -21,10 +21,8 @@ import {
 import { useTopbarRight } from './topbar-slot'
 import '../styles/lists.css'
 import { CHECK } from './components/CheckGlyph'
+import { ItemAutocomplete, useItemSuggest } from './components/ItemAutocomplete'
 
-// "Waffled suggests" chips are static in the handoff (no suggestion engine yet) —
-// they add their label to the list when tapped. Called out in the summary.
-const SUGGESTIONS = ['Bug spray', 'Phone chargers', 'Snacks for the drive', 'Trash bags']
 
 
 // Pluralized summary line under the list name: "12 items · 2 done". The headline
@@ -456,6 +454,18 @@ export function Lists() {
   }, [lists, templates, selectedId])
   const isTemplate = selected?.listType === 'template'
   const { items, loading: itemsLoading, setItems, refetch: refetchItems } = useListDetail(selected?.id ?? null)
+  const suggest = useItemSuggest(selected?.id)
+  // "Waffled suggests": the household's most-bought names that aren't on this list yet.
+  const [chips, setChips] = useState<string[]>([])
+  const liveCount = items.filter((i) => !i.checked).length
+  useEffect(() => {
+    if (!selected?.id) return
+    let live = true
+    groceryApi.suggestions('', selected.id)
+      .then((list) => { if (live) setChips(list.slice(0, 4).map((s) => s.name)) })
+      .catch(() => { if (live) setChips([]) })
+    return () => { live = false }
+  }, [selected?.id, liveCount])
 
   // A search belongs to the list it was typed on — switching lists starts fresh
   // rather than showing the next list already filtered by a stale query.
@@ -908,10 +918,12 @@ export function Lists() {
               <div className="ai-spark" aria-hidden>
                 <Icon name="spark" />
               </div>
-              <input
+              <ItemAutocomplete
                 ref={addInputRef}
                 value={draft}
-                onChange={(e) => setDraft(e.target.value)}
+                onChange={setDraft}
+                onPick={(name) => addItem(name).then(() => setDraft(''))}
+                suggest={suggest}
                 placeholder={'Add to this list… “bug spray and 2 water bottles”'}
                 aria-label="Add to this list"
               />
@@ -927,15 +939,15 @@ export function Lists() {
               </div>
             </form>
 
-            <div className="lists-suggest">
+            {chips.length > 0 && <div className="lists-suggest">
               <span className="tiny lists-suggest-label">Waffled suggests:</span>
-              {SUGGESTIONS.map((s) => (
+              {chips.map((s) => (
                 <button key={s} type="button" className="sug-chip" onClick={() => addItem(s)}>
                   <svg viewBox="0 0 24 24" dangerouslySetInnerHTML={{ __html: '<path d="M12 5v14M5 12h14"/>' }} />
                   {s}
                 </button>
               ))}
-            </div>
+            </div>}
             </>)}
 
             {selecting && (

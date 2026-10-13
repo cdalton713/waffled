@@ -18,6 +18,7 @@ import {
   softDeleteItem,
   bulkPatchItems,
   listStores,
+  suggestItemNames,
   autoClearCheckedItems,
   clearCompletedItems,
   addRecipeToGrocery,
@@ -122,6 +123,13 @@ export function registerListRoutes(api: Api): void {
   // so the literal `stores` segment wins over the id param.
   api.get('/api/lists/stores', tenantRoute(async (tenant) => {
     return { stores: await listStores(tenant.householdId) }
+  }))
+
+  // Add-bar autocomplete (?q=…&listId=…). Registered before `/api/lists/:id`.
+  api.get('/api/lists/suggestions', tenantRoute(async (tenant, req: Request) => {
+    const q = typeof req.query.q === 'string' ? req.query.q.slice(0, 100) : ''
+    const listId = typeof req.query.listId === 'string' && UUID_RE.test(req.query.listId) ? req.query.listId : null
+    return { suggestions: await suggestItemNames(tenant.householdId, q, listId) }
   }))
 
   api.patch('/api/lists/:id', tenantRoute(async (tenant, req: Request, res: Response) => {

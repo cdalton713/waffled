@@ -752,3 +752,27 @@ describe('GroceryBoard item notes', () => {
     expect(sent.find((s) => s.method === 'PATCH')!.body).toMatchObject({ note: 'oatmeal raisin' })
   })
 })
+
+describe('GroceryBoard add-bar suggestions', () => {
+  it('adds a picked suggestion', async () => {
+    const sent: Array<{ method: string; url: string; body: unknown }> = []
+    globalThis.fetch = vi.fn(async (url: string, init?: { method?: string; body?: string }) => {
+      const u = String(url)
+      const method = init?.method ?? 'GET'
+      sent.push({ method, url: u, body: init?.body ? JSON.parse(init.body) : undefined })
+      if (u.includes('/api/lists/suggestions?q=ban')) return ok({ suggestions: [{ name: 'Bananas', source: 'catalog' }] })
+      if (u.endsWith('/api/lists/grocery/items') && method === 'POST') return ok({ item: { ...manualItem, id: 'n1', name: 'Bananas' } })
+      if (u.includes('/api/lists/grocery/board')) {
+        return ok({ list: { id: 'g', name: 'Grocery', emoji: '🛒', listType: 'grocery', isAutoBuilt: true, sortMode: 'manual', itemCount: 0 }, weekStart: '2026-06-07', meals: [], items: [manualItem], staples: [] })
+      }
+      return ok({ suggestions: [], stores: [] })
+    }) as unknown as typeof fetch
+    renderBoard()
+    const input = await screen.findByLabelText('Add to groceries')
+    fireEvent.focus(input)
+    fireEvent.change(input, { target: { value: 'ban' } })
+    fireEvent.mouseDown(await screen.findByRole('option', { name: 'Bananas' }))
+    await waitFor(() => expect(sent.find((s) => s.method === 'POST')?.body).toEqual({ name: 'Bananas' }))
+    expect(sent.find((s) => s.url.includes('suggestions?q=ban'))?.url).toContain('listId=g')
+  })
+})
