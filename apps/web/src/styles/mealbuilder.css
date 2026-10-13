@@ -183,7 +183,7 @@
   color: var(--ink-2);
 }
 .mb-onhand-ok {
-  color: var(--success);
+  color: var(--success-tx);
 }
 .mb-onhand-buy {
   color: var(--warn);
@@ -258,7 +258,7 @@
 }
 .mb-x:hover {
   background: var(--danger-t);
-  color: var(--danger);
+  color: var(--danger-tx);
   border-color: transparent;
 }
 
@@ -356,7 +356,7 @@
   font-size: 14px;
   padding: 9px 12px;
   border-radius: 999px;
-  border: 1px solid var(--hair);
+  border: 1px solid var(--control-line);
   background: var(--card-2);
   color: var(--ink);
 }

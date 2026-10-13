@@ -77,9 +77,12 @@ Legend: ✅ done · 🟡 partial / in progress · 🚧 planned · ⛔ dropped (s
   `[data-theme="dark"]` override; iOS: dark-aware `Color(light:dark:)` tokens re-resolved by UIKit
   on the appearance change), with a shared palette and semantic success/danger/warn/info tokens so
   the two platforms read identically with the lights off.
+- **Kitchen theme + Kiosk mode (web/kiosk)** — a wall-tablet palette (Kitchen / Kitchen night,
+  a `data-palette` axis beside light/dark) and a per-device view-only switch that hides creation
+  and edit controls while keeping check-offs, timers, approvals and cook mode.
 - **Typeface picker (web/kiosk)** — a per-device choice of five legibility-first typefaces
   (Classic, Clear, Hyperlegible, Friendly, Early reader) in Settings → Appearance and Display &
-  Kiosk, drawn as live specimens; a `data-typeface` axis beside light/dark.
+  Kiosk, drawn as live specimens; a `data-typeface` axis beside palette and light/dark.
 - **Self-host packaging** — one-command `./waffled up` (pulls multi-arch GHCR images by
   default; `--build` for source), in-container migrations, and one-command `./waffled
   upgrade` (repo fast-forward + version bump + DB snapshot + pull + migrate).

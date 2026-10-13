@@ -1,4 +1,7 @@
 import { render, screen, fireEvent, within } from '@testing-library/react'
+import { setViewOnly } from '../lib/viewOnly'
+import { useTopbarSlots } from './topbar-slot'
+function KioskTopbarRight() { const { full, right } = useTopbarSlots(); return <>{full}{right}</> }
 import { MemoryRouter, Routes, Route } from 'react-router'
 import { RecipesLibrary } from './RecipesLibrary'
 import { TopbarSlotProvider } from './topbar-slot'
@@ -64,6 +67,25 @@ function cardFor(title: string): HTMLElement {
 }
 
 describe('RecipesLibrary — New / never-cooked filter', () => {
+  it('Kiosk mode hides New recipe and New meal', () => {
+    recipesRef.current = [makeRecipe({ id: 'a', title: 'Fresh Salad', cookedCount: 0 })]
+    setViewOnly(true)
+    try {
+      render(
+        <MemoryRouter initialEntries={['/meals/recipes']}>
+          <TopbarSlotProvider>
+            <KioskTopbarRight />
+            <RecipesLibrary />
+          </TopbarSlotProvider>
+        </MemoryRouter>,
+      )
+      expect(screen.getByText('Fresh Salad')).toBeInTheDocument()
+      expect(screen.getByText('‹ Meals')).toBeInTheDocument()
+      expect(screen.queryByText(/New recipe/)).toBeNull()
+      expect(screen.queryByText(/New meal/)).toBeNull()
+    } finally { setViewOnly(false) }
+  })
+
   beforeEach(() => {
     recipesRef.current = [
       makeRecipe({ id: 'a', title: 'Fresh Salad', cookedCount: 0 }),

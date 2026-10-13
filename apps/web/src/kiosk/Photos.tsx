@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Editable } from '../lib/viewOnly'
 import { api, kioskApi, usePhotos, useWeather, useHousehold, useGooglePhotosStatus, type DisplayConfig, type Photo } from '../lib/api'
 import { Icon } from './icons'
 import { useTopbarRight } from './topbar-slot'
@@ -153,9 +154,11 @@ export function Photos() {
         </div>
       ) : (
         <div className="tb-right">
-          <button type="button" className="pill" style={{ cursor: 'pointer' }} onClick={() => setSelectMode(true)} disabled={photos.length === 0}>
-            Select
-          </button>
+          <Editable>
+            <button type="button" className="pill" style={{ cursor: 'pointer' }} onClick={() => setSelectMode(true)} disabled={photos.length === 0}>
+              Select
+            </button>
+          </Editable>
           <button type="button" className="pill" style={{ cursor: 'pointer' }} onClick={() => setSaver({ album: albumFilter })} disabled={photos.length === 0}>
             🖼️ Play{albumFilter ? ` “${albumFilter}”` : ''}
           </button>
@@ -164,10 +167,12 @@ export function Photos() {
               🌈 Google Photos
             </button>
           )}
-          <button type="button" className="pill btn-primary" style={{ color: 'var(--on-accent)', border: 0, cursor: 'pointer' }} onClick={() => setAdding(true)}>
-            <Icon name="plus" />
-            <span>Add photos</span>
-          </button>
+          <Editable>
+            <button type="button" className="pill btn-primary" style={{ color: 'var(--on-accent)', border: 0, cursor: 'pointer' }} onClick={() => setAdding(true)}>
+              <Icon name="plus" />
+              <span>Add photos</span>
+            </button>
+          </Editable>
         </div>
       ),
     [newest, selectMode, selected, photos.length, albumFilter, googleConnected]

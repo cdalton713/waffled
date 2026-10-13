@@ -44,7 +44,7 @@
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .rhy-sub { margin-top: 1px; }
-.rhy-late { color: var(--danger); font-weight: 700; }
+.rhy-late { color: var(--danger-tx); font-weight: 700; }
 
 .rhy-acts { display: flex; align-items: center; gap: 6px; flex: none; }
 .rhy-act { flex: none; padding: 6px 12px; font-size: 13px; }
@@ -125,15 +125,15 @@
   letter-spacing: -0.02em; line-height: 1; color: var(--ink);
 }
 .rhy-cd span { display: block; font-size: 12px; font-weight: 700; color: var(--ink-3); margin-top: 3px; }
-.rhy-cd.late b, .rhy-cd.late span { color: var(--danger); }
+.rhy-cd.late b, .rhy-cd.late span { color: var(--danger-tx); }
 .rhy-cd.soft b { color: var(--ink-2); }
-.rhy-cd.done b { font-family: var(--sans); font-size: 15px; font-weight: 700; color: var(--success); }
+.rhy-cd.done b { font-family: var(--sans); font-size: 15px; font-weight: 700; color: var(--success-tx); }
 
 .rhy-actcell { justify-self: end; width: 100%; }
 .rhy-actcell .btn { width: 100%; justify-content: center; padding: 10px 0; font-size: 14px; }
 /* Already done today. Settled rather than merely disabled — a greyed-out button reads
    as "you can't", and the point here is "you already did". */
-.rhy-done { background: var(--success-t); color: var(--success); border-color: transparent; opacity: 1; cursor: default; }
+.rhy-done { background: var(--success-t); color: var(--success-tx); border-color: transparent; opacity: 1; cursor: default; }
 
 .rhy-more {
   width: 30px; height: 30px; border-radius: 999px; border: 0; background: transparent;
@@ -153,7 +153,7 @@
 }
 .rhy-menu button:hover { background: var(--card-2); }
 .rhy-menu button:disabled { opacity: 0.5; cursor: default; }
-.rhy-menu button.warn { color: var(--danger); }
+.rhy-menu button.warn { color: var(--danger-tx); }
 .rhy-menu hr { border: 0; border-top: 1px solid var(--hair-2); margin: 5px 8px; }
 
 /* Paused rhythms, named rather than counted — "2 paused" makes you open it to find
@@ -263,7 +263,7 @@ input.rhy-tok::placeholder { color: var(--ink-3); font-weight: 600; }
 }
 .rhy-conseq b { color: var(--ink); font-weight: 750; }
 .rhy-conseq-ic { flex: none; margin-top: 1px; }
-.rhy-conseq-ic svg { width: 17px; height: 17px; fill: none; stroke: var(--success);
+.rhy-conseq-ic svg { width: 17px; height: 17px; fill: none; stroke: var(--success-tx);
   stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 .rhy-conseq-cap { margin-top: 7px; font-size: 12.5px; color: var(--ink-3); }
 
@@ -295,5 +295,5 @@ input.rhy-tok::placeholder { color: var(--ink-3); font-weight: 600; }
   margin-top: 4px;
   font-size: 12px;
   line-height: 1.4;
-  color: var(--danger);
+  color: var(--danger-tx);
 }

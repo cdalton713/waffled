@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
+import { setViewOnly } from '../../lib/viewOnly'
 import { MemoryRouter } from 'react-router'
 import { RecipeView } from './RecipeView'
 import type { RecipeDetail, RecipeIngredient } from '../../lib/api'
@@ -72,6 +73,15 @@ function renderView() {
 }
 
 describe('RecipeView — add ingredients to grocery', () => {
+  it('Kiosk mode hides Edit recipe but keeps Add to grocery', async () => {
+    setViewOnly(true)
+    try {
+      renderView()
+      expect((await screen.findAllByRole('button', { name: 'Add to grocery' })).length).toBeGreaterThan(0)
+      expect(screen.queryByRole('button', { name: 'Edit recipe' })).toBeNull()
+    } finally { setViewOnly(false) }
+  })
+
   // "Add to grocery" opens a picker so the shopper can add all or just the items they
   // need; the POST happens when they confirm inside the modal.
   beforeEach(() => {

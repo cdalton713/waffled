@@ -37,7 +37,7 @@
 /* tile delete affordance on the wall — always visible so it works on touch
    (was hover-only); a tap opens a confirm dialog rather than deleting outright. */
 .ph-del { position: absolute; top: 9px; left: 10px; width: 30px; height: 30px; border: 0;
-  border-radius: 999px; background: rgba(0,0,0,.42); color: var(--on-accent); font-size: 18px; line-height: 1;
+  border-radius: 999px; background: rgba(0, 0, 0, .58); color: var(--on-media); font-size: 18px; line-height: 1;
   display: grid; place-items: center; cursor: pointer; backdrop-filter: blur(4px);
   opacity: .85; transition: opacity .12s, background .12s; }
 .ph-tile:hover .ph-del { opacity: 1; }
@@ -47,7 +47,7 @@
 .ph-tile.selecting { cursor: pointer; }
 .ph-tile.selected { box-shadow: 0 0 0 3px var(--primary); }
 .ph-check { position: absolute; top: 9px; left: 10px; width: 28px; height: 28px; border-radius: 999px;
-  border: 2px solid #fff; background: rgba(0,0,0,.35); color: var(--on-accent); display: grid; place-items: center;
+  border: 2px solid #fff; background: rgba(0, 0, 0, .58); color: var(--on-media); display: grid; place-items: center;
   font-size: 16px; font-weight: 800; line-height: 1; box-shadow: 0 1px 5px rgba(0,0,0,.35); }
 .ph-tile.selected .ph-check { background: var(--primary); }
 
@@ -73,19 +73,19 @@
 .ap-pick { display: flex; flex-direction: column; align-items: center; gap: 18px; width: 100%; }
 .ap-drop { width: min(640px, 100%); min-height: 340px; display: flex; flex-direction: column;
   align-items: center; justify-content: center; gap: 6px; text-align: center;
-  background: rgba(255,255,255,.5); border: 2px dashed var(--line);
+  background: color-mix(in srgb, var(--card) 50%, transparent); border: 2px dashed var(--line);
   border-radius: var(--r-xl); padding: 40px; cursor: pointer; color: var(--ink);
   transition: border-color .15s, background .15s, transform .15s; }
-.ap-drop:hover { border-color: var(--primary); background: rgba(255,255,255,.72); }
+.ap-drop:hover { border-color: var(--primary); background: color-mix(in srgb, var(--card) 72%, transparent); }
 .ap-drop.over { border-color: var(--primary); border-style: solid; background: rgba(208,107,79,.08);
   transform: scale(1.01); }
 .ap-drop.busy { cursor: default; }
 .ap-drop-icon { font-size: 56px; line-height: 1; margin-bottom: 10px; }
 .ap-drop-title { font-size: 21px; font-weight: 700; }
 .ap-drop-sub { font-size: 15px; color: var(--ink-3); }
-.ap-drop-link { color: var(--primary); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.ap-drop-link { color: var(--primary-d); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 .ap-drop-meta { margin-top: 14px; }
-.ap-err { color: var(--danger); font-weight: 700; }
+.ap-err { color: var(--danger-tx); font-weight: 700; }
 
 /* staged state: a "Album for all" bar over a list of per-photo rows */
 .ap-batch { width: min(720px, 100%); display: flex; flex-direction: column; gap: 14px; }
@@ -106,8 +106,8 @@
 .ap-row-meta { display: flex; gap: 10px; align-items: center; }
 .ap-row-album { flex: 1; min-width: 0; }
 .ap-row-del { flex: none; width: 34px; height: 34px; border-radius: 999px; border: 0;
-  background: var(--overlay-hover); color: var(--ink-3); font-size: 22px; line-height: 1; cursor: pointer; }
-.ap-row-del:hover { background: rgba(192,57,43,.12); color: var(--danger); }
+  background: var(--overlay-hover); color: var(--ink-2); font-size: 22px; line-height: 1; cursor: pointer; }
+.ap-row-del:hover { background: rgba(192,57,43,.12); color: var(--danger-tx); }
 
 .ap-field-label { display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 700;
   color: var(--ink-3); letter-spacing: .02em; }
@@ -125,7 +125,7 @@
 .pd-stage { border-radius: var(--r-xl); display: grid; place-items: center; font-size: 170px;
   box-shadow: var(--sh-2); position: relative; overflow: hidden; }
 .pd-stage img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
-.pd-stage-cap { position: absolute; left: 24px; bottom: 22px; color: var(--on-accent); text-shadow: 0 2px 12px rgba(0,0,0,.4); }
+.pd-stage-cap { position: absolute; left: 24px; bottom: 22px; color: var(--on-media); text-shadow: 0 2px 12px rgba(0,0,0,.4); }
 .pd-stage-cap .wf-serif { font-size: 30px; font-weight: 600; }
 .pd-stage-sub { font-size: 14px; font-weight: 600; opacity: .92; }
 .pd-side { display: flex; flex-direction: column; gap: 14px; min-height: 0; }
@@ -133,7 +133,7 @@
 .pd-edit-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 4px; }
 /* Album value rendered as a link in the Details card → opens the album view */
 .pd-album-link { margin-left: auto; border: 0; background: none; cursor: pointer;
-  font-size: 13px; font-weight: 700; color: var(--primary); display: inline-flex; align-items: center; gap: 4px; }
+  font-size: 13px; font-weight: 700; color: var(--primary-d); display: inline-flex; align-items: center; gap: 4px; }
 .pd-album-link:hover { text-decoration: underline; }
 /* compact "view the rest of this album" CTA (content-sized, not full width/height) */
 .pd-album-cta { align-self: flex-start; display: inline-flex; align-items: center; gap: 8px;
@@ -144,7 +144,7 @@
 
 /* ---- screensaver (full-screen takeover) ----------------------- */
 .ph-saver { position: fixed; inset: 0; z-index: 1000; overflow: hidden; cursor: pointer;
-  display: grid; place-items: center; color: var(--on-accent); }
+  display: grid; place-items: center; color: var(--on-media); }
 .ph-saver-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 /* the incoming photo fades in over the outgoing one (crossfade, no hard cut) */
 .ph-saver-img-top { animation: ph-saver-fade 1100ms ease both; }
@@ -162,7 +162,7 @@
 .ph-saver-meta .wf-serif { font-size: 34px; font-weight: 600; }
 .ph-saver-meta-sub { font-size: 16px; font-weight: 600; opacity: .9; }
 .ph-saver-next { position: absolute; right: 54px; bottom: 84px; font-size: 20px; font-weight: 700;
-  color: var(--on-accent); opacity: .95; text-shadow: 0 2px 14px rgba(0,0,0,.4); }
+  color: var(--on-media); opacity: .95; text-shadow: 0 2px 14px rgba(0,0,0,.4); }
 .ph-saver-thumbs { position: absolute; left: 50%; bottom: 36px; transform: translateX(-50%);
   display: flex; gap: 12px; align-items: center; }
 .ph-saver-thumb { width: 54px; height: 54px; border-radius: 12px; display: grid; place-items: center;

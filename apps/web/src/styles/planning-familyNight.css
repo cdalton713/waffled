@@ -165,7 +165,7 @@
   margin-top: 2px;
 }
 .wpfn-sug.pinned {
-  color: var(--person-3);
+  color: var(--person-3-tx);
 }
 
 .wpfn-faces {
@@ -250,7 +250,7 @@
 .wpfn-err {
   font-size: 13px;
   font-weight: 700;
-  color: var(--danger);
+  color: var(--danger-tx);
   padding: 0 4px;
 }
 

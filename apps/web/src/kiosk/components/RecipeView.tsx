@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { Editable } from '../../lib/viewOnly'
 import { useNavigate } from 'react-router'
 import { mealBuilderApi, mealsApi, pantryApi, useRecipe, useRecordRecipeView, type RecipeIngredient, type RecipeMatch, type RecipeOverrides, type RecipeStep } from '../../lib/api'
 import { ScheduleModal } from './ScheduleModal'
@@ -19,9 +20,11 @@ function RecipeActionIcons({ fav, onFav, onEdit, onSchedule, onAddToGrocery, onS
       <button type="button" className="icon-btn" aria-label="Add to grocery" onClick={onAddToGrocery}>
         <svg viewBox="0 0 24 24"><path d="M2.5 4h2.4l2.2 11.2a1.6 1.6 0 0 0 1.6 1.3h8.9a1.6 1.6 0 0 0 1.6-1.2l1.8-7.3H6.1M9.5 20.2a.9.9 0 1 1-1.8 0 .9.9 0 0 1 1.8 0zM18.6 20.2a.9.9 0 1 1-1.8 0 .9.9 0 0 1 1.8 0z" /></svg>
       </button>
-      <button type="button" className="icon-btn" aria-label="Edit recipe" onClick={onEdit}>
-        <svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" /></svg>
-      </button>
+      <Editable>
+        <button type="button" className="icon-btn" aria-label="Edit recipe" onClick={onEdit}>
+          <svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" /></svg>
+        </button>
+      </Editable>
       <button type="button" className="icon-btn" aria-label="Schedule" onClick={onSchedule}>
         <svg viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="16" rx="3" /><path d="M3 9.5h18M8 2.5v4M16 2.5v4" /></svg>
       </button>

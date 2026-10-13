@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { Editable } from '../lib/viewOnly'
 import {
   rhythmsApi,
   useRhythms,
@@ -465,7 +466,7 @@ export function Rhythms() {
             Things that should keep happening. Soonest first.
           </div>
         </div>
-        <button type="button" className="btn btn-primary" onClick={() => setCreating(true)}>New rhythm</button>
+        <Editable><button type="button" className="btn btn-primary" onClick={() => setCreating(true)}>New rhythm</button></Editable>
       </div>
 
       {loading && <div className="rhy-empty">Loading…</div>}

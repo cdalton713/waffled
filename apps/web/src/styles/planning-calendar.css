@@ -46,7 +46,7 @@
   text-transform: uppercase; color: var(--ink-3);
 }
 .wpc-date { display: block; font-size: 19px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.2; }
-.wpc-row.today .wpc-dow, .wpc-row.today .wpc-date { color: var(--primary); }
+.wpc-row.today .wpc-dow, .wpc-row.today .wpc-date { color: var(--primary-d); }
 
 .wpc-evs { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; }
 
@@ -91,7 +91,7 @@
   font: inherit; font-size: 16px; font-weight: 600; line-height: 1;
   color: var(--ink-3); cursor: pointer;
 }
-.wpc-add:hover:not(:disabled), .wpc-add:focus-visible { border-color: var(--primary); color: var(--primary); }
+.wpc-add:hover:not(:disabled), .wpc-add:focus-visible { border-color: var(--primary); color: var(--primary-d); }
 .wpc-add:disabled { opacity: 0.3; cursor: default; }
 
 /* ── Below the card ─────────────────────────────────────────────────────────── */

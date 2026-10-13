@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useViewOnly } from '../../lib/viewOnly'
 import { Link } from 'react-router'
 import { useChoresToday, useCurrencies, useHousehold, can, type PersonChores } from '../../lib/api'
 import { SpotAwardModal } from './SpotAwardModal'
@@ -89,6 +90,7 @@ export function ChoresCard() {
   // A parent who can hand out ad-hoc stars gets a quick-tap entry point right on
   // the card — no picker preset, so they choose who in the modal.
   const canAward = can(me, 'reward.grant')
+  const viewOnly = useViewOnly()
   const [awarding, setAwarding] = useState(false)
   return (
     <div className="card" style={{ padding: '18px 20px' }}>
@@ -111,7 +113,7 @@ export function ChoresCard() {
       {withChores.map((p) => (
         <Ring key={p.id} person={p} sym={sym} />
       ))}
-      {canAward && (
+      {canAward && !viewOnly && (
         <button
           type="button"
           className="chores-card-row"

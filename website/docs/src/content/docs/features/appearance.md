@@ -1,16 +1,30 @@
 ---
 title: Appearance & dark mode
-description: Choose Light, Dark, or Match system, and a typeface — saved per device.
+description: Choose Classic or Kitchen, light or dark, Match system, and a typeface — saved per device.
 ---
 
 Waffled ships with a **warm dark theme** alongside the original light one. Pick how it looks
 from **Settings → Appearance**.
 
 ## Choosing a theme
-- **Light** — the warm-white canvas Waffled has always had.
-- **Dark** — a *warm* dark: soft charcoals rather than cold black-and-blue.
+- **Classic** — the warm-white canvas Waffled has always had.
+- **Classic dark** — a *warm* dark: soft charcoals rather than cold black-and-blue.
+- **Kitchen** — built for a wall tablet (see below).
+- **Kitchen night** — the Kitchen look on a deep green-black, for evenings.
 - **Match system** — follow your device's own light/dark setting automatically, including when
-  it flips on a schedule (e.g. sundown).
+  it flips on a schedule (e.g. sundown). It keeps whichever palette (Classic or Kitchen) you picked.
+
+## The Kitchen theme
+Kitchen is tuned for a 10.1" tablet (1280×800) on the counter, read from the stove or the sink:
+
+- A cool **tile-grey** background with crisp white cards and a **dark basil** nav rail.
+- A **tomato** accent for the main action, **basil green** for done, **mustard** for stars.
+- **Atkinson Hyperlegible** for body text, a typeface designed to stay readable at a distance and
+  for low vision, with **Bricolage Grotesque** for headings and the clock.
+- A larger clock and bigger touch targets: buttons and toggles are at least 48px tall.
+
+The fonts ship with Waffled, so the theme works on a tablet with no internet access. Pair it with
+[Kiosk mode](/features/kiosk/#kiosk-mode) to hide the editing controls on a wall display.
 
 The choice **saves on that device only** and applies **instantly** — no reload, no server
 round-trip. Set it once on the kitchen kiosk and once on your phone; they're independent.
@@ -23,7 +37,7 @@ where you stand:
 
 | Typeface | Font | Good for |
 |---|---|---|
-| **Classic** | The theme's own | The default look. |
+| **Classic** | The theme's own (Kitchen: Bricolage Grotesque + Atkinson Hyperlegible) | The default look. |
 | **Clear** | Lexend | Wide letters and a tall x-height: the easiest to read from across the room. |
 | **Hyperlegible** | Atkinson Hyperlegible Next | Every letter is distinct (I l 1, 0 O), for low vision and quick glances. |
 | **Friendly** | Nunito | Rounded and warm; the clock and headings stay crisp. |
@@ -50,7 +64,8 @@ keeping the accent hues fixed is what makes the app still feel like Waffled with
 | Web / Kiosk | ✅ |
 | iPhone / iPad | ✅ |
 
-Dark mode is available on the web, the kitchen kiosk display, and the iPhone/iPad app. The phone
+Dark mode is available on the web, the kitchen kiosk display, and the iPhone/iPad app. The
+**Kitchen** palettes are **web and kiosk only** for now. The phone
 and iPad mirror the exact same warm-dark palette and the same **Settings → Appearance** control
 (Light / Dark / Match system, saved per device), so a screen reads the same with the lights off on
 your phone as it does on the wall.

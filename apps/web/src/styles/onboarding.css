@@ -53,7 +53,7 @@
   color: var(--ink-2);
 }
 .ob-chip.done {
-  color: var(--success);
+  color: var(--success-tx);
   border-color: color-mix(in srgb, var(--success) 35%, transparent);
   background: color-mix(in srgb, var(--success) 8%, transparent);
 }
@@ -154,7 +154,7 @@
   align-items: center;
   gap: 8px;
   font-weight: 700;
-  color: var(--success);
+  color: var(--success-tx);
 }
 
 /* member / generic list rows inside a step */
@@ -180,7 +180,7 @@
   display: grid;
   place-items: center;
   font-size: 16px;
-  color: var(--on-accent);
+  color: var(--on-media);
   flex: none;
 }
 .ob-row-name {
@@ -241,7 +241,7 @@
   font-size: 15px;
   padding: 11px 13px;
   border-radius: var(--r-md);
-  border: 1px solid var(--hair);
+  border: 1px solid var(--control-line);
   background: var(--card-2);
   color: var(--ink);
   width: 100%;
@@ -275,10 +275,10 @@
 .ob-seg-btn.on {
   border-color: var(--primary);
   background: color-mix(in srgb, var(--primary) 12%, transparent);
-  color: var(--primary);
+  color: var(--primary-d);
 }
 .ob-err {
-  color: var(--primary);
+  color: var(--primary-d);
   font-size: 13px;
   font-weight: 700;
   margin-top: -4px;
@@ -286,7 +286,7 @@
 }
 .ob-saved {
   font-weight: 700;
-  color: var(--success);
+  color: var(--success-tx);
   font-size: 13px;
 }
 

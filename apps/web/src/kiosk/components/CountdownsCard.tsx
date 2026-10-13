@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Editable } from '../../lib/viewOnly'
 import { useNavigate } from 'react-router'
 import { useCountdowns, countdownsApi, countdownLabel, type Countdown } from '../../lib/api'
 
@@ -58,7 +59,7 @@ export function CountdownsCard() {
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 6 }}>
         <div className="card-h" style={{ fontSize: 23 }}>Countdowns</div>
         <div className="muted" style={{ fontWeight: 600 }}>{countdowns.length}</div>
-        <button type="button" className="pill" style={{ marginLeft: 'auto', cursor: 'pointer' }} onClick={() => setAdding(true)}>+ Add</button>
+        <Editable><button type="button" className="pill" style={{ marginLeft: 'auto', cursor: 'pointer' }} onClick={() => setAdding(true)}>+ Add</button></Editable>
       </div>
 
       {loading && <div className="muted" style={{ padding: '14px 4px' }}>Loading…</div>}

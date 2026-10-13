@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { Editable, useViewOnly } from '../lib/viewOnly'
 import { useNavigate } from 'react-router'
 import { Icon } from './icons'
 import { PlanWeek } from './components/PlanWeek'
@@ -58,6 +59,7 @@ function PlannedCell({ entry, mealType, slotKey, onOpen, onRemove }: { entry: We
           {entry.cook.avatarEmoji ?? '🧑‍🍳'}
         </div>
       )}
+      <Editable>
       <button
         type="button"
         className="meal-remove"
@@ -70,12 +72,15 @@ function PlannedCell({ entry, mealType, slotKey, onOpen, onRemove }: { entry: We
       >
         ×
       </button>
+      </Editable>
       <div className="meal-t">{title}</div>
     </div>
   )
 }
 
 function AddCell({ onAdd, label, slotKey }: { onAdd: () => void; label: string; slotKey: string }) {
+  // Kiosk mode keeps the grid's shape but drops the tap-to-plan target.
+  if (useViewOnly()) return <div className="meals-cell" data-slot={slotKey} />
   return (
     <div className="meals-cell meals-add" data-slot={slotKey} onClick={onAdd} role="button" tabIndex={0} aria-label={label}>
       <Icon name="plus" />
@@ -163,6 +168,7 @@ function monthStartOf(d: Date): Date {
 
 export function Meals() {
   const navigate = useNavigate()
+  const viewOnly = useViewOnly()
   // Which day the household starts its week on. Sunday until the household resolves —
   // that's what this screen always assumed, so a Sunday household never sees a shift
   // and a Monday one settles into place as soon as the setting arrives.
@@ -454,10 +460,12 @@ export function Meals() {
           <Icon name="recipes" />
           <span>Explore recipes</span>
         </button>
-        <button type="button" className="btn btn-ai" style={{ fontSize: 14, padding: '10px 18px' }} onClick={() => (view === 'month' ? setPlanningMonth(true) : setPlanning(true))}>
-          <Icon name="spark" />
-          {view === 'month' ? 'Plan my month' : 'Plan my week'}
-        </button>
+        <Editable>
+          <button type="button" className="btn btn-ai" style={{ fontSize: 14, padding: '10px 18px' }} onClick={() => (view === 'month' ? setPlanningMonth(true) : setPlanning(true))}>
+            <Icon name="spark" />
+            {view === 'month' ? 'Plan my month' : 'Plan my week'}
+          </button>
+        </Editable>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 10, alignItems: 'center' }}>
           <button type="button" className="pill meals-nav" aria-label={view === 'month' ? 'Previous month' : 'Previous week'} onClick={() => step(-1)}>
             <Icon name="cl" />
@@ -469,7 +477,7 @@ export function Meals() {
         </div>
       </div>
       <div className="meals-hint">
-        {view === 'month' ? 'Dinners for the month · tap a night to add or open a recipe · drag a meal onto another day to swap' : "Tap a meal for the recipe · tap + to add one · drag a meal to another slot to swap"}
+        {viewOnly ? 'Tap a meal for the recipe' : view === 'month' ? 'Dinners for the month · tap a night to add or open a recipe · drag a meal onto another day to swap' : "Tap a meal for the recipe · tap + to add one · drag a meal to another slot to swap"}
       </div>
 
       {view === 'month' ? (
@@ -572,6 +580,7 @@ function MonthCell({
         <div className="mm-meal" title={title ?? undefined}>
           <span className="mm-emoji">{emoji}</span>
           <span className="mm-title">{title}</span>
+          <Editable>
           <button
             type="button"
             className="mm-remove"
@@ -583,6 +592,7 @@ function MonthCell({
           >
             ×
           </button>
+          </Editable>
         </div>
       ) : (
         inMonth && <div className="mm-add"><Icon name="plus" /></div>

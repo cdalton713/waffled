@@ -35,6 +35,7 @@ Legend: ✅ supported · 🟡 partial · 🚧 planned · ❌ not supported / N-A
 | --- | :---: | :---: | :---: | --- |
 | First-run **setup wizard** (create household + admin) | ✅ | ❌ N/A | ❌ N/A | ✅ Done — **web/server-only by design**, not planned for mobile (mobile shows a "finish setup on the web" notice) |
 | **Dark mode** + Settings → Appearance (Light / Dark / Match system) | ✅ | ✅ | ✅ | ✅ Done — web/kiosk **and** iPhone/iPad share one warm-dark palette (`apps/ios/DARK_MODE.md`) |
+| **Kitchen theme** (Kitchen / Kitchen night) for a 10.1" wall tablet | ✅ | ❌ | ❌ | ✅ Done — web/kiosk only; a `data-palette` axis beside light/dark, self-hosted Atkinson Hyperlegible + Bricolage Grotesque |
 | **Typeface picker** (Classic / Clear / Hyperlegible / Friendly / Early reader), per device | ✅ | ❌ | ❌ | ✅ Done — web/kiosk only; a `data-typeface` axis that swaps `--sans`/`--serif`, self-hosted Lexend, Atkinson Hyperlegible Next, Nunito, Andika |
 | **Email/password** login (built-in) | ✅ | ✅ | ✅ | ✅ Done |
 | Rotating refresh tokens + transparent 401-refresh | ✅ | ✅ | ✅ | ✅ Done (Keychain token store) |
@@ -62,6 +63,7 @@ Legend: ✅ supported · 🟡 partial · 🚧 planned · ❌ not supported / N-A
 | Screensaver settings (source all/favorites/album, speed, shuffle) | ✅ | ✅ | ✅ | ✅ Done (Display & Kiosk) |
 | **Live "Preview"** of the screensaver from settings | ✅ | ✅ | ✅ | ✅ Done |
 | **Night dimming** on a schedule (overnight) | ✅ | ❌ N/A | ✅ | ✅ Done |
+| **Kiosk mode** — per-device view-only switch that hides creation/edit controls | ✅ | ❌ N/A | ❌ | ✅ Done — web/kiosk only (Display & Kiosk); check-offs, timers, approvals and cook mode keep working |
 | Keep-awake while displaying (`isIdleTimerDisabled`) | ✅ | ❌ N/A | ✅ | ✅ Done |
 | **Slow-zoom (Ken-Burns)** toggle | ❌ | 🟡 | ✅ | ✅ Done (iOS-only; device-local `@AppStorage`) |
 | **Live weather** (Open-Meteo, no key) | ✅ | ✅ | ✅ | ✅ Done (Today + screensaver) |

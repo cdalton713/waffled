@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Editable } from '../../lib/viewOnly'
 import { usePersons, useHousehold, eventsApi, type AgendaEvent } from '../../lib/api'
 import { useEventColor } from '../../lib/event-color'
 import { Icon } from '../icons'
@@ -170,10 +171,12 @@ export function AgendaView({
       <div className="ag-list">
         <div className="wf-serif ag-h">What's coming up</div>
         {/* Quick-add, matching the Day/Week bar — defaults to today. */}
-        <button type="button" className="wk-add ag-add" onClick={() => onCreate(todayKey)}>
-          <span className="wk-add-plus">＋</span>
-          <span className="wk-add-ph">Add an event…</span>
-        </button>
+        <Editable>
+          <button type="button" className="wk-add ag-add" onClick={() => onCreate(todayKey)}>
+            <span className="wk-add-plus">＋</span>
+            <span className="wk-add-ph">Add an event…</span>
+          </button>
+        </Editable>
         {groups.length === 0 && <div className="muted" style={{ padding: '14px 4px' }}>Nothing upcoming.</div>}
         {groups.map((g) => (
           <div key={g.key} className="ag-group">
@@ -181,7 +184,9 @@ export function AgendaView({
               <span className="wf-serif">{dayLabel(g.date, todayMid)}</span>
               <span className="muted">{g.date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
               {/* Add on this specific day — parity with tapping a day elsewhere. */}
-              <button type="button" className="ag-group-add" title={`Add an event on ${g.date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}`} aria-label="Add an event on this day" onClick={() => onCreate(g.key)}><Icon name="plus" /></button>
+              <Editable>
+                <button type="button" className="ag-group-add" title={`Add an event on ${g.date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}`} aria-label="Add an event on this day" onClick={() => onCreate(g.key)}><Icon name="plus" /></button>
+              </Editable>
             </div>
             {g.events.map((e) => (
               <AgendaRow key={e.id} event={e} past={isPastEvent(e, today)} color={colorOf(e)} onClick={() => onOpenEvent(e)} />

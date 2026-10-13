@@ -1,4 +1,5 @@
 import { Fragment, lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode, type PointerEvent as ReactPointerEvent } from 'react'
+import { Editable } from '../lib/viewOnly'
 import { AgendaCard } from './components/AgendaCard'
 import { TonightCardSlot, WeekDinnersCard } from './components/MealsColumn'
 import { ChoresCard } from './components/ChoresCard'
@@ -209,10 +210,12 @@ export function Today() {
         <CaptureBar />
       ) : (
         <div className="tb-today-actions">
-          <button type="button" className="pill today-customize" disabled={loading} onClick={() => setEditing(true)}>
-            ⠿ Customize
-            {source === 'user' && <span className="today-src-tag">personal</span>}
-          </button>
+          <Editable>
+            <button type="button" className="pill today-customize" disabled={loading} onClick={() => setEditing(true)}>
+              ⠿ Customize
+              {source === 'user' && <span className="today-src-tag">personal</span>}
+            </button>
+          </Editable>
           <CaptureBar />
         </div>
       ),
@@ -274,7 +277,7 @@ export function Today() {
 
   return (
     <div className={`today-wrap ${editing ? 'today-editing' : ''}`}>
-      <GettingStartedBar />
+      <Editable><GettingStartedBar /></Editable>
       {(showChores || rewardsEnabled(household)) && <ApprovalsBar />}
       {moduleEnabled(household, 'goals') && <GoalRecapBar />}
 

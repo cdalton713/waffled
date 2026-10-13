@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react'
+import { Editable } from '../../lib/viewOnly'
 import { type AgendaEvent, type Countdown } from '../../lib/api'
 import { evVars, useEventColor } from '../../lib/event-color'
 import { DOW_FULL, MONTHS, ymd, fmtHour, fmtTime, minutesOfDay, durationMin, packLanes } from './cal-utils'
@@ -63,10 +64,12 @@ export function DayView({
           <span className="wf-serif dv-dow">{DOW_FULL[day.getDay()]}</span>
           <span className="muted dv-date">{MONTHS[day.getMonth()]} {day.getDate()}</span>
         </div>
-        <button type="button" className="wk-add dv-add" onClick={() => onCreate(key)}>
-          <span className="wk-add-plus">＋</span>
-          <span className="wk-add-ph">Add an event…</span>
-        </button>
+        <Editable>
+          <button type="button" className="wk-add dv-add" onClick={() => onCreate(key)}>
+            <span className="wk-add-plus">＋</span>
+            <span className="wk-add-ph">Add an event…</span>
+          </button>
+        </Editable>
       </div>
 
       {(allDay.length > 0 || dayCountdowns.length > 0) && (

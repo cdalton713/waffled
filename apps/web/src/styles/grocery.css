@@ -110,7 +110,7 @@
   color: var(--ink-2);
 }
 .meal-badge.mt-breakfast { background: var(--warn-t); color: var(--warn); }
-.meal-badge.mt-lunch { background: var(--success-t); color: var(--success); }
+.meal-badge.mt-lunch { background: var(--success-t); color: var(--success-tx); }
 .meal-badge.mt-dinner { background: var(--person-1-t); color: var(--person-1-tx); }
 .meal-badge.mt-snack { background: var(--person-2-t); color: var(--person-2-tx); }
 /* recipe on the list but not on this week's plan */
@@ -368,7 +368,7 @@
   margin-top: 1px;
   font-size: 11.5px;
   font-weight: 700;
-  color: var(--success);
+  color: var(--success-tx);
   background: var(--success-t);
   border-radius: 999px;
   padding: 1px 8px;
@@ -480,7 +480,7 @@
 }
 .gdinner:hover .gdinner-x { opacity: 1; }
 .gdinner-x:hover,
-.gdinner-x:focus-visible { opacity: 1; color: var(--danger); }
+.gdinner-x:focus-visible { opacity: 1; color: var(--danger-tx); }
 .grocery-staples {
   display: flex;
   flex-wrap: wrap;
@@ -498,7 +498,7 @@
 }
 .staple-chip:hover {
   background: var(--person-3-t);
-  color: var(--success);
+  color: var(--success-tx);
 }
 .staple-chip.editable {
   display: inline-flex;
@@ -515,7 +515,7 @@
   cursor: pointer;
 }
 .staple-chip.editable button:hover {
-  color: var(--primary);
+  color: var(--primary-d);
 }
 
 @media (max-width: 1000px) {

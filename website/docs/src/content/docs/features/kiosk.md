@@ -16,6 +16,7 @@ Kiosk is the ambient-hub half of Waffled — the same web app, running fullscree
 - 🚪 **Exit / un-pair without signing in** — leave kiosk mode or un-pair the device without needing a login, so a shared tablet is never stuck.
 - ☀️ **Keep-awake while displaying** — the screen stays on while it's acting as the hub.
 - 🖼️ **Ambient screensaver** — idle auto-start after N minutes, a photo slideshow with crossfade, chrome (clock · date · weather · next event · album), scheduled night dimming, and a live Preview. See [Photos & screensaver](/features/photos/).
+- 🧊 **Kiosk mode** — a per-device switch that hides creation and editing controls so a wall tablet shows only content. See [Kiosk mode](#kiosk-mode) below.
 - 🌅 **Branded cold-start cover** — a Waffled cover shows while the first sync lands, so a booting tablet never looks broken.
 
 ## Where it works
@@ -31,6 +32,23 @@ The web build **is** the kiosk — run it fullscreen (PWA) on any counter tablet
 ## Settings
 
 **Settings → Display & Kiosk** holds it all — screensaver source, speed, and shuffle; the idle timeout; night-dim schedule; and the live preview. Device **pairing** and per-person **PINs** are configured here too. For the operator's step-by-step how-to, see the [Kiosk & devices](/administration/kiosk/) admin page.
+
+## Kiosk mode
+
+Turn on **Settings → Display & Kiosk → Kiosk mode** on the tablet itself. It's saved on that device
+only, so phones and laptops keep the full app.
+
+**Hidden in Kiosk mode:** the "Add anything" capture bar, Customize on Today, the Getting started
+card, every New / Add button (events, chores, goals, rhythms, lists, recipes, meals, rewards,
+countdowns, photos), empty meal-plan slots, the grocery and list add bars, row edit and delete,
+Scan and Add item in Pantry, Plan my week, Spot award, Edit recipe, Edit staples and Park a note.
+Tapping an empty calendar slot no longer opens the new-event form.
+
+**Still works:** checking off chores, groceries and list items, approvals, "I did it" on rhythms,
+cook mode and its timers, and all navigation. The freed space goes to content.
+
+To edit something, turn Kiosk mode off in the same place. Display & Kiosk is admin-only, so a
+child can't switch it off. Kiosk mode is **web and kiosk only**; the iPad app doesn't have it yet.
 
 ## Module
 

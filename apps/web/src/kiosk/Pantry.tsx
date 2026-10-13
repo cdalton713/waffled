@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { Editable } from '../lib/viewOnly'
 import { useNavigate } from 'react-router'
 import {
   usePantry, pantryApi, daysUntil, groceryApi, flaggedAllergens, uploadImage, ageLabel, monthsOnHand, ALLERGEN_LABELS, DIETARY_LABELS, productSourceLabel,
@@ -160,8 +161,10 @@ export function Pantry() {
         <div className="wf-serif pl-title">Pantry</div>
         <input className="pl-search" placeholder={`Search all ${counts.all} items…`} value={q} onChange={(e) => setQ(e.target.value)} />
         <div className="pl-head-actions">
-          <button type="button" className="pill" onClick={() => setScanning(true)}>⛶ Scan</button>
-          <button type="button" className="pill btn-primary" style={{ color: 'var(--on-accent)', border: 0 }} onClick={() => setEditing('new')}>+ Add item</button>
+          <Editable>
+            <button type="button" className="pill" onClick={() => setScanning(true)}>⛶ Scan</button>
+            <button type="button" className="pill btn-primary" style={{ color: 'var(--on-accent)', border: 0 }} onClick={() => setEditing('new')}>+ Add item</button>
+          </Editable>
         </div>
       </div>
 
@@ -441,7 +444,7 @@ function PantryDetail({ item, avoidAllergens, allergenPeople, onClose, onEdit, o
         )}
 
         <div className="pl-detail-acts">
-          <button type="button" className="pill" onClick={onEdit}>Edit</button>
+          <Editable><button type="button" className="pill" onClick={onEdit}>Edit</button></Editable>
         </div>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react'
+import { Editable } from '../lib/viewOnly'
 import { AvatarStack } from './components/Avatar'
 import { useNavigate, useSearchParams } from 'react-router'
 import { Icon } from './icons'
@@ -317,10 +318,12 @@ export function Goals() {
         {!listsLoading && lists.length === 0 && (
           <div className="tiny muted" style={{ padding: '4px 8px', fontWeight: 600 }}>No goal lists yet.</div>
         )}
-        <button type="button" className="btn btn-ghost rail-new-list" onClick={() => setCreatingList(true)}>
-          <Icon name="plus" />
-          New goal list
-        </button>
+        <Editable>
+          <button type="button" className="btn btn-ghost rail-new-list" onClick={() => setCreatingList(true)}>
+            <Icon name="plus" />
+            New goal list
+          </button>
+        </Editable>
       </div>
 
       <div className="goal-main">
@@ -365,6 +368,7 @@ export function Goals() {
                 goal.manage holders for any list, otherwise just their own self-only
                 list. A kid viewing a shared group lands on a clean (self-pickable)
                 create form instead of one that would 403 on submit. */}
+            <Editable>
             <button
               type="button"
               className="pill btn-primary"
@@ -378,6 +382,7 @@ export function Goals() {
               <Icon name="plus" />
               <span>New goal</span>
             </button>
+            </Editable>
           </div>
         </div>
 

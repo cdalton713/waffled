@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { setViewOnly } from '../../lib/viewOnly'
 import { GroceryCard } from './GroceryCard'
 
 interface Item {
@@ -39,6 +40,17 @@ function mockGrocery(initial: Array<Partial<Item>>) {
 }
 
 describe('GroceryCard', () => {
+  it('Kiosk mode hides the add input but keeps the items', async () => {
+    mockGrocery([{ name: 'Milk' }])
+    setViewOnly(true)
+    try {
+      render(<GroceryCard />)
+      expect(await screen.findByText('Milk')).toBeInTheDocument()
+      expect(screen.queryByLabelText('Add grocery item')).toBeNull()
+      expect(screen.queryByRole('button', { name: 'Remove Milk' })).toBeNull()
+    } finally { setViewOnly(false) }
+  })
+
   it('renders items from the api', async () => {
     mockGrocery([{ name: 'Milk' }, { name: 'Eggs' }])
     render(<GroceryCard />)

@@ -71,7 +71,7 @@
 .wp-handoff-h {
   display: flex; align-items: center; gap: 7px;
   font-size: 12px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase;
-  color: var(--primary);
+  color: var(--primary-d);
 }
 .wp-handoff-list { list-style: none; margin: 9px 0 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
 .wp-handoff-row {
@@ -112,7 +112,7 @@
 .wp-pne-tag:hover:not(:disabled):not(.on) { color: var(--ink); border-color: var(--ink-3); }
 .wp-pne-tag.on { background: var(--ink); border-color: var(--ink); color: var(--on-inverse); }
 .wp-pne-tag:disabled { cursor: default; opacity: 0.6; }
-.wp-pne-err { margin: 0; font-size: 12px; font-weight: 600; color: var(--danger); }
+.wp-pne-err { margin: 0; font-size: 12px; font-weight: 600; color: var(--danger-tx); }
 .wp-pne-acts { display: flex; gap: 7px; }
 .wp-pne-act { padding: 7px 13px; font-size: 12.5px; }
 

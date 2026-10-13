@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { Editable } from '../../lib/viewOnly'
 import { usePersons, type AgendaEvent, type Countdown } from '../../lib/api'
 import { evVars, useEventColor } from '../../lib/event-color'
 import { DOW, ymd, addDays, fmtHour, fmtTime, minutesOfDay, durationMin, eventPeople, packLanes } from './cal-utils'
@@ -78,10 +79,12 @@ export function WeekView({
   return (
     <div className="wk-screen">
       <div className="wk-bar">
-        <button type="button" className="wk-add" onClick={() => onCreate(ymd(weekStart))}>
-          <span className="wk-add-plus">＋</span>
-          <span className="wk-add-ph">Add an event…</span>
-        </button>
+        <Editable>
+          <button type="button" className="wk-add" onClick={() => onCreate(ymd(weekStart))}>
+            <span className="wk-add-plus">＋</span>
+            <span className="wk-add-ph">Add an event…</span>
+          </button>
+        </Editable>
         <div className="wk-chips">
           {persons.map((p) => {
             const on = selected.has(p.id)

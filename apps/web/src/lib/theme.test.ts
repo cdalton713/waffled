@@ -6,6 +6,9 @@ import {
   applyTheme,
   initTheme,
   THEME_KEY,
+  PALETTE_KEY,
+  readPalette,
+  setPalette,
   TYPEFACE_KEY,
   readTypeface,
   setTypeface,
@@ -38,6 +41,7 @@ function installMatchMedia(dark: boolean) {
 beforeEach(() => {
   localStorage.clear()
   document.documentElement.removeAttribute('data-theme')
+  document.documentElement.removeAttribute('data-palette')
   document.documentElement.removeAttribute('data-typeface')
 })
 afterEach(() => {
@@ -125,6 +129,40 @@ describe('theme store', () => {
     setPref('dark')
     expect(spy).toHaveBeenCalledOnce()
     window.removeEventListener('waffled:theme-changed', spy)
+  })
+})
+
+describe('palette store', () => {
+  it('defaults to "classic", also for a garbage stored value', () => {
+    expect(readPalette()).toBe('classic')
+    localStorage.setItem(PALETTE_KEY, 'neon')
+    expect(readPalette()).toBe('classic')
+  })
+
+  it('setPalette persists, stamps data-palette and notifies listeners', () => {
+    installMatchMedia(false)
+    const spy = vi.fn()
+    window.addEventListener('waffled:theme-changed', spy)
+    setPalette('kitchen')
+    expect(localStorage.getItem(PALETTE_KEY)).toBe('kitchen')
+    expect(document.documentElement.getAttribute('data-palette')).toBe('kitchen')
+    expect(spy).toHaveBeenCalledOnce()
+    window.removeEventListener('waffled:theme-changed', spy)
+  })
+
+  it('is independent of light/dark: Kitchen night is kitchen + dark', () => {
+    installMatchMedia(false)
+    setPalette('kitchen')
+    setPref('dark')
+    expect(document.documentElement.getAttribute('data-palette')).toBe('kitchen')
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
+  })
+
+  it('initTheme applies the stored palette on boot', () => {
+    installMatchMedia(false)
+    localStorage.setItem(PALETTE_KEY, 'kitchen')
+    initTheme()
+    expect(document.documentElement.getAttribute('data-palette')).toBe('kitchen')
   })
 })
 

@@ -1,0 +1,152 @@
+/* ============================================================
+   KITCHEN palette — a wall-tablet skin (10.1", 1280×800, read from
+   across the room). Selected per device in Settings → Appearance or
+   Display & Kiosk; theme.ts stamps <html data-palette="kitchen">.
+   Light/dark is a separate axis, so "Kitchen night" is this block
+   plus the [data-theme="dark"] one below. Only tokens that differ
+   from waffled.css are listed; component overrides follow.
+   ============================================================ */
+:root[data-palette="kitchen"] {
+  /* surfaces — cool tile ground, crisp white cards, dark basil rail */
+  --bg:     #EDEFEA;
+  --rail:   #16201A;
+  --panel:  #E3E7E0;
+  --card:   #FFFFFF;
+  --card-2: #F6F8F4;
+
+  --ink:   #16201A;
+  --ink-2: #4D5852;
+  --ink-3: #606963;
+
+  --hair:  rgba(22,32,26,0.10);
+  --hair-2:rgba(22,32,26,0.05);
+  --line:  rgba(22,32,26,0.22);
+
+  /* tomato primary, mustard for stars & timers, basil for done */
+  --primary:   #C93A24;
+  --primary-d: #A82F1C;
+  --primary-t: #F6DDD7;
+  --gold: #B97A0B;
+  --gold-t:    #FDF1CC;
+  --gold-d: #81630B;
+  --success:   #2F6B4F;  --success-t: #DCEAE2;
+
+  --person-1:  #2F6FD6;  --person-1-t:  #E2EBFA;  --person-1-tx: #1E4FA0;
+  --person-2:  #C9457C;  --person-2-t:  #F8E3EC;  --person-2-tx: #9C2C5C;
+  --person-3:  #2F7A52;  --person-3-t:  #DDEDE4;  --person-3-tx: #1F5A3B;
+  --person-4:  #7A52D6;  --person-4-t:  #ECE5FA;  --person-4-tx: #5A35B0;
+
+  --control-track: #91968F;
+
+  --r-lg: 24px; --r-xl: 32px;
+  --sh-1: 0 1px 2px rgba(22,32,26,.06);
+  --sh-2: 0 1px 3px rgba(22,32,26,.06), 0 6px 18px rgba(22,32,26,.05);
+
+  /* Atkinson Hyperlegible is built for low-vision legibility — the point of a
+     screen read from the stove. Headings (.wf-serif) get Bricolage Grotesque. */
+  --font-sans:  "Atkinson Hyperlegible", system-ui, sans-serif;
+  --font-serif: "Bricolage Grotesque Variable", "Bricolage Grotesque", system-ui, sans-serif;
+  --sans:  var(--font-sans);
+  --serif: var(--font-serif);
+
+  /* Rail stays dark in both modes, so it has its own ink. */
+  --rail-ink:    #B9C4BC;
+  --rail-on:     #2A362F;
+  --rail-on-ink: #FFFFFF;
+
+  --success-tx: #2F6B4F;
+  --danger-tx: #BD3628;
+  --info-tx: #0A63CF;
+  --warn: #94590D;
+  --control-line: #7F8581;
+}
+
+:root[data-palette="kitchen"][data-theme="dark"] {
+  --bg:     #0E1410;
+  --rail:   #0A0F0C;
+  --panel:  #18211C;
+  --card:   #1C2620;
+  --card-2: #16201A;
+
+  --ink:   #E9EEE9;
+  --ink-2: #A9B5AD;
+  --ink-3: #7D8E85;
+
+  --hair:  rgba(233,238,233,.10);
+  --hair-2:rgba(233,238,233,.06);
+  --line:  rgba(233,238,233,.20);
+
+  --primary: #D2462E;
+  --primary-d: #F6745D;
+  --primary-t: rgba(224,83,59,.20);
+  --gold-t:    rgba(247,197,72,.18);  --gold-d: #F7C548;
+  --success: #2F855E;  --success-t: rgba(79,163,122,.20);
+
+  --person-1-t: rgba(47,111,214,.22);  --person-1-tx: #7FA8F0;
+  --person-2-t: rgba(201,69,124,.22);  --person-2-tx: #EB8DB4;
+  --person-3-t: rgba(47,122,82,.24);   --person-3-tx: #6CC296;
+  --person-4-t: rgba(122,82,214,.24);  --person-4-tx: #B9A3F5;
+
+  --control-track: #66706A;
+  --sh-1: 0 1px 2px rgba(0,0,0,.45);
+  --sh-2: 0 2px 10px rgba(0,0,0,.5);
+
+  --rail-ink: #8FA096;
+  --rail-on:  #1F2B24;
+
+  --warn: #E8A13E;
+  --gold: #F7C548;
+  --success-tx: #60B38A;
+  --danger-tx: #F8705F;
+  --info-tx: #559FFE;
+  --control-line: #66706B;
+}
+
+/* ===== type ==================================================== */
+:root[data-palette="kitchen"] .wf { letter-spacing: 0; }
+:root[data-palette="kitchen"] .wf-serif { letter-spacing: -0.02em; font-weight: 800; }
+
+/* ===== rail — dark basil, bigger targets ======================== */
+:root[data-palette="kitchen"] .wf-kiosk { grid-template-columns: 112px 1fr; }
+:root[data-palette="kitchen"] .rail { gap: 2px; padding: 14px 0 10px; }
+/* The taller items overflow the rail with every module on; without this the logo
+   (an img at height:100%) is what flex shrinks to nothing. */
+:root[data-palette="kitchen"] .rail > * { flex-shrink: 0; }
+:root[data-palette="kitchen"] .rail-item {
+  width: 92px; min-height: 56px; padding: 8px 0 6px; border-radius: 18px;
+  color: var(--rail-ink); font-size: 13px; font-weight: 700; justify-content: center;
+}
+:root[data-palette="kitchen"] .rail-item svg { width: 26px; height: 26px; stroke-width: 2.1; }
+:root[data-palette="kitchen"] .rail-item:hover { background: rgba(255,255,255,.06); color: var(--rail-on-ink); }
+:root[data-palette="kitchen"] .rail-item.on,
+:root[data-palette="kitchen"] .rail-item.on:hover {
+  background: var(--rail-on); color: var(--rail-on-ink); box-shadow: inset 4px 0 0 var(--primary);
+}
+:root[data-palette="kitchen"] .rail-switch { color: var(--rail-ink); font-size: 13px; }
+:root[data-palette="kitchen"] .rail-switch:hover { color: var(--rail-on-ink); }
+:root[data-palette="kitchen"] .rail-switch-av { width: 44px; height: 44px; border-radius: 50%; font-size: 22px; }
+
+/* ===== topbar — a clock you can read from the sink ============== */
+:root[data-palette="kitchen"] .topbar { padding: 20px 26px 12px; }
+:root[data-palette="kitchen"] .tb-date { font-size: 34px; }
+:root[data-palette="kitchen"] .tb-time {
+  font-family: var(--serif); font-size: 34px; font-weight: 800; color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+:root[data-palette="kitchen"] .tb-wx { font-size: 22px; font-weight: 700; }
+
+/* ===== touch targets (≥48px) ==================================== */
+:root[data-palette="kitchen"] .btn { min-height: 48px; font-size: 16px; padding: 12px 22px; border-radius: 16px; }
+:root[data-palette="kitchen"] .pill { min-height: 48px; font-size: 16px; border-radius: 16px; }
+:root[data-palette="kitchen"] .seg { border-radius: 16px; padding: 4px; }
+:root[data-palette="kitchen"] .seg button { min-height: 44px; font-size: 16px; font-weight: 700; padding: 8px 14px; border-radius: 12px; white-space: nowrap; }
+:root[data-palette="kitchen"] .seg button.on { background: var(--ink); color: var(--card); box-shadow: none; }
+:root[data-palette="kitchen"] .icon-btn { width: 48px; height: 48px; border-radius: 16px; }
+:root[data-palette="kitchen"] .toggle { width: 56px; height: 34px; }
+:root[data-palette="kitchen"] .toggle::after { width: 28px; height: 28px; }
+:root[data-palette="kitchen"] .toggle.on { background: var(--success); }
+:root[data-palette="kitchen"] .toggle.on::after { left: 25px; }
+
+/* ===== cards — flat white on tile, no heavy shadow ============== */
+:root[data-palette="kitchen"] .card { box-shadow: var(--sh-1); }
+:root[data-palette="kitchen"] .card-h { font-family: var(--serif); font-size: 22px; font-weight: 800; }

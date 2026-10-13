@@ -10,19 +10,25 @@
 //   'system'          → mirrors prefers-color-scheme and follows live OS changes
 // Default is 'system' so a fresh install matches the device out of the box.
 //
-// The typeface is a second, independent axis, `data-typeface`, which swaps
-// `--sans`/`--serif` (styles/typefaces.css). 'classic' removes it so the
-// palette's own fonts return.
+// The palette ('classic' | 'kitchen') is a second, independent axis stamped as
+// `data-palette`, so "Kitchen night" is simply kitchen + dark and every existing
+// `[data-theme="dark"]` rule keeps applying (styles/kitchen.css).
+//
+// The typeface is a third axis, `data-typeface`, which swaps `--sans`/`--serif`
+// (styles/typefaces.css). 'classic' removes it so the palette's own fonts return.
 
 import { useSyncExternalStore } from 'react'
 
 export type ThemePref = 'light' | 'dark' | 'system'
 export type ResolvedTheme = 'light' | 'dark'
 
+export type Palette = 'classic' | 'kitchen'
+
 export type Typeface = 'classic' | 'clear' | 'hyperlegible' | 'friendly' | 'early-reader'
 export const TYPEFACE_IDS: readonly Typeface[] = ['classic', 'clear', 'hyperlegible', 'friendly', 'early-reader']
 
 export const THEME_KEY = 'waffled:theme'
+export const PALETTE_KEY = 'waffled:palette'
 export const TYPEFACE_KEY = 'waffled:typeface'
 const DARK_MQ = '(prefers-color-scheme: dark)'
 
@@ -68,6 +74,35 @@ export function setPref(pref: ThemePref): void {
   }
 }
 
+/** The stored palette, defaulting to 'classic' (also for any garbage value). */
+export function readPalette(): Palette {
+  try {
+    if (localStorage.getItem(PALETTE_KEY) === 'kitchen') return 'kitchen'
+  } catch {
+    // Same private-mode caveat as readPref.
+  }
+  return 'classic'
+}
+
+export function applyPalette(palette: Palette): void {
+  if (typeof document !== 'undefined') {
+    document.documentElement.setAttribute('data-palette', palette)
+  }
+}
+
+/** Persist a palette, apply it, and notify listeners. */
+export function setPalette(palette: Palette): void {
+  try {
+    localStorage.setItem(PALETTE_KEY, palette)
+  } catch {
+    // Non-fatal: the choice just won't survive a reload.
+  }
+  applyPalette(palette)
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('waffled:theme-changed'))
+  }
+}
+
 /** The stored typeface, defaulting to 'classic' (also for any garbage value). */
 export function readTypeface(): Typeface {
   try {
@@ -104,6 +139,7 @@ export function setTypeface(typeface: Typeface): void {
 // once at startup; applyTheme is idempotent so a stray re-call is harmless.
 export function initTheme(): void {
   applyTheme(resolveTheme(readPref()))
+  applyPalette(readPalette())
   applyTypeface(readTypeface())
   if (typeof window === 'undefined' || !window.matchMedia) return
   const mq = window.matchMedia(DARK_MQ)
@@ -136,17 +172,19 @@ function subscribe(cb: () => void): () => void {
 // re-renders — a bare pref snapshot would be identical and bail out.
 function snapshot(): string {
   const p = readPref()
-  return `${p}|${resolveTheme(p)}|${readTypeface()}`
+  return `${p}|${resolveTheme(p)}|${readPalette()}|${readTypeface()}`
 }
 
 export function useThemePref(): {
   pref: ThemePref
   resolved: ResolvedTheme
+  palette: Palette
   typeface: Typeface
   setPref: (p: ThemePref) => void
+  setPalette: (p: Palette) => void
   setTypeface: (t: Typeface) => void
 } {
-  const snap = useSyncExternalStore(subscribe, snapshot, () => 'system|light|classic')
-  const [pref, resolved, typeface] = snap.split('|') as [ThemePref, ResolvedTheme, Typeface]
-  return { pref, resolved, typeface, setPref, setTypeface }
+  const snap = useSyncExternalStore(subscribe, snapshot, () => 'system|light|classic|classic')
+  const [pref, resolved, palette, typeface] = snap.split('|') as [ThemePref, ResolvedTheme, Palette, Typeface]
+  return { pref, resolved, palette, typeface, setPref, setPalette, setTypeface }
 }

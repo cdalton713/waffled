@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
+import { Editable } from '../../lib/viewOnly'
 import { useNavigate } from 'react-router'
 import { Icon } from '../icons'
 import { useTopbarFull } from '../topbar-slot'
@@ -246,10 +247,12 @@ function ItemRow({
       </span>
       {item.store && <span className="gstore" title={`Store: ${item.store}`}>🏬 {item.store}</span>}
       {item.quantity && <span className="gqty">{item.quantity}</span>}
-      <span className="gitem-acts" onClick={(e) => e.stopPropagation()}>
-        <button type="button" className="gact" title="Edit" onClick={() => { setName(item.name); setQty(item.quantityInput ?? item.quantity ?? ''); setSec(item.section ?? ''); setStore(item.store ?? ''); setEditing(true) }}>✎</button>
-        <button type="button" className="gact" title="Remove" onClick={onDelete}>🗑</button>
-      </span>
+      <Editable>
+        <span className="gitem-acts" onClick={(e) => e.stopPropagation()}>
+          <button type="button" className="gact" title="Edit" onClick={() => { setName(item.name); setQty(item.quantityInput ?? item.quantity ?? ''); setSec(item.section ?? ''); setStore(item.store ?? ''); setEditing(true) }}>✎</button>
+          <button type="button" className="gact" title="Remove" onClick={onDelete}>🗑</button>
+        </span>
+      </Editable>
     </div>
   )
 }
@@ -785,11 +788,13 @@ export function GroceryBoard({ onBack }: { onBack: () => void }) {
           )}
         </div>
 
-        <form className="ai-bar grocery-add" onSubmit={onAdd}>
-          <div className="ai-spark" aria-hidden><Icon name="spark" /></div>
-          <input ref={addRef} value={draft} onChange={(e) => setDraft(e.target.value)} placeholder={'Add to groceries… “bananas and oat milk”'} aria-label="Add to groceries" />
-          <div className="mic" aria-hidden><Icon name="mic" /></div>
-        </form>
+        <Editable>
+          <form className="ai-bar grocery-add" onSubmit={onAdd}>
+            <div className="ai-spark" aria-hidden><Icon name="spark" /></div>
+            <input ref={addRef} value={draft} onChange={(e) => setDraft(e.target.value)} placeholder={'Add to groceries… “bananas and oat milk”'} aria-label="Add to groceries" />
+            <div className="mic" aria-hidden><Icon name="mic" /></div>
+          </form>
+        </Editable>
 
         {board.items.length === 0 ? (
           <div className="muted" style={{ padding: '24px 2px', fontWeight: 600 }}>
@@ -949,7 +954,7 @@ export function GroceryBoard({ onBack }: { onBack: () => void }) {
         <div className="card grocery-railcard">
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
             <div className="card-h">Pantry check</div>
-            <button type="button" className="pill" style={{ marginLeft: 'auto', cursor: 'pointer' }} onClick={() => setEditStaples(true)}>☼ Edit staples</button>
+            <Editable><button type="button" className="pill" style={{ marginLeft: 'auto', cursor: 'pointer' }} onClick={() => setEditStaples(true)}>☼ Edit staples</button></Editable>
           </div>
           <div className="tiny muted" style={{ fontWeight: 600, marginBottom: 10 }}>
             These staples are assumed in the house, so they’re left off the list. Tap one to add it anyway.

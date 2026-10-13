@@ -5,7 +5,8 @@ import { useSyncHealth, type SyncHealthStatus } from '../lib/powersync/sync-heal
 import { restartPowerSyncHard } from '../lib/powersync/db'
 import { personsApi, permissionsApi, healthApi, updatesApi, type UpdateInfo, accountApi, type AccountInfo, apiKeysApi, captureApi, calendarsApi, mealsApi, currenciesApi, conversionsApi, rewardsApi, choresApi, goalCalendarApi, groceryApi, authApi, kioskApi, usePantry, pantryApi, useCountdowns, countdownsApi, DEFAULT_BIRTHDAY_HORIZON_DAYS, useFamilyNight, familyNightApi, weekdayName, type FamilyNightPart, useWeeklyPlanning, weeklyPlanningApi, planningDayName, ALLERGEN_LABELS, ALLERGEN_KEYS, isDisplayMode, setDisplayMode, isKioskMode, usePersons, useCurrencies, useConversions, useHousehold, useHouseholdSettings, useWeather, useEventsToday, usePhotos, googlePhotosApi, useGooglePhotosStatus, emitHouseholdChanged, CAPABILITIES, CAPABILITY_LABELS, ROLE_LABELS, type SettingsMember, type CaptureConfig, type Provider, type CalendarStatus, type CalendarLink, type IcsFeed, type MealCalendarSettings, type Currency, type MemoryGroup, type IgnoreGroup, type PantryStaple, type OidcConfig, type OidcConfigPatch, type KioskDevice, type DisplayConfig, type StoredProof, type PermissionMatrix, type Role, type Capability, type HealthReport, type HealthStatus, type ApiKey, type ApiScopeDef, type PlanningListCandidate } from '../lib/api'
 import { MODULES, moduleEnabled } from '../lib/modules'
-import { useThemePref } from '../lib/theme'
+import { useThemePref, type Palette, type ResolvedTheme } from '../lib/theme'
+import { setViewOnly, useViewOnly } from '../lib/viewOnly'
 import { eventStyle } from '../lib/display'
 import { familyColorHex } from '../lib/event-color'
 import { PersonModal } from './components/PersonModal'
@@ -3255,6 +3256,7 @@ function GooglePhotosRow({ albums, onImported }: { albums: string[]; onImported:
 
 function DisplayKioskPanel() {
   const paired = isKioskMode()
+  const viewOnly = useViewOnly()
   const [displayOn, setDisplayOn] = useState(isDisplayMode())
   const [cfg, setCfg] = useState<DisplayConfig | null>(null)
   const [error, setError] = useState(false)
@@ -3337,6 +3339,21 @@ function DisplayKioskPanel() {
         )}
       </SettingCard>
 
+      <SettingCard style={{ marginTop: 16 }}>
+        <SettingRow icon="🔒" title="Kiosk mode" sub="Hides add buttons, the capture bar, editors and Customize so content gets the room. Checking things off, timers, approvals and cook mode still work. This device only.">
+          <button
+            type="button"
+            role="switch"
+            aria-checked={viewOnly}
+            aria-label="Kiosk mode"
+            className={`toggle ${viewOnly ? 'on' : ''}`}
+            onClick={() => setViewOnly(!viewOnly)}
+          />
+        </SettingRow>
+      </SettingCard>
+
+      <div className="flabel" style={{ padding: '18px 2px 10px' }}>THEME ON THIS DEVICE</div>
+      <ThemePicker />
       <TypefaceSection />
 
       {error && <SettingCard style={{ marginTop: 16 }}><div className="muted" style={{ fontWeight: 600 }}>Couldn’t load display settings.</div></SettingCard>}
@@ -3491,12 +3508,12 @@ function ThemePreview({ label, active, pinned, colors, onSelect }: {
   label: string
   active: boolean
   pinned: boolean
-  colors: { bg: string; card: string; line: string }
+  colors: { bg: string; card: string; line: string; rail?: string }
   onSelect: () => void
 }) {
   return (
     <button type="button" className={`appr-card${pinned ? ' pinned' : ''}`} aria-pressed={pinned} onClick={onSelect}>
-      <div className="appr-mini" style={{ background: colors.bg }}>
+      <div className="appr-mini" style={{ background: colors.bg, boxShadow: colors.rail ? `inset 14px 0 0 ${colors.rail}` : undefined, paddingLeft: colors.rail ? 24 : undefined }}>
         <span className="appr-mini-line" style={{ background: colors.line }} />
         <span className="appr-mini-card" style={{ background: colors.card }} />
         <span className="appr-mini-card sm" style={{ background: colors.card }} />
@@ -3509,7 +3526,37 @@ function ThemePreview({ label, active, pinned, colors, onSelect }: {
   )
 }
 
-// Shared by Appearance and Display & Kiosk. Saved per device.
+const THEMES: Array<{ label: string; palette: Palette; mode: ResolvedTheme; colors: { bg: string; card: string; line: string; rail?: string } }> = [
+  { label: 'Classic', palette: 'classic', mode: 'light', colors: { bg: '#FAF7F2', card: '#FFFFFF', line: '#C9C3B8' } },
+  { label: 'Classic dark', palette: 'classic', mode: 'dark', colors: { bg: '#14110C', card: '#232019', line: '#4A453C' } },
+  { label: 'Kitchen', palette: 'kitchen', mode: 'light', colors: { bg: '#EDEFEA', card: '#FFFFFF', line: '#C93A24', rail: '#16201A' } },
+  { label: 'Kitchen night', palette: 'kitchen', mode: 'dark', colors: { bg: '#0E1410', card: '#1C2620', line: '#E0533B', rail: '#0A0F0C' } },
+]
+
+// Shared by Appearance and Display & Kiosk. Picking a card pins both the palette and
+// light/dark; "Match system" (Appearance) then flips light/dark within the palette.
+function ThemePicker() {
+  const { pref, resolved, palette, setPref, setPalette } = useThemePref()
+  return (
+    <div className="appr-grid four">
+      {THEMES.map((t) => {
+        const active = palette === t.palette && resolved === t.mode
+        return (
+          <ThemePreview
+            key={t.label}
+            label={t.label}
+            active={active}
+            pinned={active && pref !== 'system'}
+            colors={t.colors}
+            onSelect={() => { setPalette(t.palette); setPref(t.mode) }}
+          />
+        )
+      })}
+    </div>
+  )
+}
+
+// Shared by Appearance and Display & Kiosk, like ThemePicker. Saved per device.
 function TypefaceSection() {
   const { typeface, setTypeface } = useThemePref()
   return (
@@ -3533,22 +3580,7 @@ function AppearancePanel() {
       <div className="set-head"><div className="wf-serif set-head-t">Appearance</div></div>
 
       <div className="flabel" style={{ padding: '0 2px 10px' }}>THEME</div>
-      <div className="appr-grid">
-        <ThemePreview
-          label="Light"
-          active={resolved === 'light'}
-          pinned={pref === 'light'}
-          colors={{ bg: '#FAF7F2', card: '#FFFFFF', line: '#C9C3B8' }}
-          onSelect={() => setPref('light')}
-        />
-        <ThemePreview
-          label="Dark"
-          active={resolved === 'dark'}
-          pinned={pref === 'dark'}
-          colors={{ bg: '#14110C', card: '#232019', line: '#4A453C' }}
-          onSelect={() => setPref('dark')}
-        />
-      </div>
+      <ThemePicker />
 
       <SettingCard style={{ marginTop: 4 }}>
         <SettingRow icon="🌗" title="Match system" sub="Follow your device's light/dark setting automatically.">
@@ -3566,7 +3598,7 @@ function AppearancePanel() {
       <TypefaceSection />
 
       <div className="tiny muted" style={{ padding: '12px 2px 0', fontWeight: 600 }}>
-        These choices are saved on this device only.
+        These choices are saved on this device only. Kitchen is tuned for a wall tablet: larger type and touch targets.
       </div>
     </div>
   )

@@ -1,0 +1,101 @@
+{
+  "projectId": "cf419ade-a7d9-4a9e-a89e-bd09b6f306a2",
+  "shape": "package",
+  "pkg": "@waffled/web",
+  "globalName": "Waffled",
+  "entry": ".design-sync/entry.ts",
+  "tsconfig": "tsconfig.json",
+  "componentSrcMap": {
+    "Icon": "src/kiosk/icons.tsx",
+    "Star": "src/kiosk/icons.tsx",
+    "Check": "src/kiosk/icons.tsx",
+    "Avatar": "src/kiosk/components/Avatar.tsx",
+    "PersonAv": "src/kiosk/components/Avatar.tsx",
+    "AvatarStack": "src/kiosk/components/Avatar.tsx",
+    "ChipEditor": "src/kiosk/components/ChipEditor.tsx",
+    "ColorPicker": "src/kiosk/components/ColorPicker.tsx",
+    "ConfirmDialog": "src/kiosk/components/ConfirmDialog.tsx",
+    "CookTabs": "src/kiosk/components/CookTabs.tsx",
+    "MultiSelect": "src/kiosk/components/MultiSelect.tsx",
+    "WeekdayChips": "src/kiosk/components/WeekdayChips.tsx",
+    "Placeholder": "src/kiosk/components/Placeholder.tsx",
+    "SettingCard": "src/kiosk/components/SettingCard.tsx",
+    "AlbumPicker": "src/kiosk/components/AlbumPicker.tsx",
+    "MealBuilderBar": "src/kiosk/components/MealBuilderBar.tsx",
+    "RhythmMark": "src/kiosk/components/RhythmMark.tsx",
+    "PriorityFlag": "src/kiosk/components/priority.tsx",
+    "MealCard": "src/kiosk/components/MealCard.tsx",
+    "MealCardBadge": "src/kiosk/components/MealCard.tsx",
+    "TypefacePicker": "src/kiosk/components/TypefacePicker.tsx",
+    "WaffledRoot": ".design-sync/general/WaffledRoot.tsx"
+  },
+  "extraFonts": [
+    "node_modules/@fontsource/atkinson-hyperlegible/400.css",
+    "node_modules/@fontsource/atkinson-hyperlegible/700.css",
+    "node_modules/@fontsource-variable/bricolage-grotesque/index.css",
+    "node_modules/@fontsource-variable/lexend/index.css",
+    "node_modules/@fontsource-variable/atkinson-hyperlegible-next/index.css",
+    "node_modules/@fontsource-variable/nunito/index.css",
+    "node_modules/@fontsource/andika/400.css",
+    "node_modules/@fontsource/andika/700.css"
+  ],
+  "overrides": {
+    "ConfirmDialog": {
+      "cardMode": "single",
+      "viewport": "560x420"
+    },
+    "WaffledRoot": {
+      "cardMode": "single",
+      "primaryStory": "DefaultPalette"
+    },
+    "MealBuilderBar": {
+      "cardMode": "column"
+    },
+    "Placeholder": {
+      "cardMode": "column"
+    },
+    "CookTabs": {
+      "cardMode": "column"
+    },
+    "ChipEditor": {
+      "cardMode": "column"
+    },
+    "SettingCard": {
+      "cardMode": "column"
+    },
+    "TypefacePicker": {
+      "cardMode": "column",
+      "viewport": "1100x900"
+    }
+  },
+  "provider": {
+    "component": "WaffledRoot"
+  },
+  "docsMap": {
+    "WaffledRoot": ".design-sync/groups/Foundation.md",
+    "Icon": ".design-sync/groups/Foundation.md",
+    "Star": ".design-sync/groups/Foundation.md",
+    "Check": ".design-sync/groups/Foundation.md",
+    "Avatar": ".design-sync/groups/People.md",
+    "PersonAv": ".design-sync/groups/People.md",
+    "AvatarStack": ".design-sync/groups/People.md",
+    "ChipEditor": ".design-sync/groups/Forms.md",
+    "ColorPicker": ".design-sync/groups/Forms.md",
+    "MultiSelect": ".design-sync/groups/Forms.md",
+    "WeekdayChips": ".design-sync/groups/Forms.md",
+    "AlbumPicker": ".design-sync/groups/Forms.md",
+    "SettingCard": ".design-sync/groups/Forms.md",
+    "ConfirmDialog": ".design-sync/groups/Overlays.md",
+    "MealCard": ".design-sync/groups/Meals.md",
+    "MealCardBadge": ".design-sync/groups/Meals.md",
+    "MealBuilderBar": ".design-sync/groups/Meals.md",
+    "CookTabs": ".design-sync/groups/Meals.md",
+    "PriorityFlag": ".design-sync/groups/Status.md",
+    "RhythmMark": ".design-sync/groups/Status.md",
+    "Placeholder": ".design-sync/groups/Status.md",
+    "TypefacePicker": ".design-sync/groups/Forms.md"
+  },
+  "srcDir": "src/kiosk",
+  "readmeHeader": ".design-sync/conventions.md",
+  "buildCmd": "none (the curated .design-sync/entry.ts is bundled straight from src/)"
+}

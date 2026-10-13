@@ -4,6 +4,10 @@ import { BrowserRouter } from 'react-router'
 import './styles/waffled.css'
 import './styles/kiosk.css'
 import './styles/calendar.css'
+import '@fontsource/atkinson-hyperlegible/400.css'
+import '@fontsource/atkinson-hyperlegible/700.css'
+import '@fontsource-variable/bricolage-grotesque'
+import './styles/kitchen.css'
 import '@fontsource-variable/lexend'
 import '@fontsource-variable/atkinson-hyperlegible-next'
 import '@fontsource-variable/nunito'
@@ -17,10 +21,12 @@ import { ServerUnreachableBanner } from './kiosk/components/ServerUnreachableBan
 import { registerServiceWorker } from './lib/pwa'
 import { connectPowerSync } from './lib/powersync/db'
 import { initTheme } from './lib/theme'
+import { initViewOnly } from './lib/viewOnly'
 import { applyEventStyle } from './lib/display'
 
 // Apply the saved (or OS-matched) theme before first paint to avoid a flash.
 initTheme()
+initViewOnly()
 // Same for event chips: stamp the default style before the household loads, so
 // the calendar never flashes tinted chips on its way to solid. The Topbar
 // corrects this once /api/household resolves (and on every household change).

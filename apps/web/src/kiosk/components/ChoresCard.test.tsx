@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { setViewOnly } from '../../lib/viewOnly'
 import { MemoryRouter } from 'react-router'
 import { ChoresCard } from './ChoresCard'
 
@@ -35,6 +36,16 @@ function renderCard() {
 }
 
 describe('ChoresCard', () => {
+  it('Kiosk mode hides the Spot award quick-tap but keeps the rings', async () => {
+    mockAll(PEOPLE, ['reward.grant'])
+    setViewOnly(true)
+    try {
+      renderCard()
+      expect(await screen.findByText('Wally')).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /Spot award/i })).toBeNull()
+    } finally { setViewOnly(false) }
+  })
+
   it('renders a ring per person with chores', async () => {
     mockAll(PEOPLE)
     renderCard()

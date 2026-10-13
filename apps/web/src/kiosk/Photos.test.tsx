@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { setViewOnly } from '../lib/viewOnly'
 import { MemoryRouter } from 'react-router'
 import { Photos } from './Photos'
 import { TopbarSlotProvider, useTopbarSlots } from './topbar-slot'
@@ -93,6 +94,16 @@ function renderHome() {
 }
 
 describe('Photos home (family wall)', () => {
+  it('Kiosk mode hides Add photos', async () => {
+    mockApi({ photos: [beach, cake, soccer] })
+    setViewOnly(true)
+    try {
+      renderHome()
+      expect(await screen.findByText('Beach day')).toBeInTheDocument()
+      expect(screen.queryByText('Add photos')).toBeNull()
+    } finally { setViewOnly(false) }
+  })
+
   it('renders the new-memory banner and the photo wall', async () => {
     mockApi({ photos: [beach, cake, soccer] })
     renderHome()

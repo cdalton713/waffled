@@ -1,7 +1,7 @@
 /* Typefaces — a per-device choice stamped as <html data-typeface> by lib/theme.ts.
    It swaps --sans/--serif for the whole app; with no attribute ("classic") the
-   palette's own --font-sans/--font-serif stay. Load after every palette stylesheet:
-   these rules share their specificity, so source order decides. */
+   palette's own --font-sans/--font-serif stay. Load after kitchen.css: these rules
+   share :root[data-palette] specificity, so source order decides. */
 :root {
   --font-clear: "Lexend Variable", "Lexend", system-ui, sans-serif;
   --font-hyperlegible: "Atkinson Hyperlegible Next Variable", "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", system-ui, sans-serif;

@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { useViewOnly } from '../../lib/viewOnly'
 import { Icon } from '../icons'
 import { useGrocery } from '../../lib/api'
 
@@ -7,6 +8,7 @@ import { useGrocery } from '../../lib/api'
 export function GroceryCard() {
   const { items, loading, error, add, toggle, remove } = useGrocery()
   const [draft, setDraft] = useState('')
+  const viewOnly = useViewOnly()
 
   async function submit(e: FormEvent) {
     e.preventDefault()
@@ -67,6 +69,7 @@ export function GroceryCard() {
                 {item.name}
               </span>
             </button>
+            {!viewOnly && (
             <button
               type="button"
               className="gitem-del"
@@ -75,11 +78,12 @@ export function GroceryCard() {
             >
               ×
             </button>
+            )}
           </div>
         ))}
       </div>
 
-      {!error && (
+      {!error && !viewOnly && (
         <form onSubmit={submit} style={{ paddingTop: 8 }}>
           <input
             value={draft}
