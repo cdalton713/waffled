@@ -6,7 +6,7 @@
 import { query } from '../../platform/db'
 import { moduleEnabled } from '../../platform/modules'
 import { type Tenant } from '../households/households'
-import { canonicalStore, cleanNote, patchItem, softDeleteItem, softDeleteList, updateList } from '../lists/lists.service'
+import { canonicalStore, cleanNote, patchItem, rememberedSection, softDeleteItem, softDeleteList, updateList } from '../lists/lists.service'
 import type { PatchItemInput } from '../lists/lists.types'
 
 export interface ListCrudOp {
@@ -44,6 +44,7 @@ async function putItem(tenant: Tenant, id: string, data: Record<string, unknown>
   const listId = str(data.list_id)
   if (!name || !listId) return
   const checked = bool(data.checked)
+  const category = str(data.category) ?? (await rememberedSection(tenant.householdId, listId, name))
   await query(
     `insert into list_items (id, household_id, list_id, name, quantity, note, category, store, priority, assigned_to,
                              sort_order, checked, checked_at, checked_by, created_by)
@@ -59,7 +60,7 @@ async function putItem(tenant: Tenant, id: string, data: Record<string, unknown>
        checked_by = case when excluded.checked and not list_items.checked then excluded.checked_by
                          when excluded.checked then list_items.checked_by end
      where list_items.household_id = $2`,
-    [id, tenant.householdId, listId, name, str(data.quantity), cleanNote(data.note), str(data.category),
+    [id, tenant.householdId, listId, name, str(data.quantity), cleanNote(data.note), category,
       await canonicalStore(tenant.householdId, str(data.store)), priority(data.priority),
       await personOrNull(tenant.householdId, data.assigned_to), int(data.sort_order), checked, tenant.personId]
   )

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { groceryApi, type ListItem, type Person } from '../../lib/api'
+import { listWrites, type ListItem, type Person } from '../../lib/api'
 import { PRIORITY_OPTIONS } from './priority'
 
 // Add or edit a list item — name, quantity (free text like "1 lb" / "×4"),
@@ -41,8 +41,8 @@ export function ListItemModal({
       priority,
     }
     try {
-      if (editing) await groceryApi.patchListItem(item!.id, payload)
-      else await groceryApi.addListItem(listId, payload)
+      if (editing) await listWrites.patchItem(item!, payload)
+      else await listWrites.addItem(listId, payload)
       onSaved()
       onClose()
     } catch {

@@ -73,4 +73,41 @@ const households = new Table({
   week_start: column.text,
 })
 
-export const AppSchema = new Schema({ events, event_participants, event_occurrences, persons, households })
+// Lists are read and edited offline (lists-local.ts); writes upload to /api/powersync/crud.
+const lists = new Table({
+  household_id: column.text,
+  name: column.text,
+  emoji: column.text,
+  list_type: column.text,
+  is_auto_built: column.integer,
+  sort_mode: column.text,
+  sort_order: column.integer,
+  source_template_id: column.text,
+  created_at: column.text,
+  updated_at: column.text,
+})
+
+const list_items = new Table({
+  household_id: column.text,
+  list_id: column.text,
+  name: column.text,
+  quantity: column.text,
+  note: column.text,
+  checked: column.integer,
+  checked_at: column.text,
+  checked_by: column.text,
+  category: column.text,
+  store: column.text,
+  priority: column.integer,
+  source: column.text,
+  source_recipe_ids: column.text,
+  source_meal_ids: column.text,
+  assigned_to: column.text,
+  sort_order: column.integer,
+  week_start: column.text,
+  created_by: column.text,
+  created_at: column.text,
+  updated_at: column.text,
+})
+
+export const AppSchema = new Schema({ events, event_participants, event_occurrences, persons, households, lists, list_items })

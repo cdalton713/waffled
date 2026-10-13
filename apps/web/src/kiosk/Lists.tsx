@@ -10,6 +10,7 @@ import type { ShareListItem } from './components/share-list'
 import { filterListItems } from './components/list-search'
 import {
   groceryApi,
+  listWrites,
   useLists,
   useTemplates,
   useListDetail,
@@ -517,7 +518,7 @@ export function Lists() {
     }
     setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, checked: next } : i)))
     try {
-      const updated = await groceryApi.patchListItem(item.id, { checked: next })
+      const updated = await listWrites.patchItem(item, { checked: next })
       setItems((prev) => prev.map((i) => (i.id === item.id ? updated : i)))
     } catch {
       setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, checked: item.checked } : i)))
@@ -534,7 +535,7 @@ export function Lists() {
     const snapshot = items
     setItems((prev) => prev.map((i) => (i.id === id ? { ...i, section: target } : i)))
     try {
-      const updated = await groceryApi.patchListItem(id, { section: target })
+      const updated = await listWrites.patchItem(item, { section: target })
       setItems((prev) => prev.map((i) => (i.id === id ? updated : i)))
     } catch {
       setItems(snapshot)
@@ -553,8 +554,8 @@ export function Lists() {
     const snapshot = items
     setItems(next)
     try {
-      if ((item.section ?? null) !== moved.section) await groceryApi.patchListItem(id, { section: moved.section })
-      await groceryApi.reorderItems(selected.id, next.map((i) => i.id))
+      if ((item.section ?? null) !== moved.section) await listWrites.patchItem(item, { section: moved.section })
+      await listWrites.reorder(selected.id, next.map((i) => i.id))
     } catch {
       setItems(snapshot)
     }
@@ -562,7 +563,7 @@ export function Lists() {
 
   async function assign(item: ListItem, personId: string | null) {
     try {
-      const updated = await groceryApi.patchListItem(item.id, { assignedTo: personId })
+      const updated = await listWrites.patchItem(item, { assignedTo: personId })
       setItems((prev) => prev.map((i) => (i.id === item.id ? updated : i)))
     } catch {
       /* keep current state on failure */
@@ -577,7 +578,7 @@ export function Lists() {
       return prev.filter((i) => i.id !== item.id)
     })
     try {
-      await groceryApi.deleteItem(item.id)
+      await listWrites.deleteItem(item.id)
       refetchLists()
     } catch {
       setItems(snapshot)
@@ -594,7 +595,7 @@ export function Lists() {
       return prev.filter((i) => !i.checked)
     })
     try {
-      await groceryApi.clearCompleted(selected.id)
+      await listWrites.clearCompleted(selected.id)
       refetchLists()
     } catch {
       setItems(snapshot)
@@ -632,7 +633,7 @@ export function Lists() {
     if (!trimmed || !selected || addingRef.current) return
     addingRef.current = true
     try {
-      const item = await groceryApi.addListItem(selected.id, { name: trimmed, section: addSection })
+      const item = await listWrites.addItem(selected.id, { name: trimmed, section: addSection })
       setItems((prev) => [...prev, item])
       refetchLists()
     } finally {

@@ -280,7 +280,7 @@ export async function canonicalStore(householdId: string, store: string | null |
 // Where an item with no section goes: wherever the same name was filed last time on this
 // list (moves included, since they bump updated_at), else — on the grocery list — the
 // item catalog's aisle. null leaves it to aisleFor() at read time.
-async function rememberedSection(householdId: string, listId: string, name: string): Promise<string | null> {
+export async function rememberedSection(householdId: string, listId: string, name: string): Promise<string | null> {
   const { rows } = await query<{ category: string | null; list_type: string }>(
     `select l.list_type,
             (select i.category from list_items i

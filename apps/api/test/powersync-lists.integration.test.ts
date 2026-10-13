@@ -100,6 +100,15 @@ describe('offline list edits', () => {
     expect(screws[0].addedBy.personId).toBe(personId)
   })
 
+  it('files an offline-added item without a section where it went last time', async () => {
+    const first = (await json(call('POST', `/api/lists/${listId}/items`, { name: 'Tape', category: 'Supplies' }))).item
+    await call('DELETE', `/api/list-items/${first.id}`)
+    const id = randomUUID()
+    await upload([{ op: 'PUT', table: 'list_items', id, data: { list_id: listId, name: 'tape' } }])
+    const { rows } = await query<{ category: string }>('select category from list_items where id = $1', [id])
+    expect(rows[0].category).toBe('Supplies')
+  })
+
   it('applies a PATCH; the server stamps who checked it and when', async () => {
     await upload([{ op: 'PATCH', table: 'list_items', id: itemId, data: { checked: '1', note: 'deck screws', checked_by: foreignPersonId } }])
     const { rows } = await query<{ checked: boolean; checked_by: string; checked_at: Date | null; note: string }>(
