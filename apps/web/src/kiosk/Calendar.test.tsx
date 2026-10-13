@@ -119,6 +119,16 @@ describe('Calendar screen', () => {
     expect(screen.queryByRole('button', { name: 'Back to today' })).toBeNull()
   })
 
+  it('names the day once in Day view — the period heading, not a second header', async () => {
+    mockRange([])
+    renderCalendar()
+    fireEvent.click(screen.getByRole('button', { name: 'Day' }))
+    const dow = DOW[new Date().getDay()]
+    expect(await screen.findByTestId('cal-period-heading')).toHaveTextContent(dow)
+    // The period pill in the topbar is navigation, not a heading.
+    expect(screen.getAllByText(new RegExp(`^${dow}`), { ignore: 'button, script, style' })).toHaveLength(1)
+  })
+
   // People is one day split into per-person columns — the SAME single day Day view
   // shows, which is why its arrows are labelled "Next day"/"Previous day". They have
   // to move one day: stepping a week left you on a date the label never promised.
