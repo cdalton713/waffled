@@ -162,3 +162,7 @@
 /* ===== cards — flat white on tile, no heavy shadow ============== */
 :root[data-palette="kitchen"] .card { box-shadow: var(--sh-1); }
 :root[data-palette="kitchen"] .card-h { font-family: var(--serif); font-size: 22px; font-weight: 800; }
+
+/* ===== reward shop — shop.css hard-codes a violet hero and lavender thumbs ===== */
+:root[data-palette="kitchen"] .shop-hero { background: linear-gradient(135deg, #2F6B4F, #1F4D39); }
+:root[data-palette="kitchen"] .shop-thumb { background: var(--gold-t); }

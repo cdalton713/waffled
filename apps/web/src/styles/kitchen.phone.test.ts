@@ -43,3 +43,15 @@ describe('kitchen.css on a phone', () => {
     expect(pad).toBe('8px')
   })
 })
+
+describe('kitchen.css re-skins hard-coded classic colours', () => {
+  const kitchenRule = (sel: string) => {
+    let found = false
+    root.walkRules((r) => { if (r.selector === `:root[data-palette="kitchen"] ${sel}`) found = true })
+    return found
+  }
+  it('gives the Reward Shop hero and reward thumbnails Kitchen colours', () => {
+    expect(kitchenRule('.shop-hero')).toBe(true)
+    expect(kitchenRule('.shop-thumb')).toBe(true)
+  })
+})
