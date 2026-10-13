@@ -83,4 +83,18 @@ describe('phone layout', () => {
     expect(phoneDecl('.re-paste-bar .pill', 'white-space', 'recipe.css')).toBe('nowrap')
     expect(phoneDecl('.re-add-section', 'white-space', 'recipe.css')).toBe('nowrap')
   })
+
+  it('wraps the grocery header: title, then full-width search, then the sort toggle', () => {
+    expect(phoneDecl('.grocery-head', 'flex-wrap', 'grocery.css')).toBe('wrap')
+    expect(phoneDecl('.grocery-head .lists-search-wrap', 'flex', 'grocery.css')).toBe('1 1 100%')
+    expect(phoneDecl('.grocery-title', 'white-space', 'grocery.css')).toBe('nowrap')
+  })
+
+  it('stacks the lists rail above a single-column list on a phone', () => {
+    expect(phoneDecl('.lists-home', 'grid-template-columns', 'lists.css')).toBe('minmax(0, 1fr)')
+    expect(phoneDecl('.lists-head', 'flex-wrap', 'lists.css')).toBe('wrap')
+    expect(phoneDecl('.lists-head-actions', 'flex-wrap', 'lists.css')).toBe('wrap')
+    expect(phoneDecl('.lists-grid', 'grid-template-columns', 'lists.css')).toBe('minmax(0, 1fr)')
+    expect(phoneDecl('.lists-addbar .lists-addbar-sec', 'max-width', 'lists.css')).toBe('112px')
+  })
 })

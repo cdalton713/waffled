@@ -549,3 +549,14 @@
 .assign-menu .lists-more-del:hover {
   color: var(--danger-tx);
 }
+
+/* Phone: the rail stacks above the list, header actions wrap, items run one column. */
+@media (max-width: 720px) {
+  .lists-home { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; padding: 2px 16px 20px; gap: 14px; }
+  .lists-head { flex-wrap: wrap; row-gap: 10px; }
+  .lists-head-actions { margin-left: 0; flex-wrap: wrap; width: 100%; }
+  .lists-head .lists-search-wrap { flex: 1 1 100%; }
+  .lists-head .lists-search { width: 100%; }
+  .lists-grid { grid-template-columns: minmax(0, 1fr); overflow-y: visible; }
+  .lists-addbar .lists-addbar-sec { max-width: 112px; }
+}
