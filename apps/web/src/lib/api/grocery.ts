@@ -283,18 +283,83 @@ export interface GroceryBoardState {
   refetch: () => void
 }
 
+// Lay the replica's grocery rows over the last board the server computed: server-only
+// facts (aisle, pantry hit, meal links) come from the board, everything editable from the
+// replica. Rows for other weeks drop out; a row the server hasn't seen yet files under
+// its section with no pantry claim until the next online load.
+export function overlayBoardItems(board: GroceryBoard, localItems: Array<ListItem & { weekStart?: string | null }>): GroceryBoard {
+  const byId = new Map(board.items.map((i) => [i.id, i]))
+  const items = localItems
+    .filter((i) => !i.weekStart || i.weekStart === board.weekStart)
+    .map((i): GroceryBoardItem => {
+      const base = byId.get(i.id)
+      const moved = !!i.section && i.section !== base?.section
+      return {
+        ...base,
+        ...i,
+        aisle: moved ? i.section! : base?.aisle ?? i.section ?? '',
+        source: base?.source ?? i.source ?? 'manual',
+        sourceRecipeIds: base?.sourceRecipeIds ?? i.sourceRecipeIds ?? [],
+        sourceMealIds: base?.sourceMealIds ?? i.sourceMealIds ?? [],
+        quantity: base && base.quantityInput === i.quantity ? base.quantity : i.quantity,
+        weekStart: i.weekStart ?? null,
+        pantry: base?.pantry ?? null,
+      }
+    })
+  return { ...board, items }
+}
+
+const boardCacheKey = (weekStart?: string) => `waffled.groceryBoard.${weekStart ?? 'current'}`
+function readCachedBoard(weekStart?: string): GroceryBoard | null {
+  try {
+    const raw = localStorage.getItem(boardCacheKey(weekStart))
+    return raw ? (JSON.parse(raw) as GroceryBoard) : null
+  } catch {
+    return null
+  }
+}
+function cacheBoard(weekStart: string | undefined, board: GroceryBoard): void {
+  try {
+    localStorage.setItem(boardCacheKey(weekStart), JSON.stringify(board))
+  } catch {
+    /* storage full or unavailable: the board still works online */
+  }
+}
+
 export function useGroceryBoard(weekStart?: string): GroceryBoardState {
-  const [board, setBoard] = useState<GroceryBoard | null>(null)
+  // The server's board for this week, cached so the board opens offline.
+  const [server, setServer] = useState<GroceryBoard | null>(null)
+  const [localItems, setLocalItems] = useState<Array<ListItem & { weekStart: string | null }> | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const [nonce, setNonce] = useState(0)
+  const listId = server?.list.id ?? null
+  const localActive = useLocalWatch<ListItem & { weekStart: string | null }>(
+    (onRows) => (listId ? watchListItems(listId, (rows) => onRows(rows.map(rowToListItem))) : () => {}),
+    setLocalItems,
+    [listId],
+    () => setNonce((n) => n + 1),
+  )
   useEffect(() => {
     let alive = true
     setLoading(true)
     groceryApi
       .groceryBoard(weekStart)
-      .then((d) => alive && (setBoard(d), setLoading(false), setError(false)))
-      .catch(() => alive && (setError(true), setLoading(false)))
+      .then((d) => {
+        if (!alive) return
+        cacheBoard(weekStart, d)
+        setServer(d)
+        setLocalItems(null)
+        setLoading(false)
+        setError(false)
+      })
+      .catch(() => {
+        if (!alive) return
+        const cached = readCachedBoard(weekStart)
+        if (cached) setServer((cur) => cur ?? cached)
+        setError(!cached)
+        setLoading(false)
+      })
     return () => {
       alive = false
     }
@@ -303,6 +368,7 @@ export function useGroceryBoard(weekStart?: string): GroceryBoardState {
   useRefetchOn(['grocery', 'meals'], () => setNonce((n) => n + 1))
   // Cross-device liveness: poll + refetch on focus so another family member's edits appear.
   useLiveRefresh(() => setNonce((n) => n + 1))
+  const board = server && localItems && localActive.current ? overlayBoardItems(server, localItems) : server
   return { board, loading, error, refetch: () => setNonce((n) => n + 1) }
 }
 
@@ -560,9 +626,14 @@ const sectionPatch = (p: PatchItemBody): LocalItemPatch => {
 }
 
 export const listWrites = {
-  async addItem(listId: string, input: { name: string; quantity?: string | null; note?: string | null; section?: string | null; store?: string | null; assignedTo?: string | null; priority?: number }): Promise<ListItem> {
+  // `rest` overrides the REST fallback (the grocery board posts to its own route).
+  async addItem(
+    listId: string,
+    input: { name: string; quantity?: string | null; note?: string | null; section?: string | null; store?: string | null; assignedTo?: string | null; priority?: number },
+    rest: () => Promise<ListItem> = () => groceryApi.addListItem(listId, input),
+  ): Promise<ListItem> {
     const id = await addItemLocal(listId, input)
-    if (!id) return groceryApi.addListItem(listId, input)
+    if (!id) return rest()
     emit('grocery')
     return {
       id, name: input.name.trim(), quantity: input.quantity ?? null, note: input.note ?? null, checked: false, checkedAt: null,

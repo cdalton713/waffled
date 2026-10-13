@@ -68,7 +68,7 @@ function idArray(v: string | null): string[] {
   }
 }
 
-export function rowToListItem(r: LocalItemRow): ListItem {
+export function rowToListItem(r: LocalItemRow): ListItem & { weekStart: string | null } {
   return {
     id: r.id,
     name: r.name,
@@ -81,6 +81,7 @@ export function rowToListItem(r: LocalItemRow): ListItem {
     store: r.store,
     priority: r.priority ?? 3,
     sortOrder: r.sort_order,
+    weekStart: r.week_start ? r.week_start.slice(0, 10) : null,
     source: r.source ?? 'manual',
     sourceRecipeIds: idArray(r.source_recipe_ids),
     sourceMealIds: idArray(r.source_meal_ids),

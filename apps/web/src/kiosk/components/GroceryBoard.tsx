@@ -3,7 +3,7 @@ import { Editable } from '../../lib/viewOnly'
 import { useNavigate } from 'react-router'
 import { Icon } from '../icons'
 import { useTopbarFull } from '../topbar-slot'
-import { groceryApi, mealBuilderApi, useGroceryBoard, type GroceryBoardItem, type GroceryMealDish } from '../../lib/api'
+import { groceryApi, listWrites, mealBuilderApi, useGroceryBoard, type GroceryBoardItem, type GroceryMealDish, type ListItem } from '../../lib/api'
 import { StaplesModal } from './StaplesModal'
 import { ShareListModal } from './ShareListModal'
 import { RecentItemsModal } from './RecentItemsModal'
@@ -380,7 +380,8 @@ export function GroceryBoard({ onBack }: { onBack: () => void }) {
   // keyed PER week so switching to a future week auto-populates it too (not just the
   // first week loaded). Never re-fires for a week already handled.
   useEffect(() => {
-    if (!board || rebuilt.current.has(board.weekStart)) return
+    // Building needs the server (recipes, the plan); offline, the cached board stands.
+    if (!board || rebuilt.current.has(board.weekStart) || !navigator.onLine) return
     const hasAuto = board.items.some((i) => i.source === 'auto')
     if (!hasAuto && board.meals.length > 0) {
       rebuilt.current.add(board.weekStart)
@@ -503,20 +504,20 @@ export function GroceryBoard({ onBack }: { onBack: () => void }) {
     } else {
       setRecent((s) => { const n = new Set(s); n.delete(item.id); return n })
     }
-    await groceryApi.patchListItem(item.id, { checked: next })
+    await listWrites.patchItem(item, { checked: next })
     refetch()
   }
   async function saveItem(item: GroceryBoardItem, patch: { name: string; quantity: string | null; note: string | null; section: string | null; store: string | null }) {
-    await groceryApi.patchListItem(item.id, patch)
+    await listWrites.patchItem(item, patch)
     refetch()
   }
   async function deleteItem(item: GroceryBoardItem) {
-    await groceryApi.deleteItem(item.id)
+    await listWrites.deleteItem(item.id)
     refetch()
   }
   async function clearCompleted() {
     if (allCompleted.length === 0) return
-    await Promise.all(allCompleted.map((i) => groceryApi.deleteItem(i.id)))
+    await Promise.all(allCompleted.map((i) => listWrites.deleteItem(i.id)))
     refetch()
   }
   // Undo an off-plan "add recipe to grocery" — removes that recipe's items (keeping
@@ -535,7 +536,7 @@ export function GroceryBoard({ onBack }: { onBack: () => void }) {
   async function addItem(name: string) {
     const n = name.trim()
     if (!n) return
-    await groceryApi.addGroceryItem(n)
+    await listWrites.addItem(board!.list.id, { name: n }, () => groceryApi.addGroceryItem(n) as Promise<ListItem>)
     setDraft('')
     refetch()
   }
