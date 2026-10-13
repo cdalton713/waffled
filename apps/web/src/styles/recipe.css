@@ -1370,6 +1370,7 @@
 
 /* Phone: the neighbouring text gives way, not the buttons. */
 @media (max-width: 720px) {
+  .recipe-editor { min-width: 0; padding: 8px 16px 48px; }
   .re-add-ing,
   .re-paste-bar .pill,
   .re-add-section { white-space: nowrap; flex: none; }

@@ -84,6 +84,8 @@ describe('phone layout', () => {
     expect(phoneDecl('.re-add-ing', 'white-space', 'recipe.css')).toBe('nowrap')
     expect(phoneDecl('.re-paste-bar .pill', 'white-space', 'recipe.css')).toBe('nowrap')
     expect(phoneDecl('.re-add-section', 'white-space', 'recipe.css')).toBe('nowrap')
+    expect(phoneDecl('.recipe-editor', 'min-width', 'recipe.css')).toBe('0')
+    expect(phoneDecl('.recipe-editor', 'padding', 'recipe.css')).toBe('8px 16px 48px')
   })
 
   it('wraps the grocery header: title, then full-width search, then the sort toggle', () => {
