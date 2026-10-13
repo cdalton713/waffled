@@ -133,6 +133,7 @@ function ItemRow({
       >
         <PriorityFlag priority={item.priority} />
         <span className="lnm-text">{item.name}</span>
+        {item.note && <span className="gattr">📝 {item.note}</span>}
         {addedBy?.name && (
           <span className="gattr gattr-by">
             {addedBy.avatarEmoji && (

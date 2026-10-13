@@ -176,7 +176,7 @@ export function registerListRoutes(api: Api): void {
     if (!UUID_RE.test(id)) return res.status(404).json({ error: 'NotFound', message: 'list not found' })
     const list = await getList(tenant.householdId, id)
     if (!list) return res.status(404).json({ error: 'NotFound', message: 'list not found' })
-    const body = (req.body ?? {}) as { name?: string; quantity?: string; category?: string; store?: string; assignedTo?: string; priority?: number }
+    const body = (req.body ?? {}) as { name?: string; quantity?: string; note?: string; category?: string; store?: string; assignedTo?: string; priority?: number }
     if (!body.name || !body.name.trim()) {
       return res.status(400).json({ error: 'BadRequest', message: 'name is required' })
     }
@@ -187,6 +187,7 @@ export function registerListRoutes(api: Api): void {
     const item = await addItem(tenant, id, {
       name: body.name.trim(),
       quantity: body.quantity ?? null,
+      note: body.note ?? null,
       category: body.category ?? null,
       store: body.store ?? null,
       assignedTo: body.assignedTo ?? null,
@@ -203,7 +204,7 @@ export function registerListRoutes(api: Api): void {
   }))
 
   api.post('/api/lists/grocery/items', tenantRoute(async (tenant, req: Request, res: Response) => {
-    const body = (req.body ?? {}) as { name?: string; quantity?: string; category?: string; store?: string }
+    const body = (req.body ?? {}) as { name?: string; quantity?: string; note?: string; category?: string; store?: string }
     if (!body.name || !body.name.trim()) {
       return res.status(400).json({ error: 'BadRequest', message: 'name is required' })
     }
@@ -211,6 +212,7 @@ export function registerListRoutes(api: Api): void {
     const item = await addItem(tenant, list.id, {
       name: body.name.trim(),
       quantity: body.quantity ?? null,
+      note: body.note ?? null,
       category: body.category ?? null,
       store: body.store ?? null,
     })
@@ -253,7 +255,7 @@ export function registerListRoutes(api: Api): void {
     const id = req.params.id ?? ''
     if (!UUID_RE.test(id)) return res.status(404).json({ error: 'NotFound', message: 'item not found' })
     const body = (req.body ?? {}) as PatchItemInput
-    const known = ['checked', 'assignedTo', 'quantity', 'category', 'store', 'priority', 'name']
+    const known = ['checked', 'assignedTo', 'quantity', 'category', 'store', 'priority', 'name', 'note']
     if (!known.some((k) => k in body)) {
       return res.status(400).json({ error: 'BadRequest', message: 'no patchable fields provided' })
     }

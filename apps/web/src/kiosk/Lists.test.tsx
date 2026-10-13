@@ -596,3 +596,12 @@ describe('Lists screen', () => {
     })
   })
 })
+
+describe('Lists screen — item notes', () => {
+  it('shows an item note under its name', async () => {
+    mockApi({ lists: [grocery, packing], items: [{ ...packItems[2], note: 'SPF 50, not spray' }] })
+    renderScreen()
+    await exitBoard()
+    expect(await screen.findByText(/SPF 50, not spray/)).toBeInTheDocument()
+  })
+})

@@ -56,6 +56,8 @@ export interface ListItem {
   // `quantity` with fraction glyphs spelled out ("1 1/2 lb" for a displayed "1½ lb").
   // Use it to seed edit fields — a ½ can be read but not typed. Saving it round-trips.
   quantityInput?: string | null
+  // A free-text note ("the blue cap one"); null when there is none.
+  note?: string | null
   checked: boolean
   checkedAt: string | null
   section: string | null
@@ -91,6 +93,7 @@ export interface PatchItemBody {
   store?: string | null
   priority?: number
   name?: string
+  note?: string | null
 }
 
 // PATCH /api/list-items uses `category` server-side for the section column.
@@ -103,6 +106,7 @@ function patchBody(b: PatchItemBody): Record<string, unknown> {
   if ('store' in b) out.store = b.store
   if ('priority' in b) out.priority = b.priority
   if ('name' in b) out.name = b.name
+  if ('note' in b) out.note = b.note
   return out
 }
 
@@ -141,10 +145,11 @@ export const groceryApi = {
   applyTemplate: (templateId: string, name?: string) =>
     apiSend<{ list: ListSummary }>('POST', `/api/lists/templates/${templateId}/apply`, name ? { name } : {}).then((r) => r.list).then(tap('grocery')),
 
-  addListItem: (listId: string, input: { name: string; quantity?: string | null; section?: string | null; store?: string | null; assignedTo?: string | null; priority?: number }) =>
+  addListItem: (listId: string, input: { name: string; quantity?: string | null; note?: string | null; section?: string | null; store?: string | null; assignedTo?: string | null; priority?: number }) =>
     apiSend<{ item: ListItem }>('POST', `/api/lists/${listId}/items`, {
       name: input.name,
       quantity: input.quantity ?? null,
+      ...(input.note ? { note: input.note } : {}),
       category: input.section ?? null,
       ...(input.store !== undefined ? { store: input.store } : {}),
       assignedTo: input.assignedTo ?? null,

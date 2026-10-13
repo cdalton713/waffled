@@ -192,7 +192,7 @@ function ItemRow({
   colors: string[]
   storeOptions: string[]
   onToggle: () => void
-  onSave: (patch: { name: string; quantity: string | null; section: string | null; store: string | null }) => void
+  onSave: (patch: { name: string; quantity: string | null; note: string | null; section: string | null; store: string | null }) => void
   onDelete: () => void
 }) {
   const [editing, setEditing] = useState(false)
@@ -206,6 +206,7 @@ function ItemRow({
   // Free-text store, backed by a datalist of previously-used names so "Costco" typed
   // once comes back as a suggestion (collapsing the Costco/costco split). '' = none.
   const [store, setStore] = useState(item.store ?? '')
+  const [note, setNote] = useState(item.note ?? '')
 
   if (editing) {
     return (
@@ -215,13 +216,16 @@ function ItemRow({
           <input className="gedit-qty" value={qty} onChange={(e) => setQty(e.target.value)} placeholder="qty" />
         </div>
         <div className="gedit-line">
+          <input className="gedit-name" value={note} onChange={(e) => setNote(e.target.value)} placeholder="note" aria-label="Note" />
+        </div>
+        <div className="gedit-line">
           <select className="gedit-sec" value={sec} onChange={(e) => setSec(e.target.value)} aria-label="Aisle">
             <option value="">Auto (by name)</option>
             {AISLE_PICKER.map((a) => <option key={a} value={a}>{AISLE_EMOJI[a] ? `${AISLE_EMOJI[a]} ` : ''}{a}</option>)}
           </select>
           <input className="gedit-store" value={store} onChange={(e) => setStore(e.target.value)} placeholder="store" aria-label="Store" list="grocery-stores" />
           <datalist id="grocery-stores">{storeOptions.map((s) => <option key={s} value={s} />)}</datalist>
-          <button type="button" className="gact ok" title="Save" onClick={() => { onSave({ name: name.trim() || item.name, quantity: qty.trim() || null, section: sec || null, store: store.trim() || null }); setEditing(false) }}>✓</button>
+          <button type="button" className="gact ok" title="Save" onClick={() => { onSave({ name: name.trim() || item.name, quantity: qty.trim() || null, note: note.trim() || null, section: sec || null, store: store.trim() || null }); setEditing(false) }}>✓</button>
           <button type="button" className="gact" title="Cancel" onClick={() => setEditing(false)}>×</button>
         </div>
       </div>
@@ -233,6 +237,7 @@ function ItemRow({
       <span className="gitem-body">
         <span className="gnm">{item.name}</span>
         <ItemAttribution item={item} />
+        {item.note && <span className="gattr">📝 {item.note}</span>}
         {/* Inside the body column, NOT a fourth trailing chip. The row already carries
             meal dots, a quantity, sometimes a store, and two action buttons, and in the
             board's two-column layout there is no horizontal room left: as a sibling of
@@ -249,7 +254,7 @@ function ItemRow({
       {item.quantity && <span className="gqty">{item.quantity}</span>}
       <Editable>
         <span className="gitem-acts" onClick={(e) => e.stopPropagation()}>
-          <button type="button" className="gact" title="Edit" onClick={() => { setName(item.name); setQty(item.quantityInput ?? item.quantity ?? ''); setSec(item.section ?? ''); setStore(item.store ?? ''); setEditing(true) }}>✎</button>
+          <button type="button" className="gact" title="Edit" onClick={() => { setName(item.name); setQty(item.quantityInput ?? item.quantity ?? ''); setSec(item.section ?? ''); setStore(item.store ?? ''); setNote(item.note ?? ''); setEditing(true) }}>✎</button>
           <button type="button" className="gact" title="Remove" onClick={onDelete}>🗑</button>
         </span>
       </Editable>
@@ -492,7 +497,7 @@ export function GroceryBoard({ onBack }: { onBack: () => void }) {
     await groceryApi.patchListItem(item.id, { checked: next })
     refetch()
   }
-  async function saveItem(item: GroceryBoardItem, patch: { name: string; quantity: string | null; section: string | null; store: string | null }) {
+  async function saveItem(item: GroceryBoardItem, patch: { name: string; quantity: string | null; note: string | null; section: string | null; store: string | null }) {
     await groceryApi.patchListItem(item.id, patch)
     refetch()
   }

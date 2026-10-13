@@ -15,6 +15,7 @@ export interface ListItemRow extends QueryResultRow {
   id: string
   name: string
   quantity: string | null
+  note: string | null
   checked: boolean
   checked_at: Date | null
   category: string | null
@@ -53,4 +54,5 @@ export interface PatchItemInput {
   store?: string | null
   priority?: number
   name?: string
+  note?: string | null
 }

@@ -727,3 +727,28 @@ describe('GroceryBoard share-list handoff', () => {
     )
   })
 })
+
+describe('GroceryBoard item notes', () => {
+  it('shows a note on the row and saves an edited one', async () => {
+    const sent: Array<{ method: string; url: string; body: any }> = []
+    globalThis.fetch = vi.fn(async (url: string, init?: { method?: string; body?: string }) => {
+      const u = String(url)
+      sent.push({ method: init?.method ?? 'GET', url: u, body: init?.body ? JSON.parse(init.body) : undefined })
+      if (u.includes('/api/lists/grocery/board')) {
+        return ok({
+          list: { id: 'g', name: 'Grocery', emoji: '🛒', listType: 'grocery', isAutoBuilt: true, sortMode: 'manual', itemCount: 1 },
+          weekStart: '2026-06-07', meals: [], items: [{ ...manualItem, note: 'chocolate chip' }], staples: [],
+        })
+      }
+      if (u.includes('/api/list-items/') && init?.method === 'PATCH') return ok({ item: { ...manualItem } })
+      return ok({ stores: [] })
+    }) as unknown as typeof fetch
+    renderBoard()
+    expect(await screen.findByText(/chocolate chip/)).toBeInTheDocument()
+    fireEvent.click(screen.getByTitle('Edit'))
+    fireEvent.change(screen.getByLabelText('Note'), { target: { value: 'oatmeal raisin' } })
+    fireEvent.click(screen.getByTitle('Save'))
+    await waitFor(() => expect(sent.some((s) => s.method === 'PATCH')).toBe(true))
+    expect(sent.find((s) => s.method === 'PATCH')!.body).toMatchObject({ note: 'oatmeal raisin' })
+  })
+})

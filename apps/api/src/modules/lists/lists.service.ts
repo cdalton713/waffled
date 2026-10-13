@@ -252,6 +252,10 @@ export async function listItems(householdId: string, listId: string): Promise<Li
   return rows
 }
 
+export function cleanNote(note: unknown): string | null {
+  return typeof note === 'string' && note.trim() ? note.trim() : null
+}
+
 // The store box is free text and every client writes it (web + iOS), so the same shop
 // typed with different capitalisation has to land on one store — otherwise the By-store
 // view splits into two identically-labelled sections and the quick-select offers both.
@@ -275,12 +279,12 @@ export async function canonicalStore(householdId: string, store: string | null |
 export async function addItem(
   tenant: Tenant,
   listId: string,
-  input: { name: string; quantity?: string | null; category?: string | null; store?: string | null; assignedTo?: string | null; priority?: number }
+  input: { name: string; quantity?: string | null; note?: string | null; category?: string | null; store?: string | null; assignedTo?: string | null; priority?: number }
 ): Promise<ListItemRow> {
   const { rows } = await query<ListItemRow>(
     `with ins as (
-       insert into list_items (household_id, list_id, name, quantity, category, store, assigned_to, priority, created_by)
-       values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       insert into list_items (household_id, list_id, name, quantity, category, store, assigned_to, priority, created_by, note)
+       values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        returning *
      )
      select ins.*, p.name as assignee_name, p.avatar_emoji as assignee_avatar, p.color_hex as assignee_color,
@@ -298,6 +302,7 @@ export async function addItem(
       input.assignedTo ?? null,
       input.priority ?? 3,
       tenant.personId,
+      cleanNote(input.note),
     ]
   )
   return rows[0]
@@ -367,6 +372,10 @@ export async function patchItem(
   if (typeof patch.name === 'string') {
     sets.push(`name = $${i++}`)
     vals.push(patch.name)
+  }
+  if ('note' in patch) {
+    sets.push(`note = $${i++}`)
+    vals.push(cleanNote(patch.note))
   }
   if (sets.length === 0) {
     const cur = await listItemById(tenant.householdId, id)
@@ -1273,6 +1282,7 @@ export function presentListItem(i: ListItemRow) {
     // The same value with the fraction spelled out ("1 1/2 lb"), for edit fields —
     // nobody can type ½ on a keyboard. Saving it normalizes straight back.
     quantityInput: plainQuantity(normalizeQuantity(i.quantity)),
+    note: i.note ?? null,
     checked: i.checked,
     checkedAt: i.checked_at,
     weekStart: isoDateOnly(i.week_start),
