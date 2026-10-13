@@ -22,6 +22,25 @@ export function aisleFor(name: string, unit?: string | null): string {
   return 'Other'
 }
 
+// AnyList's built-in grocery categories (its item catalog and imported items carry these
+// keys) → a Waffled aisle where one matches, else the category's own name ("snacks" →
+// "Snacks"). "other" means uncategorised: null, so the item is filed by name instead.
+const CATALOG_AISLES: Record<string, string> = {
+  produce: 'Produce', dairy: 'Dairy & Chilled', 'dairy-and-eggs': 'Dairy & Chilled', refrigerated: 'Dairy & Chilled',
+  meat: 'Meat & Seafood', seafood: 'Meat & Seafood', 'meat-and-seafood': 'Meat & Seafood', bakery: 'Bakery', bread: 'Bakery',
+  frozen: 'Frozen', 'frozen-foods': 'Frozen', 'soups-and-canned-goods': 'Pantry', 'grains-pasta-and-sides': 'Pantry',
+  'cooking-and-baking': 'Pantry', 'condiments-oils-and-salad-dressings': 'Pantry', 'spices-and-seasonings': 'Pantry',
+}
+
+export function waffledAisleForCategory(key: string | null | undefined): string | null {
+  return key ? CATALOG_AISLES[key] ?? null : null
+}
+
+export function aisleForCatalogCategory(key: string | null | undefined): string | null {
+  if (!key || key === 'other') return null
+  return CATALOG_AISLES[key] ?? key.split('-').filter((w) => w !== 'and').map((w) => w[0].toUpperCase() + w.slice(1)).join(' ')
+}
+
 const STAPLES = /\b(olive oil|kosher salt|sea salt|salt|black pepper|garlic|butter|rice|pasta|flour|sugar|water|parmesan|parmigiano)\b/i
 
 export function isStaple(name: string): boolean {

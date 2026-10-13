@@ -116,3 +116,29 @@ describe('item name suggestions', () => {
     expect(res.suggestions.map((s: { name: string }) => s.name)).not.toContain('Bandages')
   })
 })
+
+describe('remembered sections', () => {
+  it('files a re-added item into the section it was in last time on that list', async () => {
+    const listId = await newList('Packing')
+    const first = (await json(call('POST', `/api/lists/${listId}/items`, { name: 'Sunscreen', category: 'Gear' }))).item
+    await call('DELETE', `/api/list-items/${first.id}`)
+    const again = (await json(call('POST', `/api/lists/${listId}/items`, { name: 'sunscreen ' }))).item
+    expect(again.section).toBe('Gear')
+  })
+
+  it('learns from moving an item, and an explicit section still wins', async () => {
+    const listId = await newList('Moves')
+    const it1 = (await json(call('POST', `/api/lists/${listId}/items`, { name: 'Rope' }))).item
+    await call('PATCH', `/api/list-items/${it1.id}`, { category: 'Tools' })
+    await call('DELETE', `/api/list-items/${it1.id}`)
+    expect((await json(call('POST', `/api/lists/${listId}/items`, { name: 'Rope' }))).item.section).toBe('Tools')
+    expect((await json(call('POST', `/api/lists/${listId}/items`, { name: 'Rope', category: 'Gear' }))).item.section).toBe('Gear')
+  })
+
+  it('gives new grocery items an aisle from the item catalog', async () => {
+    const add = async (name: string) => (await json(call('POST', '/api/lists/grocery/items', { name }))).item.section
+    expect(await add('Bananas')).toBe('Produce')
+    expect(await add('beef jerky')).toBe('Snacks')
+    expect(await add('Mystery thing')).toBeNull()
+  })
+})

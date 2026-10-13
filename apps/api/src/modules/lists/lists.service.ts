@@ -4,11 +4,11 @@
 // (CLOTHES / GEAR / FOR THE KIDS via `category`), a freeform quantity ("×4"),
 // an assignee (avatar) and a checked state. The grocery list keeps its existing
 // get-or-create endpoints (the Today dashboard's Grocery card depends on them).
-import { catalogItems, rankSuggestions, type Suggestion } from '../../integrations/anylist/catalog'
+import { catalogCategory, catalogItems, rankSuggestions, type Suggestion } from '../../integrations/anylist/catalog'
 import { getPool, query } from '../../platform/db'
 import { type Tenant } from '../households/households'
 import { getRecipe, listIngredients, getOverrides } from '../meals/meals.service'
-import { aisleFor, isStaple } from './aisles'
+import { aisleFor, aisleForCatalogCategory, isStaple } from './aisles'
 // Read-time only, and deliberately so — see groceryBoard.
 import { pantryHitsForNames } from '../pantry/presence'
 import { formatAmount, normalizeQuantity, parseQuantity, plainQuantity } from './quantity'
@@ -277,6 +277,23 @@ export async function canonicalStore(householdId: string, store: string | null |
   return rows[0]?.store ?? trimmed
 }
 
+// Where an item with no section goes: wherever the same name was filed last time on this
+// list (moves included, since they bump updated_at), else — on the grocery list — the
+// item catalog's aisle. null leaves it to aisleFor() at read time.
+async function rememberedSection(householdId: string, listId: string, name: string): Promise<string | null> {
+  const { rows } = await query<{ category: string | null; list_type: string }>(
+    `select l.list_type,
+            (select i.category from list_items i
+              where i.household_id = $1 and i.list_id = l.id and i.category is not null
+                and lower(btrim(i.name)) = lower(btrim($3))
+              order by i.updated_at desc limit 1) as category
+       from lists l where l.household_id = $1 and l.id = $2`,
+    [householdId, listId, name]
+  )
+  if (rows[0]?.category) return rows[0].category
+  return rows[0]?.list_type === 'grocery' ? aisleForCatalogCategory(await catalogCategory(name)) : null
+}
+
 export async function addItem(
   tenant: Tenant,
   listId: string,
@@ -298,7 +315,7 @@ export async function addItem(
       listId,
       input.name,
       input.quantity ?? null,
-      input.category ?? null,
+      input.category ?? (await rememberedSection(tenant.householdId, listId, input.name)),
       await canonicalStore(tenant.householdId, input.store),
       input.assignedTo ?? null,
       input.priority ?? 3,

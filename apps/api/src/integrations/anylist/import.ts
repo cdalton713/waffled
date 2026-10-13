@@ -8,6 +8,7 @@ import { getBlobStore, mediaKey } from '../../platform/storage'
 import { updateModules } from '../../modules/persons/persons'
 import { getOrCreateGroceryList, createList } from '../../modules/lists/lists.service'
 import { parseQuantity } from '../../modules/lists/quantity'
+import { aisleForCatalogCategory, waffledAisleForCategory } from '../../modules/lists/aisles'
 import { createRecipe, updateRecipe } from '../../modules/meals/meals.service'
 import { insertPantryItem } from '../../modules/pantry/pantry'
 import type { Tenant } from '../../modules/households/households'
@@ -98,22 +99,14 @@ function chooseList(lists: AnyListList[], byName: string | undefined, savedId: s
   return lists.find((l) => l.id === savedId && l !== exclude) ?? lists.find((l) => pattern.test(l.name) && l !== exclude) ?? null
 }
 
-// AnyList's built-in grocery categories that have a Waffled aisle (aisles.ts).
-const WAFFLED_AISLE: Record<string, string> = {
-  produce: 'Produce', dairy: 'Dairy & Chilled', 'dairy-and-eggs': 'Dairy & Chilled', refrigerated: 'Dairy & Chilled',
-  meat: 'Meat & Seafood', seafood: 'Meat & Seafood', 'meat-and-seafood': 'Meat & Seafood', bakery: 'Bakery', bread: 'Bakery',
-  frozen: 'Frozen', 'frozen-foods': 'Frozen', 'soups-and-canned-goods': 'Pantry', 'grains-pasta-and-sides': 'Pantry',
-  'cooking-and-baking': 'Pantry', 'condiments-oils-and-salad-dressings': 'Pantry', 'spices-and-seasonings': 'Pantry',
-}
-
 // AnyList stores a system key ("dairy") or a category id on each item. "Other" means
 // uncategorised, so it imports as no section and Waffled files the item by name.
 function sectionOf(item: AnyListItem, list: AnyListList, grocery: boolean): string | null {
   const key = item.category
   if (!key || key === 'other') return null
-  if (grocery && WAFFLED_AISLE[key]) return WAFFLED_AISLE[key]
-  const name = list.categories.find((c) => c.matchId === key || c.id === key)?.name ?? key
-  return name.toLowerCase() === 'other' ? null : name
+  if (grocery && waffledAisleForCategory(key)) return waffledAisleForCategory(key)
+  const name = list.categories.find((c) => c.matchId === key || c.id === key)?.name ?? aisleForCatalogCategory(key)
+  return name?.toLowerCase() === 'other' ? null : name
 }
 
 const text = (v: unknown): string | null => (typeof v === 'string' && v.trim() ? v.trim() : null)

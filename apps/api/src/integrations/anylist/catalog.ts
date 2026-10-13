@@ -9,10 +9,10 @@ const CATALOG_TTL_MS = 24 * 60 * 60 * 1000
 const RETRY_AFTER_FAILURE_MS = 5 * 60 * 1000
 
 interface TagData {
-  tags?: Record<string, { displayName?: string }>
+  tags?: Record<string, { displayName?: string; rootCategory?: string }>
   autocompleteKeywords?: Record<string, Record<string, Array<[string, number, ...unknown[]]>>>
 }
-interface CatalogItem { name: string; popularity: number }
+interface CatalogItem { name: string; popularity: number; category: string | null }
 
 export interface Suggestion { name: string; source: 'history' | 'catalog' }
 
@@ -27,14 +27,14 @@ function parse(data: TagData): CatalogItem[] {
     }
   }
   return Object.values(data.tags ?? {})
-    .map((t) => t.displayName?.trim())
-    .filter((name): name is string => !!name)
-    .map((name) => ({ name, popularity: popularity.get(name) ?? 0 }))
+    .map((t) => ({ name: t.displayName?.trim() ?? '', category: t.rootCategory ?? null }))
+    .filter((t) => !!t.name)
+    .map((t) => ({ ...t, popularity: popularity.get(t.name) ?? 0 }))
 }
 
 async function load(): Promise<CatalogItem[]> {
   try {
-    const res = await fetch(config.anylist.baseUrl + CATALOG_PATH, { headers: { accept: 'application/json' } })
+    const res = await fetch(config.anylist.baseUrl + CATALOG_PATH, { headers: { accept: 'application/json' }, signal: AbortSignal.timeout(10_000) })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const items = parse((await res.json()) as TagData)
     cached = { items, expires: Date.now() + CATALOG_TTL_MS }
@@ -50,6 +50,12 @@ export async function catalogItems(): Promise<CatalogItem[]> {
   if (cached && cached.expires > Date.now()) return cached.items
   inflight ??= load().finally(() => { inflight = null })
   return inflight
+}
+
+// The catalog's grocery category key ("produce", "snacks") for an item name, if listed.
+export async function catalogCategory(name: string): Promise<string | null> {
+  const n = fold(name)
+  return (await catalogItems()).find((c) => fold(c.name) === n)?.category ?? null
 }
 
 const fold = (s: string) => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().trim()
