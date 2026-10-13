@@ -120,10 +120,7 @@
 /* =====================  DAY VIEW  ===================== */
 .dv-screen { flex: 1; display: flex; flex-direction: column; min-height: 0; gap: 14px; --dv-rail: 64px; }
 .dv-bar { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-.dv-heading { display: flex; align-items: baseline; gap: 10px; }
-.dv-dow { font-size: 24px; font-weight: 600; }
-.dv-date { font-size: 16px; font-weight: 500; }
-.dv-add { margin-left: auto; }
+.dv-add { flex: 1; }
 .dv-allday { display: grid; grid-template-columns: var(--dv-rail) 1fr; border-top: 1px solid var(--hair);
   border-bottom: 1px solid var(--hair); min-height: 38px; }
 .dv-rail-lbl { font-size: 10px; font-weight: 700; color: var(--ink-3); letter-spacing: .06em;
@@ -365,3 +362,11 @@
 /* Same footprint as .wk-dn's today-circle, so the two header shapes line up. */
 .pv-person-av { width: 30px; height: 30px; border-radius: 999px; display: grid; place-items: center;
   font-size: 15px; line-height: 1; }
+
+/* Phone: the toggle takes its own row so the period nav wraps below it. */
+@media (max-width: 720px) {
+  .cal-month { grid-template-columns: minmax(0, 1fr); }
+  .cal-topbar { flex-wrap: wrap; width: 100%; min-width: 0; gap: 10px; }
+  .cal-topbar .seg { width: 100%; }
+  .cal-topbar .seg button { flex: 1; min-width: 0; padding-left: 4px; padding-right: 4px; }
+}

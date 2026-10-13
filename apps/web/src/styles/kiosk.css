@@ -805,6 +805,14 @@ textarea.field {
   .cal-screen {
     padding: 6px 16px 18px;
   }
+  .cal-dow,
+  .cal-grid {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+  .cal-dow div {
+    padding: 4px 6px;
+    font-size: 14px;
+  }
 }
 
 /* goals screen styles live in styles/goals.css (imported by Goals.tsx) */

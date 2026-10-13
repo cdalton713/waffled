@@ -33,4 +33,16 @@ describe('phone layout', () => {
   it('lays the drawer profile switch out as a row, outranking kiosk-profiles.css', () => {
     expect(phoneDecl('.rail .rail-switch', 'flex-direction')).toBe('row')
   })
+
+  it('wraps the Calendar view toggle and period nav onto full-width rows', () => {
+    expect(phoneDecl('.cal-topbar', 'flex-wrap', 'calendar.css')).toBe('wrap')
+    expect(phoneDecl('.cal-topbar .seg', 'width', 'calendar.css')).toBe('100%')
+    expect(phoneDecl('.cal-topbar .seg button', 'flex', 'calendar.css')).toBe('1')
+  })
+
+  it('lets the month grid shrink to the phone width', () => {
+    expect(phoneDecl('.cal-dow', 'grid-template-columns')).toBe('repeat(7, minmax(0, 1fr))')
+    expect(phoneDecl('.cal-grid', 'grid-template-columns')).toBe('repeat(7, minmax(0, 1fr))')
+    expect(phoneDecl('.cal-month', 'grid-template-columns', 'calendar.css')).toBe('minmax(0, 1fr)')
+  })
 })

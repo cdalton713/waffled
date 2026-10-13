@@ -31,4 +31,15 @@ describe('kitchen.css on a phone', () => {
     })
     expect(leaks).toEqual([])
   })
+
+  it('tightens segmented-control padding on phones so five tabs fit', () => {
+    let pad: string | undefined
+    root.walkAtRules('media', (m) => {
+      if (!/max-width:\s*720px/.test(m.params)) return
+      m.walkRules((r) => {
+        if (/\.seg button$/.test(r.selector)) r.walkDecls('padding', (d) => { pad = d.value })
+      })
+    })
+    expect(pad).toBe('8px')
+  })
 })
