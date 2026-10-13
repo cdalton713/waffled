@@ -16,9 +16,6 @@
      30px side padding; .recap-bar matches it) so the bar lines up with the cards. */
   margin: 6px 30px 16px;
 }
-@media (max-width: 720px) {
-  .ob-bar { margin: 6px 16px 14px; }
-}
 .ob-bar-main {
   flex: 1;
   min-width: 0;
@@ -79,6 +76,10 @@
 }
 .ob-bar-dismiss:hover {
   color: var(--ink);
+}
+@media (max-width: 720px) {
+  .ob-bar { margin: 6px 16px 14px; flex-wrap: wrap; }
+  .ob-bar-main { flex-basis: 100%; }
 }
 
 /* ── Overlay wizard ── */

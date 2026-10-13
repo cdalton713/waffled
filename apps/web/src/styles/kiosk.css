@@ -173,7 +173,8 @@ body {
     min-height: 14px;
   }
 
-  .rail-switch {
+  /* .rail-scoped: kiosk-profiles.css loads later and would win at equal weight. */
+  .rail .rail-switch {
     width: 100%;
     min-height: 46px;
     margin: 0;
@@ -184,7 +185,7 @@ body {
     text-align: left;
   }
 
-  .rail-switch-label {
+  .rail .rail-switch-label {
     max-width: none;
     letter-spacing: 0;
   }
@@ -210,6 +211,22 @@ body {
     width: 100%;
     min-width: 0;
     margin-left: 0;
+  }
+
+  .tb-today-actions,
+  .capture-trigger {
+    min-width: 0;
+  }
+
+  .tb-today-actions {
+    width: 100%;
+  }
+
+  .cap-trigger-text {
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 }
 
