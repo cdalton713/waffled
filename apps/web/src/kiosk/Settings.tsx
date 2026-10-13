@@ -17,6 +17,7 @@ import { ConfirmDialog } from './components/ConfirmDialog'
 import { Screensaver, screensaverPhotos } from './components/Screensaver'
 import { GooglePhotosImportModal } from './components/GooglePhotosImportModal'
 import '../styles/settings.css'
+import '../styles/pantry.css'
 
 // `admin` tabs are only shown to admins, so nobody is offered options they can't use.
 // Three tiers: Account (you) · Family (shared config an admin sets) · System (self-host).
@@ -2381,6 +2382,7 @@ function ModulesPanel() {
         {MODULES.map((m) => {
           const available = m.status === 'available'
           const on = available && moduleEnabled(household, m.key)
+          const anylistPantry = m.key === 'pantry' && moduleEnabled(household, 'anylist')
           return (
             <div key={m.key} className={`set-module${on ? ' on' : ''}`}>
               <div className="set-module-row">

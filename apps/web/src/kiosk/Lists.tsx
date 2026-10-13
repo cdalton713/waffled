@@ -10,6 +10,7 @@ import type { ShareListItem } from './components/share-list'
 import { filterListItems } from './components/list-search'
 import {
   groceryApi,
+  listWrites,
   useLists,
   useTemplates,
   useListDetail,
@@ -21,10 +22,9 @@ import {
 import { useTopbarRight } from './topbar-slot'
 import '../styles/lists.css'
 import { CHECK } from './components/CheckGlyph'
+import { ItemAutocomplete, useItemSuggest } from './components/ItemAutocomplete'
+import { RecentItemsModal } from './components/RecentItemsModal'
 
-// "Waffled suggests" chips are static in the handoff (no suggestion engine yet) —
-// they add their label to the list when tapped. Called out in the summary.
-const SUGGESTIONS = ['Bug spray', 'Phone chargers', 'Snacks for the drive', 'Trash bags']
 
 
 // Pluralized summary line under the list name: "12 items · 2 done". The headline
@@ -68,6 +68,7 @@ function ItemRow({
   onDelete,
   onDragStart,
   onDragEnd,
+  onDropOnto,
   selecting,
   selected,
   onSelect,
@@ -80,6 +81,8 @@ function ItemRow({
   onDelete: (item: ListItem) => void
   onDragStart?: (item: ListItem) => void
   onDragEnd?: () => void
+  // Something dragged was dropped on this row: place it just before this item.
+  onDropOnto?: (target: ListItem) => void
   selecting?: boolean
   selected?: boolean
   onSelect?: (item: ListItem) => void
@@ -96,6 +99,8 @@ function ItemRow({
       draggable={!!onDragStart && !selecting}
       onDragStart={onDragStart && !selecting ? () => onDragStart(item) : undefined}
       onDragEnd={onDragEnd}
+      onDragOver={onDropOnto ? (e) => e.preventDefault() : undefined}
+      onDrop={onDropOnto ? (e) => { e.stopPropagation(); onDropOnto(item) } : undefined}
     >
       {/* In select mode the row shows ONLY the square selection box — the round
           completion checkbox is hidden so a tap can't accidentally check an item
@@ -147,6 +152,7 @@ function ItemRow({
             added by {addedBy.name}
           </span>
         )}
+        {item.note && <span className="gattr lnote">📝 {item.note}</span>}
       </button>
       {item.quantity ? <span className="lqty">{item.quantity}</span> : null}
       <div className="litem-assign" style={{ position: 'relative' }}>
@@ -371,6 +377,7 @@ export function Lists() {
   const [itemModal, setItemModal] = useState<{ item: ListItem | null } | null>(null)
   // "Share list" — the same phone handoff the grocery board offers, for any list.
   const [sharing, setSharing] = useState(false)
+  const [showRecent, setShowRecent] = useState(false)
   const [groceryOpen, setGroceryOpen] = useState(false)
   // Just-checked items lingering in place during the undo grace window.
   const [recent, setRecent] = useState<Set<string>>(new Set())
@@ -455,6 +462,18 @@ export function Lists() {
   }, [lists, templates, selectedId])
   const isTemplate = selected?.listType === 'template'
   const { items, loading: itemsLoading, setItems, refetch: refetchItems } = useListDetail(selected?.id ?? null)
+  const suggest = useItemSuggest(selected?.id)
+  // "Waffled suggests": the household's most-bought names that aren't on this list yet.
+  const [chips, setChips] = useState<string[]>([])
+  const liveCount = items.filter((i) => !i.checked).length
+  useEffect(() => {
+    if (!selected?.id) return
+    let live = true
+    groceryApi.suggestions('', selected.id)
+      .then((list) => { if (live) setChips(list.slice(0, 4).map((s) => s.name)) })
+      .catch(() => { if (live) setChips([]) })
+    return () => { live = false }
+  }, [selected?.id, liveCount])
 
   // A search belongs to the list it was typed on — switching lists starts fresh
   // rather than showing the next list already filtered by a stale query.
@@ -499,7 +518,7 @@ export function Lists() {
     }
     setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, checked: next } : i)))
     try {
-      const updated = await groceryApi.patchListItem(item.id, { checked: next })
+      const updated = await listWrites.patchItem(item, { checked: next })
       setItems((prev) => prev.map((i) => (i.id === item.id ? updated : i)))
     } catch {
       setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, checked: item.checked } : i)))
@@ -516,8 +535,27 @@ export function Lists() {
     const snapshot = items
     setItems((prev) => prev.map((i) => (i.id === id ? { ...i, section: target } : i)))
     try {
-      const updated = await groceryApi.patchListItem(id, { section: target })
+      const updated = await listWrites.patchItem(item, { section: target })
       setItems((prev) => prev.map((i) => (i.id === id ? updated : i)))
+    } catch {
+      setItems(snapshot)
+    }
+  }
+
+  // Drop a dragged item just before `target` (taking target's section), then save the
+  // whole list's order so it survives a reload and shows the same on every device.
+  async function moveBefore(id: string, target: ListItem) {
+    const item = items.find((i) => i.id === id)
+    if (!item || id === target.id || !selected) return
+    const moved = { ...item, section: target.section ?? null }
+    const rest = items.filter((i) => i.id !== id)
+    const next = [...rest.slice(0, rest.findIndex((i) => i.id === target.id)), moved, ...rest.slice(rest.findIndex((i) => i.id === target.id))]
+      .map((i, idx) => ({ ...i, sortOrder: idx }))
+    const snapshot = items
+    setItems(next)
+    try {
+      if ((item.section ?? null) !== moved.section) await listWrites.patchItem(item, { section: moved.section })
+      await listWrites.reorder(selected.id, next.map((i) => i.id))
     } catch {
       setItems(snapshot)
     }
@@ -525,7 +563,7 @@ export function Lists() {
 
   async function assign(item: ListItem, personId: string | null) {
     try {
-      const updated = await groceryApi.patchListItem(item.id, { assignedTo: personId })
+      const updated = await listWrites.patchItem(item, { assignedTo: personId })
       setItems((prev) => prev.map((i) => (i.id === item.id ? updated : i)))
     } catch {
       /* keep current state on failure */
@@ -540,7 +578,7 @@ export function Lists() {
       return prev.filter((i) => i.id !== item.id)
     })
     try {
-      await groceryApi.deleteItem(item.id)
+      await listWrites.deleteItem(item.id)
       refetchLists()
     } catch {
       setItems(snapshot)
@@ -557,7 +595,7 @@ export function Lists() {
       return prev.filter((i) => !i.checked)
     })
     try {
-      await groceryApi.clearCompleted(selected.id)
+      await listWrites.clearCompleted(selected.id)
       refetchLists()
     } catch {
       setItems(snapshot)
@@ -595,7 +633,7 @@ export function Lists() {
     if (!trimmed || !selected || addingRef.current) return
     addingRef.current = true
     try {
-      const item = await groceryApi.addListItem(selected.id, { name: trimmed, section: addSection })
+      const item = await listWrites.addItem(selected.id, { name: trimmed, section: addSection })
       setItems((prev) => [...prev, item])
       refetchLists()
     } finally {
@@ -872,6 +910,11 @@ export function Lists() {
                     <button type="button" onClick={() => { setEditingList({ id: selected.id, name: selected.name, emoji: selected.emoji }); setActionsMenu(false) }}>
                       <span aria-hidden>✎</span> {isTemplate ? 'Rename template' : 'Rename'}
                     </button>
+                    {!isTemplate && !viewOnly && (
+                      <button type="button" onClick={() => { setShowRecent(true); setActionsMenu(false) }}>
+                        <span aria-hidden>↺</span> Recently crossed off
+                      </button>
+                    )}
                     {/* Only worth offering while something is still outstanding. */}
                     {hasUnchecked && (
                       <button type="button" onClick={() => { setSharing(true); setActionsMenu(false) }}>
@@ -907,10 +950,12 @@ export function Lists() {
               <div className="ai-spark" aria-hidden>
                 <Icon name="spark" />
               </div>
-              <input
+              <ItemAutocomplete
                 ref={addInputRef}
                 value={draft}
-                onChange={(e) => setDraft(e.target.value)}
+                onChange={setDraft}
+                onPick={(name) => addItem(name).then(() => setDraft(''))}
+                suggest={suggest}
                 placeholder={'Add to this list… “bug spray and 2 water bottles”'}
                 aria-label="Add to this list"
               />
@@ -926,15 +971,15 @@ export function Lists() {
               </div>
             </form>
 
-            <div className="lists-suggest">
+            {chips.length > 0 && <div className="lists-suggest">
               <span className="tiny lists-suggest-label">Waffled suggests:</span>
-              {SUGGESTIONS.map((s) => (
+              {chips.map((s) => (
                 <button key={s} type="button" className="sug-chip" onClick={() => addItem(s)}>
                   <svg viewBox="0 0 24 24" dangerouslySetInnerHTML={{ __html: '<path d="M12 5v14M5 12h14"/>' }} />
                   {s}
                 </button>
               ))}
-            </div>
+            </div>}
             </>)}
 
             {selecting && (
@@ -1059,6 +1104,12 @@ export function Lists() {
                                 onDelete={remove}
                                 onDragStart={(i) => { dragId.current = i.id }}
                                 onDragEnd={() => { dragId.current = null; setDragOverKey(null) }}
+                                onDropOnto={(target) => {
+                                  const id = dragId.current
+                                  dragId.current = null
+                                  setDragOverKey(null)
+                                  if (id) moveBefore(id, target)
+                                }}
                                 selecting={selecting}
                                 selected={selectedItems.has(it.id)}
                                 onSelect={toggleItemSelected}
@@ -1144,6 +1195,9 @@ export function Lists() {
             setGroceryOpen(false)
           }}
         />
+      )}
+      {showRecent && selected && (
+        <RecentItemsModal listId={selected.id} onClose={() => setShowRecent(false)} onAdded={() => { refetchItems(); refetchLists() }} />
       )}
       {sharing && (
         <ShareListModal

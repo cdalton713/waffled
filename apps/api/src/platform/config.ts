@@ -106,6 +106,8 @@ export interface AppConfig {
   ai: AiConfig
   google: GoogleConfig
   microsoft: MicrosoftConfig
+  /** AnyList (unofficial API), read once by the importer. URLs overridable so tests can target a local fake. */
+  anylist: { baseUrl: string; photosBaseUrl: string }
   /** Secrets-at-rest. tokenEncryptionKey encrypts calendar refresh tokens (src/crypto.ts). */
   security: { tokenEncryptionKey: string | null }
   auth: {
@@ -188,6 +190,11 @@ export const config: AppConfig = {
     authUrl: env('MS_AUTH_URL') ?? 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize',
     tokenUrl: env('MS_TOKEN_URL') ?? 'https://login.microsoftonline.com/common/oauth2/v2.0/token',
     graphBase: env('MS_GRAPH_BASE') ?? 'https://graph.microsoft.com/v1.0',
+  },
+
+  anylist: {
+    baseUrl: env('ANYLIST_BASE_URL') ?? 'https://www.anylist.com',
+    photosBaseUrl: env('ANYLIST_PHOTOS_BASE_URL') ?? 'https://photos.anylist.com',
   },
 
   security: { tokenEncryptionKey: process.env.TOKEN_ENCRYPTION_KEY ?? null },

@@ -18,6 +18,10 @@ import {
   softDeleteItem,
   bulkPatchItems,
   listStores,
+  suggestItemNames,
+  recentlyCrossedOff,
+  reorderItems,
+  readdItem,
   autoClearCheckedItems,
   clearCompletedItems,
   addRecipeToGrocery,
@@ -124,6 +128,13 @@ export function registerListRoutes(api: Api): void {
     return { stores: await listStores(tenant.householdId) }
   }))
 
+  // Add-bar autocomplete (?q=…&listId=…). Registered before `/api/lists/:id`.
+  api.get('/api/lists/suggestions', tenantRoute(async (tenant, req: Request) => {
+    const q = typeof req.query.q === 'string' ? req.query.q.slice(0, 100) : ''
+    const listId = typeof req.query.listId === 'string' && UUID_RE.test(req.query.listId) ? req.query.listId : null
+    return { suggestions: await suggestItemNames(tenant.householdId, q, listId) }
+  }))
+
   api.patch('/api/lists/:id', tenantRoute(async (tenant, req: Request, res: Response) => {
     const id = req.params.id ?? ''
     if (!UUID_RE.test(id)) return res.status(404).json({ error: 'NotFound', message: 'list not found' })
@@ -160,6 +171,29 @@ export function registerListRoutes(api: Api): void {
     return { list: presentList(list), items: items.map(presentListItem) }
   }))
 
+  // Save the order items were dragged into (body: { ids: [...] } in display order).
+  api.put('/api/lists/:id/order', tenantRoute(async (tenant, req: Request, res: Response) => {
+    const id = req.params.id ?? ''
+    if (!UUID_RE.test(id)) return res.status(404).json({ error: 'NotFound', message: 'list not found' })
+    const ids = ((req.body ?? {}) as { ids?: unknown }).ids
+    if (!Array.isArray(ids) || ids.length === 0 || ids.length > 2000 || !ids.every((x) => typeof x === 'string' && UUID_RE.test(x)) || new Set(ids).size !== ids.length) {
+      return res.status(400).json({ error: 'BadRequest', message: 'ids must be a list of item ids' })
+    }
+    if (!(await getList(tenant.householdId, id))) return res.status(404).json({ error: 'NotFound', message: 'list not found' })
+    if (!(await reorderItems(tenant.householdId, id, ids as string[]))) {
+      return res.status(400).json({ error: 'BadRequest', message: 'every id must be an item on this list' })
+    }
+    return { ok: true }
+  }))
+
+  // Recently crossed-off items on a list (cleared ones included), for one-tap re-adding.
+  api.get('/api/lists/:id/recent', tenantRoute(async (tenant, req: Request, res: Response) => {
+    const id = req.params.id ?? ''
+    if (!UUID_RE.test(id)) return res.status(404).json({ error: 'NotFound', message: 'list not found' })
+    if (!(await getList(tenant.householdId, id))) return res.status(404).json({ error: 'NotFound', message: 'list not found' })
+    return { items: (await recentlyCrossedOff(tenant.householdId, id)).map(presentListItem) }
+  }))
+
   // Clear a custom list's Completed section now (soft-delete its checked items).
   api.post('/api/lists/:id/clear-completed', tenantRoute(async (tenant, req: Request, res: Response) => {
     const id = req.params.id ?? ''
@@ -176,7 +210,7 @@ export function registerListRoutes(api: Api): void {
     if (!UUID_RE.test(id)) return res.status(404).json({ error: 'NotFound', message: 'list not found' })
     const list = await getList(tenant.householdId, id)
     if (!list) return res.status(404).json({ error: 'NotFound', message: 'list not found' })
-    const body = (req.body ?? {}) as { name?: string; quantity?: string; category?: string; store?: string; assignedTo?: string; priority?: number }
+    const body = (req.body ?? {}) as { name?: string; quantity?: string; note?: string; category?: string; store?: string; assignedTo?: string; priority?: number }
     if (!body.name || !body.name.trim()) {
       return res.status(400).json({ error: 'BadRequest', message: 'name is required' })
     }
@@ -187,6 +221,7 @@ export function registerListRoutes(api: Api): void {
     const item = await addItem(tenant, id, {
       name: body.name.trim(),
       quantity: body.quantity ?? null,
+      note: body.note ?? null,
       category: body.category ?? null,
       store: body.store ?? null,
       assignedTo: body.assignedTo ?? null,
@@ -203,7 +238,7 @@ export function registerListRoutes(api: Api): void {
   }))
 
   api.post('/api/lists/grocery/items', tenantRoute(async (tenant, req: Request, res: Response) => {
-    const body = (req.body ?? {}) as { name?: string; quantity?: string; category?: string; store?: string }
+    const body = (req.body ?? {}) as { name?: string; quantity?: string; note?: string; category?: string; store?: string }
     if (!body.name || !body.name.trim()) {
       return res.status(400).json({ error: 'BadRequest', message: 'name is required' })
     }
@@ -211,6 +246,7 @@ export function registerListRoutes(api: Api): void {
     const item = await addItem(tenant, list.id, {
       name: body.name.trim(),
       quantity: body.quantity ?? null,
+      note: body.note ?? null,
       category: body.category ?? null,
       store: body.store ?? null,
     })
@@ -253,7 +289,7 @@ export function registerListRoutes(api: Api): void {
     const id = req.params.id ?? ''
     if (!UUID_RE.test(id)) return res.status(404).json({ error: 'NotFound', message: 'item not found' })
     const body = (req.body ?? {}) as PatchItemInput
-    const known = ['checked', 'assignedTo', 'quantity', 'category', 'store', 'priority', 'name']
+    const known = ['checked', 'assignedTo', 'quantity', 'category', 'store', 'priority', 'name', 'note']
     if (!known.some((k) => k in body)) {
       return res.status(400).json({ error: 'BadRequest', message: 'no patchable fields provided' })
     }
@@ -267,6 +303,15 @@ export function registerListRoutes(api: Api): void {
     const item = await patchItem(tenant, id, body)
     if (!item) return res.status(404).json({ error: 'NotFound', message: 'item not found' })
     return { item: presentListItem(item) }
+  }))
+
+  // Put a crossed-off item back on its list (unchecks it, or re-adds a cleared one).
+  api.post('/api/list-items/:id/readd', tenantRoute(async (tenant, req: Request, res: Response) => {
+    const id = req.params.id ?? ''
+    if (!UUID_RE.test(id)) return res.status(404).json({ error: 'NotFound', message: 'item not found' })
+    const result = await readdItem(tenant, id)
+    if (!result) return res.status(404).json({ error: 'NotFound', message: 'item not found' })
+    return res.status(result.created ? 201 : 200).json({ item: presentListItem(result.item) })
   }))
 
   // Remove an item (soft-delete).

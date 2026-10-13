@@ -4,10 +4,11 @@
 // (CLOTHES / GEAR / FOR THE KIDS via `category`), a freeform quantity ("×4"),
 // an assignee (avatar) and a checked state. The grocery list keeps its existing
 // get-or-create endpoints (the Today dashboard's Grocery card depends on them).
+import { catalogCategory, catalogItems, rankSuggestions, type Suggestion } from '../../integrations/anylist/catalog'
 import { getPool, query } from '../../platform/db'
 import { type Tenant } from '../households/households'
 import { getRecipe, listIngredients, getOverrides } from '../meals/meals.service'
-import { aisleFor, isStaple } from './aisles'
+import { aisleFor, aisleForCatalogCategory, isStaple } from './aisles'
 // Read-time only, and deliberately so — see groceryBoard.
 import { pantryHitsForNames } from '../pantry/presence'
 import { formatAmount, normalizeQuantity, parseQuantity, plainQuantity } from './quantity'
@@ -252,6 +253,10 @@ export async function listItems(householdId: string, listId: string): Promise<Li
   return rows
 }
 
+export function cleanNote(note: unknown): string | null {
+  return typeof note === 'string' && note.trim() ? note.trim() : null
+}
+
 // The store box is free text and every client writes it (web + iOS), so the same shop
 // typed with different capitalisation has to land on one store — otherwise the By-store
 // view splits into two identically-labelled sections and the quick-select offers both.
@@ -272,15 +277,32 @@ export async function canonicalStore(householdId: string, store: string | null |
   return rows[0]?.store ?? trimmed
 }
 
+// Where an item with no section goes: wherever the same name was filed last time on this
+// list (moves included, since they bump updated_at), else — on the grocery list — the
+// item catalog's aisle. null leaves it to aisleFor() at read time.
+export async function rememberedSection(householdId: string, listId: string, name: string): Promise<string | null> {
+  const { rows } = await query<{ category: string | null; list_type: string }>(
+    `select l.list_type,
+            (select i.category from list_items i
+              where i.household_id = $1 and i.list_id = l.id and i.category is not null
+                and lower(btrim(i.name)) = lower(btrim($3))
+              order by i.updated_at desc limit 1) as category
+       from lists l where l.household_id = $1 and l.id = $2`,
+    [householdId, listId, name]
+  )
+  if (rows[0]?.category) return rows[0].category
+  return rows[0]?.list_type === 'grocery' ? aisleForCatalogCategory(await catalogCategory(name)) : null
+}
+
 export async function addItem(
   tenant: Tenant,
   listId: string,
-  input: { name: string; quantity?: string | null; category?: string | null; store?: string | null; assignedTo?: string | null; priority?: number }
+  input: { name: string; quantity?: string | null; note?: string | null; category?: string | null; store?: string | null; assignedTo?: string | null; priority?: number }
 ): Promise<ListItemRow> {
   const { rows } = await query<ListItemRow>(
     `with ins as (
-       insert into list_items (household_id, list_id, name, quantity, category, store, assigned_to, priority, created_by)
-       values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       insert into list_items (household_id, list_id, name, quantity, category, store, assigned_to, priority, created_by, note)
+       values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        returning *
      )
      select ins.*, p.name as assignee_name, p.avatar_emoji as assignee_avatar, p.color_hex as assignee_color,
@@ -293,11 +315,12 @@ export async function addItem(
       listId,
       input.name,
       input.quantity ?? null,
-      input.category ?? null,
+      input.category ?? (await rememberedSection(tenant.householdId, listId, input.name)),
       await canonicalStore(tenant.householdId, input.store),
       input.assignedTo ?? null,
       input.priority ?? 3,
       tenant.personId,
+      cleanNote(input.note),
     ]
   )
   return rows[0]
@@ -367,6 +390,10 @@ export async function patchItem(
   if (typeof patch.name === 'string') {
     sets.push(`name = $${i++}`)
     vals.push(patch.name)
+  }
+  if ('note' in patch) {
+    sets.push(`note = $${i++}`)
+    vals.push(cleanNote(patch.note))
   }
   if (sets.length === 0) {
     const cur = await listItemById(tenant.householdId, id)
@@ -1241,6 +1268,78 @@ export async function listStores(householdId: string): Promise<string[]> {
   return rows.map((r) => r.store)
 }
 
+// Save a hand-dragged order: each id's position becomes its sort_order. Every id must
+// be a live item on this list (false otherwise, and nothing changes).
+export async function reorderItems(householdId: string, listId: string, ids: string[]): Promise<boolean> {
+  const { rowCount } = await query(
+    `update list_items i set sort_order = o.pos - 1
+       from unnest($3::uuid[]) with ordinality as o(id, pos)
+      where i.id = o.id and i.household_id = $1 and i.list_id = $2 and i.deleted_at is null
+        and (select count(*) from list_items x
+              where x.id = any($3::uuid[]) and x.household_id = $1 and x.list_id = $2 and x.deleted_at is null) = cardinality($3::uuid[])`,
+    [householdId, listId, ids]
+  )
+  return rowCount === ids.length
+}
+
+// Crossed-off items on a list, newest first and one per name — including ones already
+// cleared away — minus anything back on the list. The "buy it again" shelf.
+export async function recentlyCrossedOff(householdId: string, listId: string, limit = 20): Promise<ListItemRow[]> {
+  const { rows } = await query<ListItemRow>(
+    `select * from (
+       select distinct on (lower(btrim(i.name))) i.*
+         from list_items i
+        where i.household_id = $1 and i.list_id = $2 and i.checked and i.checked_at is not null
+        order by lower(btrim(i.name)), i.checked_at desc
+     ) latest
+     where not exists (
+       select 1 from list_items live
+        where live.household_id = $1 and live.list_id = $2 and live.deleted_at is null and not live.checked
+          and lower(btrim(live.name)) = lower(btrim(latest.name)))
+     order by checked_at desc
+     limit $3`,
+    [householdId, listId, limit]
+  )
+  return rows
+}
+
+// Put a crossed-off item back: uncheck it if it is still on the list, otherwise add a
+// fresh copy (same quantity, note, section, store). null when no such item.
+export async function readdItem(tenant: Tenant, id: string): Promise<{ item: ListItemRow; created: boolean } | null> {
+  const { rows: [old] } = await query<ListItemRow & { list_id: string; deleted_at: Date | null }>(
+    'select * from list_items where household_id = $1 and id = $2', [tenant.householdId, id])
+  if (!old) return null
+  if (!old.deleted_at) return { item: (await setItemChecked(tenant, id, false))!, created: false }
+  const item = await addItem(tenant, old.list_id, {
+    name: old.name, quantity: old.quantity, note: old.note, category: old.category, store: old.store,
+    assignedTo: old.assigned_to, priority: old.priority,
+  })
+  return { item, created: true }
+}
+
+// Add-bar suggestions: names the household has put on any list before (crossed-off and
+// cleared ones included), most-used first, then AnyList's public catalog. With no query,
+// the most-bought names. Anything already unchecked on `listId` is left out.
+export async function suggestItemNames(householdId: string, q: string, listId: string | null): Promise<Suggestion[]> {
+  const { rows } = await query<{ name: string; uses: number }>(
+    `select (array_agg(name order by created_at desc))[1] as name, count(*)::int as uses
+       from list_items
+      where household_id = $1 and btrim(name) <> ''
+      group by lower(btrim(name))
+     having not bool_or(list_id = $2::uuid and deleted_at is null and not checked)
+      order by count(*) desc, max(created_at) desc
+      limit 2000`,
+    [householdId, listId]
+  )
+  const history = rows.map((r) => ({ name: r.name, popularity: r.uses }))
+  if (!q.trim()) return history.slice(0, 8).map((h) => ({ name: h.name, source: 'history' as const }))
+  const onList = new Set((await query<{ n: string }>(
+    `select lower(btrim(name)) as n from list_items where household_id = $1 and list_id = $2::uuid and deleted_at is null and not checked`,
+    [householdId, listId])).rows.map((r) => r.n))
+  const catalog = (await catalogItems()).filter((c) => !onList.has(c.name.toLowerCase()))
+  return rankSuggestions(q, history, catalog)
+}
+
 export function presentList(l: ListRow) {
   return {
     id: l.id,
@@ -1273,6 +1372,7 @@ export function presentListItem(i: ListItemRow) {
     // The same value with the fraction spelled out ("1 1/2 lb"), for edit fields —
     // nobody can type ½ on a keyboard. Saving it normalizes straight back.
     quantityInput: plainQuantity(normalizeQuantity(i.quantity)),
+    note: i.note ?? null,
     checked: i.checked,
     checkedAt: i.checked_at,
     weekStart: isoDateOnly(i.week_start),

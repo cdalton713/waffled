@@ -1,0 +1,4 @@
+interface:
+  display_name: "Waffled QA"
+  short_description: "Local feature QA with evidence, fixes, and retests"
+  default_prompt: "Use $waffled-qa to test this Waffled feature on the local stack, fix confirmed defects, and verify the results."

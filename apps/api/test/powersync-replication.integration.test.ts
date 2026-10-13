@@ -37,7 +37,7 @@ describe('powersync replication setup', () => {
     expect(res.rowCount).toBe(1)
   })
 
-  it('publishes the synced tables (households, persons, events, event_participants, event_occurrences)', async () => {
+  it('publishes the synced tables (households, persons, events, event_participants, event_occurrences, lists, list_items)', async () => {
     const res = await withClient((c) =>
       c.query<{ tablename: string }>(
         `select tablename from pg_publication_tables where pubname = 'powersync'`
@@ -48,6 +48,8 @@ describe('powersync replication setup', () => {
       'event_participants',
       'events',
       'households',
+      'list_items',
+      'lists',
       'persons',
     ])
   })
@@ -56,11 +58,11 @@ describe('powersync replication setup', () => {
     const res = await withClient((c) =>
       c.query<{ relname: string; relreplident: string }>(
         `select relname, relreplident from pg_class
-          where relname in ('households','persons','events','event_participants','event_occurrences') and relkind = 'r'`
+          where relname in ('households','persons','events','event_participants','event_occurrences','lists','list_items') and relkind = 'r'`
       )
     )
     // 'f' = FULL
     expect(res.rows.every((r) => r.relreplident === 'f')).toBe(true)
-    expect(res.rows).toHaveLength(5)
+    expect(res.rows).toHaveLength(7)
   })
 })

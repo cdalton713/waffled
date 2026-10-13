@@ -34,6 +34,15 @@ function mockApi(opts: { lists?: unknown[]; items?: unknown[]; sent?: Sent[]; cr
     const body = init?.body ? JSON.parse(init.body) : undefined
     opts.sent?.push({ method, url: u, body })
     if (u.includes('/api/persons')) return { ok: true, json: async () => ({ persons }) }
+    if (/\/api\/lists\/[^/]+\/order$/.test(u) && method === 'PUT') return { ok: true, json: async () => ({ ok: true }) }
+    if (/\/api\/lists\/[^/]+\/recent$/.test(u)) return { ok: true, json: async () => ({ items: [{ id: 'old', name: 'Bug spray', quantity: null, checked: true, checkedAt: '2026-05-01T00:00:00Z', section: 'Gear', sortOrder: 0, assignee: null }] }) }
+    if (/\/api\/list-items\/[^/]+\/readd$/.test(u)) return { ok: true, json: async () => ({ item: { id: 'old', name: 'Bug spray', quantity: null, checked: false, checkedAt: null, section: 'Gear', sortOrder: 0, assignee: null } }) }
+    // add-bar autocomplete + "suggests" chips (must precede the list-detail regex)
+    if (u.includes('/api/lists/suggestions')) {
+      const q = new URL(u, 'http://x').searchParams.get('q')
+      if (q === 'wat') return { ok: true, json: async () => ({ suggestions: [{ name: 'Water bottles', source: 'catalog' }] }) }
+      return { ok: true, json: async () => ({ suggestions: q ? [] : [{ name: 'Bug spray', source: 'history' }, { name: 'Trash bags', source: 'history' }] }) }
+    }
     // list templates GET (must precede the list-detail regex, which would else
     // capture "templates" as an :id)
     if (u.endsWith('/api/lists/templates') && method === 'GET') {
@@ -240,6 +249,20 @@ describe('Lists screen', () => {
     await waitFor(() => expect(sent.some((s) => s.method === 'POST' && /\/items$/.test(s.url))).toBe(true))
     const post = sent.find((s) => s.method === 'POST' && /\/items$/.test(s.url))!
     expect(post.body).toMatchObject({ name: 'Bug spray' })
+  })
+
+  it('adds a suggestion picked from the add bar', async () => {
+    const sent: Sent[] = []
+    mockApi({ lists: [grocery, packing], items: packItems, sent })
+    renderScreen()
+    await exitBoard()
+
+    const input = await screen.findByLabelText('Add to this list')
+    fireEvent.focus(input)
+    fireEvent.change(input, { target: { value: 'wat' } })
+    fireEvent.mouseDown(await screen.findByRole('option', { name: 'Water bottles' }))
+    await waitFor(() => expect(sent.find((s) => s.method === 'POST' && /\/items$/.test(s.url))?.body).toMatchObject({ name: 'Water bottles' }))
+    expect(sent.find((s) => s.url.includes('/api/lists/suggestions?q=wat'))?.url).toContain('listId=pack')
   })
 
   it('adds a typed item from the add bar', async () => {
@@ -594,5 +617,61 @@ describe('Lists screen', () => {
       expect(screen.getByRole('button', { name: /Rename/ })).toBeInTheDocument() // menu is open
       expect(screen.queryByRole('button', { name: /Share list/ })).toBeNull()
     })
+  })
+})
+
+describe('Lists screen — item notes', () => {
+  it('shows an item note under its name', async () => {
+    mockApi({ lists: [grocery, packing], items: [{ ...packItems[2], note: 'SPF 50, not spray' }] })
+    renderScreen()
+    await exitBoard()
+    expect(await screen.findByText(/SPF 50, not spray/)).toBeInTheDocument()
+  })
+})
+
+describe('Lists screen — recently crossed off', () => {
+  it('re-adds an item from the Recently crossed off panel in the ⋯ menu', async () => {
+    const sent: Sent[] = []
+    mockApi({ lists: [grocery, packing], items: packItems, sent })
+    renderScreen()
+    await exitBoard()
+    fireEvent.click(await screen.findByRole('button', { name: 'More actions' }))
+    fireEvent.click(await screen.findByRole('button', { name: /Recently crossed off/i }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Add Bug spray back' }))
+    await waitFor(() => expect(sent.some((s) => s.method === 'POST' && s.url.endsWith('/api/list-items/old/readd'))).toBe(true))
+  })
+})
+
+describe('Lists screen — saved order', () => {
+  it('drops an item onto another to place it before that one, and saves the order', async () => {
+    const sent: Sent[] = []
+    const hat = { id: 'i4', name: 'Hat', quantity: null, checked: false, checkedAt: null, section: 'Clothes', sortOrder: 2, assignee: null }
+    mockApi({ lists: [grocery, packing], items: [...packItems, hat], sent })
+    renderScreen()
+    await exitBoard()
+    const hatRow = (await screen.findByText('Hat')).closest('.litem') as HTMLElement
+    const swimsuits = screen.getByText('Swimsuits').closest('.litem') as HTMLElement
+    fireEvent.dragStart(hatRow)
+    fireEvent.dragOver(swimsuits)
+    fireEvent.drop(swimsuits)
+    await waitFor(() => expect(sent.some((s) => s.method === 'PUT')).toBe(true))
+    expect(sent.find((s) => s.method === 'PUT')!.body).toEqual({ ids: ['i4', 'i1', 'i2', 'i3'] })
+    const clothes = screen.getByText('Clothes', { selector: '.lists-section-name' }).closest('.lists-section') as HTMLElement
+    expect(within(clothes).getAllByText(/Hat|Swimsuits/).map((e) => e.textContent)).toEqual(['Hat', 'Swimsuits'])
+  })
+
+  it('moves the item into the target row\'s section too', async () => {
+    const sent: Sent[] = []
+    mockApi({ lists: [grocery, packing], items: packItems, sent })
+    renderScreen()
+    await exitBoard()
+    const sunscreen = (await screen.findByText('Sunscreen')).closest('.litem') as HTMLElement
+    const swimsuits = screen.getByText('Swimsuits').closest('.litem') as HTMLElement
+    fireEvent.dragStart(sunscreen)
+    fireEvent.dragOver(swimsuits)
+    fireEvent.drop(swimsuits)
+    await waitFor(() => expect(sent.some((s) => s.method === 'PATCH' && s.url.endsWith('/i3'))).toBe(true))
+    expect(sent.find((s) => s.method === 'PATCH' && s.url.endsWith('/i3'))!.body).toMatchObject({ category: 'Clothes' })
+    expect(sent.find((s) => s.method === 'PUT')!.body).toEqual({ ids: ['i3', 'i1', 'i2'] })
   })
 })

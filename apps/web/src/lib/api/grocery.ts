@@ -3,7 +3,12 @@
 // Grocery card (the original grocery exports are kept intact).
 import { useCallback, useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react'
 import { apiGet, apiSend, apiDelete } from './client'
-import { tap, useRefetchOn, useLiveRefresh } from './bus'
+import { emit, tap, useRefetchOn, useLiveRefresh } from './bus'
+import { isReplicaTrusted, subscribeSyncHealth } from '../powersync/sync-health'
+import {
+  watchListItems, watchLists, rowToListItem, rowToListSummary, addItemLocal, patchItemLocal, deleteItemLocal,
+  reorderLocal, clearCheckedLocal, createListLocal, renameListLocal, type LocalItemPatch,
+} from '../powersync/lists-local'
 
 // ---- grocery (Today dashboard) ---------------------------------------------
 
@@ -56,6 +61,8 @@ export interface ListItem {
   // `quantity` with fraction glyphs spelled out ("1 1/2 lb" for a displayed "1½ lb").
   // Use it to seed edit fields — a ½ can be read but not typed. Saving it round-trips.
   quantityInput?: string | null
+  // A free-text note ("the blue cap one"); null when there is none.
+  note?: string | null
   checked: boolean
   checkedAt: string | null
   section: string | null
@@ -78,6 +85,11 @@ export interface ListItem {
   sourceMealIds?: string[]
 }
 
+export interface ItemSuggestion {
+  name: string
+  source: 'history' | 'catalog'
+}
+
 export interface ListDetail {
   list: ListSummary | { id: string; name: string; emoji: string | null; listType: string; isAutoBuilt: boolean; sortMode: string }
   items: ListItem[]
@@ -91,6 +103,7 @@ export interface PatchItemBody {
   store?: string | null
   priority?: number
   name?: string
+  note?: string | null
 }
 
 // PATCH /api/list-items uses `category` server-side for the section column.
@@ -103,6 +116,7 @@ function patchBody(b: PatchItemBody): Record<string, unknown> {
   if ('store' in b) out.store = b.store
   if ('priority' in b) out.priority = b.priority
   if ('name' in b) out.name = b.name
+  if ('note' in b) out.note = b.note
   return out
 }
 
@@ -141,10 +155,11 @@ export const groceryApi = {
   applyTemplate: (templateId: string, name?: string) =>
     apiSend<{ list: ListSummary }>('POST', `/api/lists/templates/${templateId}/apply`, name ? { name } : {}).then((r) => r.list).then(tap('grocery')),
 
-  addListItem: (listId: string, input: { name: string; quantity?: string | null; section?: string | null; store?: string | null; assignedTo?: string | null; priority?: number }) =>
+  addListItem: (listId: string, input: { name: string; quantity?: string | null; note?: string | null; section?: string | null; store?: string | null; assignedTo?: string | null; priority?: number }) =>
     apiSend<{ item: ListItem }>('POST', `/api/lists/${listId}/items`, {
       name: input.name,
       quantity: input.quantity ?? null,
+      ...(input.note ? { note: input.note } : {}),
       category: input.section ?? null,
       ...(input.store !== undefined ? { store: input.store } : {}),
       assignedTo: input.assignedTo ?? null,
@@ -155,6 +170,18 @@ export const groceryApi = {
   // The household's previously-used store names (most-used first) — quick-select for
   // a grocery item's store field.
   stores: () => apiGet<{ stores: string[] }>('/api/lists/stores').then((r) => r.stores),
+  // Save a hand-dragged order (every item id on the list, in display order).
+  reorderItems: (listId: string, ids: string[]) => apiSend<{ ok: true }>('PUT', `/api/lists/${listId}/order`, { ids }).then(tap('grocery')),
+  // Crossed-off items on a list (cleared ones included), newest first, one per name.
+  recentItems: (listId: string) => apiGet<{ items: ListItem[] }>(`/api/lists/${listId}/recent`).then((r) => r.items),
+  // Put a crossed-off item back: unchecks it, or re-adds a cleared one.
+  readdItem: (id: string) => apiSend<{ item: ListItem }>('POST', `/api/list-items/${id}/readd`).then((r) => r.item).then(tap('grocery')),
+  // Add-bar autocomplete: household history first, then a grocery catalog. An empty
+  // query returns the most-bought names not already on the list.
+  suggestions: (q: string, listId: string | null) => {
+    const params = new URLSearchParams({ ...(q ? { q } : {}), ...(listId ? { listId } : {}) })
+    return apiGet<{ suggestions: ItemSuggestion[] }>(`/api/lists/suggestions?${params}`).then((r) => r.suggestions)
+  },
   // Bulk-edit section/store/assignee/priority across a multi-selection (one round-trip).
   bulkPatchItems: (ids: string[], patch: { section?: string | null; store?: string | null; assignedTo?: string | null; priority?: number }) =>
     apiSend<{ updated: number }>('PATCH', '/api/list-items/bulk', { ids, patch }).then((r) => r.updated).then(tap('grocery')),
@@ -256,18 +283,83 @@ export interface GroceryBoardState {
   refetch: () => void
 }
 
+// Lay the replica's grocery rows over the last board the server computed: server-only
+// facts (aisle, pantry hit, meal links) come from the board, everything editable from the
+// replica. Rows for other weeks drop out; a row the server hasn't seen yet files under
+// its section with no pantry claim until the next online load.
+export function overlayBoardItems(board: GroceryBoard, localItems: Array<ListItem & { weekStart?: string | null }>): GroceryBoard {
+  const byId = new Map(board.items.map((i) => [i.id, i]))
+  const items = localItems
+    .filter((i) => !i.weekStart || i.weekStart === board.weekStart)
+    .map((i): GroceryBoardItem => {
+      const base = byId.get(i.id)
+      const moved = !!i.section && i.section !== base?.section
+      return {
+        ...base,
+        ...i,
+        aisle: moved ? i.section! : base?.aisle ?? i.section ?? '',
+        source: base?.source ?? i.source ?? 'manual',
+        sourceRecipeIds: base?.sourceRecipeIds ?? i.sourceRecipeIds ?? [],
+        sourceMealIds: base?.sourceMealIds ?? i.sourceMealIds ?? [],
+        quantity: base && base.quantityInput === i.quantity ? base.quantity : i.quantity,
+        weekStart: i.weekStart ?? null,
+        pantry: base?.pantry ?? null,
+      }
+    })
+  return { ...board, items }
+}
+
+const boardCacheKey = (weekStart?: string) => `waffled.groceryBoard.${weekStart ?? 'current'}`
+function readCachedBoard(weekStart?: string): GroceryBoard | null {
+  try {
+    const raw = localStorage.getItem(boardCacheKey(weekStart))
+    return raw ? (JSON.parse(raw) as GroceryBoard) : null
+  } catch {
+    return null
+  }
+}
+function cacheBoard(weekStart: string | undefined, board: GroceryBoard): void {
+  try {
+    localStorage.setItem(boardCacheKey(weekStart), JSON.stringify(board))
+  } catch {
+    /* storage full or unavailable: the board still works online */
+  }
+}
+
 export function useGroceryBoard(weekStart?: string): GroceryBoardState {
-  const [board, setBoard] = useState<GroceryBoard | null>(null)
+  // The server's board for this week, cached so the board opens offline.
+  const [server, setServer] = useState<GroceryBoard | null>(null)
+  const [localItems, setLocalItems] = useState<Array<ListItem & { weekStart: string | null }> | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const [nonce, setNonce] = useState(0)
+  const listId = server?.list.id ?? null
+  const localActive = useLocalWatch<ListItem & { weekStart: string | null }>(
+    (onRows) => (listId ? watchListItems(listId, (rows) => onRows(rows.map(rowToListItem))) : () => {}),
+    setLocalItems,
+    [listId],
+    () => setNonce((n) => n + 1),
+  )
   useEffect(() => {
     let alive = true
     setLoading(true)
     groceryApi
       .groceryBoard(weekStart)
-      .then((d) => alive && (setBoard(d), setLoading(false), setError(false)))
-      .catch(() => alive && (setError(true), setLoading(false)))
+      .then((d) => {
+        if (!alive) return
+        cacheBoard(weekStart, d)
+        setServer(d)
+        setLocalItems(null)
+        setLoading(false)
+        setError(false)
+      })
+      .catch(() => {
+        if (!alive) return
+        const cached = readCachedBoard(weekStart)
+        if (cached) setServer((cur) => cur ?? cached)
+        setError(!cached)
+        setLoading(false)
+      })
     return () => {
       alive = false
     }
@@ -276,6 +368,7 @@ export function useGroceryBoard(weekStart?: string): GroceryBoardState {
   useRefetchOn(['grocery', 'meals'], () => setNonce((n) => n + 1))
   // Cross-device liveness: poll + refetch on focus so another family member's edits appear.
   useLiveRefresh(() => setNonce((n) => n + 1))
+  const board = server && localItems && localActive.current ? overlayBoardItems(server, localItems) : server
   return { board, loading, error, refetch: () => setNonce((n) => n + 1) }
 }
 
@@ -376,12 +469,17 @@ export function useLists(): ListsState {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const [nonce, setNonce] = useState(0)
+  const localActive = useLocalWatch<ListSummary>((onRows) => watchLists((rows) => onRows(rows.map(rowToListSummary))), (rows) => {
+    setLists(rows)
+    setLoading(false)
+    setError(false)
+  }, [], () => setNonce((n) => n + 1))
   useEffect(() => {
     let alive = true
     groceryApi
       .lists()
-      .then((d) => alive && (setLists(d.lists), setLoading(false), setError(false)))
-      .catch(() => alive && (setError(true), setLoading(false)))
+      .then((d) => { if (alive && !localActive.current) { setLists(d.lists); setLoading(false); setError(false) } })
+      .catch(() => alive && !localActive.current && (setError(true), setLoading(false)))
     return () => {
       alive = false
     }
@@ -389,7 +487,7 @@ export function useLists(): ListsState {
   // Converting a list to/from a template (and item add/remove) taps 'grocery';
   // refetch so the Lists rail and the Templates group stay in lockstep.
   useRefetchOn(['grocery'], () => setNonce((n) => n + 1))
-  // Cross-device liveness: keep the rail counts fresh when another device edits a list.
+  // Cross-device liveness without a replica: keep the rail counts fresh when another device edits a list.
   useLiveRefresh(() => setNonce((n) => n + 1))
   return { lists, loading, error, refetch: () => setNonce((n) => n + 1) }
 }
@@ -444,6 +542,11 @@ export function useListDetail(id: string | null): ListDetailState {
     edits.current += 1
     setItems(v)
   }, [])
+  const localActive = useLocalWatch<ListItem>((onRows) => (id ? watchListItems(id, (rows) => onRows(rows.map(rowToListItem))) : () => {}), (rows) => {
+    setItems(rows)
+    setLoading(false)
+    setError(false)
+  }, [id], () => setNonce((n) => n + 1))
   useEffect(() => {
     if (!id) {
       setItems([])
@@ -459,7 +562,7 @@ export function useListDetail(id: string | null): ListDetailState {
         if (!alive) return
         setLoading(false)
         setError(false)
-        if (edits.current === startedAt) setItems(d.items)
+        if (edits.current === startedAt && !localActive.current) setItems(d.items)
       })
       .catch(() => alive && (setError(true), setLoading(false)))
     return () => {
@@ -469,4 +572,98 @@ export function useListDetail(id: string | null): ListDetailState {
   // Cross-device liveness: poll + refetch on focus so another family member's edits appear.
   useLiveRefresh(() => { if (id) setNonce((n) => n + 1) })
   return { items, loading, error, setItems: localSetItems, refetch: () => setNonce((n) => n + 1) }
+}
+
+// The local replica drives a list view only while it is trusted (completed sync, engine
+// not stalled) — the rule the calendar follows in events.ts. Returns a ref that is true
+// while local rows are in charge, so the REST baseline knows to stand down; a trust flip
+// calls `onTrustChange` so the caller can re-fetch over REST.
+function useLocalWatch<T>(
+  watch: (onRows: (rows: T[]) => void) => () => void,
+  apply: (rows: T[]) => void,
+  deps: unknown[],
+  onTrustChange: () => void,
+) {
+  const localActive = useRef(false)
+  const applyRef = useRef(apply)
+  applyRef.current = apply
+  const trustRef = useRef(onTrustChange)
+  trustRef.current = onTrustChange
+  useEffect(() => {
+    localActive.current = false
+    let alive = true
+    const dispose = watch((rows) => {
+      if (!alive) return
+      localActive.current = isReplicaTrusted()
+      if (localActive.current) applyRef.current(rows)
+    })
+    return () => {
+      alive = false
+      dispose()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps)
+  const trusted = useRef(isReplicaTrusted())
+  useEffect(() => subscribeSyncHealth(() => {
+    const now = isReplicaTrusted()
+    if (now === trusted.current) return
+    trusted.current = now
+    if (!now) localActive.current = false
+    trustRef.current()
+  }), [])
+  return localActive
+}
+
+// List edits, local-first: written to the replica (PowerSync uploads them, offline or
+// not) and only sent over REST when the row isn't local. Each returns what the screen
+// should show straight away.
+const sectionPatch = (p: PatchItemBody): LocalItemPatch => {
+  const out: LocalItemPatch = {}
+  for (const k of ['checked', 'name', 'quantity', 'note', 'section', 'store', 'assignedTo', 'priority'] as const) {
+    if (k in p) (out as Record<string, unknown>)[k] = p[k]
+  }
+  return out
+}
+
+export const listWrites = {
+  // `rest` overrides the REST fallback (the grocery board posts to its own route).
+  async addItem(
+    listId: string,
+    input: { name: string; quantity?: string | null; note?: string | null; section?: string | null; store?: string | null; assignedTo?: string | null; priority?: number },
+    rest: () => Promise<ListItem> = () => groceryApi.addListItem(listId, input),
+  ): Promise<ListItem> {
+    const id = await addItemLocal(listId, input)
+    if (!id) return rest()
+    emit('grocery')
+    return {
+      id, name: input.name.trim(), quantity: input.quantity ?? null, note: input.note ?? null, checked: false, checkedAt: null,
+      section: input.section ?? null, store: input.store ?? null, priority: input.priority ?? 3, sortOrder: null, assignee: null, source: 'manual',
+    }
+  },
+  async patchItem(item: ListItem, patch: PatchItemBody): Promise<ListItem> {
+    if (!(await patchItemLocal(item.id, sectionPatch(patch)))) return groceryApi.patchListItem(item.id, patch)
+    emit('grocery')
+    return { ...item, ...patch, checkedAt: patch.checked === undefined ? item.checkedAt : patch.checked ? new Date().toISOString() : null }
+  },
+  async deleteItem(id: string): Promise<void> {
+    if (await deleteItemLocal(id)) emit('grocery')
+    else await groceryApi.deleteItem(id)
+  },
+  async reorder(listId: string, ids: string[]): Promise<void> {
+    if (await reorderLocal(ids)) emit('grocery')
+    else await groceryApi.reorderItems(listId, ids)
+  },
+  async clearCompleted(listId: string): Promise<void> {
+    if (await clearCheckedLocal(listId)) emit('grocery')
+    else await groceryApi.clearCompleted(listId)
+  },
+  async createList(input: { name: string; emoji?: string | null }): Promise<{ id: string }> {
+    const id = await createListLocal(input)
+    if (id) { emit('grocery'); return { id } }
+    return groceryApi.createList(input)
+  },
+  async renameList(id: string, patch: { name?: string; emoji?: string | null }): Promise<void> {
+    if (await renameListLocal(id, patch)) emit('grocery')
+    else await groceryApi.renameList(id, patch)
+  },
 }

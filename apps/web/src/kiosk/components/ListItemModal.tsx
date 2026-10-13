@@ -1,9 +1,9 @@
 import { useState, type FormEvent } from 'react'
-import { groceryApi, type ListItem, type Person } from '../../lib/api'
+import { listWrites, type ListItem, type Person } from '../../lib/api'
 import { PRIORITY_OPTIONS } from './priority'
 
 // Add or edit a list item — name, quantity (free text like "1 lb" / "×4"),
-// section, and assignee. Touch-friendly (a real form, not a hover affordance).
+// note, section, and assignee. Touch-friendly (a real form, not a hover affordance).
 export function ListItemModal({
   listId,
   item,
@@ -22,6 +22,7 @@ export function ListItemModal({
   const editing = !!item
   const [name, setName] = useState(item?.name ?? '')
   const [quantity, setQuantity] = useState(item?.quantity ?? '')
+  const [note, setNote] = useState(item?.note ?? '')
   const [section, setSection] = useState(item?.section ?? '')
   const [assignedTo, setAssignedTo] = useState<string>(item?.assignee?.personId ?? '')
   const [priority, setPriority] = useState<number>(item?.priority ?? 3)
@@ -34,13 +35,14 @@ export function ListItemModal({
     const payload = {
       name: name.trim(),
       quantity: quantity.trim() || null,
+      note: note.trim() || null,
       section: section.trim() || null,
       assignedTo: assignedTo || null,
       priority,
     }
     try {
-      if (editing) await groceryApi.patchListItem(item!.id, payload)
-      else await groceryApi.addListItem(listId, payload)
+      if (editing) await listWrites.patchItem(item!, payload)
+      else await listWrites.addItem(listId, payload)
       onSaved()
       onClose()
     } catch {
@@ -65,6 +67,11 @@ export function ListItemModal({
               <input value={quantity} onChange={(e) => setQuantity(e.target.value)} placeholder="×4 / 1 lb" />
             </label>
           </div>
+
+          <label className="field">
+            <span>Note</span>
+            <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. the blue cap one" />
+          </label>
 
           <label className="field">
             <span>Section</span>

@@ -324,6 +324,16 @@
   display: grid; place-items: center; }
 .ai-bar .mic svg { width: 17px; height: 17px; stroke: var(--ink-2); fill: none; stroke-width: 1.8; }
 
+/* ItemAutocomplete — suggestion dropdown under an add-bar input. */
+.item-ac { position: relative; flex: 1; min-width: 0; display: flex; }
+.item-ac input { width: 100%; }
+.item-ac-menu { position: absolute; top: calc(100% + 14px); left: -12px; right: -12px; z-index: 50;
+  margin: 0; padding: 6px; list-style: none; background: var(--card); border-radius: var(--r-md);
+  box-shadow: var(--sh-2); border: 1px solid var(--hair-2); max-height: 320px; overflow-y: auto; }
+.item-ac-menu li { padding: 10px 12px; border-radius: var(--r-xs); font-size: 15px; font-weight: 600;
+  color: var(--ink); cursor: pointer; }
+.item-ac-menu li.on { background: var(--panel); }
+
 /* Capture bar (6.6) — compact trigger + floating composer. */
 .capture-trigger { cursor: pointer; text-align: left; }
 .cap-trigger-text { flex: 1; min-width: 0; font-size: 15.5px; font-weight: 500; color: var(--ink);
@@ -686,7 +696,9 @@ select.cap-edit-sub { cursor: pointer; }
 .gitem .gfor { display: flex; gap: 3px; }
 .gitem .gdot { width: 8px; height: 8px; border-radius: 999px; }
 
-/* scrollbars hidden inside frames */
+/* Theme scrollbars; frames can opt out with .noscroll. */
+* { scrollbar-width: thin; scrollbar-color: var(--ink-3) transparent; }
+.noscroll { scrollbar-width: none; }
 .noscroll::-webkit-scrollbar { display: none; }
 
 /* ===== calendar · week view ==================================== */

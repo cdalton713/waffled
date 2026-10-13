@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { groceryApi, useTemplates } from '../../lib/api'
+import { groceryApi, listWrites, useTemplates } from '../../lib/api'
 
 // Create OR rename a named list (name + emoji). Pass `list` to edit; pass
 // `fromTemplate` to open the create form pre-pointed at a template (the user
@@ -45,13 +45,13 @@ export function ListsModal({
     setSaving(true)
     try {
       if (editing) {
-        await groceryApi.renameList(list.id, { name: name.trim(), emoji: emoji.trim() || null })
+        await listWrites.renameList(list.id, { name: name.trim(), emoji: emoji.trim() || null })
         onSaved?.()
       } else if (fromTemplate) {
         const created = await groceryApi.applyTemplate(fromTemplate.id, name.trim())
         onCreated?.(created.id)
       } else {
-        const created = await groceryApi.createList({ name: name.trim(), emoji: emoji.trim() || null })
+        const created = await listWrites.createList({ name: name.trim(), emoji: emoji.trim() || null })
         onCreated?.(created.id)
       }
       onClose()

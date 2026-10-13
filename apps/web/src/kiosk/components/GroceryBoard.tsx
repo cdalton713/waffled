@@ -3,15 +3,17 @@ import { Editable } from '../../lib/viewOnly'
 import { useNavigate } from 'react-router'
 import { Icon } from '../icons'
 import { useTopbarFull } from '../topbar-slot'
-import { groceryApi, mealBuilderApi, useGroceryBoard, type GroceryBoardItem, type GroceryMealDish } from '../../lib/api'
+import { groceryApi, listWrites, mealBuilderApi, useGroceryBoard, type GroceryBoardItem, type GroceryMealDish, type ListItem } from '../../lib/api'
 import { StaplesModal } from './StaplesModal'
 import { ShareListModal } from './ShareListModal'
+import { RecentItemsModal } from './RecentItemsModal'
 // The canonical aisle walking order lives with the share formatter, which needs
 // the same order to group the shared text the way the board reads top-to-bottom.
 import { AISLE_ORDER } from './share-list'
 import { filterListItems } from './list-search'
 import '../../styles/grocery.css'
 import { CHECK } from './CheckGlyph'
+import { ItemAutocomplete, useItemSuggest } from './ItemAutocomplete'
 
 // Aisles offered in the "move to section" picker. 'Other' is omitted — the board
 // treats an 'Other' category as auto-filed anyway, so "Auto (by name)" covers it.
@@ -192,7 +194,7 @@ function ItemRow({
   colors: string[]
   storeOptions: string[]
   onToggle: () => void
-  onSave: (patch: { name: string; quantity: string | null; section: string | null; store: string | null }) => void
+  onSave: (patch: { name: string; quantity: string | null; note: string | null; section: string | null; store: string | null }) => void
   onDelete: () => void
 }) {
   const [editing, setEditing] = useState(false)
@@ -206,6 +208,7 @@ function ItemRow({
   // Free-text store, backed by a datalist of previously-used names so "Costco" typed
   // once comes back as a suggestion (collapsing the Costco/costco split). '' = none.
   const [store, setStore] = useState(item.store ?? '')
+  const [note, setNote] = useState(item.note ?? '')
 
   if (editing) {
     return (
@@ -215,13 +218,16 @@ function ItemRow({
           <input className="gedit-qty" value={qty} onChange={(e) => setQty(e.target.value)} placeholder="qty" />
         </div>
         <div className="gedit-line">
+          <input className="gedit-name" value={note} onChange={(e) => setNote(e.target.value)} placeholder="note" aria-label="Note" />
+        </div>
+        <div className="gedit-line">
           <select className="gedit-sec" value={sec} onChange={(e) => setSec(e.target.value)} aria-label="Aisle">
             <option value="">Auto (by name)</option>
             {AISLE_PICKER.map((a) => <option key={a} value={a}>{AISLE_EMOJI[a] ? `${AISLE_EMOJI[a]} ` : ''}{a}</option>)}
           </select>
           <input className="gedit-store" value={store} onChange={(e) => setStore(e.target.value)} placeholder="store" aria-label="Store" list="grocery-stores" />
           <datalist id="grocery-stores">{storeOptions.map((s) => <option key={s} value={s} />)}</datalist>
-          <button type="button" className="gact ok" title="Save" onClick={() => { onSave({ name: name.trim() || item.name, quantity: qty.trim() || null, section: sec || null, store: store.trim() || null }); setEditing(false) }}>✓</button>
+          <button type="button" className="gact ok" title="Save" onClick={() => { onSave({ name: name.trim() || item.name, quantity: qty.trim() || null, note: note.trim() || null, section: sec || null, store: store.trim() || null }); setEditing(false) }}>✓</button>
           <button type="button" className="gact" title="Cancel" onClick={() => setEditing(false)}>×</button>
         </div>
       </div>
@@ -233,6 +239,7 @@ function ItemRow({
       <span className="gitem-body">
         <span className="gnm">{item.name}</span>
         <ItemAttribution item={item} />
+        {item.note && <span className="gattr">📝 {item.note}</span>}
         {/* Inside the body column, NOT a fourth trailing chip. The row already carries
             meal dots, a quantity, sometimes a store, and two action buttons, and in the
             board's two-column layout there is no horizontal room left: as a sibling of
@@ -249,7 +256,7 @@ function ItemRow({
       {item.quantity && <span className="gqty">{item.quantity}</span>}
       <Editable>
         <span className="gitem-acts" onClick={(e) => e.stopPropagation()}>
-          <button type="button" className="gact" title="Edit" onClick={() => { setName(item.name); setQty(item.quantityInput ?? item.quantity ?? ''); setSec(item.section ?? ''); setStore(item.store ?? ''); setEditing(true) }}>✎</button>
+          <button type="button" className="gact" title="Edit" onClick={() => { setName(item.name); setQty(item.quantityInput ?? item.quantity ?? ''); setSec(item.section ?? ''); setStore(item.store ?? ''); setNote(item.note ?? ''); setEditing(true) }}>✎</button>
           <button type="button" className="gact" title="Remove" onClick={onDelete}>🗑</button>
         </span>
       </Editable>
@@ -336,6 +343,7 @@ export function GroceryBoard({ onBack }: { onBack: () => void }) {
   // shop ahead without touching this week's list.
   const [weekStart, setWeekStart] = useState<string | null>(null)
   const { board, loading, error, refetch } = useGroceryBoard(weekStart ?? undefined)
+  const suggest = useItemSuggest(board?.list.id)
   const navigate = useNavigate()
   const [view, setView] = useState<'aisle' | 'meal' | 'store'>('aisle')
   // "Share list": hand the unchecked items to a phone as text / share sheet / QR.
@@ -345,6 +353,7 @@ export function GroceryBoard({ onBack }: { onBack: () => void }) {
   const [storeSuggestions, setStoreSuggestions] = useState<string[]>([])
   const [draft, setDraft] = useState('')
   const [editStaples, setEditStaples] = useState(false)
+  const [showRecent, setShowRecent] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
   const [recent, setRecent] = useState<Set<string>>(new Set()) // just-checked, still lingering in the active list
   const [showDone, setShowDone] = useState(false)
@@ -371,7 +380,8 @@ export function GroceryBoard({ onBack }: { onBack: () => void }) {
   // keyed PER week so switching to a future week auto-populates it too (not just the
   // first week loaded). Never re-fires for a week already handled.
   useEffect(() => {
-    if (!board || rebuilt.current.has(board.weekStart)) return
+    // Building needs the server (recipes, the plan); offline, the cached board stands.
+    if (!board || rebuilt.current.has(board.weekStart) || !navigator.onLine) return
     const hasAuto = board.items.some((i) => i.source === 'auto')
     if (!hasAuto && board.meals.length > 0) {
       rebuilt.current.add(board.weekStart)
@@ -384,6 +394,11 @@ export function GroceryBoard({ onBack }: { onBack: () => void }) {
       <div style={{ display: 'flex', alignItems: 'center', width: '100%', gap: 14 }}>
         <button className="pill" style={{ cursor: 'pointer' }} onClick={onBack}>‹ Lists</button>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 10 }}>
+          <Editable>
+            <button className="pill" style={{ cursor: 'pointer' }} title="Recently crossed off — add something back" onClick={() => setShowRecent(true)}>
+              ↺ Recent
+            </button>
+          </Editable>
           <button
             className="pill"
             style={{ cursor: 'pointer' }}
@@ -489,20 +504,20 @@ export function GroceryBoard({ onBack }: { onBack: () => void }) {
     } else {
       setRecent((s) => { const n = new Set(s); n.delete(item.id); return n })
     }
-    await groceryApi.patchListItem(item.id, { checked: next })
+    await listWrites.patchItem(item, { checked: next })
     refetch()
   }
-  async function saveItem(item: GroceryBoardItem, patch: { name: string; quantity: string | null; section: string | null; store: string | null }) {
-    await groceryApi.patchListItem(item.id, patch)
+  async function saveItem(item: GroceryBoardItem, patch: { name: string; quantity: string | null; note: string | null; section: string | null; store: string | null }) {
+    await listWrites.patchItem(item, patch)
     refetch()
   }
   async function deleteItem(item: GroceryBoardItem) {
-    await groceryApi.deleteItem(item.id)
+    await listWrites.deleteItem(item.id)
     refetch()
   }
   async function clearCompleted() {
     if (allCompleted.length === 0) return
-    await Promise.all(allCompleted.map((i) => groceryApi.deleteItem(i.id)))
+    await Promise.all(allCompleted.map((i) => listWrites.deleteItem(i.id)))
     refetch()
   }
   // Undo an off-plan "add recipe to grocery" — removes that recipe's items (keeping
@@ -521,7 +536,7 @@ export function GroceryBoard({ onBack }: { onBack: () => void }) {
   async function addItem(name: string) {
     const n = name.trim()
     if (!n) return
-    await groceryApi.addGroceryItem(n)
+    await listWrites.addItem(board!.list.id, { name: n }, () => groceryApi.addGroceryItem(n) as Promise<ListItem>)
     setDraft('')
     refetch()
   }
@@ -791,7 +806,15 @@ export function GroceryBoard({ onBack }: { onBack: () => void }) {
         <Editable>
           <form className="ai-bar grocery-add" onSubmit={onAdd}>
             <div className="ai-spark" aria-hidden><Icon name="spark" /></div>
-            <input ref={addRef} value={draft} onChange={(e) => setDraft(e.target.value)} placeholder={'Add to groceries… “bananas and oat milk”'} aria-label="Add to groceries" />
+            <ItemAutocomplete
+              ref={addRef}
+              value={draft}
+              onChange={setDraft}
+              onPick={addItem}
+              suggest={suggest}
+              placeholder={'Add to groceries… “bananas and oat milk”'}
+              aria-label="Add to groceries"
+            />
             <div className="mic" aria-hidden><Icon name="mic" /></div>
           </form>
         </Editable>
@@ -968,6 +991,9 @@ export function GroceryBoard({ onBack }: { onBack: () => void }) {
       </div>
 
       {editStaples && <StaplesModal staples={board.staples} onClose={() => setEditStaples(false)} onChanged={refetch} />}
+      {showRecent && board && (
+        <RecentItemsModal listId={board.list.id} onClose={() => setShowRecent(false)} onAdded={refetch} />
+      )}
       {sharing && (
         <ShareListModal
           items={board.items.map((i) => ({

@@ -504,8 +504,9 @@
   flex: 1;
   min-width: 0;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 2px 8px;
   border: 0;
   background: transparent;
   color: inherit;
@@ -513,6 +514,12 @@
   text-align: left;
   cursor: pointer;
   padding: 0;
+}
+/* An item's note takes its own line under the name, so it never squeezes the name. */
+.litem .lnm .gattr.lnote {
+  flex-basis: 100%;
+  margin-left: 0;
+  font-weight: 500;
 }
 /* checked row stays readable: solid green box + struck, muted label (no full fade) */
 .lists-grid .litem.done {

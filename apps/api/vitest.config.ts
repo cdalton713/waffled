@@ -21,7 +21,9 @@ export default defineConfig({
     // Signals runMigrations() to skip node-pg-migrate's cluster-wide advisory lock:
     // every test file owns an isolated, single-writer database, so the lock would only
     // serialize otherwise-parallel migrations. See src/migrate.ts.
-    env: { WAFFLED_TEST_SHARED_PG: '1' },
+    // ANYLIST_BASE_URL points at a closed port so no test reaches the real AnyList (its
+    // public item catalog backs list suggestions); tests that need it start a fake.
+    env: { WAFFLED_TEST_SHARED_PG: '1', ANYLIST_BASE_URL: 'http://127.0.0.1:9' },
     testTimeout: 120_000,
     hookTimeout: 180_000,
     fileParallelism: true,

@@ -19,6 +19,7 @@ import {
   InvalidEventTimesError,
 } from '../events/events'
 import { assertEventInHousehold, assertPersonInHousehold } from '../../platform/household-refs'
+import { applyListOp, listsModuleOn } from './powersync-lists'
 
 type Api = ReturnType<typeof createAPI>
 
@@ -176,6 +177,7 @@ export function registerPowerSyncCrudRoutes(api: Api): void {
       return res.status(400).json({ error: 'BadRequest', message: 'ops[] required' })
     }
     await validateOps(tenant, ops)
+    const listsOn = ops.some((op) => op?.table === 'lists' || op?.table === 'list_items') && (await listsModuleOn(tenant))
     for (const op of ops) {
       if (!op || typeof op.id !== 'string' || !op.id) continue
       const data = op.data ?? {}
@@ -205,6 +207,8 @@ export function registerPowerSyncCrudRoutes(api: Api): void {
         else if (op.op === 'DELETE') {
           await query(`delete from event_participants where id = $1 and household_id = $2`, [op.id, tenant.householdId])
         }
+      } else if ((op.table === 'lists' || op.table === 'list_items') && listsOn) {
+        await applyListOp(tenant, op)
       }
       // Unknown tables are ignored — the sync rules never sync them anyway.
     }
