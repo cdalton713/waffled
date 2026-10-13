@@ -75,7 +75,8 @@ Isolation is enforced at three layers so a bug in one is caught by the others:
 2. **PowerSync:** the sync rules (`infra/compose/powersync/sync-config.yaml`) define **one bucket
    per household** — `parameters: SELECT request.jwt() ->> 'household_id'`, and each `data:` query
    is `WHERE household_id = bucket.household_id AND deleted_at IS NULL`. A client physically only
-   receives its own household's rows.
+   receives its own household's rows. Synced today: households, persons, the calendar tables,
+   and `lists` + `list_items` (offline writes come back through `/api/powersync/crud`).
 3. **Postgres:** every reference to a person is a **composite foreign key** —
    `foreign key (household_id, person_id) references persons (household_id, id)`, backed by a
    `unique (household_id, id)` key on `persons` (migration `0104`). A single-column FK proves only

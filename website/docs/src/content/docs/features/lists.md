@@ -18,7 +18,12 @@ Lists is where "things to buy or do" live — shared custom lists you build by h
 - 🥫 **"You already have this"** — with [Pantry](/features/pantry/) on, any row matching something on your shelves gets a badge showing what it found and how much of it ("Chicken breast: 3"). The row **stays on the list**: we can tell that you have chicken, not whether you have *enough*, so this is a nudge to check the shelf rather than a decision made for you. See [Pantry-aware shopping](#pantry-aware-shopping).
 - 🎯 **Re-aisle an item** — section chips in its editor move it, and an **Auto** chip clears the override.
 - ✅ **Check off / add / delete** — everything persists, with attribution ("added by {name}" or "🍽 from meal plan"), and the grocery build honors recipe substitutions.
-- 🔄 **Stays fresh across devices** — a list you're looking at refreshes on its own (when you return to the app, and every ~20 s while it's open) so a family member's check on another phone shows up without a manual reload.
+- ⌨️ **Suggestions as you type** — the add bar suggests names you've added before (most-used first), then common grocery items; tap one to add it. "Waffled suggests" offers your most-bought items that aren't on the list.
+- 🧭 **Remembers where things go** — add an item without a section and it goes back where you filed it last time on that list. New grocery items get an aisle from a grocery catalog, so "beef jerky" lands in Snacks rather than Other.
+- 📝 **Notes** — give any item a note ("the blue cap one", "organic if they have it"); it shows under the name.
+- ↺ **Recently crossed off** — a list's ⋯ menu (or **↺ Recent** on the grocery board) shows what you've crossed off lately, including items already cleared; tap **+** to put one back with its quantity, note and section.
+- ↕️ **Your order sticks** — drag an item onto another to place it just before it (taking that item's section); the order is saved, so it survives a reload and matches on every device.
+- 📶 **Live and offline on web and the kiosk** — lists and the grocery board load from the device, change the moment someone else edits them, and keep working with no connection. See [Offline](#offline).
 - 📤 **Share list** — hand any list to any phone: an aisle-grouped text list (quantities included) via share sheet, clipboard, or a QR code a phone camera grabs — no app, no account. See [Taking a list with you](#taking-a-list-with-you).
 - 🔄 **Live cross-surface refresh** — Today, Lists, and Rewards stay in sync through the in-app refresh bus.
 
@@ -59,6 +64,28 @@ is too long and points you at **Copy** or **Share**, which work at any length.
 **On iPhone and iPad** there's no QR code, because there's nothing to hand it to — the QR exists
 to get a list *onto* a phone, and you're already holding one. Share list opens the **system share
 sheet** instead, so the list goes straight to Messages, Mail, Notes or AirDrop.
+
+## Offline
+
+On **web and the kiosk**, lists sync through the same engine as the calendar, so a copy lives
+on the device:
+
+- Lists open instantly and update live when someone else checks something off — no waiting for
+  a refresh.
+- With no connection you can still check off, add, edit, reorder and remove items, and create or
+  rename lists. Changes upload as soon as the device is back online.
+- The grocery board opens offline from the last copy the server built for that week, with your
+  edits laid on top. **Building from the meal plan** and adding a recipe's ingredients need the
+  server, so they wait until you're online. A brand-new item shows under its section until the
+  next online load files it by aisle and checks the pantry.
+
+The device only trusts its local copy once it has finished syncing; until then (or if sync
+stalls) lists load from the server as before.
+
+## Moving from AnyList
+
+Already keep your groceries and recipes in AnyList? An admin can copy everything over in one go —
+see [Move from AnyList](/guides/import-from-anylist/).
 
 ## Pantry-aware shopping
 
@@ -116,5 +143,5 @@ Lists is an **optional module** (`lists`, default **on**), toggled in **Settings
 ## Notes
 
 - 🧼 **Applying a template is a clean start** — it drops provenance and `source_recipe_ids`, so an applied template is a fresh starting point rather than a copy of the original's history.
-- 📡 **REST-only, not offline** — Lists talks to the server directly; it doesn't sync through PowerSync, so it needs a connection.
+- 📡 **Offline on web and the kiosk** — lists sync through PowerSync there (see [Offline](#offline)). The iPhone and iPad apps still talk to the server directly and refresh every ~20 s.
 - 🌉 **Meals feed the board** — planned dinners flow in as "🍽 from meal plan" items with substitutions applied. See [Meals & recipes](/features/meals/).

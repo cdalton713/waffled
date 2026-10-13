@@ -15,6 +15,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Move from AnyList.** `./waffled admin import-anylist` copies an AnyList account into
+  Waffled: the grocery list's items, every other list, the Pantry list (as pantry items) and
+  recipes with their photos. Crossed-off items come across as history, so suggestions know what
+  you buy. Run it with `--dry-run` first to see the counts; re-running it only adds what's new.
+  See [Move from AnyList](/guides/import-from-anylist/).
+- **Suggestions as you type an item.** The Lists and grocery add bars suggest names you've
+  added before, most-used first, then common grocery items. "Waffled suggests" now offers your
+  most-bought items instead of fixed examples.
+- **Lists remember where things go.** An item you add without a section goes back where you
+  filed it last time on that list, and new grocery items get an aisle from a grocery catalog
+  ("beef jerky" lands in Snacks).
+- **Recently crossed off.** Open it from a list's ⋯ menu or the grocery board's **↺ Recent** to
+  put something back with one tap, with its quantity, note and section.
+- **Notes on list items.** Add a note to any item ("the blue cap one"); it shows under the name.
+- **Your order sticks.** Drag an item onto another on a list to place it there; the order now
+  survives a reload and matches on every device.
+- **Lists work offline on web and the kiosk.** Lists and the grocery board load from the
+  device, update live when someone else edits them, and can be checked off and edited with no
+  connection; changes upload when you're back online.
+
 - **Google Photos albums for the screensaver.** Connect Google Photos in Settings →
   Display & Kiosk, then import photos into a Waffled album from the Photos screen. You pick
   them in Google's own picker, and Waffled keeps a copy. The new **Several albums** screensaver

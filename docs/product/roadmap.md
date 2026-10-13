@@ -150,7 +150,10 @@ Legend: ✅ done · 🟡 partial / in progress · 🚧 planned · ⛔ dropped (s
   quick-select over your previously-used stores), **"Unscheduled" sections + week-rail
   rows** for off-plan recipes in the grocery board's by-meal view, and **Share list** — hand
   any list to a phone as grouped plain text via copy / share sheet / QR, with the store and
-  assignee noted per item.
+  assignee noted per item. Borrowed from AnyList: **suggestions as you type** (household
+  history, then a grocery catalog), **remembered sections**, **recently crossed off** with
+  one-tap re-add, **item notes** and a **saved drag order**; plus **offline lists on web/kiosk**
+  through PowerSync and a one-shot **AnyList importer** (`./waffled admin import-anylist`).
 - **Meal Builder** — build one meal out of several recipes and treat it as one
   thing: name a plate, add recipes under Main / Sides / Dessert, meal-level servings,
   **a cook per dish**, and an optional "keep in library" that makes it reusable (saved
@@ -362,12 +365,11 @@ Legend: ✅ done · 🟡 partial / in progress · 🚧 planned · ⛔ dropped (s
   audio (see below), OTA updates, TLS certificate validation for `https://` server
   addresses, and on-device photo capture — see `apps/waffled-bite-firmware/README.md` for
   the full list of open items.
-- **Offline scope (Web/Kiosk)** — PowerSync covers the **calendar** domain; other domains
-  are REST + live-refresh bus, plus a **cross-device refresh** for lists (foreground + ~20s
-  poll on the open list) so a family member's edit lands without a manual reload. The
-  replica-trust fallback (see the sync watchdog under **Done**) therefore only applies to
-  the calendar hooks today — every domain added to PowerSync later should adopt the same
-  rule.
+- **Offline scope (Web/Kiosk)** — PowerSync covers the **calendar** and **lists** domains
+  (lists + the grocery board's items; the board's meal/pantry facts come from the last
+  server-built board, cached per week). Other domains are REST + live-refresh bus. Both
+  synced domains follow the replica-trust rule (see the sync watchdog under **Done**); every
+  domain added to PowerSync later should adopt it too. iOS lists are still REST + a ~20 s poll.
 - **Kiosk PWA** (7.1) — service worker + cached last-known state, to fully survive backend
   blips.
 - **Public ingress** (7.3) — configurable (Caddy auto-TLS / Cloudflare Tunnel), operator's
