@@ -10,7 +10,7 @@
 //   'system'          → mirrors prefers-color-scheme and follows live OS changes
 // Default is 'system' so a fresh install matches the device out of the box.
 //
-// The palette ('classic' | 'kitchen') is a second, independent axis stamped as
+// The palette ('classic' | 'kitchen' | 'night-pantry') is a second, independent axis stamped as
 // `data-palette`, so "Kitchen night" is simply kitchen + dark and every existing
 // `[data-theme="dark"]` rule keeps applying (styles/kitchen.css).
 //
@@ -22,7 +22,7 @@ import { useSyncExternalStore } from 'react'
 export type ThemePref = 'light' | 'dark' | 'system'
 export type ResolvedTheme = 'light' | 'dark'
 
-export type Palette = 'classic' | 'kitchen'
+export type Palette = 'classic' | 'kitchen' | 'night-pantry'
 
 export type Typeface = 'classic' | 'clear' | 'hyperlegible' | 'friendly' | 'early-reader'
 export const TYPEFACE_IDS: readonly Typeface[] = ['classic', 'clear', 'hyperlegible', 'friendly', 'early-reader']
@@ -77,7 +77,8 @@ export function setPref(pref: ThemePref): void {
 /** The stored palette, defaulting to 'classic' (also for any garbage value). */
 export function readPalette(): Palette {
   try {
-    if (localStorage.getItem(PALETTE_KEY) === 'kitchen') return 'kitchen'
+    const v = localStorage.getItem(PALETTE_KEY)
+    if (v === 'kitchen' || v === 'night-pantry') return v
   } catch {
     // Same private-mode caveat as readPref.
   }

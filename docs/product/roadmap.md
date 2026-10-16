@@ -85,6 +85,8 @@ Legend: ✅ done · 🟡 partial / in progress · 🚧 planned · ⛔ dropped (s
 - **Kitchen theme + Kiosk mode (web/kiosk)** — a wall-tablet palette (Kitchen / Kitchen night,
   a `data-palette` axis beside light/dark) and a per-device view-only switch that hides creation
   and edit controls while keeping check-offs, timers, approvals and cook mode.
+- **Night Pantry theme (web/kiosk)** — a third palette (dark-first, with a day variant): deep
+  green-black and butter yellow, dark text on every accent fill, 44px phone targets.
 - **Typeface picker (web/kiosk)** — a per-device choice of five legibility-first typefaces
   (Classic, Clear, Hyperlegible, Friendly, Early reader) in Settings → Appearance and Display &
   Kiosk, drawn as live specimens; a `data-typeface` axis beside palette and light/dark.

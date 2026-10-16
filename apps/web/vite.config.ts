@@ -87,7 +87,8 @@ function devMediaPlugin(): Plugin {
 
 const apiProxy: Record<string, ProxyOptions> = {
   '/api': {
-    target: 'http://localhost:3000',
+    // Override to run a second dev instance beside one already on :3000.
+    target: process.env.WAFFLED_DEV_API_URL ?? 'http://localhost:3000',
     changeOrigin: false,
     configure: (proxy) => {
       proxy.on('proxyReq', (proxyReq, req) => {

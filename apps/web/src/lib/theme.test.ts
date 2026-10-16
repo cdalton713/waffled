@@ -158,6 +158,11 @@ describe('palette store', () => {
     expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
   })
 
+  it('reads back a stored Night Pantry palette', () => {
+    localStorage.setItem(PALETTE_KEY, 'night-pantry')
+    expect(readPalette()).toBe('night-pantry')
+  })
+
   it('initTheme applies the stored palette on boot', () => {
     installMatchMedia(false)
     localStorage.setItem(PALETTE_KEY, 'kitchen')
