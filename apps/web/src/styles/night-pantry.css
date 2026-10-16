@@ -1,144 +1,148 @@
 @reference './ui.css';
 /* ============================================================
-   NIGHT PANTRY palette — deep green-black with a butter-yellow accent,
-   built dark-first with a warm oat day variant. Selected per device in
-   Settings → Appearance or Display & Kiosk; theme.ts stamps
+   NIGHT PANTRY palette — Catppuccin: Latte by day, Frappé at night
+   (catppuccin.com/palette), with mauve as the accent. Selected per device
+   in Settings → Appearance or Display & Kiosk; theme.ts stamps
    <html data-palette="night-pantry">. The light block is the base and the
    [data-theme="dark"] block overrides it, as kitchen.css does.
 
-   Yellow needs dark text, so --on-accent is dark in both modes and every
-   fill that carries it (success, danger, info, ai, person-1/3) is a mid-tone.
-   night-pantry.test.ts checks each pair against WCAG AA.
+   Latte's green, teal, pink, peach and yellow are too light for white
+   text or tinted-text use, so those few roles use a darker shade of the
+   same hue. night-pantry.test.ts checks every pair against WCAG AA.
    ============================================================ */
 :root[data-palette='night-pantry'] {
-  --bg: #f4f1e8;
-  --rail: #eae6da;
-  --panel: #eae6da;
-  --card: #ffffff;
-  --card-2: #f2efe6;
+  /* Latte: crust ground, base cards, mantle rail */
+  --bg: #dce0e8;
+  --rail: #e6e9ef;
+  --panel: #ccd0da;
+  --card: #eff1f5;
+  --card-2: #e6e9ef;
 
-  --ink: #13201c;
-  --ink-2: #4e5e56;
-  --ink-3: #6a786f;
+  --ink: #4c4f69;
+  --ink-2: #5c5f77;
+  --ink-3: #7c7f93;
 
-  --hair: rgba(19, 32, 28, 0.1);
-  --hair-2: rgba(19, 32, 28, 0.05);
-  --line: rgba(19, 32, 28, 0.2);
+  --hair: rgba(76, 79, 105, 0.12);
+  --hair-2: rgba(76, 79, 105, 0.06);
+  --line: rgba(76, 79, 105, 0.24);
 
-  --primary: #f2c14e;
-  --primary-d: #7a5a0e;
-  --primary-t: #fbebc2;
-  --on-accent: #1a1408;
-  --gold: #e0a21b;
-  --gold-t: #fdf1cc;
-  --gold-d: #7a5a0e;
-  --ai: #8c74e8;
-  --ai-d: #5a35b0;
-  --ai-t: #eee7fc;
+  --primary: #8839ef;
+  --primary-d: #8839ef;
+  --primary-t: rgba(136, 57, 239, 0.12);
+  --on-accent: #ffffff;
+  --gold: #df8e1d;
+  --gold-t: rgba(223, 142, 29, 0.16);
+  --gold-d: #9a5e0c;
+  --ai: #1e66f5;
+  --ai-d: #1e66f5;
+  --ai-t: rgba(30, 102, 245, 0.12);
 
-  --success: #3e9a68;
-  --success-t: #dcede3;
-  --success-tx: #1f6a44;
-  --danger: #e0604e;
-  --danger-t: #f9e1dd;
-  --danger-tx: #a8301f;
-  --warn: #a85f12;
-  --warn-t: #fbebd6;
-  --info: #4d8bea;
-  --info-t: #e3edfd;
-  --info-tx: #1559b8;
+  --success: #2f7d20;
+  --success-t: rgba(64, 160, 43, 0.14);
+  --success-tx: #2f7d20;
+  --danger: #d20f39;
+  --danger-t: rgba(210, 15, 57, 0.1);
+  --danger-tx: #d20f39;
+  --warn: #b5470a;
+  --warn-t: rgba(254, 100, 11, 0.12);
+  --info: #1e66f5;
+  --info-t: rgba(30, 102, 245, 0.12);
+  --info-tx: #1e66f5;
 
-  --person-1: #4d8bea;
-  --person-1-t: #e3edfd;
-  --person-1-tx: #1559b8;
-  --person-2: #c9457c;
-  --person-2-t: #fbe6ef;
-  --person-2-tx: #b22f66;
-  --person-3: #3e9a68;
-  --person-3-t: #e1f3e9;
-  --person-3-tx: #167a4a;
-  --person-4: #7a52d6;
-  --person-4-t: #eee7fc;
-  --person-4-tx: #6a3fc4;
+  --person-1: #1e66f5;
+  --person-1-t: rgba(30, 102, 245, 0.12);
+  --person-1-tx: #1e66f5;
+  --person-2: #ea76cb;
+  --person-2-t: rgba(234, 118, 203, 0.16);
+  --person-2-tx: #a83d8f;
+  --person-3: #11777d;
+  --person-3-t: rgba(23, 146, 153, 0.14);
+  --person-3-tx: #11777d;
+  --person-4: #8839ef;
+  --person-4-t: rgba(136, 57, 239, 0.12);
+  --person-4-tx: #8839ef;
 
-  --control-track: #b9b6ac;
-  --control-line: #7f8581;
+  --control-track: #acb0be;
+  --control-line: #8c8fa1;
 
   --r-xs: 10px;
   --r-sm: 14px;
   --r-md: 22px;
   --r-lg: 28px;
   --r-xl: 36px;
-  --sh-1: 0 1px 2px rgba(19, 32, 28, 0.05);
-  --sh-2: 0 2px 8px rgba(19, 32, 28, 0.06), 0 8px 24px rgba(19, 32, 28, 0.05);
+  --sh-1: 0 1px 2px rgba(76, 79, 105, 0.08);
+  --sh-2: 0 2px 8px rgba(76, 79, 105, 0.1), 0 8px 24px rgba(76, 79, 105, 0.08);
 
   --font-sans: 'Atkinson Hyperlegible', system-ui, sans-serif;
   --font-serif: 'Bricolage Grotesque Variable', 'Bricolage Grotesque', system-ui, sans-serif;
   --sans: var(--font-sans);
   --serif: var(--font-serif);
 
-  --rail-ink: #4e5e56;
-  --rail-on: #f2c14e;
-  --rail-on-ink: #1a1408;
+  --rail-ink: #5c5f77;
+  --rail-on: #8839ef;
+  --rail-on-ink: #ffffff;
 }
 
 :root[data-palette='night-pantry'][data-theme='dark'] {
-  --bg: #0e1916;
-  --rail: #0a1311;
-  --panel: #1c2d28;
-  --card: #15241f;
-  --card-2: #1c2d28;
+  /* Frappé: crust ground, base cards, mantle rail */
+  --bg: #232634;
+  --rail: #292c3c;
+  --panel: #292c3c;
+  --card: #303446;
+  --card-2: #414559;
 
-  --ink: #eef2ea;
-  --ink-2: #a8b7ae;
-  --ink-3: #74867c;
+  --ink: #c6d0f5;
+  --ink-2: #b5bfe2;
+  --ink-3: #838ba7;
 
-  --hair: rgba(238, 242, 234, 0.1);
-  --hair-2: rgba(238, 242, 234, 0.05);
-  --line: rgba(238, 242, 234, 0.2);
+  --hair: rgba(198, 208, 245, 0.1);
+  --hair-2: rgba(198, 208, 245, 0.05);
+  --line: rgba(198, 208, 245, 0.2);
 
-  --primary-d: #f7d684;
-  --primary-t: rgba(242, 193, 78, 0.16);
-  --gold: #f2c14e;
-  --gold-t: rgba(242, 193, 78, 0.16);
-  --gold-d: #f7d684;
-  --ai: #9c86f0;
-  --ai-d: #c7b4fa;
-  --ai-t: rgba(156, 134, 240, 0.2);
+  --primary: #ca9ee6;
+  --primary-d: #ca9ee6;
+  --primary-t: rgba(202, 158, 230, 0.16);
+  --on-accent: #232634;
+  --gold: #e5c890;
+  --gold-t: rgba(229, 200, 144, 0.16);
+  --gold-d: #e5c890;
+  --ai: #babbf1;
+  --ai-d: #babbf1;
+  --ai-t: rgba(186, 187, 241, 0.18);
 
-  --success: #5fbf8f;
-  --success-t: rgba(125, 211, 166, 0.16);
-  --success-tx: #7dd3a6;
-  --danger: #ff8a7a;
-  --danger-t: rgba(255, 138, 122, 0.16);
-  --danger-tx: #ff8a7a;
-  --warn: #f5a65b;
-  --warn-t: rgba(245, 166, 91, 0.16);
-  --info: #8db8ff;
-  --info-t: rgba(141, 184, 255, 0.16);
-  --info-tx: #8db8ff;
+  --success: #a6d189;
+  --success-t: rgba(166, 209, 137, 0.16);
+  --success-tx: #a6d189;
+  --danger: #e78284;
+  --danger-t: rgba(231, 130, 132, 0.16);
+  --danger-tx: #e78284;
+  --warn: #ef9f76;
+  --warn-t: rgba(239, 159, 118, 0.16);
+  --info: #85c1dc;
+  --info-t: rgba(133, 193, 220, 0.16);
+  --info-tx: #85c1dc;
 
-  --person-1: #8db8ff;
-  --person-1-t: rgba(141, 184, 255, 0.18);
-  --person-1-tx: #8db8ff;
-  --person-2: #f29bc0;
-  --person-2-t: rgba(242, 155, 192, 0.18);
-  --person-2-tx: #f29bc0;
-  --person-3: #7dd3a6;
-  --person-3-t: rgba(125, 211, 166, 0.18);
-  --person-3-tx: #7dd3a6;
-  --person-4: #c7b4fa;
-  --person-4-t: rgba(199, 180, 250, 0.2);
-  --person-4-tx: #c7b4fa;
+  --person-1: #8caaee;
+  --person-1-t: rgba(140, 170, 238, 0.18);
+  --person-1-tx: #8caaee;
+  --person-2: #f4b8e4;
+  --person-2-t: rgba(244, 184, 228, 0.18);
+  --person-2-tx: #f4b8e4;
+  --person-3: #81c8be;
+  --person-3-t: rgba(129, 200, 190, 0.18);
+  --person-3-tx: #81c8be;
+  --person-4: #babbf1;
+  --person-4-t: rgba(186, 187, 241, 0.2);
+  --person-4-tx: #babbf1;
 
-  --control-track: rgba(238, 242, 234, 0.18);
-  --control-line: #66706b;
+  --control-track: #626880;
+  --control-line: #737994;
   --sh-1: none;
-  --sh-2: 0 2px 10px rgba(0, 0, 0, 0.5);
+  --sh-2: 0 2px 10px rgba(0, 0, 0, 0.45);
 
-  --rail-ink: #a8b7ae;
-  --rail-on: rgba(242, 193, 78, 0.16);
-  --rail-on-ink: #f2c14e;
+  --rail-ink: #a5adce;
+  --rail-on: rgba(202, 158, 230, 0.16);
+  --rail-on-ink: #ca9ee6;
 }
 
 /* ===== type ==================================================== */
@@ -210,7 +214,7 @@
 
 /* ===== reward shop — shop.css hard-codes a violet hero ========== */
 :root[data-palette='night-pantry'] .shop-hero {
-  @apply [background:linear-gradient(135deg,_#1C2D28,_#0E1916)];
+  @apply [background:linear-gradient(135deg,_#8839EF,_#1E66F5)];
 }
 :root[data-palette='night-pantry'] .shop-thumb {
   @apply [background:var(--gold-t)];

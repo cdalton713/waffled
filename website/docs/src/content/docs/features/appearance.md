@@ -11,8 +11,8 @@ from **Settings → Appearance**.
 - **Classic dark** — a *warm* dark: soft charcoals rather than cold black-and-blue.
 - **Kitchen** — built for a wall tablet (see below).
 - **Kitchen night** — the Kitchen look on a deep green-black, for evenings.
-- **Night Pantry day** — warm oat background, white cards and a butter-yellow accent (see below).
-- **Night Pantry** — the same look on a deep green-black, the way it was designed to be seen.
+- **Night Pantry day** — Catppuccin Latte: light greys with a mauve accent (see below).
+- **Night Pantry** — Catppuccin Frappé: the same look on soft slate blues, for evenings.
 - **Match system** — follow your device's own light/dark setting automatically, including when
   it flips on a schedule (e.g. sundown). It keeps whichever palette (Classic, Kitchen or Night
   Pantry) you picked.
@@ -30,11 +30,14 @@ The fonts ship with Waffled, so the theme works on a tablet with no internet acc
 [Kiosk mode](/features/kiosk/#kiosk-mode) to hide the editing controls on a wall display.
 
 ## The Night Pantry theme
-Night Pantry is a calmer, darker look that works on the counter tablet and on a phone:
+Night Pantry uses the [Catppuccin](https://catppuccin.com/palette) colors and works on the
+counter tablet and on a phone:
 
-- A **deep green-black** background (or **warm oat** in Night Pantry day) with rounder cards.
-- A **butter-yellow** accent for the main action and the selected screen. Text on yellow is
-  always dark, so the green, red and blue buttons use medium shades that dark text reads on too.
+- **Night Pantry** is Catppuccin **Frappé**: soft slate-blue surfaces with pastel accents.
+- **Night Pantry day** is Catppuccin **Latte**: cool light greys with deeper accents.
+- **Mauve** marks the main action and the selected screen in both. Rounder cards throughout.
+- A few Latte colors (green, teal, pink, orange) are too light for white text, so those use a
+  darker shade of the same color. Every text color is checked for readability in tests.
 - **Bricolage Grotesque** headings over **Atkinson Hyperlegible** body text, the same fonts as
   Kitchen.
 - Buttons are at least **44px** tall on a phone and **48px** on the tablet.

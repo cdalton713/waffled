@@ -38,8 +38,8 @@ function contrast(a: string, b: string): number {
 const LIGHT = /^:root\[data-palette=["']night-pantry["']\]$/
 const DARK = /^:root\[data-palette=["']night-pantry["']\]\[data-theme=["']dark["']\]$/
 
-// [text, surface] pairs every screen relies on. --on-accent is dark here (yellow needs
-// dark text), so every fill that carries it must be light enough for dark text too.
+// [text, surface] pairs every screen relies on. --on-accent is white on Latte and dark on
+// Frappé, so every fill that carries it is checked in both.
 const PAIRS: Array<[string, string]> = [
   ['--ink', '--bg'],
   ['--ink', '--card'],
@@ -66,6 +66,18 @@ describe.each([
       ([fg, bg]) => `${fg} on ${bg}: ${contrast(t[fg], t[bg]).toFixed(2)}`,
     )
     expect(failing).toEqual([])
+  })
+})
+
+// Light is Catppuccin Latte, dark is Catppuccin Frappé (catppuccin.com/palette).
+describe('night-pantry.css Catppuccin flavors', () => {
+  it.each([
+    ['Latte', LIGHT, { '--bg': '#dce0e8', '--card': '#eff1f5', '--ink': '#4c4f69', '--primary': '#8839ef' }],
+    ['Frappé', DARK, { '--bg': '#232634', '--card': '#303446', '--ink': '#c6d0f5', '--primary': '#ca9ee6' }],
+  ])('uses %s for the core tokens', (_flavor, selector, expected) => {
+    const t = { ...tokens(LIGHT), ...tokens(selector) }
+    const actual = Object.fromEntries(Object.keys(expected).map((k) => [k, t[k]]))
+    expect(actual).toEqual(expected)
   })
 })
 
