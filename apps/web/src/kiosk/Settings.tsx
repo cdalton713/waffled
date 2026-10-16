@@ -5863,13 +5863,13 @@ const THEMES: Array<{
     label: 'Night Pantry day',
     palette: 'night-pantry',
     mode: 'light',
-    colors: { bg: '#F4F1E8', card: '#FFFFFF', line: '#F2C14E', rail: '#EAE6DA' },
+    colors: { bg: '#DCE0E8', card: '#EFF1F5', line: '#8839EF', rail: '#E6E9EF' },
   },
   {
     label: 'Night Pantry',
     palette: 'night-pantry',
     mode: 'dark',
-    colors: { bg: '#0E1916', card: '#15241F', line: '#F2C14E', rail: '#0A1311' },
+    colors: { bg: '#232634', card: '#303446', line: '#CA9EE6', rail: '#292C3C' },
   },
 ]
 

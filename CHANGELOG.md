@@ -16,8 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Night Pantry theme** (web and kiosk). A new look in Settings → Appearance and Display &
-  Kiosk: a deep green-black background with a butter-yellow accent, rounder cards and
-  Bricolage Grotesque headings, plus a warm oat **Night Pantry day** version. Buttons are at
+  Kiosk in the [Catppuccin](https://catppuccin.com/palette) colors: **Night Pantry** uses
+  Frappé and **Night Pantry day** uses Latte, both with a mauve accent, rounder cards and
+  Bricolage Grotesque headings. Buttons are at
   least 44px tall on a phone, and every text color is checked for readability in both modes.
   See [Appearance](/features/appearance/#the-night-pantry-theme).
 
