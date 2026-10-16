@@ -1,4 +1,7 @@
 import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { DataIcon } from '@/components/ui/data-icon'
 
 // Small comma/enter chip editor for an array field (dietary, vegetables, tags…).
 // Lifted out of the old CustomizeModal so the unified recipe editor can reuse it.
@@ -24,15 +27,25 @@ export function ChipEditor({
       {items.map((it) => (
         <span key={it} className="cz-chip" style={{ background: color }}>
           {it}
-          <button type="button" aria-label={`Remove ${it}`} onClick={() => onChange(items.filter((x) => x !== it))}>×</button>
+          <Button
+            variant="unstyled"
+            type="button"
+            aria-label={`Remove ${it}`}
+            onClick={() => onChange(items.filter((x) => x !== it))}
+          >
+            <DataIcon value={'×'} kind="general" />
+          </Button>
         </span>
       ))}
-      <input
+      <Input
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
         onBlur={commit}
         onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); commit() }
+          if (e.key === 'Enter' || e.key === ',') {
+            e.preventDefault()
+            commit()
+          }
         }}
         placeholder={placeholder}
       />

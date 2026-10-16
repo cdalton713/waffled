@@ -12,11 +12,20 @@ vi.mock('../../lib/api', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../../lib/api')>()
   return {
     ...actual,
-    useRecipe: () => ({ recipe: recipeRef.current, ingredients: ingredientsRef.current, steps: [], loading: false, error: false, refetch: () => {} }),
+    useRecipe: () => ({
+      recipe: recipeRef.current,
+      ingredients: ingredientsRef.current,
+      steps: [],
+      loading: false,
+      error: false,
+      refetch: () => {},
+    }),
   }
 })
 
-function makeIngredient(over: Partial<RecipeIngredient> & { id: string; name: string }): RecipeIngredient {
+function makeIngredient(
+  over: Partial<RecipeIngredient> & { id: string; name: string },
+): RecipeIngredient {
   return {
     amount: 1,
     unit: null,
@@ -77,9 +86,13 @@ describe('RecipeView — add ingredients to grocery', () => {
     setViewOnly(true)
     try {
       renderView()
-      expect((await screen.findAllByRole('button', { name: 'Add to grocery' })).length).toBeGreaterThan(0)
+      expect(
+        (await screen.findAllByRole('button', { name: 'Add to grocery' })).length,
+      ).toBeGreaterThan(0)
       expect(screen.queryByRole('button', { name: 'Edit recipe' })).toBeNull()
-    } finally { setViewOnly(false) }
+    } finally {
+      setViewOnly(false)
+    }
   })
 
   // "Add to grocery" opens a picker so the shopper can add all or just the items they
@@ -186,7 +199,10 @@ describe('RecipeView — add ingredients to grocery', () => {
   // got it" and is struck through. In the picker "on" means "will be added", so the two
   // must not share the struck-through treatment — see the `checklist` / `picking` split.
   it('does not give picked ingredients the checklist strike-through styling', async () => {
-    globalThis.fetch = vi.fn(async () => ({ ok: true, json: async () => ({ added: 3 }) })) as unknown as typeof fetch
+    globalThis.fetch = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ added: 3 }),
+    })) as unknown as typeof fetch
     renderView()
 
     const modal = await openPicker()
@@ -199,7 +215,10 @@ describe('RecipeView — add ingredients to grocery', () => {
   // put two different numbers for the same ingredient on screen at once.
   it('shows amounts scaled by the servings stepper, matching the page behind it', async () => {
     ingredientsRef.current = [makeIngredient({ id: 'i1', name: 'flour', amount: 1, unit: 'cup' })]
-    globalThis.fetch = vi.fn(async () => ({ ok: true, json: async () => ({ added: 1 }) })) as unknown as typeof fetch
+    globalThis.fetch = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ added: 1 }),
+    })) as unknown as typeof fetch
     renderView()
 
     // Recipe serves 4; step up to 8 → everything doubles.
@@ -230,12 +249,12 @@ describe('RecipeView — New tag', () => {
   it('shows the 🆕 New tag when the recipe has never been cooked', () => {
     recipeRef.current = makeDetail({ id: 'r1', title: 'Fresh Salad', cookedCount: 0 })
     renderView()
-    expect(screen.getByRole('button', { name: /🆕 New/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^New$/ })).toBeInTheDocument()
   })
 
   it('hides the 🆕 New tag once the recipe has been cooked', () => {
     recipeRef.current = makeDetail({ id: 'r1', title: 'Old Faithful Stew', cookedCount: 3 })
     renderView()
-    expect(screen.queryByRole('button', { name: /🆕 New/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^New$/ })).not.toBeInTheDocument()
   })
 })

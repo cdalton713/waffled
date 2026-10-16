@@ -2,21 +2,45 @@ import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { Editable } from '../lib/viewOnly'
 import { useNavigate } from 'react-router'
 import {
-  usePantry, pantryApi, daysUntil, groceryApi, flaggedAllergens, uploadImage, ageLabel, monthsOnHand, ALLERGEN_LABELS, DIETARY_LABELS, productSourceLabel,
-  type PantryItem, type PantryItemInput, type OffProduct, type ItemRecipe,
+  usePantry,
+  pantryApi,
+  daysUntil,
+  groceryApi,
+  flaggedAllergens,
+  uploadImage,
+  ageLabel,
+  monthsOnHand,
+  ALLERGEN_LABELS,
+  DIETARY_LABELS,
+  productSourceLabel,
+  type PantryItem,
+  type PantryItemInput,
+  type OffProduct,
+  type ItemRecipe,
 } from '../lib/api'
 import { LocationField } from './components/LocationField'
 import { CookFromPantry } from './components/CookFromPantry'
 import { AllergenBadges, AllergenBadge, AllergenKey } from './components/Allergens'
 import '../styles/pantry.css'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { DataIcon } from '@/components/ui/data-icon'
+import { Modal } from '@/components/ui/modal'
+import { Checkbox } from '@/components/ui/checkbox'
 
 // The scanner drags in the zxing decoder (~440 kB minified) — by far the biggest
 // dependency in the app, and only ever needed once someone taps Scan. Loading it
 // on demand keeps it out of the entry bundle every other screen has to download.
-const ScanModal = lazy(() => import('./components/ScanModal').then((m) => ({ default: m.ScanModal })))
+const ScanModal = lazy(() =>
+  import('./components/ScanModal').then((m) => ({ default: m.ScanModal })),
+)
 
 // A compact per-item expiry sub-line (greyed when far off / absent).
-function expiryText(expiresOn: string | null): { text: string; tone: 'past' | 'soon' | 'ok' | 'none' } {
+function expiryText(expiresOn: string | null): {
+  text: string
+  tone: 'past' | 'soon' | 'ok' | 'none'
+} {
   const d = daysUntil(expiresOn)
   if (d == null) return { text: 'No date', tone: 'none' }
   if (d < 0) return { text: 'Expired', tone: 'past' }
@@ -30,18 +54,40 @@ function expiryText(expiresOn: string | null): { text: string; tone: 'past' | 's
 // image doesn't fall back to a food can.
 const EMOJI_RULES: [RegExp, string][] = [
   // \bham\b (not bare "ham") so it doesn't false-match "shampoo"/"graham".
-  [/beef|steak|burger/i, '🥩'], [/chicken|poultry/i, '🍗'], [/turkey/i, '🦃'], [/pork|bacon|\bham\b|sausage/i, '🥓'],
-  [/shrimp|prawn/i, '🦐'], [/fish|salmon|tuna|cod/i, '🐟'], [/pizza/i, '🍕'], [/lasagna|pasta|spaghetti|noodle/i, '🍝'],
-  [/pie|pot pie/i, '🥧'], [/burrito|taco|wrap/i, '🌯'], [/bean/i, '🫘'], [/nugget/i, '🍗'], [/waffle|pancake/i, '🧇'],
-  [/pea|veg|broccoli|spinach/i, '🥦'], [/berry|berries|fruit/i, '🫐'], [/ice cream|gelato/i, '🍦'], [/cheese/i, '🧀'],
+  [/beef|steak|burger/i, '🥩'],
+  [/chicken|poultry/i, '🍗'],
+  [/turkey/i, '🦃'],
+  [/pork|bacon|\bham\b|sausage/i, '🥓'],
+  [/shrimp|prawn/i, '🦐'],
+  [/fish|salmon|tuna|cod/i, '🐟'],
+  [/pizza/i, '🍕'],
+  [/lasagna|pasta|spaghetti|noodle/i, '🍝'],
+  [/pie|pot pie/i, '🥧'],
+  [/burrito|taco|wrap/i, '🌯'],
+  [/bean/i, '🫘'],
+  [/nugget/i, '🍗'],
+  [/waffle|pancake/i, '🧇'],
+  [/pea|veg|broccoli|spinach/i, '🥦'],
+  [/berry|berries|fruit/i, '🫐'],
+  [/ice cream|gelato/i, '🍦'],
+  [/cheese/i, '🧀'],
   // Paper goods BEFORE bread, so "kitchen roll" isn't caught by /roll/ → 🍞.
   [/toilet|tissue|paper towel|kitchen roll|napkin/i, '🧻'],
-  [/bread|bun|roll|bagel/i, '🍞'], [/milk|cream|yogurt/i, '🥛'], [/egg/i, '🥚'], [/rice/i, '🍚'], [/soup|broth/i, '🍲'],
+  [/bread|bun|roll|bagel/i, '🍞'],
+  [/milk|cream|yogurt/i, '🥛'],
+  [/egg/i, '🥚'],
+  [/rice/i, '🍚'],
+  [/soup|broth/i, '🍲'],
   // Non-food
   [/laundry|detergent|fabric soften|dish soap|dishwash|cleaner|bleach|surface spray/i, '🧼'],
-  [/shampoo|conditioner|lotion|moisturi|body wash|sunscreen|hand soap/i, '🧴'], [/toothpaste|toothbrush|floss/i, '🪥'],
-  [/deodorant|razor|shav/i, '🪒'], [/diaper|wipe/i, '🧷'], [/trash bag|garbage bag/i, '🗑️'], [/battery|batteries/i, '🔋'],
-  [/dog|cat|pet food|kibble/i, '🐾'], [/foil|wrap|ziploc|sandwich bag|storage bag/i, '📦'],
+  [/shampoo|conditioner|lotion|moisturi|body wash|sunscreen|hand soap/i, '🧴'],
+  [/toothpaste|toothbrush|floss/i, '🪥'],
+  [/deodorant|razor|shav/i, '🪒'],
+  [/diaper|wipe/i, '🧷'],
+  [/trash bag|garbage bag/i, '🗑️'],
+  [/battery|batteries/i, '🔋'],
+  [/dog|cat|pet food|kibble/i, '🐾'],
+  [/foil|wrap|ziploc|sandwich bag|storage bag/i, '📦'],
 ]
 function foodEmoji(name: string): string {
   for (const [re, e] of EMOJI_RULES) if (re.test(name)) return e
@@ -54,9 +100,23 @@ type SortKey = 'expiring' | 'az' | 'recent' | 'oldest'
 // sort, Open Food Facts nutrition/allergens, and avoid-allergen warnings. Gated
 // behind the optional `pantry` module (nav hidden when off; direct nav redirects).
 export function Pantry() {
-  const { items, locations, avoidAllergens, allergenPeople, lowThreshold, locationIcons, staleMonths, loading, error, refetch } = usePantry()
+  const {
+    items,
+    locations,
+    avoidAllergens,
+    allergenPeople,
+    lowThreshold,
+    locationIcons,
+    staleMonths,
+    loading,
+    error,
+    refetch,
+  } = usePantry()
   // The effective warning set: household avoid-list ∪ allergens any member has.
-  const effectiveAvoid = useMemo(() => Array.from(new Set([...avoidAllergens, ...Object.keys(allergenPeople)])), [avoidAllergens, allergenPeople])
+  const effectiveAvoid = useMemo(
+    () => Array.from(new Set([...avoidAllergens, ...Object.keys(allergenPeople)])),
+    [avoidAllergens, allergenPeople],
+  )
   const avoidSet = useMemo(() => new Set(effectiveAvoid), [effectiveAvoid])
   const [view, setView] = useState<string>('all') // 'all' | 'use_soon' | 'running_low' | <location>
   const [q, setQ] = useState('')
@@ -73,33 +133,68 @@ export function Pantry() {
     const next = Number.isFinite(n) ? n + delta : delta > 0 ? 1 : 0
     if (next <= 0) return markUsedUp(it)
     setBusy(it.id)
-    try { await pantryApi.update(it.id, { amount: String(next) }); refetch() } finally { setBusy(null) }
+    try {
+      await pantryApi.update(it.id, { amount: String(next) })
+      refetch()
+    } finally {
+      setBusy(null)
+    }
   }
   async function saveAmt() {
     const e = editAmt
     setEditAmt(null)
     if (!e) return
     setBusy(e.id)
-    try { await pantryApi.update(e.id, { amount: e.amount.trim(), unit: e.unit.trim() }); refetch() } finally { setBusy(null) }
+    try {
+      await pantryApi.update(e.id, { amount: e.amount.trim(), unit: e.unit.trim() })
+      refetch()
+    } finally {
+      setBusy(null)
+    }
   }
   async function markUsedUp(it: PantryItem) {
     setBusy(it.id)
-    try { await pantryApi.update(it.id, { usedUp: true }); refetch() } finally { setBusy(null) }
+    try {
+      await pantryApi.update(it.id, { usedUp: true })
+      refetch()
+    } finally {
+      setBusy(null)
+    }
   }
   async function toShoppingList(it: PantryItem) {
     setBusy(it.id)
-    try { await groceryApi.addGroceryItem(it.name); await pantryApi.remove(it.id); refetch() } finally { setBusy(null) }
+    try {
+      await groceryApi.addGroceryItem(it.name)
+      await pantryApi.remove(it.id)
+      refetch()
+    } finally {
+      setBusy(null)
+    }
   }
   async function removeItem(it: PantryItem) {
     setBusy(it.id)
-    try { await pantryApi.remove(it.id); refetch() } finally { setBusy(null) }
+    try {
+      await pantryApi.remove(it.id)
+      refetch()
+    } finally {
+      setBusy(null)
+    }
   }
 
-  const isSoon = (i: PantryItem) => { const d = daysUntil(i.expiresOn); return d != null && d <= 3 }
+  const isSoon = (i: PantryItem) => {
+    const d = daysUntil(i.expiresOn)
+    return d != null && d <= 3
+  }
   // Low when the numeric amount is at/below the item's own threshold, or the household default.
-  const isLow = (i: PantryItem) => { const n = parseFloat(i.amount); return Number.isFinite(n) && n <= (i.lowAt ?? lowThreshold) }
+  const isLow = (i: PantryItem) => {
+    const n = parseFloat(i.amount)
+    return Number.isFinite(n) && n <= (i.lowAt ?? lowThreshold)
+  }
   // Old when it's been on hand longer than the household's age threshold.
-  const isOld = (i: PantryItem) => { const m = monthsOnHand(i.addedOn); return m != null && m >= staleMonths }
+  const isOld = (i: PantryItem) => {
+    const m = monthsOnHand(i.addedOn)
+    return m != null && m >= staleMonths
+  }
 
   const live = useMemo(() => items.filter((i) => !i.usedUp), [items])
   const used = useMemo(() => items.filter((i) => i.usedUp), [items])
@@ -110,7 +205,13 @@ export function Pantry() {
       const loc = locations.includes(i.location) ? i.location : 'Other'
       byLoc[loc] = (byLoc[loc] ?? 0) + 1
     }
-    return { all: live.length, use_soon: live.filter(isSoon).length, running_low: live.filter(isLow).length, aging: live.filter(isOld).length, byLoc }
+    return {
+      all: live.length,
+      use_soon: live.filter(isSoon).length,
+      running_low: live.filter(isLow).length,
+      aging: live.filter(isOld).length,
+      byLoc,
+    }
   }, [live, locations, lowThreshold, staleMonths]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Apply the selected view, the search, then the sort.
@@ -119,34 +220,68 @@ export function Pantry() {
     if (view === 'use_soon') out = out.filter(isSoon)
     else if (view === 'running_low') out = out.filter(isLow)
     else if (view === 'aging') out = out.filter(isOld)
-    else if (view !== 'all') out = out.filter((i) => (locations.includes(i.location) ? i.location : 'Other') === view)
+    else if (view !== 'all')
+      out = out.filter((i) => (locations.includes(i.location) ? i.location : 'Other') === view)
     const s = q.trim().toLowerCase()
-    if (s) out = out.filter((i) => i.name.toLowerCase().includes(s) || (i.brand ?? '').toLowerCase().includes(s))
+    if (s)
+      out = out.filter(
+        (i) => i.name.toLowerCase().includes(s) || (i.brand ?? '').toLowerCase().includes(s),
+      )
     return out
   }
   function sortItems(list: PantryItem[]): PantryItem[] {
     const c = [...list]
     if (sort === 'az') c.sort((a, b) => a.name.localeCompare(b.name))
-    else if (sort === 'recent') c.sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''))
+    else if (sort === 'recent')
+      c.sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''))
     else if (sort === 'oldest') c.sort((a, b) => (a.addedOn ?? '').localeCompare(b.addedOn ?? '')) // longest on hand first
-    else c.sort((a, b) => { // expiring: dated soonest first, undated last
-      const da = daysUntil(a.expiresOn), db = daysUntil(b.expiresOn)
-      if (da == null && db == null) return a.name.localeCompare(b.name)
-      if (da == null) return 1
-      if (db == null) return -1
-      return da - db
-    })
+    else
+      c.sort((a, b) => {
+        // expiring: dated soonest first, undated last
+        const da = daysUntil(a.expiresOn),
+          db = daysUntil(b.expiresOn)
+        if (da == null && db == null) return a.name.localeCompare(b.name)
+        if (da == null) return 1
+        if (db == null) return -1
+        return da - db
+      })
     return c
   }
 
-  const shown = useMemo(() => sortItems(applyView(live)), [live, view, q, sort, locations, lowThreshold, staleMonths]) // eslint-disable-line react-hooks/exhaustive-deps
+  const shown = useMemo(
+    () => sortItems(applyView(live)),
+    [live, view, q, sort, locations, lowThreshold, staleMonths],
+  ) // eslint-disable-line react-hooks/exhaustive-deps
   const shownUsed = useMemo(() => applyView(used), [used, view, q, locations]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const viewLabel = view === 'all' ? 'All items' : view === 'use_soon' ? 'Use soon' : view === 'running_low' ? 'Running low' : view === 'aging' ? 'Been a while' : view
+  const viewLabel =
+    view === 'all'
+      ? 'All items'
+      : view === 'use_soon'
+        ? 'Use soon'
+        : view === 'running_low'
+          ? 'Running low'
+          : view === 'aging'
+            ? 'Been a while'
+            : view
   const soonInView = shown.filter(isSoon).length
 
-  if (loading) return <div className="muted" style={{ padding: 30 }}>Loading…</div>
-  if (error) return <div className="muted" style={{ padding: 30 }}>Pantry isn't enabled for this household — turn it on in Settings → Modules.</div>
+  if (loading)
+    return (
+      <div className="muted" style={{ padding: 30 }}>
+        Loading…
+      </div>
+    )
+  if (error)
+    return (
+      <div className="muted" style={{ padding: 30 }}>
+        <>
+          {"Pantry isn't enabled for this household — turn it on in Settings "}
+          <DataIcon value={'→'} kind="pantry" />
+          {' Modules.'}
+        </>
+      </div>
+    )
 
   const NAV: { key: string; label: string; icon: string; count: number }[] = [
     { key: 'all', label: 'All items', icon: '🗂️', count: counts.all },
@@ -159,11 +294,34 @@ export function Pantry() {
     <div className="pl-wrap">
       <div className="pl-head">
         <div className="wf-serif pl-title">Pantry</div>
-        <input className="pl-search" placeholder={`Search all ${counts.all} items…`} value={q} onChange={(e) => setQ(e.target.value)} />
+        <Input
+          className="pl-search"
+          placeholder={`Search all ${counts.all} items…`}
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+        />
         <div className="pl-head-actions">
           <Editable>
-            <button type="button" className="pill" onClick={() => setScanning(true)}>⛶ Scan</button>
-            <button type="button" className="pill btn-primary" style={{ color: 'var(--on-accent)', border: 0 }} onClick={() => setEditing('new')}>+ Add item</button>
+            <Button
+              variant="unstyled"
+              type="button"
+              className="pill btn-primary"
+              onClick={() => setScanning(true)}
+            >
+              <>
+                <DataIcon value={'⛶'} kind="pantry" />
+                {' Scan'}
+              </>
+            </Button>
+            <Button
+              variant="unstyled"
+              type="button"
+              className="pill btn-primary"
+              style={{ color: 'var(--on-accent)', border: 0 }}
+              onClick={() => setEditing('new')}
+            >
+              + Add item
+            </Button>
           </Editable>
         </div>
       </div>
@@ -171,24 +329,47 @@ export function Pantry() {
       <div className="pl-body">
         <aside className="pl-side">
           {NAV.map((n) => (
-            <button key={n.key} type="button" className={`pl-navitem${view === n.key ? ' on' : ''}`} onClick={() => setView(n.key)}>
-              <span className="pl-navitem-ic">{n.icon}</span>
+            <Button
+              variant="unstyled"
+              key={n.key}
+              type="button"
+              className={`pl-navitem${view === n.key ? ' on' : ''}`}
+              onClick={() => setView(n.key)}
+            >
+              <span className="pl-navitem-ic">
+                <DataIcon value={n.icon} kind="pantry" />
+              </span>
               <span className="pl-navitem-l">{n.label}</span>
               <span className="pl-navitem-n">{n.count}</span>
-            </button>
+            </Button>
           ))}
           <div className="pl-side-sep" />
           {locations.map((loc) => (
-            <button key={loc} type="button" className={`pl-navitem${view === loc ? ' on' : ''}`} onClick={() => setView(loc)}>
+            <Button
+              variant="unstyled"
+              key={loc}
+              type="button"
+              className={`pl-navitem${view === loc ? ' on' : ''}`}
+              onClick={() => setView(loc)}
+            >
               <span className="pl-navitem-ic">{locationIcons[loc] || '📦'}</span>
               <span className="pl-navitem-l">{loc}</span>
               <span className="pl-navitem-n">{counts.byLoc[loc] ?? 0}</span>
-            </button>
+            </Button>
           ))}
           {(counts.byLoc.Other ?? 0) > 0 && (
-            <button type="button" className={`pl-navitem${view === 'Other' ? ' on' : ''}`} onClick={() => setView('Other')}>
-              <span className="pl-navitem-ic">📦</span><span className="pl-navitem-l">Other</span><span className="pl-navitem-n">{counts.byLoc.Other}</span>
-            </button>
+            <Button
+              variant="unstyled"
+              type="button"
+              className={`pl-navitem${view === 'Other' ? ' on' : ''}`}
+              onClick={() => setView('Other')}
+            >
+              <span className="pl-navitem-ic">
+                <DataIcon value={'📦'} kind="pantry" />
+              </span>
+              <span className="pl-navitem-l">Other</span>
+              <span className="pl-navitem-n">{counts.byLoc.Other}</span>
+            </Button>
           )}
           <CookFromPantry items={live} onChanged={refetch} />
           <AllergenKey avoid={avoidSet} />
@@ -196,17 +377,49 @@ export function Pantry() {
 
         <main className="pl-main">
           <div className="pl-main-head">
-            <div className="pl-main-title">{viewLabel} <span className="pl-main-sub">· {shown.length} item{shown.length === 1 ? '' : 's'}{soonInView > 0 ? ` · ${soonInView} use soon` : ''}</span></div>
+            <div className="pl-main-title">
+              {viewLabel}{' '}
+              <span className="pl-main-sub">
+                · {shown.length} item{shown.length === 1 ? '' : 's'}
+                {soonInView > 0 ? ` · ${soonInView} use soon` : ''}
+              </span>
+            </div>
             <div className="seg pl-sort">
-              <button className={sort === 'expiring' ? 'on' : ''} onClick={() => setSort('expiring')}>Expiring</button>
-              <button className={sort === 'az' ? 'on' : ''} onClick={() => setSort('az')}>A–Z</button>
-              <button className={sort === 'recent' ? 'on' : ''} onClick={() => setSort('recent')}>Recent</button>
-              <button className={sort === 'oldest' ? 'on' : ''} onClick={() => setSort('oldest')}>Oldest</button>
+              <Button
+                variant="unstyled"
+                className={sort === 'expiring' ? 'on' : ''}
+                onClick={() => setSort('expiring')}
+              >
+                Expiring
+              </Button>
+              <Button
+                variant="unstyled"
+                className={sort === 'az' ? 'on' : ''}
+                onClick={() => setSort('az')}
+              >
+                A–Z
+              </Button>
+              <Button
+                variant="unstyled"
+                className={sort === 'recent' ? 'on' : ''}
+                onClick={() => setSort('recent')}
+              >
+                Recent
+              </Button>
+              <Button
+                variant="unstyled"
+                className={sort === 'oldest' ? 'on' : ''}
+                onClick={() => setSort('oldest')}
+              >
+                Oldest
+              </Button>
             </div>
           </div>
 
           {shown.length === 0 && shownUsed.length === 0 ? (
-            <div className="pantry-empty">{q.trim() ? 'Nothing matches your search.' : 'Nothing here yet. Add what’s on hand.'}</div>
+            <div className="pantry-empty">
+              {q.trim() ? 'Nothing matches your search.' : 'Nothing here yet. Add what’s on hand.'}
+            </div>
           ) : (
             <div className="pl-grid">
               {shown.map((it) => {
@@ -215,27 +428,78 @@ export function Pantry() {
                 const itemAllergens = it.allergens ?? []
                 return (
                   <div key={it.id} className={`pl-item${busy === it.id ? ' busy' : ''}`}>
-                    <button type="button" className="pl-item-face" onClick={() => setDetail(it)}>
-                      <span className="pl-emoji">{it.imageUrl ? <img src={it.imageUrl} alt="" /> : foodEmoji(it.name)}</span>
+                    <Button
+                      variant="unstyled"
+                      type="button"
+                      className="pl-item-face"
+                      onClick={() => setDetail(it)}
+                    >
+                      <span className="pl-emoji">
+                        {it.imageUrl ? (
+                          <img src={it.imageUrl} alt="" />
+                        ) : (
+                          <DataIcon value={foodEmoji(it.name)} kind="pantry" />
+                        )}
+                      </span>
                       <span className="pl-item-text">
                         <span className="pl-name">{it.name}</span>
                         {/* Second line: Location · allergies · use-by */}
                         <span className="pl-sub">
                           <span className="pl-loc">{loc}</span>
-                          {itemAllergens.length > 0 && <AllergenBadges allergens={itemAllergens} avoid={avoidSet} />}
-                          {it.expiresOn && <span className={`pl-exp pl-exp-${exp.tone}`}>{exp.text}</span>}
-                          {isOld(it) && <span className="pl-old" title={`In ${loc.toLowerCase()} since ${it.addedOn}`}>🕰️ {ageLabel(it.addedOn)}</span>}
+                          {itemAllergens.length > 0 && (
+                            <AllergenBadges allergens={itemAllergens} avoid={avoidSet} />
+                          )}
+                          {it.expiresOn && (
+                            <span className={`pl-exp pl-exp-${exp.tone}`}>{exp.text}</span>
+                          )}
+                          {isOld(it) && (
+                            <span
+                              className="pl-old"
+                              title={`In ${loc.toLowerCase()} since ${it.addedOn}`}
+                            >
+                              <>
+                                <DataIcon value={'🕰️'} kind="pantry" />{' '}
+                              </>
+                              {ageLabel(it.addedOn)}
+                            </span>
+                          )}
                         </span>
                       </span>
-                    </button>
+                    </Button>
                     <div className="pantry-step-wrap">
                       <div className="pantry-step">
-                        <button type="button" className="pantry-step-btn minus" aria-label={`Use one ${it.name}`} disabled={busy === it.id} onClick={() => adjust(it, -1)}>−</button>
-                        <button type="button" className="pantry-step-val" disabled={busy === it.id} onClick={() => setEditAmt({ id: it.id, amount: it.amount, unit: it.unit })}>
+                        <Button
+                          variant="unstyled"
+                          type="button"
+                          className="pantry-step-btn minus"
+                          aria-label={`Use one ${it.name}`}
+                          disabled={busy === it.id}
+                          onClick={() => adjust(it, -1)}
+                        >
+                          −
+                        </Button>
+                        <Button
+                          variant="unstyled"
+                          type="button"
+                          className="pantry-step-val"
+                          disabled={busy === it.id}
+                          onClick={() =>
+                            setEditAmt({ id: it.id, amount: it.amount, unit: it.unit })
+                          }
+                        >
                           <span className="pantry-step-num">{it.amount || '—'}</span>
                           {it.unit && <span className="pantry-step-unit">{it.unit}</span>}
-                        </button>
-                        <button type="button" className="pantry-step-btn plus" aria-label={`Add one ${it.name}`} disabled={busy === it.id} onClick={() => adjust(it, 1)}>+</button>
+                        </Button>
+                        <Button
+                          variant="unstyled"
+                          type="button"
+                          className="pantry-step-btn plus"
+                          aria-label={`Add one ${it.name}`}
+                          disabled={busy === it.id}
+                          onClick={() => adjust(it, 1)}
+                        >
+                          +
+                        </Button>
                       </div>
                       {editAmt?.id === it.id && (
                         <>
@@ -244,10 +508,33 @@ export function Pantry() {
                             <div className="pantry-amtpop-caret" />
                             <div className="pantry-amtpop-h">Edit amount</div>
                             <div className="pantry-amtpop-row">
-                              <input className="pantry-amtpop-num" value={editAmt.amount} autoFocus onChange={(e) => setEditAmt((c) => (c ? { ...c, amount: e.target.value } : c))} onKeyDown={(e) => { if (e.key === 'Enter') saveAmt() }} />
-                              <input className="pantry-amtpop-unit" value={editAmt.unit} placeholder="unit" onChange={(e) => setEditAmt((c) => (c ? { ...c, unit: e.target.value } : c))} onKeyDown={(e) => { if (e.key === 'Enter') saveAmt() }} />
+                              <Input
+                                className="pantry-amtpop-num"
+                                value={editAmt.amount}
+                                autoFocus
+                                onChange={(e) =>
+                                  setEditAmt((c) => (c ? { ...c, amount: e.target.value } : c))
+                                }
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') saveAmt()
+                                }}
+                              />
+                              <Input
+                                className="pantry-amtpop-unit"
+                                value={editAmt.unit}
+                                placeholder="unit"
+                                onChange={(e) =>
+                                  setEditAmt((c) => (c ? { ...c, unit: e.target.value } : c))
+                                }
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') saveAmt()
+                                }}
+                              />
                             </div>
-                            <div className="pantry-amtpop-help">Tap the number any time to type an exact amount — ½ a bag, 0.75 lb, whatever fits.</div>
+                            <div className="pantry-amtpop-help">
+                              Tap the number any time to type an exact amount — ½ a bag, 0.75 lb,
+                              whatever fits.
+                            </div>
                           </div>
                         </>
                       )}
@@ -263,20 +550,52 @@ export function Pantry() {
               <div className="pl-used-h">Used up</div>
               {shownUsed.map((it) => (
                 <div key={it.id} className={`pantry-item used${busy === it.id ? ' busy' : ''}`}>
-                  <div className="pantry-item-main static"><span className="pantry-item-name">{it.name}</span><span className="pantry-used-tag">• Used up</span></div>
-                  <button type="button" className="pill btn-primary pantry-used-buy" style={{ color: 'var(--on-accent)', border: 0 }} disabled={busy === it.id} onClick={() => toShoppingList(it)}>+ Shopping list</button>
-                  <button type="button" className="pill pantry-used-remove" disabled={busy === it.id} onClick={() => removeItem(it)}>Remove</button>
+                  <div className="pantry-item-main static">
+                    <span className="pantry-item-name">{it.name}</span>
+                    <span className="pantry-used-tag">• Used up</span>
+                  </div>
+                  <Button
+                    variant="unstyled"
+                    type="button"
+                    className="pill btn-primary pantry-used-buy"
+                    style={{ color: 'var(--on-accent)', border: 0 }}
+                    disabled={busy === it.id}
+                    onClick={() => toShoppingList(it)}
+                  >
+                    + Shopping list
+                  </Button>
+                  <Button
+                    variant="unstyled"
+                    type="button"
+                    className="pill pantry-used-remove"
+                    disabled={busy === it.id}
+                    onClick={() => removeItem(it)}
+                  >
+                    Remove
+                  </Button>
                 </div>
               ))}
             </div>
           )}
-
         </main>
       </div>
 
       {scanning && (
-        <Suspense fallback={<div className="modal-overlay"><div className="spinner lg" /></div>}>
-          <ScanModal locations={locations} avoidAllergens={avoidAllergens} allergenPeople={allergenPeople} onClose={() => setScanning(false)} onAdded={refetch} onLocationsChanged={refetch} />
+        <Suspense
+          fallback={
+            <Modal className="modal-overlay">
+              <div className="spinner lg" />
+            </Modal>
+          }
+        >
+          <ScanModal
+            locations={locations}
+            avoidAllergens={avoidAllergens}
+            allergenPeople={allergenPeople}
+            onClose={() => setScanning(false)}
+            onAdded={refetch}
+            onLocationsChanged={refetch}
+          />
         </Suspense>
       )}
 
@@ -286,7 +605,10 @@ export function Pantry() {
           avoidAllergens={avoidAllergens}
           allergenPeople={allergenPeople}
           onClose={() => setDetail(null)}
-          onEdit={() => { setEditing(detail); setDetail(null) }}
+          onEdit={() => {
+            setEditing(detail)
+            setDetail(null)
+          }}
           onChanged={refetch}
         />
       )}
@@ -297,7 +619,10 @@ export function Pantry() {
           locations={locations}
           onLocationsChanged={refetch}
           onClose={() => setEditing(null)}
-          onSaved={() => { setEditing(null); refetch() }}
+          onSaved={() => {
+            setEditing(null)
+            refetch()
+          }}
         />
       )}
     </div>
@@ -307,7 +632,14 @@ export function Pantry() {
 // The item detail sheet — Open Food Facts product card: photo/emoji, brand + pack
 // size, CONTAINS allergen chips (avoided ones in red), the nutrition panel, and
 // Edit. (PLAN IT IN / Cook this are deferred with the meal-planning work.)
-function PantryDetail({ item, avoidAllergens, allergenPeople, onClose, onEdit, onChanged }: {
+function PantryDetail({
+  item,
+  avoidAllergens,
+  allergenPeople,
+  onClose,
+  onEdit,
+  onChanged,
+}: {
   item: PantryItem
   avoidAllergens: string[]
   allergenPeople: Record<string, string[]>
@@ -322,13 +654,20 @@ function PantryDetail({ item, avoidAllergens, allergenPeople, onClose, onEdit, o
   const [photoBusy, setPhotoBusy] = useState(false)
   const [recipes, setRecipes] = useState<ItemRecipe[]>([])
   const fileRef = useRef<HTMLInputElement>(null)
-  useEffect(() => { pantryApi.itemRecipes(item.id).then((d) => setRecipes(d.recipes)).catch(() => {}) }, [item.id])
+  useEffect(() => {
+    pantryApi
+      .itemRecipes(item.id)
+      .then((d) => setRecipes(d.recipes))
+      .catch(() => {})
+  }, [item.id])
   const flaggedList = flaggedAllergens(item, avoidAllergens, allergenPeople)
   const flagged = new Set(flaggedList)
   // Who the flagged allergens affect (for the "affects …" note).
   const affects = Array.from(new Set(flaggedList.flatMap((a) => allergenPeople[a] ?? [])))
   // "May contain" (traces) the household avoids → flag those too.
-  const traceFlag = new Set((item.traces ?? []).filter((a) => avoidAllergens.includes(a) || allergenPeople[a]))
+  const traceFlag = new Set(
+    (item.traces ?? []).filter((a) => avoidAllergens.includes(a) || allergenPeople[a]),
+  )
   const n = item.nutrition
   const isOff = item.source === 'openfoodfacts'
   // Attribution for whichever Open * Facts database this item came from (non-food
@@ -343,7 +682,11 @@ function PantryDetail({ item, avoidAllergens, allergenPeople, onClose, onEdit, o
       setImg(up.url)
       await pantryApi.update(item.id, { imageUrl: up.url })
       onChanged()
-    } catch { /* ignore — keep old image */ } finally { setPhotoBusy(false) }
+    } catch {
+      /* ignore — keep old image */
+    } finally {
+      setPhotoBusy(false)
+    }
   }
 
   async function bump(delta: number) {
@@ -352,7 +695,12 @@ function PantryDetail({ item, avoidAllergens, allergenPeople, onClose, onEdit, o
     if (next <= 0) return
     setBusy(true)
     setAmt(String(next))
-    try { await pantryApi.update(item.id, { amount: String(next) }); onChanged() } finally { setBusy(false) }
+    try {
+      await pantryApi.update(item.id, { amount: String(next) })
+      onChanged()
+    } finally {
+      setBusy(false)
+    }
   }
 
   const nutriRows: [string, string][] = []
@@ -365,94 +713,226 @@ function PantryDetail({ item, avoidAllergens, allergenPeople, onClose, onEdit, o
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <Modal className="modal-overlay" onClose={onClose}>
       <div className="modal-card pl-detail2" onClick={(e) => e.stopPropagation()}>
-        <button type="button" className="modal-close pl-d2-close" aria-label="Close" onClick={onClose}>×</button>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="modal-close pl-d2-close"
+          aria-label="Close"
+          onClick={onClose}
+        >
+          <DataIcon value={'×'} kind="pantry" />
+        </Button>
         <div className="pl-d2-img">
-          {sourceLabel && <span className="pl-off-tag">● {sourceLabel}</span>}
-          {img ? <img src={img} alt="" /> : <span className="pl-d2-emoji">{foodEmoji(item.name)}</span>}
-          <button type="button" className="pl-d2-replace" disabled={photoBusy} onClick={() => fileRef.current?.click()}>
-            {photoBusy ? 'Uploading…' : '📷 Replace photo'}
-          </button>
-          <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => replacePhoto(e.target.files?.[0])} />
+          {sourceLabel && (
+            <span className="pl-off-tag">
+              <>
+                <DataIcon value={'●'} kind="pantry" />{' '}
+              </>
+              {sourceLabel}
+            </span>
+          )}
+          {img ? (
+            <img src={img} alt="" />
+          ) : (
+            <span className="pl-d2-emoji">
+              <DataIcon value={foodEmoji(item.name)} kind="pantry" />
+            </span>
+          )}
+          <Button
+            variant="unstyled"
+            type="button"
+            className="pl-d2-replace"
+            disabled={photoBusy}
+            onClick={() => fileRef.current?.click()}
+          >
+            {photoBusy ? (
+              'Uploading…'
+            ) : (
+              <>
+                <DataIcon value={'📷'} kind="photo" />
+                {' Replace photo'}
+              </>
+            )}
+          </Button>
+          <Input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            hidden
+            onChange={(e) => replacePhoto(e.target.files?.[0])}
+          />
         </div>
         <div className="pl-d2-main">
-        <div className="pl-detail-title">{item.name}</div>
-        {(item.brand || item.quantityText) && <div className="pl-detail-sub">{[item.brand, item.quantityText].filter(Boolean).join(' · ')}</div>}
+          <div className="pl-detail-title">{item.name}</div>
+          {(item.brand || item.quantityText) && (
+            <div className="pl-detail-sub">
+              {[item.brand, item.quantityText].filter(Boolean).join(' · ')}
+            </div>
+          )}
 
-        <div className="pl-detail-rows">
-          <div className="pl-detail-row"><span>Location</span><b>{item.location}</b></div>
-          <div className="pl-detail-row"><span>Added</span><b className="pl-added-val">{item.addedOn ?? '—'}{ageLabel(item.addedOn) ? <span className="pl-age-chip">{ageLabel(item.addedOn)} ago</span> : null}</b></div>
-          <div className="pl-detail-row"><span>Best by</span><b>{item.expiresOn ?? '—'}</b></div>
-          <div className="pl-detail-row">
-            <span>Amount</span>
-            <div className="pantry-step">
-              <button type="button" className="pantry-step-btn minus" disabled={busy} onClick={() => bump(-1)}>−</button>
-              <span className="pantry-step-val" style={{ cursor: 'default' }}><span className="pantry-step-num">{amt || '—'}</span>{item.unit && <span className="pantry-step-unit">{item.unit}</span>}</span>
-              <button type="button" className="pantry-step-btn plus" disabled={busy} onClick={() => bump(1)}>+</button>
+          <div className="pl-detail-rows">
+            <div className="pl-detail-row">
+              <span>Location</span>
+              <b>{item.location}</b>
+            </div>
+            <div className="pl-detail-row">
+              <span>Added</span>
+              <b className="pl-added-val">
+                {item.addedOn ?? '—'}
+                {ageLabel(item.addedOn) ? (
+                  <span className="pl-age-chip">{ageLabel(item.addedOn)} ago</span>
+                ) : null}
+              </b>
+            </div>
+            <div className="pl-detail-row">
+              <span>Best by</span>
+              <b>{item.expiresOn ?? '—'}</b>
+            </div>
+            <div className="pl-detail-row">
+              <span>Amount</span>
+              <div className="pantry-step">
+                <Button
+                  variant="unstyled"
+                  type="button"
+                  className="pantry-step-btn minus"
+                  disabled={busy}
+                  onClick={() => bump(-1)}
+                >
+                  −
+                </Button>
+                <span className="pantry-step-val" style={{ cursor: 'default' }}>
+                  <span className="pantry-step-num">{amt || '—'}</span>
+                  {item.unit && <span className="pantry-step-unit">{item.unit}</span>}
+                </span>
+                <Button
+                  variant="unstyled"
+                  type="button"
+                  className="pantry-step-btn plus"
+                  disabled={busy}
+                  onClick={() => bump(1)}
+                >
+                  +
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
 
-        {item.allergens && item.allergens.length > 0 && (
-          <div className="pl-detail-contains">
-            <span className="pl-contains-l">Contains</span>
-            {item.allergens.map((a) => (
-              <span key={a} className="pl-contains-item"><AllergenBadge allergen={a} avoid={flagged.has(a)} /> {ALLERGEN_LABELS[a] ?? a}</span>
-            ))}
+          {item.allergens && item.allergens.length > 0 && (
+            <div className="pl-detail-contains">
+              <span className="pl-contains-l">Contains</span>
+              {item.allergens.map((a) => (
+                <span key={a} className="pl-contains-item">
+                  <AllergenBadge allergen={a} avoid={flagged.has(a)} /> {ALLERGEN_LABELS[a] ?? a}
+                </span>
+              ))}
+            </div>
+          )}
+          {affects.length > 0 && (
+            <div className="pl-affects">
+              <>
+                <DataIcon value={'⚠'} kind="pantry" />
+                {' Affects '}
+              </>
+              {affects.join(', ')}
+            </div>
+          )}
+
+          {item.traces && item.traces.length > 0 && (
+            <div className="pl-detail-contains">
+              <span className="pl-contains-l">May contain</span>
+              {item.traces.map((a) => (
+                <span key={a} className="pl-contains-item">
+                  <AllergenBadge allergen={a} trace avoid={traceFlag.has(a)} />{' '}
+                  {ALLERGEN_LABELS[a] ?? a}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {item.dietary && item.dietary.length > 0 && (
+            <div className="pl-diet">
+              {item.dietary.map((d) => (
+                <span key={d} className="pl-diet-chip">
+                  {DIETARY_LABELS[d] ?? d}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {nutriRows.length > 0 && (
+            <div className="pl-nutri">
+              <div className="pl-nutri-h">
+                <span>Nutrition</span>
+                <span className="pl-nutri-basis">{item.servingBasis}</span>
+              </div>
+              {nutriRows.map(([k, v]) => (
+                <div key={k} className="pl-nutri-row">
+                  <span>{k}</span>
+                  <b>{v}</b>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {isOff && (
+            <div className="pl-off-foot">
+              <>
+                <DataIcon value={'●'} kind="pantry" />
+                {' Nutrition &amp; allergens from Open Food Facts'}
+              </>
+            </div>
+          )}
+
+          {recipes.length > 0 && (
+            <div className="pl-planin">
+              <div className="pl-planin-h">Plan it in</div>
+              {recipes.slice(0, 4).map((r) => (
+                <Button
+                  variant="unstyled"
+                  type="button"
+                  key={r.recipeId}
+                  className="pl-cookm-row"
+                  onClick={() => navigate(`/meals/recipe/${r.recipeId}`)}
+                >
+                  <span className="pl-cookm-emoji">
+                    <DataIcon value={r.emoji ?? '🍽️'} kind="meal" />
+                  </span>
+                  <span className="pl-cookm-name">{r.title}</span>
+                  <span className="pl-cookm-go">
+                    <DataIcon value={'›'} kind="meal" />
+                  </span>
+                </Button>
+              ))}
+            </div>
+          )}
+
+          <div className="pl-detail-acts">
+            <Editable>
+              <Button
+                variant="unstyled"
+                type="button"
+                className="pill btn-primary"
+                onClick={onEdit}
+              >
+                Edit
+              </Button>
+            </Editable>
           </div>
-        )}
-        {affects.length > 0 && <div className="pl-affects">⚠ Affects {affects.join(', ')}</div>}
-
-        {item.traces && item.traces.length > 0 && (
-          <div className="pl-detail-contains">
-            <span className="pl-contains-l">May contain</span>
-            {item.traces.map((a) => (
-              <span key={a} className="pl-contains-item"><AllergenBadge allergen={a} trace avoid={traceFlag.has(a)} /> {ALLERGEN_LABELS[a] ?? a}</span>
-            ))}
-          </div>
-        )}
-
-        {item.dietary && item.dietary.length > 0 && (
-          <div className="pl-diet">
-            {item.dietary.map((d) => <span key={d} className="pl-diet-chip">{DIETARY_LABELS[d] ?? d}</span>)}
-          </div>
-        )}
-
-        {nutriRows.length > 0 && (
-          <div className="pl-nutri">
-            <div className="pl-nutri-h"><span>Nutrition</span><span className="pl-nutri-basis">{item.servingBasis}</span></div>
-            {nutriRows.map(([k, v]) => (
-              <div key={k} className="pl-nutri-row"><span>{k}</span><b>{v}</b></div>
-            ))}
-          </div>
-        )}
-
-        {isOff && <div className="pl-off-foot">● Nutrition &amp; allergens from Open Food Facts</div>}
-
-        {recipes.length > 0 && (
-          <div className="pl-planin">
-            <div className="pl-planin-h">Plan it in</div>
-            {recipes.slice(0, 4).map((r) => (
-              <button type="button" key={r.recipeId} className="pl-cookm-row" onClick={() => navigate(`/meals/recipe/${r.recipeId}`)}>
-                <span className="pl-cookm-emoji">{r.emoji ?? '🍽️'}</span>
-                <span className="pl-cookm-name">{r.title}</span>
-                <span className="pl-cookm-go">›</span>
-              </button>
-            ))}
-          </div>
-        )}
-
-        <div className="pl-detail-acts">
-          <Editable><button type="button" className="pill" onClick={onEdit}>Edit</button></Editable>
-        </div>
         </div>
       </div>
-    </div>
+    </Modal>
   )
 }
 
-function ItemModal({ item, locations, onLocationsChanged, onClose, onSaved }: {
+function ItemModal({
+  item,
+  locations,
+  onLocationsChanged,
+  onClose,
+  onSaved,
+}: {
   item: PantryItem | null
   locations: string[]
   onLocationsChanged: () => void
@@ -484,7 +964,11 @@ function ItemModal({ item, locations, onLocationsChanged, onClose, onSaved }: {
     setLookupMsg(null)
     const p = await pantryApi.lookup(code)
     setLookingUp(false)
-    if (!p) { setOff(null); setLookupMsg('Not found in a product database — enter the details below.'); return }
+    if (!p) {
+      setOff(null)
+      setLookupMsg('Not found in a product database — enter the details below.')
+      return
+    }
     setOff(p)
     if (p.name) setName(p.name)
     setLookupMsg(`Found: ${p.name ?? 'product'}${p.brand ? ` · ${p.brand}` : ''}`)
@@ -495,16 +979,30 @@ function ItemModal({ item, locations, onLocationsChanged, onClose, onSaved }: {
     setSaving(true)
     setErr(null)
     const input: PantryItemInput = {
-      name: name.trim(), amount: amount.trim(), unit: unit.trim(), location,
-      expiresOn: expiresOn || null, note: note.trim(),
+      name: name.trim(),
+      amount: amount.trim(),
+      unit: unit.trim(),
+      location,
+      expiresOn: expiresOn || null,
+      note: note.trim(),
       addedOn: addedOn || undefined,
       lowAt: lowAt.trim() === '' ? null : Number(lowAt),
       isMeal,
       // Carry the OFF snapshot when the item was matched by barcode.
-      ...(off ? {
-        barcode: off.barcode, brand: off.brand, imageUrl: off.imageUrl, quantityText: off.quantityText,
-        servingBasis: off.servingBasis, nutrition: off.nutrition, allergens: off.allergens, traces: off.traces, dietary: off.dietary, source: off.source,
-      } : {}),
+      ...(off
+        ? {
+            barcode: off.barcode,
+            brand: off.brand,
+            imageUrl: off.imageUrl,
+            quantityText: off.quantityText,
+            servingBasis: off.servingBasis,
+            nutrition: off.nutrition,
+            allergens: off.allergens,
+            traces: off.traces,
+            dietary: off.dietary,
+            source: off.source,
+          }
+        : {}),
     }
     try {
       if (item) await pantryApi.update(item.id, input)
@@ -518,67 +1016,163 @@ function ItemModal({ item, locations, onLocationsChanged, onClose, onSaved }: {
   async function remove() {
     if (!item || saving) return
     setSaving(true)
-    try { await pantryApi.remove(item.id); onSaved() } catch { setErr('Could not delete.'); setSaving(false) }
+    try {
+      await pantryApi.remove(item.id)
+      onSaved()
+    } catch {
+      setErr('Could not delete.')
+      setSaving(false)
+    }
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <Modal className="modal-overlay" onClose={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 440 }}>
-        <button type="button" className="modal-close" aria-label="Close" onClick={onClose}>×</button>
-        <div className="wf-serif" style={{ fontSize: 20, fontWeight: 600, marginBottom: 14 }}>{item ? 'Edit item' : 'Add to pantry'}</div>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="modal-close"
+          aria-label="Close"
+          onClick={onClose}
+        >
+          <DataIcon value={'×'} kind="pantry" />
+        </Button>
+        <div className="wf-serif" style={{ fontSize: 20, fontWeight: 600, marginBottom: 14 }}>
+          {item ? 'Edit item' : 'Add to pantry'}
+        </div>
         {!item && (
-          <label className="pantry-field"><span>Barcode (optional)</span>
+          <Label className="pantry-field">
+            <span>Barcode (optional)</span>
             <div className="pl-barcode-row">
-              <input value={barcode} onChange={(e) => setBarcode(e.target.value)} placeholder="Scan or type a barcode" onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); lookup() } }} />
-              <button type="button" className="pill" disabled={lookingUp || !barcode.trim()} onClick={lookup}>{lookingUp ? '…' : 'Look up'}</button>
+              <Input
+                value={barcode}
+                onChange={(e) => setBarcode(e.target.value)}
+                placeholder="Scan or type a barcode"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    lookup()
+                  }
+                }}
+              />
+              <Button
+                variant="unstyled"
+                type="button"
+                className="pill btn-primary"
+                disabled={lookingUp || !barcode.trim()}
+                onClick={lookup}
+              >
+                {lookingUp ? '…' : 'Look up'}
+              </Button>
             </div>
             {lookupMsg && <span className={`pl-lookup-msg${off ? ' ok' : ''}`}>{lookupMsg}</span>}
-          </label>
+          </Label>
         )}
-        <label className="pantry-field"><span>Item</span>
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ground beef" autoFocus={!!item} />
-        </label>
+        <Label className="pantry-field">
+          <span>Item</span>
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Ground beef"
+            autoFocus={!!item}
+          />
+        </Label>
         <div className="pantry-field-row">
-          <label className="pantry-field"><span>Amount</span>
-            <input value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="2 / half" />
-          </label>
-          <label className="pantry-field"><span>Unit</span>
-            <input value={unit} onChange={(e) => setUnit(e.target.value)} placeholder="lbs / bag" />
-          </label>
+          <Label className="pantry-field">
+            <span>Amount</span>
+            <Input
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="2 / half"
+            />
+          </Label>
+          <Label className="pantry-field">
+            <span>Unit</span>
+            <Input value={unit} onChange={(e) => setUnit(e.target.value)} placeholder="lbs / bag" />
+          </Label>
         </div>
         <div className="pantry-field-row">
-          <label className="pantry-field"><span>Location</span>
-            <LocationField value={location} locations={locations} onChange={setLocation} onLocationsChanged={onLocationsChanged} />
-          </label>
-          <label className="pantry-field"><span>Expires (optional)</span>
-            <input type="date" value={expiresOn} onChange={(e) => setExpiresOn(e.target.value)} />
-          </label>
+          <Label className="pantry-field">
+            <span>Location</span>
+            <LocationField
+              value={location}
+              locations={locations}
+              onChange={setLocation}
+              onLocationsChanged={onLocationsChanged}
+            />
+          </Label>
+          <Label className="pantry-field">
+            <span>Expires (optional)</span>
+            <Input type="date" value={expiresOn} onChange={(e) => setExpiresOn(e.target.value)} />
+          </Label>
         </div>
-        <label className="pantry-field"><span>Added / bought (how long it's been on hand)</span>
-          <input type="date" value={addedOn} onChange={(e) => setAddedOn(e.target.value)} />
-        </label>
+        <Label className="pantry-field">
+          <span>Added / bought (how long it's been on hand)</span>
+          <Input type="date" value={addedOn} onChange={(e) => setAddedOn(e.target.value)} />
+        </Label>
         <div className="pantry-field-row">
-          <label className="pantry-field"><span>Note (optional)</span>
-            <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="leftovers from Tuesday" />
-          </label>
-          <label className="pantry-field"><span>Warn below (optional)</span>
-            <input type="number" min="0" step="any" value={lowAt} onChange={(e) => setLowAt(e.target.value)} placeholder="default" />
-          </label>
+          <Label className="pantry-field">
+            <span>Note (optional)</span>
+            <Input
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="leftovers from Tuesday"
+            />
+          </Label>
+          <Label className="pantry-field">
+            <span>Warn below (optional)</span>
+            <Input
+              type="number"
+              min="0"
+              step="any"
+              value={lowAt}
+              onChange={(e) => setLowAt(e.target.value)}
+              placeholder="default"
+            />
+          </Label>
         </div>
-        <label className="pantry-meal-toggle">
-          <input type="checkbox" checked={isMeal} onChange={(e) => setIsMeal(e.target.checked)} />
-          <span>It's a meal — ready to eat (leftovers, pre-made, or a protein to use up). Shows in “Cook from your pantry”.</span>
-        </label>
+        <Label className="pantry-meal-toggle">
+          <Checkbox checked={isMeal} onCheckedChange={(e) => setIsMeal(e === true)} />
+          <span>
+            It's a meal — ready to eat (leftovers, pre-made, or a protein to use up). Shows in “Cook
+            from your pantry”.
+          </span>
+        </Label>
         {err && <div className="pantry-err">{err}</div>}
         <div className="pantry-modal-actions">
-          {item && <button type="button" className="pill pantry-del" disabled={saving} onClick={remove}>Delete</button>}
+          {item && (
+            <Button
+              variant="unstyled"
+              type="button"
+              className="pill pantry-del"
+              disabled={saving}
+              onClick={remove}
+            >
+              Delete
+            </Button>
+          )}
           <span style={{ flex: 1 }} />
-          <button type="button" className="pill" disabled={saving} onClick={onClose}>Cancel</button>
-          <button type="button" className="pill btn-primary" style={{ color: 'var(--on-accent)', border: 0 }} disabled={saving || !name.trim()} onClick={save}>
+          <Button
+            variant="unstyled"
+            type="button"
+            className="pill btn-primary"
+            disabled={saving}
+            onClick={onClose}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="unstyled"
+            type="button"
+            className="pill btn-primary"
+            style={{ color: 'var(--on-accent)', border: 0 }}
+            disabled={saving || !name.trim()}
+            onClick={save}
+          >
             {saving ? 'Saving…' : item ? 'Save' : 'Add'}
-          </button>
+          </Button>
         </div>
       </div>
-    </div>
+    </Modal>
   )
 }

@@ -1,7 +1,7 @@
 // One-way import of an AnyList account into Waffled's own tables: the grocery list's
 // items, every other list, the Pantry list (as pantry items) and recipes with photos.
 // Each imported AnyList id is recorded in import_links, so a re-run adds only what is
-// new and never duplicates. Run it with `npm run anylist:import` (scripts/anylist-import.ts).
+// new and never duplicates. Run it with `pnpm run anylist:import` (scripts/anylist-import.ts).
 import { query } from '../../platform/db'
 import { decryptSecret } from '../../platform/crypto'
 import { getBlobStore, mediaKey } from '../../platform/storage'

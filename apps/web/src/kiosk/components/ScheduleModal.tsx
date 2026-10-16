@@ -1,5 +1,8 @@
 import { useState } from 'react'
 import { mealsApi, useHousehold, type RecipeDetail } from '../../lib/api'
+import { Button } from '@/components/ui/button'
+import { DataIcon } from '@/components/ui/data-icon'
+import { Modal } from '@/components/ui/modal'
 
 const MEALS = [
   { key: 'breakfast', label: 'Breakfast' },
@@ -13,7 +16,15 @@ function ymd(d: Date): string {
 }
 
 // Schedule a recipe onto a day + meal slot (this week / next week).
-export function ScheduleModal({ recipe, onClose, onScheduled }: { recipe: RecipeDetail; onClose: () => void; onScheduled: (label: string) => void }) {
+export function ScheduleModal({
+  recipe,
+  onClose,
+  onScheduled,
+}: {
+  recipe: RecipeDetail
+  onClose: () => void
+  onScheduled: (label: string) => void
+}) {
   const [weekOffset, setWeekOffset] = useState(0)
   const [meal, setMeal] = useState('dinner')
   const [saving, setSaving] = useState('')
@@ -49,43 +60,103 @@ export function ScheduleModal({ recipe, onClose, onScheduled }: { recipe: Recipe
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <Modal className="modal-overlay" onClose={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 460 }}>
-        <button type="button" className="modal-close" aria-label="Close" onClick={onClose}>×</button>
-        <div className="wf-serif" style={{ fontSize: 20, fontWeight: 600, marginBottom: 4 }}>Schedule “{recipe.title}”</div>
-        <div className="tiny muted" style={{ fontWeight: 600, marginBottom: 14 }}>Pick a day to add it to the plan.</div>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="modal-close"
+          aria-label="Close"
+          onClick={onClose}
+        >
+          <DataIcon value={'×'} kind="general" />
+        </Button>
+        <div className="wf-serif" style={{ fontSize: 20, fontWeight: 600, marginBottom: 4 }}>
+          Schedule “{recipe.title}”
+        </div>
+        <div className="tiny muted" style={{ fontWeight: 600, marginBottom: 14 }}>
+          Pick a day to add it to the plan.
+        </div>
 
         <div className="field">
           <span>Meal</span>
           <div className="seg" style={{ width: 'fit-content' }}>
             {MEALS.map((m) => (
-              <button key={m.key} type="button" className={meal === m.key ? 'on' : ''} style={{ cursor: 'pointer' }} onClick={() => setMeal(m.key)}>{m.label}</button>
+              <Button
+                variant="unstyled"
+                key={m.key}
+                type="button"
+                className={meal === m.key ? 'on' : ''}
+                style={{ cursor: 'pointer' }}
+                onClick={() => setMeal(m.key)}
+              >
+                {m.label}
+              </Button>
             ))}
           </div>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '4px 0 10px' }}>
-          <button type="button" className="pill" style={{ cursor: 'pointer' }} onClick={() => setWeekOffset((w) => Math.max(0, w - 1))}>‹</button>
-          <div style={{ fontWeight: 700, fontSize: 14 }}>{weekOffset === 0 ? 'This week' : weekOffset === 1 ? 'Next week' : `${days[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}</div>
-          <button type="button" className="pill" style={{ cursor: 'pointer', marginLeft: 'auto' }} onClick={() => setWeekOffset((w) => w + 1)}>›</button>
+          <Button
+            variant="unstyled"
+            type="button"
+            className="pill"
+            style={{ cursor: 'pointer' }}
+            onClick={() => setWeekOffset((w) => Math.max(0, w - 1))}
+          >
+            <DataIcon value={'‹'} kind="general" />
+          </Button>
+          <div style={{ fontWeight: 700, fontSize: 14 }}>
+            {weekOffset === 0
+              ? 'This week'
+              : weekOffset === 1
+                ? 'Next week'
+                : `${days[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
+          </div>
+          <Button
+            variant="unstyled"
+            type="button"
+            className="pill"
+            style={{ cursor: 'pointer', marginLeft: 'auto' }}
+            onClick={() => setWeekOffset((w) => w + 1)}
+          >
+            <DataIcon value={'›'} kind="general" />
+          </Button>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6 }}>
           {days.map((d) => (
-            <button
+            <Button
+              variant="unstyled"
               key={ymd(d)}
               type="button"
               className="sched-day"
               onClick={() => schedule(d)}
               disabled={!!saving}
-              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, padding: '10px 0', borderRadius: 12, border: '1px solid var(--hair)', background: saving === ymd(d) ? 'var(--person-3)' : 'var(--card-2)', color: saving === ymd(d) ? 'var(--on-accent)' : 'var(--ink)', cursor: 'pointer', font: 'inherit' }}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 2,
+                padding: '10px 0',
+                borderRadius: 12,
+                border: '1px solid var(--hair)',
+                background: saving === ymd(d) ? 'var(--person-3)' : 'var(--card-2)',
+                color: saving === ymd(d) ? 'var(--on-accent)' : 'var(--ink)',
+                cursor: 'pointer',
+                font: 'inherit',
+              }}
             >
-              <span className="tiny" style={{ fontWeight: 700 }}>{d.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 2)}</span>
-              <span style={{ fontFamily: 'var(--serif)', fontSize: 17, fontWeight: 600 }}>{d.getDate()}</span>
-            </button>
+              <span className="tiny" style={{ fontWeight: 700 }}>
+                {d.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 2)}
+              </span>
+              <span style={{ fontFamily: 'var(--serif)', fontSize: 17, fontWeight: 600 }}>
+                {d.getDate()}
+              </span>
+            </Button>
           ))}
         </div>
       </div>
-    </div>
+    </Modal>
   )
 }

@@ -1,10 +1,16 @@
+import { selectOption } from '../test/select-option'
 import { render, screen, fireEvent, waitFor, within, act } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { Settings } from './Settings'
 import type { PermissionMatrix } from '../lib/api'
 import { publishSyncHealth, __resetSyncHealthForTests } from '../lib/powersync/sync-health'
 
-const renderSettings = () => render(<MemoryRouter><Settings /></MemoryRouter>)
+const renderSettings = () =>
+  render(
+    <MemoryRouter>
+      <Settings />
+    </MemoryRouter>,
+  )
 
 const displayConfig = {
   screensaverMinutes: 15,
@@ -18,22 +24,77 @@ const displayConfig = {
   photoShuffle: false,
 }
 const samplePhotos = [
-  { id: 'ph1', imageUrl: null, caption: 'a', emoji: '🏖️', colorHex: '#7fc1e8', memory: 'Lake Day', takenAt: null, isFavorite: true, reactions: {}, uploadedBy: null, createdAt: '2026-01-01T00:00:00Z' },
-  { id: 'ph2', imageUrl: null, caption: 'b', emoji: '🎂', colorHex: '#7fc1e8', memory: 'Birthday', takenAt: null, isFavorite: false, reactions: {}, uploadedBy: null, createdAt: '2026-01-02T00:00:00Z' },
+  {
+    id: 'ph1',
+    imageUrl: null,
+    caption: 'a',
+    emoji: '🏖️',
+    colorHex: '#7fc1e8',
+    memory: 'Lake Day',
+    takenAt: null,
+    isFavorite: true,
+    reactions: {},
+    uploadedBy: null,
+    createdAt: '2026-01-01T00:00:00Z',
+  },
+  {
+    id: 'ph2',
+    imageUrl: null,
+    caption: 'b',
+    emoji: '🎂',
+    colorHex: '#7fc1e8',
+    memory: 'Birthday',
+    takenAt: null,
+    isFavorite: false,
+    reactions: {},
+    uploadedBy: null,
+    createdAt: '2026-01-02T00:00:00Z',
+  },
 ]
 
-const household = { id: 'h1', name: 'The Family', timezone: 'America/Chicago', weekStart: 'sunday', ownerPersonId: 'p1' }
+const household = {
+  id: 'h1',
+  name: 'The Family',
+  timezone: 'America/Chicago',
+  weekStart: 'sunday',
+  ownerPersonId: 'p1',
+}
 const members = [
-  { id: 'p1', name: 'Kevin', memberType: 'adult', isAdmin: true, avatarEmoji: '🐻', colorHex: '#2F7FED', birthday: null, showOnKiosk: true, hasLogin: true, isOwner: true },
-  { id: 'p2', name: 'Wally', memberType: 'kid', isAdmin: false, avatarEmoji: '🐢', colorHex: '#25A368', birthday: '2018-05-01', showOnKiosk: true, hasLogin: false, isOwner: false },
+  {
+    id: 'p1',
+    name: 'Kevin',
+    memberType: 'adult',
+    isAdmin: true,
+    avatarEmoji: '🐻',
+    colorHex: '#2F7FED',
+    birthday: null,
+    showOnKiosk: true,
+    hasLogin: true,
+    isOwner: true,
+  },
+  {
+    id: 'p2',
+    name: 'Wally',
+    memberType: 'kid',
+    isAdmin: false,
+    avatarEmoji: '🐢',
+    colorHex: '#25A368',
+    birthday: '2018-05-01',
+    showOnKiosk: true,
+    hasLogin: false,
+    isOwner: false,
+  },
 ]
 
 function mockApi() {
   globalThis.fetch = vi.fn(async (url: string) => {
-    if (String(url).includes('/api/household/settings')) return { ok: true, json: async () => ({ household, members }) }
+    if (String(url).includes('/api/household/settings'))
+      return { ok: true, json: async () => ({ household, members }) }
     // useHousehold() drives the admin gate — return the owner (an admin).
-    if (String(url).includes('/api/household')) return { ok: true, json: async () => ({ provisioned: true, household, person: members[0] }) }
-    if (String(url).includes('/api/persons')) return { ok: true, json: async () => ({ persons: [] }) }
+    if (String(url).includes('/api/household'))
+      return { ok: true, json: async () => ({ provisioned: true, household, person: members[0] }) }
+    if (String(url).includes('/api/persons'))
+      return { ok: true, json: async () => ({ persons: [] }) }
     return { ok: false, status: 404, json: async () => ({}) }
   }) as unknown as typeof fetch
 }
@@ -48,34 +109,49 @@ describe('Settings → AI & Capture → ignored words', () => {
     let groups = [{ goalId: 'g1', goalTitle: 'Host 30 families', goalEmoji: '🏡', words: ['thaw'] }]
     globalThis.fetch = vi.fn(async (url: string, init?: RequestInit) => {
       const u = String(url)
-      calls.push({ url: u, method: init?.method ?? 'GET', body: init?.body ? JSON.parse(String(init.body)) : undefined })
+      calls.push({
+        url: u,
+        method: init?.method ?? 'GET',
+        body: init?.body ? JSON.parse(String(init.body)) : undefined,
+      })
       const ok = (body: unknown) => ({ ok: true, status: 200, json: async () => body })
-      if (u.includes('/api/goal-calendar/ignores/remove')) { groups = []; return ok({ ok: true }) }
+      if (u.includes('/api/goal-calendar/ignores/remove')) {
+        groups = []
+        return ok({ ok: true })
+      }
       if (u.includes('/api/goal-calendar/ignores')) return ok({ groups })
       if (u.includes('/api/goal-calendar/memory')) return ok({ groups: [] })
       if (u.includes('/api/capture/config')) {
-        return ok({ provider: 'heuristic', model: null, available: { heuristic: true, anthropic: false, openai: false, ollama: false }, defaultModels: { anthropic: 'a', openai: 'o', ollama: 'l' } })
+        return ok({
+          provider: 'heuristic',
+          model: null,
+          available: { heuristic: true, anthropic: false, openai: false, ollama: false },
+          defaultModels: { anthropic: 'a', openai: 'o', ollama: 'l' },
+        })
       }
       if (u.includes('/api/household/settings')) return ok({ household, members })
-      if (u.includes('/api/household')) return ok({ provisioned: true, household, person: members[0] })
+      if (u.includes('/api/household'))
+        return ok({ provisioned: true, household, person: members[0] })
       if (u.includes('/api/persons')) return ok({ persons: [] })
       return { ok: false, status: 404, json: async () => ({}) }
     }) as unknown as typeof fetch
 
     renderSettings()
     await screen.findByText('Kevin')
-    fireEvent.change(screen.getByLabelText('Settings section'), { target: { value: 'ai' } })
+    await selectOption(screen.getByLabelText('Settings section'), 'AI & Capture')
 
     expect(await screen.findByText('Ignored for suggestions')).toBeInTheDocument()
     const chip = await screen.findByRole('button', { name: /thaw/ })
-    expect(screen.getByText('🏡 Host 30 families')).toBeInTheDocument()
+    expect(screen.getByText('Host 30 families')).toBeInTheDocument()
     fireEvent.click(chip)
 
     await waitFor(() => {
       const post = calls.find((c) => c.url.includes('/ignores/remove'))
       expect(post?.body).toEqual({ goalId: 'g1', word: 'thaw' })
     })
-    await waitFor(() => expect(screen.queryByRole('button', { name: /thaw/ })).not.toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.queryByRole('button', { name: /thaw/ })).not.toBeInTheDocument(),
+    )
   })
 })
 
@@ -93,7 +169,7 @@ describe('Settings screen', () => {
 
     const menu = screen.getByLabelText('Settings section')
     expect(menu).toHaveClass('sel')
-    fireEvent.change(menu, { target: { value: 'appearance' } })
+    await selectOption(menu, 'Appearance')
     expect(screen.getByText('Match system')).toBeInTheDocument()
   })
 
@@ -101,7 +177,7 @@ describe('Settings screen', () => {
     mockApi()
     renderSettings()
 
-    expect(await screen.findByText('Family & People')).toBeInTheDocument() // nav item
+    expect(await screen.findByRole('button', { name: 'Family & People' })).toBeInTheDocument() // nav item
     expect(await screen.findByText('Kevin')).toBeInTheDocument()
     expect(screen.getByText(/Adult · Owner · signed in/)).toBeInTheDocument()
     expect(screen.getByText('Wally')).toBeInTheDocument()
@@ -135,8 +211,13 @@ describe('Settings screen', () => {
         patches.push(JSON.parse(String(init?.body)) as Record<string, unknown>)
         return { ok: true, json: async () => ({ display: {} }) }
       }
-      if (u.includes('/api/household/settings')) return { ok: true, json: async () => ({ household, members }) }
-      if (u.includes('/api/household')) return { ok: true, json: async () => ({ provisioned: true, household, person: members[0] }) }
+      if (u.includes('/api/household/settings'))
+        return { ok: true, json: async () => ({ household, members }) }
+      if (u.includes('/api/household'))
+        return {
+          ok: true,
+          json: async () => ({ provisioned: true, household, person: members[0] }),
+        }
       if (u.includes('/api/persons')) return { ok: true, json: async () => ({ persons: [] }) }
       return { ok: false, status: 404, json: async () => ({}) }
     }) as unknown as typeof fetch
@@ -156,7 +237,8 @@ describe('Settings screen', () => {
     expect(screen.getByText('Family color')).toBeInTheDocument()
     const custom = screen.getByLabelText('Pick a custom color')
     const colorPatches = () => patches.filter((p) => 'familyColorHex' in p)
-    for (const step of ['#111111', '#221133', '#123456']) fireEvent.input(custom, { target: { value: step } })
+    for (const step of ['#111111', '#221133', '#123456'])
+      fireEvent.input(custom, { target: { value: step } })
     expect(colorPatches()).toHaveLength(0)
 
     fireEvent.change(custom, { target: { value: '#123456' } })
@@ -176,7 +258,7 @@ describe('Settings screen', () => {
     localStorage.clear()
     renderSettings()
     await screen.findByText('Kevin')
-    fireEvent.change(screen.getByLabelText('Settings section'), { target: { value: 'appearance' } })
+    await selectOption(screen.getByLabelText('Settings section'), 'Appearance')
 
     fireEvent.click(screen.getByRole('button', { name: /^Kitchen night/ }))
     expect(document.documentElement.getAttribute('data-palette')).toBe('kitchen')
@@ -184,6 +266,22 @@ describe('Settings screen', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /^Classic$/ }))
     expect(document.documentElement.getAttribute('data-palette')).toBe('classic')
+    expect(document.documentElement.getAttribute('data-theme')).toBe('light')
+  })
+
+  it('Appearance offers Night Pantry, dark by default with a day variant', async () => {
+    mockApi()
+    localStorage.clear()
+    renderSettings()
+    await screen.findByText('Kevin')
+    await selectOption(screen.getByLabelText('Settings section'), 'Appearance')
+
+    fireEvent.click(screen.getByRole('button', { name: /^Night Pantry$/ }))
+    expect(document.documentElement.getAttribute('data-palette')).toBe('night-pantry')
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
+
+    fireEvent.click(screen.getByRole('button', { name: /^Night Pantry day/ }))
+    expect(document.documentElement.getAttribute('data-palette')).toBe('night-pantry')
     expect(document.documentElement.getAttribute('data-theme')).toBe('light')
   })
 
@@ -201,7 +299,10 @@ describe('Settings screen', () => {
     expect(kiosk).toHaveAttribute('aria-checked', 'false')
     fireEvent.click(kiosk)
     expect(localStorage.getItem('waffled.kiosk.viewOnly')).toBe('1')
-    expect(screen.getByRole('switch', { name: 'Kiosk mode' })).toHaveAttribute('aria-checked', 'true')
+    expect(screen.getByRole('switch', { name: 'Kiosk mode' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    )
     fireEvent.click(screen.getByRole('switch', { name: 'Kiosk mode' }))
     expect(localStorage.getItem('waffled.kiosk.viewOnly')).toBeNull()
   })
@@ -215,11 +316,17 @@ describe('Settings screen', () => {
     fireEvent.click(screen.getByText('Display & Kiosk'))
 
     const group = await screen.findByRole('radiogroup', { name: 'Typeface' })
-    expect(within(group).getByRole('radio', { name: /Classic/ })).toHaveAttribute('aria-checked', 'true')
+    expect(within(group).getByRole('radio', { name: /Classic/ })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    )
     fireEvent.click(within(group).getByRole('radio', { name: /Clear/ }))
     expect(document.documentElement.getAttribute('data-typeface')).toBe('clear')
     expect(localStorage.getItem('waffled:typeface')).toBe('clear')
-    expect(within(group).getByRole('radio', { name: /Clear/ })).toHaveAttribute('aria-checked', 'true')
+    expect(within(group).getByRole('radio', { name: /Clear/ })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    )
   })
 
   it('Appearance has the same typeface picker', async () => {
@@ -227,8 +334,12 @@ describe('Settings screen', () => {
     localStorage.clear()
     renderSettings()
     await screen.findByText('Kevin')
-    fireEvent.change(screen.getByLabelText('Settings section'), { target: { value: 'appearance' } })
-    fireEvent.click(within(screen.getByRole('radiogroup', { name: 'Typeface' })).getByRole('radio', { name: /Friendly/ }))
+    await selectOption(screen.getByLabelText('Settings section'), 'Appearance')
+    fireEvent.click(
+      within(screen.getByRole('radiogroup', { name: 'Typeface' })).getByRole('radio', {
+        name: /Friendly/,
+      }),
+    )
     expect(document.documentElement.getAttribute('data-typeface')).toBe('friendly')
   })
 
@@ -244,9 +355,15 @@ describe('Settings screen', () => {
         }
         return { ok: true, json: async () => displayConfig }
       }
-      if (u.includes('/api/photos')) return { ok: true, json: async () => ({ photos: samplePhotos }) }
-      if (u.includes('/api/household/settings')) return { ok: true, json: async () => ({ household, members }) }
-      if (u.includes('/api/household')) return { ok: true, json: async () => ({ provisioned: true, household, person: members[0] }) }
+      if (u.includes('/api/photos'))
+        return { ok: true, json: async () => ({ photos: samplePhotos }) }
+      if (u.includes('/api/household/settings'))
+        return { ok: true, json: async () => ({ household, members }) }
+      if (u.includes('/api/household'))
+        return {
+          ok: true,
+          json: async () => ({ provisioned: true, household, person: members[0] }),
+        }
       if (u.includes('/api/persons')) return { ok: true, json: async () => ({ persons: [] }) }
       if (u.includes('/api/events')) return { ok: true, json: async () => ({ events: [] }) }
       return { ok: false, status: 404, json: async () => ({}) }
@@ -286,16 +403,21 @@ describe('Settings screen', () => {
         connects.push(JSON.parse(String(init?.body)))
         return ok({ url: 'https://accounts.google.com/o/oauth2/v2/auth?x=1' })
       }
-      if (u.includes('/api/photos/google/status')) return ok({ configured: true, account: null, imports: [] })
+      if (u.includes('/api/photos/google/status'))
+        return ok({ configured: true, account: null, imports: [] })
       if (u.includes('/api/photos')) return ok({ photos: samplePhotos })
       if (u.includes('/api/household/settings')) return ok({ household, members })
-      if (u.includes('/api/household')) return ok({ provisioned: true, household, person: members[0] })
+      if (u.includes('/api/household'))
+        return ok({ provisioned: true, household, person: members[0] })
       if (u.includes('/api/persons')) return ok({ persons: [] })
       if (u.includes('/api/events')) return ok({ events: [] })
       return { ok: false, status: 404, json: async () => ({}) }
     }) as unknown as typeof fetch
     const assign = vi.fn()
-    Object.defineProperty(window, 'location', { configurable: true, value: { ...window.location, assign, href: 'http://localhost/settings' } })
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: { ...window.location, assign, href: 'http://localhost/settings' },
+    })
 
     renderSettings()
     await screen.findByText('Kevin')
@@ -304,10 +426,17 @@ describe('Settings screen', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Several albums' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Lake Day', pressed: false }))
     fireEvent.click(screen.getByRole('button', { name: 'Birthday', pressed: false }))
-    await waitFor(() => expect(puts.at(-1)).toMatchObject({ photoSource: 'albums', photoAlbums: ['Lake Day', 'Birthday'] }))
+    await waitFor(() =>
+      expect(puts.at(-1)).toMatchObject({
+        photoSource: 'albums',
+        photoAlbums: ['Lake Day', 'Birthday'],
+      }),
+    )
 
     fireEvent.click(await screen.findByRole('button', { name: 'Connect Google Photos' }))
-    await waitFor(() => expect(assign).toHaveBeenCalledWith('https://accounts.google.com/o/oauth2/v2/auth?x=1'))
+    await waitFor(() =>
+      expect(assign).toHaveBeenCalledWith('https://accounts.google.com/o/oauth2/v2/auth?x=1'),
+    )
     expect(connects[0]).toEqual({ redirectTo: 'http://localhost/settings' })
   })
 
@@ -315,7 +444,17 @@ describe('Settings screen', () => {
     const puts: Array<Record<string, unknown>> = []
     let photos: unknown[] = []
     let polls = 0
-    const imp = { id: 'imp1', album: 'Beach 2024', sessionId: 's1', pickerUri: 'https://photos.google.com/picker/s1', expireTime: null, importedCount: 0, skippedCount: 0, error: null, createdAt: '' }
+    const imp = {
+      id: 'imp1',
+      album: 'Beach 2024',
+      sessionId: 's1',
+      pickerUri: 'https://photos.google.com/picker/s1',
+      expireTime: null,
+      importedCount: 0,
+      skippedCount: 0,
+      error: null,
+      createdAt: '',
+    }
     globalThis.fetch = vi.fn(async (url: string, init?: RequestInit) => {
       const u = String(url)
       const ok = (body: unknown) => ({ ok: true, status: 200, json: async () => body })
@@ -327,8 +466,18 @@ describe('Settings screen', () => {
         }
         return ok({ ...displayConfig, photoAlbums: [] })
       }
-      if (u.includes('/api/photos/google/status')) return ok({ configured: true, account: { id: 'a1', email: 'k@example.com', connectedAt: '' }, imports: [] })
-      if (u.endsWith('/api/photos/google/imports') && init?.method === 'POST') return { ok: true, status: 201, json: async () => ({ import: { ...imp, status: 'picking' } }) }
+      if (u.includes('/api/photos/google/status'))
+        return ok({
+          configured: true,
+          account: { id: 'a1', email: 'k@example.com', connectedAt: '' },
+          imports: [],
+        })
+      if (u.endsWith('/api/photos/google/imports') && init?.method === 'POST')
+        return {
+          ok: true,
+          status: 201,
+          json: async () => ({ import: { ...imp, status: 'picking' } }),
+        }
       if (u.includes('/api/photos/google/imports/imp1')) {
         polls++
         if (polls < 2) return ok({ import: { ...imp, status: 'picking' } })
@@ -337,12 +486,15 @@ describe('Settings screen', () => {
       }
       if (u.includes('/api/photos')) return ok({ photos })
       if (u.includes('/api/household/settings')) return ok({ household, members })
-      if (u.includes('/api/household')) return ok({ provisioned: true, household, person: members[0] })
+      if (u.includes('/api/household'))
+        return ok({ provisioned: true, household, person: members[0] })
       if (u.includes('/api/persons')) return ok({ persons: [] })
       if (u.includes('/api/events')) return ok({ events: [] })
       return { ok: false, status: 404, json: async () => ({}) }
     }) as unknown as typeof fetch
-    const open = vi.spyOn(window, 'open').mockReturnValue({ location: { href: '' }, close: vi.fn() } as unknown as Window)
+    const open = vi
+      .spyOn(window, 'open')
+      .mockReturnValue({ location: { href: '' }, close: vi.fn() } as unknown as Window)
 
     renderSettings()
     await screen.findByText('Kevin')
@@ -352,11 +504,20 @@ describe('Settings screen', () => {
     const dialog = await screen.findByRole('dialog', { name: 'Import from Google Photos' })
     // No albums yet → a plain name field, not an empty dropdown.
     expect(within(dialog).queryByRole('combobox')).not.toBeInTheDocument()
-    fireEvent.change(within(dialog).getByPlaceholderText('e.g. Beach 2024'), { target: { value: 'Beach 2024' } })
+    fireEvent.change(within(dialog).getByPlaceholderText('e.g. Beach 2024'), {
+      target: { value: 'Beach 2024' },
+    })
     fireEvent.click(within(dialog).getByRole('button', { name: 'Open Google Photos' }))
 
-    await waitFor(() => expect(puts.at(-1)).toMatchObject({ photoSource: 'albums', photoAlbums: ['Beach 2024'] }), { timeout: 6000 })
-    expect(await screen.findByRole('button', { name: 'Beach 2024', pressed: true })).toBeInTheDocument()
+    await waitFor(
+      () =>
+        expect(puts.at(-1)).toMatchObject({ photoSource: 'albums', photoAlbums: ['Beach 2024'] }),
+      { timeout: 6000 },
+    )
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Close' }))
+    expect(
+      await screen.findByRole('button', { name: 'Beach 2024', pressed: true }),
+    ).toBeInTheDocument()
     open.mockRestore()
   }, 12_000)
 
@@ -375,13 +536,17 @@ describe('Settings screen', () => {
           configured: true,
           account: deletes.length ? null : { id: 'a1', email: 'k@example.com', connectedAt: '' },
           imports: [],
-          albums: deletes.length ? [] : [{ name: 'Beach', photoCount: 3, lastSyncedAt: '2026-10-10T12:00:00Z' }],
+          albums: deletes.length
+            ? []
+            : [{ name: 'Beach', photoCount: 3, lastSyncedAt: '2026-10-10T12:00:00Z' }],
           photoCount: deletes.length ? 0 : 3,
         })
       }
-      if (u.includes('/api/photos')) return ok({ photos: [{ ...samplePhotos[0], memory: 'Beach' }] })
+      if (u.includes('/api/photos'))
+        return ok({ photos: [{ ...samplePhotos[0], memory: 'Beach' }] })
       if (u.includes('/api/household/settings')) return ok({ household, members })
-      if (u.includes('/api/household')) return ok({ provisioned: true, household, person: members[0] })
+      if (u.includes('/api/household'))
+        return ok({ provisioned: true, household, person: members[0] })
       if (u.includes('/api/persons')) return ok({ persons: [] })
       if (u.includes('/api/events')) return ok({ events: [] })
       return { ok: false, status: 404, json: async () => ({}) }
@@ -395,7 +560,7 @@ describe('Settings screen', () => {
     expect(screen.getByText(/3 photos · synced/)).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Re-sync Beach' }))
     const dialog = await screen.findByRole('dialog', { name: 'Import from Google Photos' })
-    expect(within(dialog).getByRole('combobox')).toHaveValue('Beach')
+    expect(within(dialog).getByRole('combobox')).toHaveTextContent('Beach')
     fireEvent.click(within(dialog).getByRole('button', { name: 'Close' }))
 
     fireEvent.click(screen.getByRole('button', { name: 'Disconnect' }))
@@ -407,8 +572,20 @@ describe('Settings screen', () => {
 
   it('renders the permissions grid with a Manage goals column and toggles it', async () => {
     const puts: PermissionMatrix[] = []
-    const emptyRow = { 'chore.manage': false, 'chore.approve': false, 'reward.manage': false, 'reward.approve': false, 'reward.grant': false, 'goal.manage': false, 'planning.manage': false }
-    const matrix: PermissionMatrix = { adult: { ...emptyRow }, teen: { ...emptyRow }, kid: { ...emptyRow } }
+    const emptyRow = {
+      'chore.manage': false,
+      'chore.approve': false,
+      'reward.manage': false,
+      'reward.approve': false,
+      'reward.grant': false,
+      'goal.manage': false,
+      'planning.manage': false,
+    }
+    const matrix: PermissionMatrix = {
+      adult: { ...emptyRow },
+      teen: { ...emptyRow },
+      kid: { ...emptyRow },
+    }
     globalThis.fetch = vi.fn(async (url: string, init?: RequestInit) => {
       const u = String(url)
       if (u.includes('/api/permissions')) {
@@ -419,8 +596,13 @@ describe('Settings screen', () => {
         }
         return { ok: true, json: async () => ({ permissions: matrix }) }
       }
-      if (u.includes('/api/household/settings')) return { ok: true, json: async () => ({ household, members }) }
-      if (u.includes('/api/household')) return { ok: true, json: async () => ({ provisioned: true, household, person: members[0] }) }
+      if (u.includes('/api/household/settings'))
+        return { ok: true, json: async () => ({ household, members }) }
+      if (u.includes('/api/household'))
+        return {
+          ok: true,
+          json: async () => ({ provisioned: true, household, person: members[0] }),
+        }
       if (u.includes('/api/persons')) return { ok: true, json: async () => ({ persons: [] }) }
       return { ok: false, status: 404, json: async () => ({}) }
     }) as unknown as typeof fetch
@@ -443,10 +625,23 @@ describe('Settings screen', () => {
         puts.push(body)
         return { ok: true, json: async () => body }
       }
-      if (u.includes('/api/countdowns')) return { ok: true, json: async () => ({ countdowns: [], sleeps: false, birthdayHorizonDays: 183 }) }
-      if (u.includes('/api/calendar/google/status')) return { ok: true, json: async () => ({ configured: false, connected: false, accounts: [], calendars: [] }) }
-      if (u.includes('/api/household/settings')) return { ok: true, json: async () => ({ household, members }) }
-      if (u.includes('/api/household')) return { ok: true, json: async () => ({ provisioned: true, household, person: members[0] }) }
+      if (u.includes('/api/countdowns'))
+        return {
+          ok: true,
+          json: async () => ({ countdowns: [], sleeps: false, birthdayHorizonDays: 183 }),
+        }
+      if (u.includes('/api/calendar/google/status'))
+        return {
+          ok: true,
+          json: async () => ({ configured: false, connected: false, accounts: [], calendars: [] }),
+        }
+      if (u.includes('/api/household/settings'))
+        return { ok: true, json: async () => ({ household, members }) }
+      if (u.includes('/api/household'))
+        return {
+          ok: true,
+          json: async () => ({ provisioned: true, household, person: members[0] }),
+        }
       if (u.includes('/api/persons')) return { ok: true, json: async () => ({ persons: [] }) }
       return { ok: false, status: 404, json: async () => ({}) }
     }) as unknown as typeof fetch
@@ -467,7 +662,13 @@ describe('Settings screen', () => {
   // rather than re-deriving the allowlist from the lists module.
   it('lets an admin choose which lists the planning session asks about', async () => {
     const puts: Array<Record<string, unknown>> = []
-    const config = { dayOfWeek: 0, time: '17:00', steps: {}, showOnToday: true, lists: {} as Record<string, boolean> }
+    const config = {
+      dayOfWeek: 0,
+      time: '17:00',
+      steps: {},
+      showOnToday: true,
+      lists: {} as Record<string, boolean>,
+    }
     const candidates = [
       { id: 'l1', name: 'Repairs', emoji: '🔧', relevant: true },
       { id: 'l2', name: 'Someday', emoji: '💭', relevant: true },
@@ -487,13 +688,26 @@ describe('Settings screen', () => {
         return {
           ok: true,
           json: async () => ({
-            config, weekStart: '2026-09-06', defaultWeekStart: '2026-09-06',
-            minWeekStart: '2026-08-30', session: null, steps: [],
+            config,
+            weekStart: '2026-09-06',
+            defaultWeekStart: '2026-09-06',
+            minWeekStart: '2026-08-30',
+            session: null,
+            steps: [],
           }),
         }
       }
-      if (u.includes('/api/household/settings')) return { ok: true, json: async () => ({ household: planningHousehold, members }) }
-      if (u.includes('/api/household')) return { ok: true, json: async () => ({ provisioned: true, household: planningHousehold, person: members[0] }) }
+      if (u.includes('/api/household/settings'))
+        return { ok: true, json: async () => ({ household: planningHousehold, members }) }
+      if (u.includes('/api/household'))
+        return {
+          ok: true,
+          json: async () => ({
+            provisioned: true,
+            household: planningHousehold,
+            person: members[0],
+          }),
+        }
       if (u.includes('/api/persons')) return { ok: true, json: async () => ({ persons: [] }) }
       return { ok: false, status: 404, json: async () => ({}) }
     }) as unknown as typeof fetch
@@ -503,12 +717,14 @@ describe('Settings screen', () => {
     fireEvent.click(screen.getByText('Modules'))
 
     // A switch per list, with the list's own emoji so the row reads like the list does elsewhere.
-    expect(await screen.findByText(/🔧 Repairs/)).toBeTruthy()
-    expect(screen.getByText(/💭 Someday/)).toBeTruthy()
+    expect(await screen.findByText(/Repairs/)).toBeTruthy()
+    expect(screen.getByText(/Someday/)).toBeTruthy()
 
     // Ruling one out sends only that one — the map is sparse and the server merges it.
     fireEvent.click(screen.getByLabelText('Ask about Someday in the weekly planning session'))
-    await waitFor(() => expect(puts.some((p) => (p.lists as Record<string, boolean>)?.l2 === false)).toBe(true))
+    await waitFor(() =>
+      expect(puts.some((p) => (p.lists as Record<string, boolean>)?.l2 === false)).toBe(true),
+    )
     expect(puts.every((p) => !('l1' in (p.lists as Record<string, boolean>)))).toBe(true)
   })
 
@@ -528,8 +744,13 @@ describe('Settings screen', () => {
     globalThis.fetch = vi.fn(async (url: string) => {
       const u = String(url)
       if (u.includes('/api/health')) return { ok: true, json: async () => report }
-      if (u.includes('/api/household/settings')) return { ok: true, json: async () => ({ household, members }) }
-      if (u.includes('/api/household')) return { ok: true, json: async () => ({ provisioned: true, household, person: members[0] }) }
+      if (u.includes('/api/household/settings'))
+        return { ok: true, json: async () => ({ household, members }) }
+      if (u.includes('/api/household'))
+        return {
+          ok: true,
+          json: async () => ({ provisioned: true, household, person: members[0] }),
+        }
       if (u.includes('/api/persons')) return { ok: true, json: async () => ({ persons: [] }) }
       return { ok: false, status: 404, json: async () => ({}) }
     }) as unknown as typeof fetch
@@ -553,8 +774,13 @@ describe('Settings screen', () => {
     globalThis.fetch = vi.fn(async (url: string) => {
       const u = String(url)
       if (u.includes('/api/health')) return { ok: false, status: 500, json: async () => ({}) }
-      if (u.includes('/api/household/settings')) return { ok: true, json: async () => ({ household, members }) }
-      if (u.includes('/api/household')) return { ok: true, json: async () => ({ provisioned: true, household, person: members[0] }) }
+      if (u.includes('/api/household/settings'))
+        return { ok: true, json: async () => ({ household, members }) }
+      if (u.includes('/api/household'))
+        return {
+          ok: true,
+          json: async () => ({ provisioned: true, household, person: members[0] }),
+        }
       if (u.includes('/api/persons')) return { ok: true, json: async () => ({ persons: [] }) }
       return { ok: false, status: 404, json: async () => ({}) }
     }) as unknown as typeof fetch
@@ -577,7 +803,15 @@ describe('Settings screen', () => {
     // the watchdog never wipes on the failed path — so the manual rung must be reachable here.
     expect(screen.getByText(/Reset local copy/)).toBeInTheDocument()
 
-    act(() => publishSyncHealth({ status: 'stalled', hasSynced: true, lastSyncedAt: 1, restartCount: 3, lastRestartAt: 2 }))
+    act(() =>
+      publishSyncHealth({
+        status: 'stalled',
+        hasSynced: true,
+        lastSyncedAt: 1,
+        restartCount: 3,
+        lastRestartAt: 2,
+      }),
+    )
     expect(screen.getByText(/state: stalled/)).toBeInTheDocument()
     expect(screen.getByText(/watchdog restarts: 3/)).toBeInTheDocument()
     expect(screen.getByText(/Reset local copy/)).toBeInTheDocument()
@@ -588,8 +822,13 @@ describe('Settings screen', () => {
       const u = String(url)
       if (u.includes('/api/auth/config')) return { ok: false, status: 403, json: async () => ({}) }
       if (u.includes('/api/kiosk/devices')) return { ok: true, json: async () => ({ devices: [] }) }
-      if (u.includes('/api/household/settings')) return { ok: true, json: async () => ({ household, members }) }
-      if (u.includes('/api/household')) return { ok: true, json: async () => ({ provisioned: true, household, person: members[0] }) }
+      if (u.includes('/api/household/settings'))
+        return { ok: true, json: async () => ({ household, members }) }
+      if (u.includes('/api/household'))
+        return {
+          ok: true,
+          json: async () => ({ provisioned: true, household, person: members[0] }),
+        }
       if (u.includes('/api/persons')) return { ok: true, json: async () => ({ persons: [] }) }
       return { ok: false, status: 404, json: async () => ({}) }
     }) as unknown as typeof fetch
@@ -604,9 +843,15 @@ describe('Settings screen', () => {
 
   it('hides admin-only tabs from non-admins (Appearance + About + Sign out)', async () => {
     globalThis.fetch = vi.fn(async (url: string) => {
-      if (String(url).includes('/api/household/settings')) return { ok: true, json: async () => ({ household, members }) }
-      if (String(url).includes('/api/household')) return { ok: true, json: async () => ({ provisioned: true, household, person: members[1] }) } // Wally, not admin
-      if (String(url).includes('/api/persons')) return { ok: true, json: async () => ({ persons: [] }) }
+      if (String(url).includes('/api/household/settings'))
+        return { ok: true, json: async () => ({ household, members }) }
+      if (String(url).includes('/api/household'))
+        return {
+          ok: true,
+          json: async () => ({ provisioned: true, household, person: members[1] }),
+        } // Wally, not admin
+      if (String(url).includes('/api/persons'))
+        return { ok: true, json: async () => ({ persons: [] }) }
       return { ok: false, status: 404, json: async () => ({}) }
     }) as unknown as typeof fetch
     renderSettings()
@@ -643,8 +888,13 @@ describe('Settings screen', () => {
         }
         return { ok: true, json: async () => ({ settings: mealSettings }) }
       }
-      if (u.includes('/api/household/settings')) return { ok: true, json: async () => ({ household, members }) }
-      if (u.includes('/api/household')) return { ok: true, json: async () => ({ provisioned: true, household, person: members[0] }) }
+      if (u.includes('/api/household/settings'))
+        return { ok: true, json: async () => ({ household, members }) }
+      if (u.includes('/api/household'))
+        return {
+          ok: true,
+          json: async () => ({ provisioned: true, household, person: members[0] }),
+        }
       if (u.includes('/api/persons')) return { ok: true, json: async () => ({ persons: [] }) }
       return { ok: false, status: 404, json: async () => ({}) }
     }) as unknown as typeof fetch
@@ -659,14 +909,18 @@ describe('Settings screen', () => {
 
     expect(screen.getByRole('button', { name: /Dinner/ })).toBeDisabled()
 
-    const toggle = within(screen.getByText('Remind me to thaw').closest('.set-row2')!).getByRole('checkbox')
+    const toggle = within(screen.getByText('Remind me to thaw').closest('.set-row2')!).getByRole(
+      'checkbox',
+    )
     expect(toggle).not.toBeChecked()
     fireEvent.click(toggle)
 
     await waitFor(() => expect(screen.getByRole('button', { name: /Dinner/ })).not.toBeDisabled())
     expect(toggle).toBeChecked()
 
-    await waitFor(() => expect(putBodies.some((b) => b.prepReminder === true)).toBe(true), { timeout: 2000 })
+    await waitFor(() => expect(putBodies.some((b) => b.prepReminder === true)).toBe(true), {
+      timeout: 2000,
+    })
   })
 
   // Calendars panel is provider-aware: each configured provider gets its own
@@ -676,12 +930,24 @@ describe('Settings screen', () => {
       const u = String(url)
       if (u.includes('/api/calendar/microsoft/connect')) {
         onConnect?.(u)
-        return { ok: true, json: async () => ({ url: 'https://login.microsoftonline.com/consent' }) }
+        return {
+          ok: true,
+          json: async () => ({ url: 'https://login.microsoftonline.com/consent' }),
+        }
       }
       if (u.includes('/api/calendar/google/status')) return { ok: true, json: async () => status }
-      if (u.includes('/api/countdowns')) return { ok: true, json: async () => ({ countdowns: [], sleeps: false, birthdayHorizonDays: 183 }) }
-      if (u.includes('/api/household/settings')) return { ok: true, json: async () => ({ household, members }) }
-      if (u.includes('/api/household')) return { ok: true, json: async () => ({ provisioned: true, household, person: members[0] }) }
+      if (u.includes('/api/countdowns'))
+        return {
+          ok: true,
+          json: async () => ({ countdowns: [], sleeps: false, birthdayHorizonDays: 183 }),
+        }
+      if (u.includes('/api/household/settings'))
+        return { ok: true, json: async () => ({ household, members }) }
+      if (u.includes('/api/household'))
+        return {
+          ok: true,
+          json: async () => ({ provisioned: true, household, person: members[0] }),
+        }
       if (u.includes('/api/persons')) return { ok: true, json: async () => ({ persons: [] }) }
       return { ok: false, status: 404, json: async () => ({}) }
     }) as unknown as typeof fetch
@@ -690,8 +956,14 @@ describe('Settings screen', () => {
   it('offers an Outlook connect button when Microsoft OAuth is configured', async () => {
     const connects: string[] = []
     mockCalendarStatus(
-      { configured: true, microsoftConfigured: true, connected: false, accounts: [], calendars: [] },
-      (u) => connects.push(u)
+      {
+        configured: true,
+        microsoftConfigured: true,
+        connected: false,
+        accounts: [],
+        calendars: [],
+      },
+      (u) => connects.push(u),
     )
 
     renderSettings()
@@ -704,7 +976,13 @@ describe('Settings screen', () => {
   })
 
   it('hides the Outlook button when only Google is configured', async () => {
-    mockCalendarStatus({ configured: true, microsoftConfigured: false, connected: false, accounts: [], calendars: [] })
+    mockCalendarStatus({
+      configured: true,
+      microsoftConfigured: false,
+      connected: false,
+      accounts: [],
+      calendars: [],
+    })
 
     renderSettings()
     await screen.findByText('Kevin')
@@ -717,9 +995,16 @@ describe('Settings screen', () => {
   it('lists ICS feeds and adds one, even with no OAuth provider configured', async () => {
     const posts: Array<Record<string, unknown>> = []
     const feed = {
-      id: 'f1', url: 'https://school.example/cal.ics', name: 'School', personId: null,
-      personName: null, personColor: null, visibility: 'family',
-      lastSyncedAt: null, lastError: null, createdAt: '2026-08-01T00:00:00Z',
+      id: 'f1',
+      url: 'https://school.example/cal.ics',
+      name: 'School',
+      personId: null,
+      personName: null,
+      personColor: null,
+      visibility: 'family',
+      lastSyncedAt: null,
+      lastError: null,
+      createdAt: '2026-08-01T00:00:00Z',
     }
     globalThis.fetch = vi.fn(async (url: string, init?: RequestInit) => {
       const u = String(url)
@@ -727,13 +1012,36 @@ describe('Settings screen', () => {
         posts.push(JSON.parse(String(init?.body)) as Record<string, unknown>)
         return { ok: true, json: async () => ({ feed }) }
       }
-      if (u.includes('/api/calendar/feeds')) return { ok: true, json: async () => ({ feedId: 'f1', imported: 3, updated: 0, deleted: 0 }) }
+      if (u.includes('/api/calendar/feeds'))
+        return {
+          ok: true,
+          json: async () => ({ feedId: 'f1', imported: 3, updated: 0, deleted: 0 }),
+        }
       if (u.includes('/api/calendar/google/status')) {
-        return { ok: true, json: async () => ({ configured: false, microsoftConfigured: false, connected: false, accounts: [], calendars: [], feeds: [feed] }) }
+        return {
+          ok: true,
+          json: async () => ({
+            configured: false,
+            microsoftConfigured: false,
+            connected: false,
+            accounts: [],
+            calendars: [],
+            feeds: [feed],
+          }),
+        }
       }
-      if (u.includes('/api/countdowns')) return { ok: true, json: async () => ({ countdowns: [], sleeps: false, birthdayHorizonDays: 183 }) }
-      if (u.includes('/api/household/settings')) return { ok: true, json: async () => ({ household, members }) }
-      if (u.includes('/api/household')) return { ok: true, json: async () => ({ provisioned: true, household, person: members[0] }) }
+      if (u.includes('/api/countdowns'))
+        return {
+          ok: true,
+          json: async () => ({ countdowns: [], sleeps: false, birthdayHorizonDays: 183 }),
+        }
+      if (u.includes('/api/household/settings'))
+        return { ok: true, json: async () => ({ household, members }) }
+      if (u.includes('/api/household'))
+        return {
+          ok: true,
+          json: async () => ({ provisioned: true, household, person: members[0] }),
+        }
       if (u.includes('/api/persons')) return { ok: true, json: async () => ({ persons: [] }) }
       return { ok: false, status: 404, json: async () => ({}) }
     }) as unknown as typeof fetch
@@ -748,14 +1056,22 @@ describe('Settings screen', () => {
 
     const addBtn = screen.getByText('Add feed')
     expect(addBtn).toBeDisabled()
-    fireEvent.change(screen.getByLabelText('Feed URL'), { target: { value: 'webcal://team.example/games.ics' } })
+    fireEvent.change(screen.getByLabelText('Feed URL'), {
+      target: { value: 'webcal://team.example/games.ics' },
+    })
     fireEvent.click(addBtn)
     await waitFor(() => expect(posts.length).toBe(1))
     expect(posts[0].url).toBe('webcal://team.example/games.ics')
   })
 
   it('only shows the not-configured notice when NEITHER provider is configured', async () => {
-    mockCalendarStatus({ configured: false, microsoftConfigured: true, connected: false, accounts: [], calendars: [] })
+    mockCalendarStatus({
+      configured: false,
+      microsoftConfigured: true,
+      connected: false,
+      accounts: [],
+      calendars: [],
+    })
 
     renderSettings()
     await screen.findByText('Kevin')

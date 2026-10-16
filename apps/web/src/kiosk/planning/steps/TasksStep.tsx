@@ -16,6 +16,9 @@ import {
 } from '../../../lib/api'
 import type { PlanningStepModule, StepBodyProps } from '../registry'
 import '../../../styles/planning-tasks.css'
+import { Button } from '@/components/ui/button'
+import { DataIcon } from '@/components/ui/data-icon'
+import { IconValue } from '@/components/ui/icon-value'
 
 // Step 8 · Tasks — "Who's doing what?"
 //
@@ -40,7 +43,11 @@ function shortTime(hhmm: string | null): string {
 
 const weekdayOf = (iso: string) => SHORT_DAY[new Date(`${iso}T00:00:00Z`).getUTCDay()]
 const monthDay = (iso: string) =>
-  new Date(`${iso}T00:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
+  new Date(`${iso}T00:00:00Z`).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  })
 
 export function dayChip(c: PlanningTasksChore): string {
   const time = shortTime(c.dueTime)
@@ -104,7 +111,8 @@ function ChoreCard({
     <div className="chore wpt-card">
       <div className="body">
         {onEdit ? (
-          <button
+          <Button
+            variant="unstyled"
             type="button"
             className="wpt-open"
             aria-label={`Edit ${chore.title}`}
@@ -113,15 +121,15 @@ function ChoreCard({
             onClick={onEdit}
           >
             <span className="t">
-              {chore.emoji ? `${chore.emoji} ` : ''}
+              {chore.emoji ? <>{<DataIcon value={chore.emoji} kind="chore" />} </> : ''}
               {chore.title}
             </span>
             <span className="wpt-sub">{provenance(chore)}</span>
-          </button>
+          </Button>
         ) : (
           <>
             <div className="t">
-              {chore.emoji ? `${chore.emoji} ` : ''}
+              {chore.emoji ? <>{<DataIcon value={chore.emoji} kind="chore" />} </> : ''}
               {chore.title}
             </div>
             <div className="wpt-sub">{provenance(chore)}</div>
@@ -129,7 +137,8 @@ function ChoreCard({
         )}
         <div className="wpt-chip-row">
           {settable && onEdit ? (
-            <button
+            <Button
+              variant="unstyled"
               type="button"
               className={`wpt-chip wpt-chip-set ${unset ? 'is-unset' : ''}`}
               aria-label={`Set the day for ${chore.title}`}
@@ -137,25 +146,29 @@ function ChoreCard({
               onClick={onEdit}
             >
               {chipText}
-            </button>
+            </Button>
           ) : (
             <span className={`wpt-chip ${unset ? 'is-unset' : ''}`}>{chipText}</span>
           )}
           {onDone && (
-            <button
+            <Button
+              variant="unstyled"
               type="button"
               className="wpt-chip wpt-done"
               aria-label={`Mark ${chore.title} done`}
               disabled={frozen}
               onClick={onDone}
             >
-              ✓ Done
-            </button>
+              <>
+                <DataIcon value={'✓'} kind="chore" />
+                {' Done'}
+              </>
+            </Button>
           )}
         </div>
         {chore.rewardAmount > 0 && (
           <div className="star">
-            {symbol(chore.rewardCurrency)} {chore.rewardAmount}
+            <IconValue value={symbol(chore.rewardCurrency)} /> {chore.rewardAmount}
           </div>
         )}
         {canAssign && (
@@ -163,7 +176,8 @@ function ChoreCard({
             {/* 🙌 is the undo: put it back where anybody can take it. Only on a card
                 somebody is holding — the strip is already up for grabs. */}
             {owner !== null && (
-              <button
+              <Button
+                variant="unstyled"
                 type="button"
                 className="wpt-face wpt-face-grabs"
                 title="Put it back up for grabs"
@@ -171,13 +185,14 @@ function ChoreCard({
                 disabled={frozen}
                 onClick={() => onGive(null)}
               >
-                🙌
-              </button>
+                <DataIcon value={'🙌'} kind="chore" />
+              </Button>
             )}
             {people
               .filter((p) => p.id !== owner)
               .map((p) => (
-                <button
+                <Button
+                  variant="unstyled"
                   key={p.id}
                   type="button"
                   className="wpt-face"
@@ -187,15 +202,16 @@ function ChoreCard({
                   disabled={frozen}
                   onClick={() => onGive(p.id)}
                 >
-                  {p.avatarEmoji ?? '🙂'}
-                </button>
+                  <DataIcon value={p.avatarEmoji ?? '🙂'} kind="person" />
+                </Button>
               ))}
           </div>
         )}
       </div>
       {/* Drag does what the faces do — for the hand that reaches for it instead. */}
       {canAssign && (
-        <button
+        <Button
+          variant="unstyled"
           type="button"
           className="chore-grip"
           aria-label={`Drag ${chore.title} to another column`}
@@ -203,8 +219,8 @@ function ChoreCard({
           onPointerDown={onDragStart}
           onClick={(e) => e.stopPropagation()}
         >
-          ⠿
-        </button>
+          <DataIcon value={'⠿'} kind="chore" />
+        </Button>
       )}
     </div>
   )
@@ -229,7 +245,10 @@ function Body({ weekStart, sessionId, setDecisionData, refresh, busy }: StepBody
     setAdding('')
   })
   // A chore's "Who" isn't on the card payload — the column it sits in is that fact.
-  const [editing, setEditing] = useState<{ chore: PlanningTasksChore; owner: string | null } | null>(null)
+  const [editing, setEditing] = useState<{
+    chore: PlanningTasksChore
+    owner: string | null
+  } | null>(null)
   // The net number handed over this sitting: the only thing worth remembering locally, and
   // a take-back undoes its own tally or the recap would over-report.
   const [assigned, setAssigned] = useState(0)
@@ -275,14 +294,16 @@ function Body({ weekStart, sessionId, setDecisionData, refresh, busy }: StepBody
         // HANDING A CHORE OVER IS TWO WRITES — the definition, then each pending instance —
         // so a failure here does not mean nothing moved. It must not claim otherwise, and
         // must still re-read: we cannot know which half landed, so we ask the server.
-        setGiveError('That may not have gone through fully — the board has been re-read, so what you see is what’s saved.')
+        setGiveError(
+          'That may not have gone through fully — the board has been re-read, so what you see is what’s saved.',
+        )
         load()
         refresh()
       } finally {
         setSaving(null)
       }
     },
-    [saving, busy, load, refresh]
+    [saving, busy, load, refresh],
   )
 
   // ── Drag-and-drop, the kiosk Chores board's mechanism ──────────────────────────
@@ -338,12 +359,15 @@ function Body({ weekStart, sessionId, setDecisionData, refresh, busy }: StepBody
     refresh()
   }
 
-  if (error) return <div className="wp-empty">Couldn’t load the chores board — try again in a moment.</div>
+  if (error)
+    return <div className="wp-empty">Couldn’t load the chores board — try again in a moment.</div>
   if (!board) return <div className="wp-empty">Loading…</div>
 
-  const symbol = (key: string | null) => (key ? cur.byKey[key] : cur.defaultCurrency)?.symbol ?? '⭐'
+  const symbol = (key: string | null) =>
+    (key ? cur.byKey[key] : cur.defaultCurrency)?.symbol ?? '⭐'
   const frozen = busy || saving !== null
-  const isDropTarget = (colKey: string) => !!drag && overCol === colKey && colKey !== (drag.from ?? 'unassigned')
+  const isDropTarget = (colKey: string) =>
+    !!drag && overCol === colKey && colKey !== (drag.from ?? 'unassigned')
 
   // Settled through step 1's resolve, the one writer Loose ends already uses for a rhythm.
   const settleRhythm = async (id: string) => {
@@ -396,8 +420,16 @@ function Body({ weekStart, sessionId, setDecisionData, refresh, busy }: StepBody
 
   return (
     <div className="wpt">
-      {giveError && <div className="wp-err" role="alert">{giveError}</div>}
-      {doneNote && <div className="wpt-note" role="status">{doneNote}</div>}
+      {giveError && (
+        <div className="wp-err" role="alert">
+          {giveError}
+        </div>
+      )}
+      {doneNote && (
+        <div className="wpt-note" role="status">
+          {doneNote}
+        </div>
+      )}
       {/* The strip: everything nobody has taken, faces underneath. It is also a drop
           target, which is what makes a hand-out reversible by drag as well as by tap. */}
       <div
@@ -406,14 +438,21 @@ function Body({ weekStart, sessionId, setDecisionData, refresh, busy }: StepBody
         data-colkey="unassigned"
       >
         <div className="wpt-strip-h">
-          <span className="chore-ava grabs" aria-hidden>🙌</span>
+          <span className="chore-ava grabs" aria-hidden>
+            <DataIcon value={'🙌'} kind="chore" />
+          </span>
           <span className="wpt-strip-t">Up for grabs</span>
           <span className="wpt-strip-s">
-            {board.unassigned.length === 0
-              ? '✓ Everything’s handed out.'
-              : canAssign
-                ? 'Tap a face (or drag the card) to hand one over. Leaving one up for grabs is a real answer — whoever does it gets the stars.'
-                : 'Whoever does one gets the stars.'}
+            {board.unassigned.length === 0 ? (
+              <>
+                <DataIcon value={'✓'} kind="chore" />
+                {' Everything’s handed out.'}
+              </>
+            ) : canAssign ? (
+              'Tap a face (or drag the card) to hand one over. Leaving one up for grabs is a real answer — whoever does it gets the stars.'
+            ) : (
+              'Whoever does one gets the stars.'
+            )}
           </span>
         </div>
         <div className="wpt-strip-list">
@@ -422,10 +461,16 @@ function Body({ weekStart, sessionId, setDecisionData, refresh, busy }: StepBody
           ))}
           {/* The strip's own tile — a task nobody owns yet, which is not the same
               thing as adding one to a person's column. */}
-          <button type="button" className="wpt-add-tile" disabled={busy} onClick={() => setAdding('')}>
+          <Button
+            variant="unstyled"
+            type="button"
+            className="wpt-add-tile"
+            disabled={busy}
+            onClick={() => setAdding('')}
+          >
             <Icon name="plus" />
             Add a task
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -441,7 +486,9 @@ function Body({ weekStart, sessionId, setDecisionData, refresh, busy }: StepBody
           >
             <div className="chore-head">
               <span className="nm">
-                <span className="chore-ava" style={{ background: avTint(p.colorHex) }}>{p.avatarEmoji ?? '🙂'}</span>
+                <span className="chore-ava" style={{ background: avTint(p.colorHex) }}>
+                  <DataIcon value={p.avatarEmoji ?? '🙂'} kind="person" />
+                </span>
                 {p.name}
               </span>
               <span className="wpt-count">{p.chores.length} this week</span>
@@ -452,12 +499,20 @@ function Body({ weekStart, sessionId, setDecisionData, refresh, busy }: StepBody
                 <ChoreCard key={c.id} {...cardProps(c, p.id)} />
               ))}
             </div>
-            {p.chores.length === 0 && <div className="tiny muted chore-empty">Nothing on {p.name}’s week yet.</div>}
+            {p.chores.length === 0 && (
+              <div className="tiny muted chore-empty">Nothing on {p.name}’s week yet.</div>
+            )}
 
-            <button type="button" className="chore-add" disabled={busy} onClick={() => setAdding(p.id)}>
+            <Button
+              variant="unstyled"
+              type="button"
+              className="chore-add"
+              disabled={busy}
+              onClick={() => setAdding(p.id)}
+            >
               <Icon name="plus" />
               Add for {p.name}
-            </button>
+            </Button>
 
             {/* What they already carry — the fairness read, stated rather than scored. */}
             <div className="wpt-carries">{carriesLabel(p.recurringChores)}</div>
@@ -473,20 +528,24 @@ function Body({ weekStart, sessionId, setDecisionData, refresh, busy }: StepBody
           {board.rhythms.map((r) => (
             <div key={r.id} className="wpt-rhythm">
               <span className="t">
-                {r.emoji ? `${r.emoji} ` : ''}
+                {r.emoji ? <>{<DataIcon value={r.emoji} kind="chore" />} </> : ''}
                 {r.title}
               </span>
               <span className={`wpt-chip ${r.overdue ? 'is-late' : ''}`}>{r.detail}</span>
               {r.canComplete && (
-                <button
+                <Button
+                  variant="unstyled"
                   type="button"
                   className="wpt-chip wpt-done"
                   aria-label={`Mark ${r.title} done`}
                   disabled={frozen}
                   onClick={() => void settleRhythm(r.id)}
                 >
-                  ✓ Done
-                </button>
+                  <>
+                    <DataIcon value={'✓'} kind="chore" />
+                    {' Done'}
+                  </>
+                </Button>
               )}
             </div>
           ))}
@@ -509,10 +568,16 @@ function Body({ weekStart, sessionId, setDecisionData, refresh, busy }: StepBody
           selfPersonId={person?.id ?? null}
           onClose={() => {
             setAdding(null)
-            if (fromNote !== null) { setFromNote(null); finishHandoff(false) }
+            if (fromNote !== null) {
+              setFromNote(null)
+              finishHandoff(false)
+            }
           }}
           onSaved={() => {
-            if (fromNote !== null) { setFromNote(null); finishHandoff(true) }
+            if (fromNote !== null) {
+              setFromNote(null)
+              finishHandoff(true)
+            }
             savedChore()
           }}
         />
@@ -552,7 +617,7 @@ function Body({ weekStart, sessionId, setDecisionData, refresh, busy }: StepBody
 
       {drag && (
         <div className="chore-drag-ghost" style={{ left: pos.x, top: pos.y }}>
-          {drag.chore.emoji ? `${drag.chore.emoji} ` : ''}
+          {drag.chore.emoji ? <>{<DataIcon value={drag.chore.emoji} kind="chore" />} </> : ''}
           {drag.chore.title}
         </div>
       )}

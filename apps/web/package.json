@@ -12,6 +12,10 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit",
+    "lint": "oxlint --config ../../.oxlintrc.json .",
+    "lint:fix": "oxlint --config ../../.oxlintrc.json --fix .",
+    "format": "oxfmt --config ../../.oxfmtrc.json --write .",
+    "format:check": "oxfmt --config ../../.oxfmtrc.json --check .",
     "test": "vitest run",
     "test:browser": "playwright test"
   },
@@ -27,14 +31,21 @@
     "@types/qrcode": "^1.5.6",
     "@zxing/browser": "^0.2.0",
     "@zxing/library": "^0.22.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "js-logger": "^1.6.1",
+    "lucide-react": "^1.55.0",
     "qrcode": "^1.5.4",
+    "radix-ui": "^1.8.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "react-router": "^8.3.0"
+    "react-router": "^8.3.0",
+    "tailwind-merge": "^3.7.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1",
+    "@tailwindcss/node": "^4.3.3",
+    "@tailwindcss/vite": "^4.3.3",
     "@testing-library/jest-dom": "^6.5.0",
     "@testing-library/react": "^16.0.1",
     "@types/react": "^19.2.17",
@@ -42,8 +53,13 @@
     "@vitejs/plugin-react": "^4.3.2",
     "axe-core": "^4.12.1",
     "jsdom": "^25.0.1",
-    "typescript": "^5.6.2",
+    "oxfmt": "^0.72.0",
+    "oxlint": "^1.87.0",
+    "postcss": "^8.5.15",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^7.0.2",
     "vite": "^5.4.8",
     "vitest": "^2.1.2"
-  }
+  },
+  "packageManager": "pnpm@10.34.7"
 }

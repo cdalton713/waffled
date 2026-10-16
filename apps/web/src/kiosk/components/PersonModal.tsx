@@ -1,8 +1,21 @@
 import { useState, type FormEvent } from 'react'
-import { personsApi, kioskApi, ALLERGEN_KEYS, ALLERGEN_LABELS, type SettingsMember } from '../../lib/api'
+import {
+  personsApi,
+  kioskApi,
+  ALLERGEN_KEYS,
+  ALLERGEN_LABELS,
+  type SettingsMember,
+} from '../../lib/api'
 import type { ApiSendError } from '../../lib/api/client'
 import { SettingCard } from './SettingCard'
 import { ColorPicker, COLOR_SWATCHES } from './ColorPicker'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { DataIcon } from '@/components/ui/data-icon'
+import { IconPicker } from '@/components/ui/icon-picker'
+import { Modal } from '@/components/ui/modal'
+import { Switch } from '@/components/ui/switch'
 
 const SWATCHES = COLOR_SWATCHES
 const MEMBER_TYPES = [
@@ -13,14 +26,34 @@ const MEMBER_TYPES = [
 
 function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
   return (
-    <div onClick={onClick} role="switch" aria-checked={on} style={{ width: 44, height: 26, borderRadius: 999, flex: 'none', cursor: 'pointer', background: on ? 'var(--person-3)' : 'var(--hair)', position: 'relative', transition: 'background .15s' }}>
-      <div style={{ position: 'absolute', top: 3, left: on ? 21 : 3, width: 20, height: 20, borderRadius: 999, background: 'var(--on-accent)', transition: 'left .15s' }} />
-    </div>
+    <Switch
+      checked={on}
+      onCheckedChange={onClick}
+      style={{
+        width: 44,
+        height: 26,
+        borderRadius: 999,
+        flex: 'none',
+        cursor: 'pointer',
+        background: on ? 'var(--person-3)' : 'var(--hair)',
+        position: 'relative',
+        transition: 'background .15s',
+      }}
+      thumbClassName="pointer-events-none block size-[20px] rounded-full bg-(--on-accent) transition-transform data-[state=checked]:translate-x-[18px]"
+    />
   )
 }
 
 // Add or edit a family member.
-export function PersonModal({ person, onClose, onSaved }: { person: SettingsMember | null; onClose: () => void; onSaved: () => void }) {
+export function PersonModal({
+  person,
+  onClose,
+  onSaved,
+}: {
+  person: SettingsMember | null
+  onClose: () => void
+  onSaved: () => void
+}) {
   const editing = !!person
   const [form, setForm] = useState({
     name: person?.name ?? '',
@@ -36,7 +69,8 @@ export function PersonModal({ person, onClose, onSaved }: { person: SettingsMemb
   const [saveErr, setSaveErr] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [tab, setTab] = useState<'general' | 'signin'>('general')
-  const set = <K extends keyof typeof form>(k: K, v: (typeof form)[K]) => setForm((f) => ({ ...f, [k]: v }))
+  const set = <K extends keyof typeof form>(k: K, v: (typeof form)[K]) =>
+    setForm((f) => ({ ...f, [k]: v }))
 
   // Admin + kiosk visibility apply the instant you flip them when editing — they
   // don't wait on the "Save changes" button. Otherwise toggling Admin and then
@@ -68,8 +102,13 @@ export function PersonModal({ person, onClose, onSaved }: { person: SettingsMemb
   async function saveLogin() {
     const email = loginEmail.trim()
     if (!email || loginBusy) return
-    if (loginPw && loginPw.length < 8) { setLoginErr('Password must be at least 8 characters.'); return }
-    setLoginBusy(true); setLoginErr(null); setLoginSaved(false)
+    if (loginPw && loginPw.length < 8) {
+      setLoginErr('Password must be at least 8 characters.')
+      return
+    }
+    setLoginBusy(true)
+    setLoginErr(null)
+    setLoginSaved(false)
     try {
       await personsApi.setLogin(person!.id, { email, ...(loginPw ? { password: loginPw } : {}) })
       if (loginPw) setHasPasswordLocal(true)
@@ -86,16 +125,24 @@ export function PersonModal({ person, onClose, onSaved }: { person: SettingsMemb
   }
 
   async function removeLogin() {
-    if (!confirmRemoveLogin) { setConfirmRemoveLogin(true); return }
-    setLoginBusy(true); setLoginErr(null)
+    if (!confirmRemoveLogin) {
+      setConfirmRemoveLogin(true)
+      return
+    }
+    setLoginBusy(true)
+    setLoginErr(null)
     try {
       await personsApi.removeLogin(person!.id)
-      setLoginEmail(''); setLoginPw(''); setHasLoginLocal(false); setHasPasswordLocal(false)
+      setLoginEmail('')
+      setLoginPw('')
+      setHasLoginLocal(false)
+      setHasPasswordLocal(false)
       onSaved()
     } catch {
       setLoginErr('Could not remove the login.')
     } finally {
-      setLoginBusy(false); setConfirmRemoveLogin(false)
+      setLoginBusy(false)
+      setConfirmRemoveLogin(false)
     }
   }
 
@@ -109,11 +156,18 @@ export function PersonModal({ person, onClose, onSaved }: { person: SettingsMemb
   const [confirmClearPin, setConfirmClearPin] = useState(false)
 
   async function savePin() {
-    if (!/^\d{4,8}$/.test(pin)) { setPinErr('PIN must be 4–8 digits.'); return }
-    setPinBusy(true); setPinErr(null); setPinSaved(false)
+    if (!/^\d{4,8}$/.test(pin)) {
+      setPinErr('PIN must be 4–8 digits.')
+      return
+    }
+    setPinBusy(true)
+    setPinErr(null)
+    setPinSaved(false)
     try {
       await kioskApi.setPin(person!.id, pin)
-      setHasPinLocal(true); setPin(''); setPinSaved(true)
+      setHasPinLocal(true)
+      setPin('')
+      setPinSaved(true)
       setTimeout(() => setPinSaved(false), 1800)
       onSaved()
     } catch {
@@ -124,16 +178,22 @@ export function PersonModal({ person, onClose, onSaved }: { person: SettingsMemb
   }
 
   async function clearPin() {
-    if (!confirmClearPin) { setConfirmClearPin(true); return }
-    setPinBusy(true); setPinErr(null)
+    if (!confirmClearPin) {
+      setConfirmClearPin(true)
+      return
+    }
+    setPinBusy(true)
+    setPinErr(null)
     try {
       await kioskApi.clearPin(person!.id)
-      setHasPinLocal(false); setPin('')
+      setHasPinLocal(false)
+      setPin('')
       onSaved()
     } catch {
       setPinErr('Could not remove the PIN.')
     } finally {
-      setPinBusy(false); setConfirmClearPin(false)
+      setPinBusy(false)
+      setConfirmClearPin(false)
     }
   }
 
@@ -177,190 +237,383 @@ export function PersonModal({ person, onClose, onSaved }: { person: SettingsMemb
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <Modal className="modal-overlay" onClose={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 460 }}>
-        <button type="button" className="modal-close" aria-label="Close" onClick={onClose}>×</button>
-        <div className="wf-serif" style={{ fontSize: 20, fontWeight: 600, marginBottom: 14 }}>{editing ? 'Edit person' : 'Add a person'}</div>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="modal-close"
+          aria-label="Close"
+          onClick={onClose}
+        >
+          <DataIcon value={'×'} kind="person" />
+        </Button>
+        <div className="wf-serif" style={{ fontSize: 20, fontWeight: 600, marginBottom: 14 }}>
+          {editing ? 'Edit person' : 'Add a person'}
+        </div>
 
         {editing && (
           <div className="seg" style={{ width: '100%', marginBottom: 16 }}>
-            <button type="button" className={tab === 'general' ? 'on' : ''} style={{ flex: 1, cursor: 'pointer' }} onClick={() => setTab('general')}>General</button>
-            <button type="button" className={tab === 'signin' ? 'on' : ''} style={{ flex: 1, cursor: 'pointer' }} onClick={() => setTab('signin')}>Sign-in</button>
+            <Button
+              variant="unstyled"
+              type="button"
+              className={tab === 'general' ? 'on' : ''}
+              style={{ flex: 1, cursor: 'pointer' }}
+              onClick={() => setTab('general')}
+            >
+              General
+            </Button>
+            <Button
+              variant="unstyled"
+              type="button"
+              className={tab === 'signin' ? 'on' : ''}
+              style={{ flex: 1, cursor: 'pointer' }}
+              onClick={() => setTab('signin')}
+            >
+              Sign-in
+            </Button>
           </div>
         )}
 
         {(!editing || tab === 'general') && (
-        <>
-        <form onSubmit={submit}>
-          <div className="field-row">
-            <label className="field" style={{ flex: 3 }}>
-              <span>Name</span>
-              <input value={form.name} onChange={(e) => set('name', e.target.value)} placeholder="Wally" autoFocus />
-            </label>
-            <label className="field" style={{ flex: 1 }}>
-              <span>Avatar</span>
-              <input value={form.avatarEmoji} onChange={(e) => set('avatarEmoji', e.target.value)} placeholder="🐢" maxLength={4} />
-            </label>
-          </div>
-
-          <div className="field">
-            <span>Member type</span>
-            <div className="seg" style={{ width: 'fit-content' }}>
-              {MEMBER_TYPES.map((t) => (
-                <button type="button" key={t.key} className={form.memberType === t.key ? 'on' : ''} style={{ cursor: 'pointer' }} onClick={() => set('memberType', t.key)}>{t.label}</button>
-              ))}
-            </div>
-          </div>
-
-          <div className="field">
-            <span>Color</span>
-            <ColorPicker value={form.colorHex} onChange={(c) => set('colorHex', c)} />
-          </div>
-
-          <label className="field">
-            <span>Birthday (optional)</span>
-            <input type="date" value={form.birthday} onChange={(e) => set('birthday', e.target.value)} />
-          </label>
-
-          <div className="field">
-            <span>Allergens (warns in the pantry)</span>
-            <div className="pl-allergen-pick">
-              {ALLERGEN_KEYS.map((key) => {
-                const on = form.allergens.includes(key)
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    className={`pl-allergen-chip${on ? ' on' : ''}`}
-                    aria-pressed={on}
-                    onClick={() => set('allergens', on ? form.allergens.filter((a) => a !== key) : [...form.allergens, key])}
-                  >
-                    {ALLERGEN_LABELS[key]}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-
-          <SettingCard style={{ marginBottom: 14 }}>
-            <div className="set-row" style={{ padding: '12px 0', display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 700, fontSize: 14 }}>Admin (full management)</div>
-                <div className="tiny muted" style={{ fontWeight: 600 }}>Can add people, edit settings</div>
+          <>
+            <form onSubmit={submit}>
+              <div className="field-row">
+                <Label className="field" style={{ flex: 3 }}>
+                  <span>Name</span>
+                  <Input
+                    value={form.name}
+                    onChange={(e) => set('name', e.target.value)}
+                    placeholder="Wally"
+                    autoFocus
+                  />
+                </Label>
+                <Label className="field" style={{ flex: 1 }}>
+                  <span>Avatar</span>
+                  <IconPicker
+                    kind="person"
+                    value={form.avatarEmoji}
+                    onValueChange={(e) => set('avatarEmoji', e)}
+                  />
+                </Label>
               </div>
-              <Toggle on={form.isAdmin} onClick={() => toggleField('isAdmin')} />
-            </div>
-            <div className="set-row" style={{ padding: '12px 0', borderTop: '1px solid var(--hair-2)', display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 700, fontSize: 14 }}>Show on Kiosk</div>
-                <div className="tiny muted" style={{ fontWeight: 600 }}>Appears on the family display</div>
+
+              <div className="field">
+                <span>Member type</span>
+                <div className="seg" style={{ width: 'fit-content' }}>
+                  {MEMBER_TYPES.map((t) => (
+                    <Button
+                      variant="unstyled"
+                      type="button"
+                      key={t.key}
+                      className={form.memberType === t.key ? 'on' : ''}
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => set('memberType', t.key)}
+                    >
+                      {t.label}
+                    </Button>
+                  ))}
+                </div>
               </div>
-              <Toggle on={form.showOnKiosk} onClick={() => toggleField('showOnKiosk')} />
-            </div>
-          </SettingCard>
 
-          {saveErr && <div className="tiny" style={{ fontWeight: 700, color: 'var(--primary)', marginBottom: 8 }}>{saveErr}</div>}
-          <button type="submit" className="btn btn-primary" disabled={!form.name.trim() || saving} style={{ width: '100%', justifyContent: 'center' }}>
-            {saving ? 'Saving…' : editing ? 'Save changes' : 'Add person'}
-          </button>
-        </form>
+              <div className="field">
+                <span>Color</span>
+                <ColorPicker value={form.colorHex} onChange={(c) => set('colorHex', c)} />
+              </div>
 
-        {editing && !person!.isOwner && (
-          <button type="button" onClick={del} style={{ display: 'block', margin: '14px auto 0', border: 0, background: 'none', color: confirmDelete ? 'var(--primary)' : 'var(--ink-3)', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-            {confirmDelete ? 'Tap again to remove this person' : 'Remove person'}
-          </button>
-        )}
-        {editing && person!.isOwner && (
-          <div className="tiny muted" style={{ textAlign: 'center', marginTop: 12, fontWeight: 600 }}>The household owner can’t be removed.</div>
-        )}
-        </>
+              <Label className="field">
+                <span>Birthday (optional)</span>
+                <Input
+                  type="date"
+                  value={form.birthday}
+                  onChange={(e) => set('birthday', e.target.value)}
+                />
+              </Label>
+
+              <div className="field">
+                <span>Allergens (warns in the pantry)</span>
+                <div className="pl-allergen-pick">
+                  {ALLERGEN_KEYS.map((key) => {
+                    const on = form.allergens.includes(key)
+                    return (
+                      <Button
+                        variant="unstyled"
+                        key={key}
+                        type="button"
+                        className={`pl-allergen-chip${on ? ' on' : ''}`}
+                        aria-pressed={on}
+                        onClick={() =>
+                          set(
+                            'allergens',
+                            on ? form.allergens.filter((a) => a !== key) : [...form.allergens, key],
+                          )
+                        }
+                      >
+                        {ALLERGEN_LABELS[key]}
+                      </Button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <SettingCard style={{ marginBottom: 14 }}>
+                <div
+                  className="set-row"
+                  style={{ padding: '12px 0', display: 'flex', alignItems: 'center', gap: 12 }}
+                >
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 700, fontSize: 14 }}>Admin (full management)</div>
+                    <div className="tiny muted" style={{ fontWeight: 600 }}>
+                      Can add people, edit settings
+                    </div>
+                  </div>
+                  <Toggle on={form.isAdmin} onClick={() => toggleField('isAdmin')} />
+                </div>
+                <div
+                  className="set-row"
+                  style={{
+                    padding: '12px 0',
+                    borderTop: '1px solid var(--hair-2)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                  }}
+                >
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 700, fontSize: 14 }}>Show on Kiosk</div>
+                    <div className="tiny muted" style={{ fontWeight: 600 }}>
+                      Appears on the family display
+                    </div>
+                  </div>
+                  <Toggle on={form.showOnKiosk} onClick={() => toggleField('showOnKiosk')} />
+                </div>
+              </SettingCard>
+
+              {saveErr && (
+                <div
+                  className="tiny"
+                  style={{ fontWeight: 700, color: 'var(--primary)', marginBottom: 8 }}
+                >
+                  {saveErr}
+                </div>
+              )}
+              <Button
+                variant="default"
+                type="submit"
+                disabled={!form.name.trim() || saving}
+                style={{ width: '100%', justifyContent: 'center' }}
+              >
+                {saving ? 'Saving…' : editing ? 'Save changes' : 'Add person'}
+              </Button>
+            </form>
+
+            {editing && !person!.isOwner && (
+              <Button
+                variant="unstyled"
+                type="button"
+                onClick={del}
+                style={{
+                  display: 'block',
+                  margin: '14px auto 0',
+                  border: 0,
+                  background: 'none',
+                  color: confirmDelete ? 'var(--primary)' : 'var(--ink-3)',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                {confirmDelete ? 'Tap again to remove this person' : 'Remove person'}
+              </Button>
+            )}
+            {editing && person!.isOwner && (
+              <div
+                className="tiny muted"
+                style={{ textAlign: 'center', marginTop: 12, fontWeight: 600 }}
+              >
+                The household owner can’t be removed.
+              </div>
+            )}
+          </>
         )}
 
         {editing && tab === 'signin' && (
-        <>
-        {/* Login + Kiosk PIN — each with its own buttons, outside the profile form. */}
-        {editing && (
-          <SettingCard style={{ marginTop: 14 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: hasLoginLocal ? 12 : 8 }}>
-              <div style={{ fontSize: 21, width: 30, textAlign: 'center', flex: 'none' }}>🔑</div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 700, fontSize: 14 }}>Login</div>
-                <div className="tiny muted" style={{ fontWeight: 600 }}>
-                  {!hasLoginLocal
-                    ? 'No login yet — give them an email to sign in.'
-                    : hasPasswordLocal
-                      ? 'Can sign in with their email & password'
-                      : 'Invited to sign in via SSO (no password set)'}
+          <>
+            {/* Login + Kiosk PIN — each with its own buttons, outside the profile form. */}
+            {editing && (
+              <SettingCard style={{ marginTop: 14 }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    marginBottom: hasLoginLocal ? 12 : 8,
+                  }}
+                >
+                  <div style={{ fontSize: 21, width: 30, textAlign: 'center', flex: 'none' }}>
+                    <DataIcon value={'🔑'} kind="person" />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 700, fontSize: 14 }}>Login</div>
+                    <div className="tiny muted" style={{ fontWeight: 600 }}>
+                      {!hasLoginLocal
+                        ? 'No login yet — give them an email to sign in.'
+                        : hasPasswordLocal
+                          ? 'Can sign in with their email & password'
+                          : 'Invited to sign in via SSO (no password set)'}
+                    </div>
+                  </div>
+                  {loginSaved && (
+                    <span className="tiny" style={{ fontWeight: 700, color: 'var(--success)' }}>
+                      <>
+                        <DataIcon value={'✓'} kind="person" />
+                        {' Saved'}
+                      </>
+                    </span>
+                  )}
                 </div>
-              </div>
-              {loginSaved && <span className="tiny" style={{ fontWeight: 700, color: 'var(--success)' }}>✓ Saved</span>}
-            </div>
 
-            <label className="field" style={{ marginBottom: 8 }}>
-              <span>Email</span>
-              <input type="email" autoComplete="off" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} placeholder="name@example.com" />
-            </label>
-            <label className="field" style={{ marginBottom: 8 }}>
-              <span>{hasPasswordLocal ? 'New password (leave blank to keep)' : 'Password (optional — blank invites SSO only)'}</span>
-              <input type="password" autoComplete="new-password" value={loginPw} onChange={(e) => setLoginPw(e.target.value)} placeholder={hasPasswordLocal ? '••••••••' : 'At least 8 characters'} />
-            </label>
-            {loginErr && <div className="tiny" style={{ fontWeight: 700, color: 'var(--primary)', marginBottom: 8 }}>{loginErr}</div>}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <button type="button" className="pill btn-primary" style={{ color: 'var(--on-accent)', border: 0, cursor: 'pointer' }} disabled={loginBusy || !loginEmail.trim()} onClick={saveLogin}>
-                {loginBusy ? 'Saving…' : hasLoginLocal ? 'Update login' : 'Give a login'}
-              </button>
-              {hasLoginLocal && !person!.isOwner && (
-                <button type="button" onClick={removeLogin} style={{ border: 0, background: 'none', color: confirmRemoveLogin ? 'var(--primary)' : 'var(--ink-3)', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                  {confirmRemoveLogin ? 'Tap again to remove login' : 'Remove login'}
-                </button>
-              )}
-            </div>
-          </SettingCard>
-        )}
-
-        {/* Kiosk PIN — optional per-person protection for switching profiles. */}
-        {editing && (
-          <SettingCard style={{ marginTop: 14 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-              <div style={{ fontSize: 21, width: 30, textAlign: 'center', flex: 'none' }}>🔒</div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 700, fontSize: 14 }}>Kiosk PIN</div>
-                <div className="tiny muted" style={{ fontWeight: 600 }}>
-                  {hasPinLocal
-                    ? 'Required to switch to this profile on the kiosk'
-                    : 'Optional — set one to protect this profile on the kiosk'}
+                <Label className="field" style={{ marginBottom: 8 }}>
+                  <span>Email</span>
+                  <Input
+                    type="email"
+                    autoComplete="off"
+                    value={loginEmail}
+                    onChange={(e) => setLoginEmail(e.target.value)}
+                    placeholder="name@example.com"
+                  />
+                </Label>
+                <Label className="field" style={{ marginBottom: 8 }}>
+                  <span>
+                    {hasPasswordLocal
+                      ? 'New password (leave blank to keep)'
+                      : 'Password (optional — blank invites SSO only)'}
+                  </span>
+                  <Input
+                    type="password"
+                    autoComplete="new-password"
+                    value={loginPw}
+                    onChange={(e) => setLoginPw(e.target.value)}
+                    placeholder={hasPasswordLocal ? '••••••••' : 'At least 8 characters'}
+                  />
+                </Label>
+                {loginErr && (
+                  <div
+                    className="tiny"
+                    style={{ fontWeight: 700, color: 'var(--primary)', marginBottom: 8 }}
+                  >
+                    {loginErr}
+                  </div>
+                )}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <Button
+                    variant="unstyled"
+                    type="button"
+                    className="pill btn-primary"
+                    style={{ color: 'var(--on-accent)', border: 0, cursor: 'pointer' }}
+                    disabled={loginBusy || !loginEmail.trim()}
+                    onClick={saveLogin}
+                  >
+                    {loginBusy ? 'Saving…' : hasLoginLocal ? 'Update login' : 'Give a login'}
+                  </Button>
+                  {hasLoginLocal && !person!.isOwner && (
+                    <Button
+                      variant="unstyled"
+                      type="button"
+                      onClick={removeLogin}
+                      style={{
+                        border: 0,
+                        background: 'none',
+                        color: confirmRemoveLogin ? 'var(--primary)' : 'var(--ink-3)',
+                        fontSize: 13,
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {confirmRemoveLogin ? 'Tap again to remove login' : 'Remove login'}
+                    </Button>
+                  )}
                 </div>
-              </div>
-              {pinSaved && <span className="tiny" style={{ fontWeight: 700, color: 'var(--success)' }}>✓ Saved</span>}
-            </div>
-            <label className="field" style={{ marginBottom: 8 }}>
-              <span>{hasPinLocal ? 'New PIN (4–8 digits)' : 'PIN (4–8 digits)'}</span>
-              <input
-                type="password"
-                inputMode="numeric"
-                autoComplete="off"
-                value={pin}
-                onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 8))}
-                placeholder={hasPinLocal ? 'Enter a new PIN' : 'Enter 4–8 digits'}
-              />
-            </label>
-            {pinErr && <div className="tiny" style={{ fontWeight: 700, color: 'var(--primary)', marginBottom: 8 }}>{pinErr}</div>}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <button type="button" className="pill btn-primary" style={{ color: 'var(--on-accent)', border: 0, cursor: 'pointer' }} disabled={pinBusy || pin.length < 4} onClick={savePin}>
-                {pinBusy ? 'Saving…' : hasPinLocal ? 'Update PIN' : 'Set PIN'}
-              </button>
-              {hasPinLocal && (
-                <button type="button" onClick={clearPin} style={{ border: 0, background: 'none', color: confirmClearPin ? 'var(--primary)' : 'var(--ink-3)', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                  {confirmClearPin ? 'Tap again to remove PIN' : 'Remove PIN'}
-                </button>
-              )}
-            </div>
-          </SettingCard>
-        )}
+              </SettingCard>
+            )}
 
-        </>
+            {/* Kiosk PIN — optional per-person protection for switching profiles. */}
+            {editing && (
+              <SettingCard style={{ marginTop: 14 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                  <div style={{ fontSize: 21, width: 30, textAlign: 'center', flex: 'none' }}>
+                    <DataIcon value={'🔒'} kind="person" />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 700, fontSize: 14 }}>Kiosk PIN</div>
+                    <div className="tiny muted" style={{ fontWeight: 600 }}>
+                      {hasPinLocal
+                        ? 'Required to switch to this profile on the kiosk'
+                        : 'Optional — set one to protect this profile on the kiosk'}
+                    </div>
+                  </div>
+                  {pinSaved && (
+                    <span className="tiny" style={{ fontWeight: 700, color: 'var(--success)' }}>
+                      <>
+                        <DataIcon value={'✓'} kind="person" />
+                        {' Saved'}
+                      </>
+                    </span>
+                  )}
+                </div>
+                <Label className="field" style={{ marginBottom: 8 }}>
+                  <span>{hasPinLocal ? 'New PIN (4–8 digits)' : 'PIN (4–8 digits)'}</span>
+                  <Input
+                    type="password"
+                    inputMode="numeric"
+                    autoComplete="off"
+                    value={pin}
+                    onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                    placeholder={hasPinLocal ? 'Enter a new PIN' : 'Enter 4–8 digits'}
+                  />
+                </Label>
+                {pinErr && (
+                  <div
+                    className="tiny"
+                    style={{ fontWeight: 700, color: 'var(--primary)', marginBottom: 8 }}
+                  >
+                    {pinErr}
+                  </div>
+                )}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <Button
+                    variant="unstyled"
+                    type="button"
+                    className="pill btn-primary"
+                    style={{ color: 'var(--on-accent)', border: 0, cursor: 'pointer' }}
+                    disabled={pinBusy || pin.length < 4}
+                    onClick={savePin}
+                  >
+                    {pinBusy ? 'Saving…' : hasPinLocal ? 'Update PIN' : 'Set PIN'}
+                  </Button>
+                  {hasPinLocal && (
+                    <Button
+                      variant="unstyled"
+                      type="button"
+                      onClick={clearPin}
+                      style={{
+                        border: 0,
+                        background: 'none',
+                        color: confirmClearPin ? 'var(--primary)' : 'var(--ink-3)',
+                        fontSize: 13,
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {confirmClearPin ? 'Tap again to remove PIN' : 'Remove PIN'}
+                    </Button>
+                  )}
+                </div>
+              </SettingCard>
+            )}
+          </>
         )}
       </div>
-    </div>
+    </Modal>
   )
 }

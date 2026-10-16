@@ -1,5 +1,5 @@
 // Programmatic migration runner — used by tests and importable elsewhere.
-// The CLI path (`npm run migrate` → node-pg-migrate) is what runs against the
+// The CLI path (`pnpm run migrate` → node-pg-migrate) is what runs against the
 // live stack; this wrapper points the same migrations at an arbitrary database
 // (e.g. a Testcontainers Postgres).
 import { runner } from 'node-pg-migrate'

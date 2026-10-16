@@ -116,13 +116,12 @@ describe('RecipesLibrary — saved meals are first-class library citizens', () =
     expect(screen.getByText('Chicken Parmesan')).toBeInTheDocument()
   })
 
-  it('badges a meal so it can never be mistaken for a recipe, and shows its dish emojis', () => {
+  it('badges a meal so it can never be mistaken for a recipe, and shows its dish icons', () => {
     renderLib()
     const card = cardFor('BBQ Sunday')
     // "Meal · 4" — the type badge plus the dish count.
     expect(within(card).getByText('Meal · 4')).toBeInTheDocument()
-    expect(within(card).getByText('🍗')).toBeInTheDocument()
-    expect(within(card).getByText('🥧')).toBeInTheDocument()
+    expect(card.querySelectorAll('.mc-emojis svg')).toHaveLength(4)
     // …and a recipe card carries no such badge.
     expect(within(cardFor('Chicken Parmesan')).queryByText(/^Meal · /)).not.toBeInTheDocument()
   })
@@ -231,4 +230,3 @@ describe('RecipesLibrary — showing only meals', () => {
     expect(screen.getByText('BBQ Sunday')).toBeInTheDocument()
   })
 })
-

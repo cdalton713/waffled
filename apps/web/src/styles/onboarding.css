@@ -1,347 +1,355 @@
+@reference './ui.css';
+
 /* "Getting started" onboarding — a slim resumable checklist bar on Today plus a
    centered overlay wizard. Reuses the existing palette/radius/shadow variables so
    it reads as part of the app, not a bolt-on. */
 
 /* ── Resumable checklist bar (top of Today) ── */
 .ob-bar {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  background: var(--card);
-  border: 1px solid var(--hair);
-  border-radius: var(--r-lg);
-  box-shadow: var(--sh-2);
-  padding: 14px 16px;
+  @apply flex;
+  @apply items-center;
+  @apply [gap:14px];
+  @apply [background:var(--card)];
+  @apply [border:1px_solid_var(--hair)];
+  @apply [border-radius:var(--r-lg)];
+  @apply [box-shadow:var(--sh-2)];
+  @apply [padding:14px_16px];
   /* Align to the same horizontal gutter as the card board (.today-board has
      30px side padding; .recap-bar matches it) so the bar lines up with the cards. */
-  margin: 6px 30px 16px;
-}
-@media (max-width: 720px) {
-  .ob-bar { margin: 6px 16px 14px; }
+  @apply [margin:6px_30px_16px];
 }
 .ob-bar-main {
-  flex: 1;
-  min-width: 0;
+  @apply [flex:1];
+  @apply [min-width:0];
 }
 .ob-bar-title {
-  font-weight: 800;
-  font-size: 15px;
-  color: var(--ink);
+  @apply font-extrabold;
+  @apply [font-size:15px];
+  @apply [color:var(--ink)];
 }
 .ob-bar-sub {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ink-3);
-  margin-top: 2px;
+  @apply [font-size:13px];
+  @apply font-semibold;
+  @apply [color:var(--ink-3)];
+  @apply [margin-top:2px];
 }
 .ob-bar-steps {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 10px;
+  @apply flex;
+  @apply flex-wrap;
+  @apply [gap:8px];
+  @apply [margin-top:10px];
 }
 .ob-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 700;
-  padding: 5px 10px;
-  border-radius: 999px;
-  border: 1px solid var(--hair);
-  background: var(--card-2);
-  color: var(--ink-2);
+  @apply inline-flex;
+  @apply items-center;
+  @apply [gap:6px];
+  @apply [font-size:12px];
+  @apply font-bold;
+  @apply [padding:5px_10px];
+  @apply [border-radius:999px];
+  @apply [border:1px_solid_var(--hair)];
+  @apply [background:var(--card-2)];
+  @apply [color:var(--ink-2)];
 }
 .ob-chip.done {
-  color: var(--success-tx);
-  border-color: color-mix(in srgb, var(--success) 35%, transparent);
-  background: color-mix(in srgb, var(--success) 8%, transparent);
+  @apply [color:var(--success-tx)];
+  @apply [border-color:color-mix(in_srgb,_var(--success)_35%,_transparent)];
+  @apply [background:color-mix(in_srgb,_var(--success)_8%,_transparent)];
 }
 .ob-chip-mark {
-  font-size: 12px;
-  width: 14px;
-  text-align: center;
+  @apply [font-size:12px];
+  @apply [width:14px];
+  @apply text-center;
 }
 .ob-bar-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: none;
+  @apply flex;
+  @apply items-center;
+  @apply [gap:8px];
+  @apply [flex:none];
 }
 .ob-bar-dismiss {
-  border: 0;
-  background: none;
-  color: var(--ink-3);
-  font-size: 22px;
-  line-height: 1;
-  cursor: pointer;
-  padding: 4px 6px;
+  @apply [border:0];
+  @apply [background:none];
+  @apply [color:var(--ink-3)];
+  @apply [font-size:22px];
+  @apply [line-height:1];
+  @apply cursor-pointer;
+  @apply [padding:4px_6px];
 }
 .ob-bar-dismiss:hover {
-  color: var(--ink);
+  @apply [color:var(--ink)];
+}
+@media (max-width: 720px) {
+  .ob-bar {
+    @apply [margin:6px_16px_14px];
+    @apply flex-wrap;
+  }
+  .ob-bar-main {
+    @apply [flex-basis:100%];
+  }
 }
 
 /* ── Overlay wizard ── */
 .ob-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  display: grid;
-  place-items: center;
-  padding: 24px;
-  background: var(--scrim);
+  @apply fixed;
+  @apply [inset:0];
+  @apply [z-index:1000];
+  @apply grid;
+  @apply [place-items:center];
+  @apply [padding:24px];
+  @apply [background:var(--scrim)];
 }
 .ob-card {
-  width: 100%;
-  max-width: 520px;
-  max-height: calc(100vh - 48px);
-  display: flex;
-  flex-direction: column;
-  background: var(--card);
-  border-radius: var(--r-lg);
-  box-shadow: var(--sh-2);
-  padding: 24px 24px 20px;
-  position: relative;
+  @apply [width:100%];
+  @apply [max-width:520px];
+  @apply [max-height:calc(100vh_-_48px)];
+  @apply flex;
+  @apply flex-col;
+  @apply [background:var(--card)];
+  @apply [border-radius:var(--r-lg)];
+  @apply [box-shadow:var(--sh-2)];
+  @apply [padding:24px_24px_20px];
+  @apply relative;
 }
 .ob-close {
-  position: absolute;
-  top: 14px;
-  right: 16px;
-  border: 0;
-  background: none;
-  color: var(--ink-3);
-  font-size: 24px;
-  line-height: 1;
-  cursor: pointer;
+  @apply absolute;
+  @apply [top:14px];
+  @apply [right:16px];
+  @apply [border:0];
+  @apply [background:none];
+  @apply [color:var(--ink-3)];
+  @apply [font-size:24px];
+  @apply [line-height:1];
+  @apply cursor-pointer;
 }
 .ob-close:hover {
-  color: var(--ink);
+  @apply [color:var(--ink)];
 }
 .ob-eyebrow {
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--ink-3);
+  @apply [font-size:12px];
+  @apply font-extrabold;
+  @apply [letter-spacing:0.04em];
+  @apply [text-transform:uppercase];
+  @apply [color:var(--ink-3)];
 }
 .ob-step-title {
-  font-size: 22px;
-  font-weight: 600;
-  line-height: 1.15;
-  margin-top: 4px;
+  @apply [font-size:22px];
+  @apply font-semibold;
+  @apply [line-height:1.15];
+  @apply [margin-top:4px];
 }
 .ob-step-blurb {
-  color: var(--ink-2);
-  font-weight: 500;
-  margin: 4px 0 16px;
+  @apply [color:var(--ink-2)];
+  @apply font-medium;
+  @apply [margin:4px_0_16px];
 }
 .ob-body {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
+  @apply [flex:1];
+  @apply [min-height:0];
+  @apply overflow-y-auto;
 }
 .ob-note {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ink-2);
-  background: var(--card-2);
-  border: 1px solid var(--hair);
-  border-radius: var(--r-md);
-  padding: 12px 14px;
+  @apply [font-size:13px];
+  @apply font-semibold;
+  @apply [color:var(--ink-2)];
+  @apply [background:var(--card-2)];
+  @apply [border:1px_solid_var(--hair)];
+  @apply [border-radius:var(--r-md)];
+  @apply [padding:12px_14px];
 }
 .ob-connected {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 700;
-  color: var(--success-tx);
+  @apply inline-flex;
+  @apply items-center;
+  @apply [gap:8px];
+  @apply font-bold;
+  @apply [color:var(--success-tx)];
 }
 
 /* member / generic list rows inside a step */
 .ob-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 12px;
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:8px];
+  @apply [margin-bottom:12px];
 }
 .ob-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: var(--r-md);
-  border: 1px solid var(--hair);
-  background: var(--card-2);
+  @apply flex;
+  @apply items-center;
+  @apply [gap:10px];
+  @apply [padding:10px_12px];
+  @apply [border-radius:var(--r-md)];
+  @apply [border:1px_solid_var(--hair)];
+  @apply [background:var(--card-2)];
 }
 .ob-row-avatar {
-  width: 30px;
-  height: 30px;
-  border-radius: 999px;
-  display: grid;
-  place-items: center;
-  font-size: 16px;
-  color: var(--on-media);
-  flex: none;
+  @apply [width:30px];
+  @apply [height:30px];
+  @apply [border-radius:999px];
+  @apply grid;
+  @apply [place-items:center];
+  @apply [font-size:16px];
+  @apply [color:var(--on-media)];
+  @apply [flex:none];
 }
 .ob-row-name {
-  font-weight: 700;
-  font-size: 14px;
-  color: var(--ink);
+  @apply font-bold;
+  @apply [font-size:14px];
+  @apply [color:var(--ink)];
 }
 .ob-row-sub {
-  font-weight: 600;
-  color: var(--ink-3);
+  @apply font-semibold;
+  @apply [color:var(--ink-3)];
 }
 .ob-hint {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--ink-3);
-  margin-top: 6px;
+  @apply [font-size:12px];
+  @apply font-semibold;
+  @apply [color:var(--ink-3)];
+  @apply [margin-top:6px];
 }
 .ob-or {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 14px 0;
-  color: var(--ink-3);
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  @apply flex;
+  @apply items-center;
+  @apply [gap:12px];
+  @apply [margin:14px_0];
+  @apply [color:var(--ink-3)];
+  @apply [font-size:12px];
+  @apply font-bold;
+  @apply [text-transform:uppercase];
+  @apply [letter-spacing:0.04em];
 }
 .ob-or::before,
 .ob-or::after {
   content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--hair);
+  @apply [flex:1];
+  @apply [height:1px];
+  @apply [background:var(--hair)];
 }
 .ob-empty {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ink-3);
-  margin-bottom: 12px;
+  @apply [font-size:13px];
+  @apply font-semibold;
+  @apply [color:var(--ink-3)];
+  @apply [margin-bottom:12px];
 }
 
 /* inline form fields (goal / recipe steps) */
 .ob-field {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  margin-bottom: 14px;
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:5px];
+  @apply [margin-bottom:14px];
 }
 .ob-field > span {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--ink-2);
+  @apply [font-size:13px];
+  @apply font-bold;
+  @apply [color:var(--ink-2)];
 }
 .ob-input,
 .ob-textarea {
-  font: inherit;
-  font-size: 15px;
-  padding: 11px 13px;
-  border-radius: var(--r-md);
-  border: 1px solid var(--control-line);
-  background: var(--card-2);
-  color: var(--ink);
-  width: 100%;
-  box-sizing: border-box;
+  @apply [font:inherit];
+  @apply [font-size:15px];
+  @apply [padding:11px_13px];
+  @apply [border-radius:var(--r-md)];
+  @apply [border:1px_solid_var(--control-line)];
+  @apply [background:var(--card-2)];
+  @apply [color:var(--ink)];
+  @apply [width:100%];
+  @apply [box-sizing:border-box];
 }
 .ob-textarea {
-  resize: vertical;
-  min-height: 120px;
+  @apply [resize:vertical];
+  @apply [min-height:120px];
 }
 .ob-input:focus,
 .ob-textarea:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 16%, transparent);
+  @apply [outline:none];
+  @apply [border-color:var(--primary)];
+  @apply [box-shadow:0_0_0_4px_color-mix(in_srgb,_var(--primary)_16%,_transparent)];
 }
 .ob-seg {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  @apply flex;
+  @apply flex-wrap;
+  @apply [gap:8px];
 }
 .ob-seg-btn {
-  border: 1px solid var(--hair);
-  background: var(--card-2);
-  color: var(--ink-2);
-  font-weight: 700;
-  font-size: 13px;
-  padding: 8px 14px;
-  border-radius: 999px;
-  cursor: pointer;
+  @apply [border:1px_solid_var(--hair)];
+  @apply [background:var(--card-2)];
+  @apply [color:var(--ink-2)];
+  @apply font-bold;
+  @apply [font-size:13px];
+  @apply [padding:8px_14px];
+  @apply [border-radius:999px];
+  @apply cursor-pointer;
 }
 .ob-seg-btn.on {
-  border-color: var(--primary);
-  background: color-mix(in srgb, var(--primary) 12%, transparent);
-  color: var(--primary-d);
+  @apply [border-color:var(--primary)];
+  @apply [background:color-mix(in_srgb,_var(--primary)_12%,_transparent)];
+  @apply [color:var(--primary-d)];
 }
 .ob-err {
-  color: var(--primary-d);
-  font-size: 13px;
-  font-weight: 700;
-  margin-top: -4px;
-  margin-bottom: 10px;
+  @apply [color:var(--primary-d)];
+  @apply [font-size:13px];
+  @apply font-bold;
+  @apply [margin-top:-4px];
+  @apply [margin-bottom:10px];
 }
 .ob-saved {
-  font-weight: 700;
-  color: var(--success-tx);
-  font-size: 13px;
+  @apply font-bold;
+  @apply [color:var(--success-tx)];
+  @apply [font-size:13px];
 }
 
 /* ── Footer: dots + nav ── */
 .ob-footer {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 16px;
-  padding-top: 14px;
-  border-top: 1px solid var(--hair);
+  @apply flex;
+  @apply items-center;
+  @apply [gap:12px];
+  @apply [margin-top:16px];
+  @apply [padding-top:14px];
+  @apply [border-top:1px_solid_var(--hair)];
 }
 .ob-dots {
-  display: flex;
-  gap: 6px;
-  flex: 1;
+  @apply flex;
+  @apply [gap:6px];
+  @apply [flex:1];
 }
 .ob-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: var(--hair);
+  @apply [width:8px];
+  @apply [height:8px];
+  @apply [border-radius:999px];
+  @apply [background:var(--hair)];
 }
 .ob-dot.active {
-  background: var(--primary);
+  @apply [background:var(--primary)];
 }
 .ob-dot.done {
-  background: var(--success);
+  @apply [background:var(--success)];
 }
 .ob-nav {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  @apply flex;
+  @apply items-center;
+  @apply [gap:8px];
 }
 .ob-btn {
-  border: 1px solid var(--hair);
-  background: var(--card);
-  color: var(--ink);
-  font-weight: 700;
-  font-size: 14px;
-  padding: 9px 16px;
-  border-radius: 999px;
-  cursor: pointer;
+  @apply [border:1px_solid_var(--hair)];
+  @apply [background:var(--card)];
+  @apply [color:var(--ink)];
+  @apply font-bold;
+  @apply [font-size:14px];
+  @apply [padding:9px_16px];
+  @apply [border-radius:999px];
+  @apply cursor-pointer;
 }
 .ob-btn:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
+  @apply [opacity:0.45];
+  @apply [cursor:not-allowed];
 }
 .ob-btn.primary {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: var(--on-accent);
+  @apply [background:var(--primary)];
+  @apply [border-color:var(--primary)];
+  @apply [color:var(--on-accent)];
 }
 .ob-btn.ghost {
-  border-color: transparent;
-  background: none;
-  color: var(--ink-3);
+  @apply [border-color:transparent];
+  @apply [background:none];
+  @apply [color:var(--ink-3)];
 }

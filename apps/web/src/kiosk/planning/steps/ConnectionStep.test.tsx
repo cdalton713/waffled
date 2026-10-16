@@ -35,10 +35,38 @@ const step: PlanningStep = {
 // The household's REAL people, from /api/persons. Nothing here may render a hardcoded
 // family: who the pairing is between is the entire content of a row.
 const PERSONS = [
-  { id: 'p1', name: 'Kevin', memberType: 'adult', isAdmin: true, avatarEmoji: '🐻', colorHex: '#2F7FED' },
-  { id: 'p2', name: 'Kelly', memberType: 'adult', isAdmin: false, avatarEmoji: '🦊', colorHex: '#25A368' },
-  { id: 'p3', name: 'Wally', memberType: 'kid', isAdmin: false, avatarEmoji: '🐢', colorHex: '#C2410C' },
-  { id: 'p4', name: 'Lottie', memberType: 'kid', isAdmin: false, avatarEmoji: '🦄', colorHex: '#9333EA' },
+  {
+    id: 'p1',
+    name: 'Kevin',
+    memberType: 'adult',
+    isAdmin: true,
+    avatarEmoji: '🐻',
+    colorHex: '#2F7FED',
+  },
+  {
+    id: 'p2',
+    name: 'Kelly',
+    memberType: 'adult',
+    isAdmin: false,
+    avatarEmoji: '🦊',
+    colorHex: '#25A368',
+  },
+  {
+    id: 'p3',
+    name: 'Wally',
+    memberType: 'kid',
+    isAdmin: false,
+    avatarEmoji: '🐢',
+    colorHex: '#C2410C',
+  },
+  {
+    id: 'p4',
+    name: 'Lottie',
+    memberType: 'kid',
+    isAdmin: false,
+    avatarEmoji: '🦄',
+    colorHex: '#9333EA',
+  },
 ]
 
 const evt = (over: Record<string, unknown> = {}) => ({
@@ -76,8 +104,26 @@ const BOARD = {
       lastTogetherOn: '2026-08-08',
       lastTogetherTitle: 'Date night',
       alreadyThisWeek: [],
-      togetherThisWeek: [evt({ id: 'hales', title: 'Dinner at the Hales', day: 'Friday', time: '6:00 PM', when: 'Friday 6:00 PM', minutes: 150 })],
-      slots: [slot(), slot({ date: '2026-09-12', kind: 'open', startsAt: null, afterTitle: null, label: 'Sat · free all day' })],
+      togetherThisWeek: [
+        evt({
+          id: 'hales',
+          title: 'Dinner at the Hales',
+          day: 'Friday',
+          time: '6:00 PM',
+          when: 'Friday 6:00 PM',
+          minutes: 150,
+        }),
+      ],
+      slots: [
+        slot(),
+        slot({
+          date: '2026-09-12',
+          kind: 'open',
+          startsAt: null,
+          afterTitle: null,
+          label: 'Sat · free all day',
+        }),
+      ],
     },
     {
       personIds: ['p1', 'p3'],
@@ -86,7 +132,14 @@ const BOARD = {
       lastTogetherTitle: null,
       alreadyThisWeek: [evt()],
       togetherThisWeek: [],
-      slots: [slot({ date: '2026-09-09', label: 'Wed after Scouts', afterTitle: 'Scouts', startsAt: atLocal('2026-09-09', '19:30') })],
+      slots: [
+        slot({
+          date: '2026-09-09',
+          label: 'Wed after Scouts',
+          afterTitle: 'Scouts',
+          startsAt: atLocal('2026-09-09', '19:30'),
+        }),
+      ],
     },
     {
       personIds: ['p2', 'p4'],
@@ -96,9 +149,23 @@ const BOARD = {
       alreadyThisWeek: [],
       togetherThisWeek: [
         evt({ id: 'd1', title: 'Dance', day: 'Tuesday', when: 'Tuesday 4:30 PM', time: '4:30 PM' }),
-        evt({ id: 'd2', title: 'Dance', day: 'Thursday', when: 'Thursday 4:30 PM', time: '4:30 PM' }),
+        evt({
+          id: 'd2',
+          title: 'Dance',
+          day: 'Thursday',
+          when: 'Thursday 4:30 PM',
+          time: '4:30 PM',
+        }),
       ],
-      slots: [slot({ date: '2026-09-10', kind: 'open', startsAt: null, afterTitle: null, label: 'Thu · free all day' })],
+      slots: [
+        slot({
+          date: '2026-09-10',
+          kind: 'open',
+          startsAt: null,
+          afterTitle: null,
+          label: 'Thu · free all day',
+        }),
+      ],
     },
     {
       personIds: ['p3', 'p4'],
@@ -127,7 +194,8 @@ function mockApi(board: unknown = BOARD) {
     const u = String(url)
     const method = init?.method ?? 'GET'
     if (u.startsWith('/api/persons')) return { ok: true, json: async () => ({ persons: PERSONS }) }
-    if (u.startsWith('/api/household')) return { ok: true, json: async () => ({ household: null, person: null }) }
+    if (u.startsWith('/api/household'))
+      return { ok: true, json: async () => ({ household: null, person: null }) }
     // Order matters: /connection/slots is a prefix match away from /connection.
     if (u.startsWith('/api/weekly-planning/connection/links') && method === 'PUT') {
       steps.push(JSON.parse(String(init?.body ?? '{}')) as Record<string, unknown>)
@@ -141,7 +209,9 @@ function mockApi(board: unknown = BOARD) {
           weekStart: WEEK_START,
           personIds: ['p1', 'p4'],
           who: 'Kevin and Lottie',
-          slots: [slot({ date: '2026-09-11', label: 'Fri after breakfast', afterTitle: 'breakfast' })],
+          slots: [
+            slot({ date: '2026-09-11', label: 'Fri after breakfast', afterTitle: 'breakfast' }),
+          ],
         }),
       }
     }
@@ -152,12 +222,16 @@ function mockApi(board: unknown = BOARD) {
     if (u.startsWith('/api/events') && method === 'POST') {
       const body = JSON.parse(String(init?.body ?? '{}')) as Record<string, unknown>
       posts.push(body)
-      return { ok: true, json: async () => ({ event: { ...body, id: `new-${posts.length}`, participants: [] } }) }
+      return {
+        ok: true,
+        json: async () => ({ event: { ...body, id: `new-${posts.length}`, participants: [] } }),
+      }
     }
     // The shared event modal also reads its goals and Google calendars. Empty is the
     // answer — but SHAPED, not `{}`.
     if (u.startsWith('/api/goals')) return { ok: true, json: async () => ({ goals: [] }) }
-    if (u.startsWith('/api/calendar/google/status')) return { ok: true, json: async () => ({ calendars: [] }) }
+    if (u.startsWith('/api/calendar/google/status'))
+      return { ok: true, json: async () => ({ calendars: [] }) }
     return { ok: true, json: async () => ({}) }
   }) as unknown as typeof fetch
   return { posts, slotCalls, boardReads, steps }
@@ -168,8 +242,16 @@ function renderStep(over: Partial<StepBodyProps> = {}) {
   const refresh = vi.fn()
   render(
     <MemoryRouter>
-      <Body step={step} sessionId="s1" weekStart={WEEK_START} setDecisionData={setDecisionData} refresh={refresh} busy={false} {...over} />
-    </MemoryRouter>
+      <Body
+        step={step}
+        sessionId="s1"
+        weekStart={WEEK_START}
+        setDecisionData={setDecisionData}
+        refresh={refresh}
+        busy={false}
+        {...over}
+      />
+    </MemoryRouter>,
   )
   return { setDecisionData, refresh }
 }
@@ -200,26 +282,37 @@ describe('Weekly planning · step 5 · Connection', () => {
     expect(screen.queryByText('Wally and Lottie')).not.toBeInTheDocument()
 
     const kk = await row('p1-p2')
-    expect(within(kk).getByRole('img', { name: 'Kevin and Kelly' })).toHaveTextContent('🐻')
-    expect(within(kk).getByRole('img', { name: 'Kevin and Kelly' })).toHaveTextContent('🦊')
+    expect(
+      within(kk).getByRole('img', { name: 'Kevin and Kelly' }).querySelectorAll('svg'),
+    ).toHaveLength(2)
   })
 
   it('says how long it has been, and names the thing that is nearly it but isn’t', async () => {
     mockApi()
     renderStep()
     const kk = await row('p1-p2')
-    expect(within(kk).getByText(/Nothing on the calendar with just the two of you since Aug 8/)).toBeInTheDocument()
-    expect(within(kk).getByText(/Friday’s Dinner at the Hales is you both, but it’s not that/)).toBeInTheDocument()
+    expect(
+      within(kk).getByText(/Nothing on the calendar with just the two of you since Aug 8/),
+    ).toBeInTheDocument()
+    expect(
+      within(kk).getByText(/Friday’s Dinner at the Hales is you both, but it’s not that/),
+    ).toBeInTheDocument()
   })
 
   it('gives credit for time that already exists instead of manufacturing a commitment', async () => {
     mockApi()
     renderStep()
     const kw = await row('p1-p3')
-    expect(within(kw).getByText(/Saturday’s Yard work is the two of you for 2 hours — that may already be it/)).toBeInTheDocument()
+    expect(
+      within(kw).getByText(
+        /Saturday’s Yard work is the two of you for 2 hours — that may already be it/,
+      ),
+    ).toBeInTheDocument()
     // The muted chip that says the week already answers this. It is NOT a slot: it
     // offers nothing new, it acknowledges what is there.
-    expect(within(kw).getByRole('button', { name: /Yard work.*already counts/i })).toBeInTheDocument()
+    expect(
+      within(kw).getByRole('button', { name: /Yard work.*already counts/i }),
+    ).toBeInTheDocument()
   })
 
   it('lets you say the time you already have counts, and counts that in the crumb', async () => {
@@ -228,12 +321,20 @@ describe('Weekly planning · step 5 · Connection', () => {
     const kw = await row('p1-p3')
     fireEvent.click(within(kw).getByRole('button', { name: /Yard work.*already counts/i }))
 
-    expect(await within(kw).findByText(/Nothing new — Saturday’s Yard work already is it, and you said so out loud/)).toBeInTheDocument()
+    expect(
+      await within(kw).findByText(
+        /Nothing new — Saturday’s Yard work already is it, and you said so out loud/,
+      ),
+    ).toBeInTheDocument()
     // A crumb is a hint for the recap, never storage — so counts, never module data.
     // `links` is not a breach of that: it records WHICH event answers a pairing, which
     // is a pointer, not a copy. Without it, picking a time is forgotten the moment you
     // leave the step.
-    expect(setDecisionData).toHaveBeenLastCalledWith({ added: 0, alreadyCounted: 1, links: { 'p1-p3': 'e1' } })
+    expect(setDecisionData).toHaveBeenLastCalledWith({
+      added: 0,
+      alreadyCounted: 1,
+      links: { 'p1-p3': 'e1' },
+    })
   })
 
   it('picks a slot by opening the app’s own event modal with those two people and that time', async () => {
@@ -243,7 +344,9 @@ describe('Weekly planning · step 5 · Connection', () => {
     fireEvent.click(within(kk).getByRole('button', { name: /Tue after 8:30 PM/ }))
 
     const modal = await eventModal()
-    expect(within(modal).getByRole('button', { name: 'Start date' })).toHaveTextContent('Sep 8, 2026')
+    expect(within(modal).getByRole('button', { name: 'Start date' })).toHaveTextContent(
+      'Sep 8, 2026',
+    )
     expect(within(modal).getByRole('button', { name: 'Start time' })).toHaveTextContent('8:30 PM')
     await nameItAndSave(modal, 'Date night')
 
@@ -264,8 +367,13 @@ describe('Weekly planning · step 5 · Connection', () => {
       ...BOARD,
       pairings: BOARD.pairings.map((p) =>
         p.personIds.join(',') === 'p1,p2'
-          ? { ...p, alreadyThisWeek: [evt({ id: 'fresh', title: 'Date night', day: 'Tuesday', when: 'Tuesday 8:30 PM' })] }
-          : p
+          ? {
+              ...p,
+              alreadyThisWeek: [
+                evt({ id: 'fresh', title: 'Date night', day: 'Tuesday', when: 'Tuesday 8:30 PM' }),
+              ],
+            }
+          : p,
       ),
     }
     const { posts } = mockApi(() => (++reads > 2 ? caughtUp : BOARD))
@@ -284,7 +392,7 @@ describe('Weekly planning · step 5 · Connection', () => {
     const chip = await within(await row('p1-p2')).findByRole(
       'button',
       { name: /Date night.*is your time together/i },
-      { timeout: 5000 }
+      { timeout: 5000 },
     )
     expect(chip).toHaveAttribute('aria-pressed', 'true')
   }, 15000)
@@ -338,7 +446,9 @@ describe('Weekly planning · step 5 · Connection', () => {
     const kk = await row('p1-p2')
     fireEvent.click(within(kk).getByRole('button', { name: /Sat · free all day/ }))
     const modal = await eventModal()
-    expect(within(modal).getByRole('button', { name: 'Start date' })).toHaveTextContent('Sep 12, 2026')
+    expect(within(modal).getByRole('button', { name: 'Start date' })).toHaveTextContent(
+      'Sep 12, 2026',
+    )
     expect(within(modal).getByRole('button', { name: 'Start time' })).toHaveTextContent('5:00 PM')
   })
 
@@ -348,7 +458,9 @@ describe('Weekly planning · step 5 · Connection', () => {
     const kk = await row('p1-p2')
     fireEvent.click(within(kk).getByRole('button', { name: /Another time.*Kevin and Kelly/i }))
     const modal = await eventModal()
-    expect(within(modal).getByRole('button', { name: 'Start date' })).toHaveTextContent(dayLabel(WEEK_START))
+    expect(within(modal).getByRole('button', { name: 'Start date' })).toHaveTextContent(
+      dayLabel(WEEK_START),
+    )
   })
 
   it('makes a pairing of any two people — or three — and offers THEIR gaps', async () => {
@@ -358,19 +470,31 @@ describe('Weekly planning · step 5 · Connection', () => {
 
     const maker = screen.getByTestId('wpn-make')
     for (const p of PERSONS) {
-      expect(within(maker).getByRole('button', { name: new RegExp(`${p.name}`, 'i') })).toBeInTheDocument()
+      expect(
+        within(maker).getByRole('button', { name: new RegExp(`${p.name}`, 'i') }),
+      ).toBeInTheDocument()
     }
     fireEvent.click(within(maker).getByRole('button', { name: /Kevin/i }))
     fireEvent.click(within(maker).getByRole('button', { name: /Lottie/i }))
 
     // Two people chosen ⇒ ask the server for THIS pairing's gaps, in the week the server
     // gave us. Never a gap computed on the device.
-    await waitFor(() => expect(slotCalls.some((u) => u.includes('people=p1,p4') && u.includes(`weekStart=${WEEK_START}`))).toBe(true))
-    expect(await within(maker).findByRole('button', { name: /Fri after breakfast/ })).toBeInTheDocument()
+    await waitFor(() =>
+      expect(
+        slotCalls.some((u) => u.includes('people=p1,p4') && u.includes(`weekStart=${WEEK_START}`)),
+      ).toBe(true),
+    )
+    expect(
+      await within(maker).findByRole('button', { name: /Fri after breakfast/ }),
+    ).toBeInTheDocument()
 
     // A third person is welcome — "any two people (or three)".
     fireEvent.click(within(maker).getByRole('button', { name: /Wally/i }))
-    await waitFor(() => expect(slotCalls.some((u) => u.includes('people=p1,p3,p4') || u.includes('people=p1,p4,p3'))).toBe(true))
+    await waitFor(() =>
+      expect(
+        slotCalls.some((u) => u.includes('people=p1,p3,p4') || u.includes('people=p1,p4,p3')),
+      ).toBe(true),
+    )
 
     fireEvent.click(within(maker).getByRole('button', { name: /Fri after breakfast/ }))
     const modal = await eventModal()
@@ -407,7 +531,11 @@ describe('Weekly planning · step 5 · Connection', () => {
 
     // Opening it again starts from nobody, not from the last pairing.
     fireEvent.click(screen.getByRole('button', { name: /Make a pairing/i }))
-    expect(within(screen.getByTestId('wpn-make')).getByRole('button', { name: /Kevin — add to the pairing/i })).toBeInTheDocument()
+    expect(
+      within(screen.getByTestId('wpn-make')).getByRole('button', {
+        name: /Kevin — add to the pairing/i,
+      }),
+    ).toBeInTheDocument()
     expect(screen.queryByText(/Added to the calendar/)).not.toBeInTheDocument()
   })
 
@@ -415,7 +543,9 @@ describe('Weekly planning · step 5 · Connection', () => {
     mockApi()
     renderStep()
     expect(
-      await screen.findByText(/The rows above are just the pairings the app can see — they aren’t the list/)
+      await screen.findByText(
+        /The rows above are just the pairings the app can see — they aren’t the list/,
+      ),
     ).toBeInTheDocument()
   })
 
@@ -438,24 +568,35 @@ describe('Weekly planning · step 5 · Connection', () => {
 
 describe('pairingSentence', () => {
   // The row's whole job in one function, so the wording is testable without a DOM.
-  const base = { personIds: ['p1', 'p2'], who: 'A and B', lastTogetherOn: null, lastTogetherTitle: null, alreadyThisWeek: [], togetherThisWeek: [], slots: [] }
+  const base = {
+    personIds: ['p1', 'p2'],
+    who: 'A and B',
+    lastTogetherOn: null,
+    lastTogetherTitle: null,
+    alreadyThisWeek: [],
+    togetherThisWeek: [],
+    slots: [],
+  }
 
   it('leads with the time that already exists', () => {
     expect(pairingSentence({ ...base, alreadyThisWeek: [evt()] }, null)).toMatch(
-      /^Saturday’s Yard work is the two of you for 2 hours/
+      /^Saturday’s Yard work is the two of you for 2 hours/,
     )
   })
 
   it('changes once somebody says out loud that it counts', () => {
     expect(pairingSentence({ ...base, alreadyThisWeek: [evt()] }, 'e1')).toBe(
-      'Nothing new — Saturday’s Yard work already is it, and you said so out loud.'
+      'Nothing new — Saturday’s Yard work already is it, and you said so out loud.',
     )
   })
 
   it('counts the times the week throws them together without it being that', () => {
-    const twice = [evt({ day: 'Tuesday', title: 'Dance' }), evt({ day: 'Thursday', title: 'Dance' })]
+    const twice = [
+      evt({ day: 'Tuesday', title: 'Dance' }),
+      evt({ day: 'Thursday', title: 'Dance' }),
+    ]
     expect(pairingSentence({ ...base, togetherThisWeek: twice }, null)).toBe(
-      'Nothing on the calendar with just the two of you. You’re both at 2 things this week, but none of them is that.'
+      'Nothing on the calendar with just the two of you. You’re both at 2 things this week, but none of them is that.',
     )
   })
 
@@ -477,7 +618,18 @@ describe('Connection · a pairing with time on it is never hidden', () => {
       ...BOARD,
       pairings: [
         ...BOARD.pairings.slice(0, 3),
-        { ...BOARD.pairings[3], alreadyThisWeek: [evt({ id: 'made', title: 'Just us', day: 'Thursday', time: '7:00 PM', when: 'Thursday 7:00 PM' })] },
+        {
+          ...BOARD.pairings[3],
+          alreadyThisWeek: [
+            evt({
+              id: 'made',
+              title: 'Just us',
+              day: 'Thursday',
+              time: '7:00 PM',
+              when: 'Thursday 7:00 PM',
+            }),
+          ],
+        },
       ],
     }
     mockApi(withCredit)
@@ -502,7 +654,15 @@ describe('Connection · a pairing with time on it is never hidden', () => {
       ...BOARD,
       pairings: BOARD.pairings.map((p, i) => ({
         ...p,
-        alreadyThisWeek: [evt({ id: `a${i}`, title: 'Just us', day: 'Thursday', time: '7:00 PM', when: 'Thursday 7:00 PM' })],
+        alreadyThisWeek: [
+          evt({
+            id: `a${i}`,
+            title: 'Just us',
+            day: 'Thursday',
+            time: '7:00 PM',
+            when: 'Thursday 7:00 PM',
+          }),
+        ],
       })),
     }
     mockApi(allWithCredit)

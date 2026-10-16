@@ -20,7 +20,7 @@ Migrations live in **`apps/api/migrations/`** as flat `.sql` files.
 ### Running them
 
 ```bash
-./waffled migrate        # apply from the host (cd apps/api && npm run migrate)
+./waffled migrate        # apply from the host (cd apps/api && pnpm run migrate)
 ```
 
 On `./waffled up` a one-shot **`migrate`** compose service runs first, so the schema — including

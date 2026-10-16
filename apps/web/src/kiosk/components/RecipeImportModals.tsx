@@ -6,6 +6,12 @@ import { useRef, useState } from 'react'
 import { mealsApi, type ParsedRecipe } from '../../lib/api/meals'
 import { encodeImageForUpload } from '../../lib/api/media'
 import { ApiSendError } from '../../lib/api/client'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { DataIcon } from '@/components/ui/data-icon'
+import { Modal } from '@/components/ui/modal'
 
 const MAX_PHOTOS = 6
 
@@ -21,7 +27,13 @@ interface EncodedPhoto {
 }
 
 // ── Photo(s) → recipe ────────────────────────────────────────────────────────
-export function PhotoImportModal({ onClose, onDraft }: { onClose: () => void; onDraft: (p: ParsedRecipe) => void }) {
+export function PhotoImportModal({
+  onClose,
+  onDraft,
+}: {
+  onClose: () => void
+  onDraft: (p: ParsedRecipe) => void
+}) {
   const [photos, setPhotos] = useState<EncodedPhoto[]>([])
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
@@ -50,7 +62,9 @@ export function PhotoImportModal({ onClose, onDraft }: { onClose: () => void; on
     setBusy(true)
     setErr(null)
     try {
-      const draft = await mealsApi.ingestPhoto(photos.map((p) => ({ data: p.data, contentType: p.contentType })))
+      const draft = await mealsApi.ingestPhoto(
+        photos.map((p) => ({ data: p.data, contentType: p.contentType })),
+      )
       onDraft(draft)
       onClose()
     } catch (e) {
@@ -61,26 +75,62 @@ export function PhotoImportModal({ onClose, onDraft }: { onClose: () => void; on
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <Modal className="modal-overlay" onClose={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 480 }}>
-        <button type="button" className="modal-close" aria-label="Close" onClick={onClose}>×</button>
-        <div className="wf-serif" style={{ fontSize: 22, fontWeight: 600, marginBottom: 4 }}>Import from a photo</div>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="modal-close"
+          aria-label="Close"
+          onClick={onClose}
+        >
+          <DataIcon value={'×'} kind="meal" />
+        </Button>
+        <div className="wf-serif" style={{ fontSize: 22, fontWeight: 600, marginBottom: 4 }}>
+          Import from a photo
+        </div>
         <p className="tiny muted" style={{ marginTop: 0, marginBottom: 14 }}>
-          Snap or choose a photo of a recipe card, cookbook page, or handwritten note — even a few pages of one recipe.
-          We’ll read it and fill the form. Photos are held briefly, then deleted.
+          Snap or choose a photo of a recipe card, cookbook page, or handwritten note — even a few
+          pages of one recipe. We’ll read it and fill the form. Photos are held briefly, then
+          deleted.
         </p>
 
         {photos.length > 0 && (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
             {photos.map((p, i) => (
               <div key={i} style={{ position: 'relative' }}>
-                <img src={p.preview} alt="" style={{ width: 76, height: 76, objectFit: 'cover', borderRadius: 10, display: 'block' }} />
-                <button
+                <img
+                  src={p.preview}
+                  alt=""
+                  style={{
+                    width: 76,
+                    height: 76,
+                    objectFit: 'cover',
+                    borderRadius: 10,
+                    display: 'block',
+                  }}
+                />
+                <Button
+                  variant="unstyled"
                   type="button"
                   aria-label="Remove photo"
                   onClick={() => setPhotos((prev) => prev.filter((_, j) => j !== i))}
-                  style={{ position: 'absolute', top: -6, right: -6, width: 22, height: 22, borderRadius: '50%', border: 0, background: 'rgba(0,0,0,.65)', color: 'var(--on-accent)', cursor: 'pointer', lineHeight: 1 }}
-                >×</button>
+                  style={{
+                    position: 'absolute',
+                    top: -6,
+                    right: -6,
+                    width: 22,
+                    height: 22,
+                    borderRadius: '50%',
+                    border: 0,
+                    background: 'rgba(0,0,0,.65)',
+                    color: 'var(--on-accent)',
+                    cursor: 'pointer',
+                    lineHeight: 1,
+                  }}
+                >
+                  <DataIcon value={'×'} kind="photo" />
+                </Button>
               </div>
             ))}
           </div>
@@ -90,13 +140,28 @@ export function PhotoImportModal({ onClose, onDraft }: { onClose: () => void; on
           // Empty state: a single centered, roomy primary button is the one clear
           // action. Once photos are added it demotes to a small ghost "Add another"
           // and the Cancel/Read footer appears.
-          <div style={photos.length === 0 ? { display: 'flex', justifyContent: 'center', padding: '6px 0 2px' } : undefined}>
-            <label
+          <div
+            style={
+              photos.length === 0
+                ? { display: 'flex', justifyContent: 'center', padding: '6px 0 2px' }
+                : undefined
+            }
+          >
+            <Label
               className={photos.length === 0 ? 'btn btn-primary' : 'btn btn-ghost'}
-              style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6, ...(photos.length === 0 ? { padding: '14px 30px', fontSize: 16 } : {}) }}
+              style={{
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                ...(photos.length === 0 ? { padding: '14px 30px', fontSize: 16 } : {}),
+              }}
             >
-              📷 {photos.length ? 'Add another' : 'Choose photos'}
-              <input
+              <>
+                <DataIcon value={'📷'} kind="photo" />{' '}
+              </>
+              {photos.length ? 'Add another' : 'Choose photos'}
+              <Input
                 ref={fileRef}
                 type="file"
                 accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
@@ -105,23 +170,59 @@ export function PhotoImportModal({ onClose, onDraft }: { onClose: () => void; on
                 style={{ display: 'none' }}
                 onChange={(e) => addFiles(e.target.files)}
               />
-            </label>
+            </Label>
           </div>
         )}
 
-        {err && <div className="tiny" style={{ color: 'var(--danger)', fontWeight: 700, marginTop: 10 }}>{err}</div>}
+        {err && (
+          <div className="tiny" style={{ color: 'var(--danger)', fontWeight: 700, marginTop: 10 }}>
+            {err}
+          </div>
+        )}
 
         {photos.length > 0 && (
-          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--hair)' }}>
-            <button type="button" className="btn btn-ghost" onClick={onClose}>Cancel</button>
-            <button type="button" className="btn btn-primary" disabled={busy} onClick={extract}>
-              {busy ? 'Reading…' : `Read ${photos.length} → fill the form`}
-            </button>
+          <div
+            style={{
+              display: 'flex',
+              gap: 10,
+              justifyContent: 'flex-end',
+              marginTop: 24,
+              paddingTop: 16,
+              borderTop: '1px solid var(--hair)',
+            }}
+          >
+            <Button variant="ghost" type="button" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button variant="default" type="button" disabled={busy} onClick={extract}>
+              {busy ? (
+                'Reading…'
+              ) : (
+                <>
+                  {'Read '}
+                  {photos.length}
+                  <>
+                    {' '}
+                    <DataIcon value={'→'} kind="meal" />
+                    {' fill the form'}
+                  </>
+                </>
+              )}
+            </Button>
           </div>
         )}
-        <p className="tiny muted" style={{ marginBottom: 0, marginTop: 12, textAlign: photos.length === 0 ? 'center' : undefined }}>Under 10&nbsp;MB each · up to {MAX_PHOTOS} photos.</p>
+        <p
+          className="tiny muted"
+          style={{
+            marginBottom: 0,
+            marginTop: 12,
+            textAlign: photos.length === 0 ? 'center' : undefined,
+          }}
+        >
+          Under 10&nbsp;MB each · up to {MAX_PHOTOS} photos.
+        </p>
       </div>
-    </div>
+    </Modal>
   )
 }
 
@@ -131,7 +232,11 @@ interface SpeechRec {
   continuous: boolean
   interimResults: boolean
   lang: string
-  onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }> & { isFinal: boolean }> }) => void) | null
+  onresult:
+    | ((e: {
+        results: ArrayLike<ArrayLike<{ transcript: string }> & { isFinal: boolean }>
+      }) => void)
+    | null
   onend: (() => void) | null
   onerror: (() => void) | null
   start: () => void
@@ -139,11 +244,20 @@ interface SpeechRec {
 }
 
 function getSpeechRecognition(): (new () => SpeechRec) | null {
-  const w = window as unknown as { SpeechRecognition?: new () => SpeechRec; webkitSpeechRecognition?: new () => SpeechRec }
+  const w = window as unknown as {
+    SpeechRecognition?: new () => SpeechRec
+    webkitSpeechRecognition?: new () => SpeechRec
+  }
   return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null
 }
 
-export function DescribeImportModal({ onClose, onDraft }: { onClose: () => void; onDraft: (p: ParsedRecipe) => void }) {
+export function DescribeImportModal({
+  onClose,
+  onDraft,
+}: {
+  onClose: () => void
+  onDraft: (p: ParsedRecipe) => void
+}) {
   const [text, setText] = useState('')
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
@@ -193,46 +307,78 @@ export function DescribeImportModal({ onClose, onDraft }: { onClose: () => void;
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <Modal className="modal-overlay" onClose={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 480 }}>
-        <button type="button" className="modal-close" aria-label="Close" onClick={onClose}>×</button>
-        <div className="wf-serif" style={{ fontSize: 22, fontWeight: 600, marginBottom: 4 }}>Describe the recipe</div>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="modal-close"
+          aria-label="Close"
+          onClick={onClose}
+        >
+          <DataIcon value={'×'} kind="meal" />
+        </Button>
+        <div className="wf-serif" style={{ fontSize: 22, fontWeight: 600, marginBottom: 4 }}>
+          Describe the recipe
+        </div>
         <p className="tiny muted" style={{ marginTop: 0, marginBottom: 12 }}>
-          Just say or type what you know — ingredients and steps, in any order. We’ll organize it into a recipe you can tidy up.
+          Just say or type what you know — ingredients and steps, in any order. We’ll organize it
+          into a recipe you can tidy up.
         </p>
 
-        <label className="field">
+        <Label className="field">
           <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span>What’s in it &amp; how to make it</span>
             {speechAvailable && (
-              <button
+              <Button
+                variant="unstyled"
                 type="button"
                 className="pill"
                 onClick={toggleMic}
-                style={listening ? { background: 'var(--danger)', color: 'var(--on-accent)', border: 0 } : undefined}
+                style={
+                  listening
+                    ? { background: 'var(--danger)', color: 'var(--on-accent)', border: 0 }
+                    : undefined
+                }
               >
-                {listening ? '● Listening… tap to stop' : '🎤 Dictate'}
-              </button>
+                {listening ? (
+                  <>
+                    <DataIcon value={'●'} kind="meal" />
+                    {' Listening… tap to stop'}
+                  </>
+                ) : (
+                  <>
+                    <DataIcon value={'🎤'} kind="meal" />
+                    {' Dictate'}
+                  </>
+                )}
+              </Button>
             )}
           </span>
-          <textarea
+          <Textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
             rows={9}
             autoFocus
             placeholder="Grandma’s chili — brown a pound of ground beef with an onion, add two cans of kidney beans, a can of diced tomatoes, chili powder and cumin, simmer about 30 minutes…"
           />
-        </label>
+        </Label>
 
-        {err && <div className="tiny" style={{ color: 'var(--danger)', fontWeight: 700, marginTop: 10 }}>{err}</div>}
+        {err && (
+          <div className="tiny" style={{ color: 'var(--danger)', fontWeight: 700, marginTop: 10 }}>
+            {err}
+          </div>
+        )}
 
         <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 16 }}>
-          <button type="button" className="btn btn-ghost" onClick={onClose}>Cancel</button>
-          <button type="button" className="btn btn-primary" disabled={busy || !text.trim()} onClick={submit}>
+          <Button variant="ghost" type="button" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button variant="default" type="button" disabled={busy || !text.trim()} onClick={submit}>
             {busy ? 'Thinking…' : 'Turn into a recipe'}
-          </button>
+          </Button>
         </div>
       </div>
-    </div>
+    </Modal>
   )
 }

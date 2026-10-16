@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { groceryApi, type RecipeIngredient } from '../../lib/api'
 import { fmtAmt } from '../../lib/amount'
+import { Button } from '@/components/ui/button'
+import { DataIcon } from '@/components/ui/data-icon'
+import { Modal } from '@/components/ui/modal'
 
 // "Add all, or pick specific ingredients" — the shopper may already have some on hand.
 //
@@ -34,7 +37,7 @@ export function RecipeGroceryModal({
   onAdded: (added: number) => void
 }) {
   const [selected, setSelected] = useState<Set<string>>(
-    () => new Set(ingredients.filter((i) => !i.inPantry).map((i) => i.id))
+    () => new Set(ingredients.filter((i) => !i.inPantry).map((i) => i.id)),
   )
   const [saving, setSaving] = useState(false)
   const pantryCount = ingredients.filter((i) => i.inPantry).length
@@ -66,43 +69,75 @@ export function RecipeGroceryModal({
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <Modal className="modal-overlay" onClose={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 460 }}>
-        <button type="button" className="modal-close" aria-label="Close" onClick={onClose}>×</button>
-        <div className="wf-serif" style={{ fontSize: 20, fontWeight: 600, marginBottom: 4 }}>Add to grocery list</div>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="modal-close"
+          aria-label="Close"
+          onClick={onClose}
+        >
+          <DataIcon value={'×'} kind="meal" />
+        </Button>
+        <div className="wf-serif" style={{ fontSize: 20, fontWeight: 600, marginBottom: 4 }}>
+          Add to grocery list
+        </div>
         <div className="tiny muted" style={{ fontWeight: 600, marginBottom: 12 }}>
           {pantryCount > 0
             ? `Choose what to add from “${title}” — we’ve already unchecked ${pantryCount} item${pantryCount === 1 ? '' : 's'} your pantry says you have.`
             : `Choose what to add from “${title}” — uncheck anything you already have.`}
         </div>
 
-        <button type="button" className="pill" style={{ cursor: 'pointer', marginBottom: 10 }} onClick={toggleAll}>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="pill"
+          style={{ cursor: 'pointer', marginBottom: 10 }}
+          onClick={toggleAll}
+        >
           {allOn ? 'Select none' : 'Select all'}
-        </button>
+        </Button>
 
         <div style={{ maxHeight: '48vh', overflowY: 'auto', margin: '0 -4px' }}>
           {ingredients.map((ing) => {
             const on = selected.has(ing.id)
-            const left = ing.amount != null ? `${fmtAmt(ing.amount * ratio)}${ing.unit ? ` ${ing.unit}` : ''}` : '—'
+            const left =
+              ing.amount != null
+                ? `${fmtAmt(ing.amount * ratio)}${ing.unit ? ` ${ing.unit}` : ''}`
+                : '—'
             const name = ing.prepNote ? `${ing.name}, ${ing.prepNote}` : ing.name
             return (
               <div
                 key={ing.id}
                 className={`ring-row picking ${on ? 'on' : ''}`}
                 role="button"
+                aria-pressed={on}
                 tabIndex={0}
                 onClick={() => toggle(ing.id)}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(ing.id) } }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    toggle(ing.id)
+                  }
+                }}
                 style={{ cursor: 'pointer' }}
               >
-                <span className="ring-ck" aria-hidden>{on ? '✓' : ''}</span>
+                <span className="ring-ck" aria-hidden>
+                  {on ? <DataIcon value={'✓'} kind="meal" /> : ''}
+                </span>
                 <span className="ring-amt">{left}</span>
                 <span className="ring-name">
                   {name}
                   {/* The real match wins the hint slot: "in your pantry" is something we
                       observed, "likely on hand" only something we assumed. */}
                   {ing.inPantry ? (
-                    <span className="ring-was ring-inpantry">🥫 in your pantry</span>
+                    <span className="ring-was ring-inpantry">
+                      <>
+                        <DataIcon value={'🥫'} kind="meal" />
+                        {' in your pantry'}
+                      </>
+                    </span>
                   ) : (
                     ing.isStaple && <span className="ring-was">pantry staple — likely on hand</span>
                   )}
@@ -113,15 +148,27 @@ export function RecipeGroceryModal({
         </div>
 
         <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
-          <button type="button" className="btn btn-ghost" style={{ cursor: 'pointer' }} onClick={onClose}>Cancel</button>
-          <button type="button" className="btn btn-primary" style={{ cursor: 'pointer', marginLeft: 'auto' }} disabled={saving || selected.size === 0} onClick={add}>
+          <Button variant="ghost" type="button" style={{ cursor: 'pointer' }} onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            variant="default"
+            type="button"
+            style={{ cursor: 'pointer', marginLeft: 'auto' }}
+            disabled={saving || selected.size === 0}
+            onClick={add}
+          >
             {/* Pre-unchecking can empty the selection outright when the pantry covers the
                 whole recipe. "Add 0 items" on a dead button explains nothing; name the
                 state instead, and leave "Select all" as the way out. */}
-            {saving ? 'Adding…' : selected.size === 0 ? 'Nothing to add' : `Add ${selected.size} item${selected.size === 1 ? '' : 's'}`}
-          </button>
+            {saving
+              ? 'Adding…'
+              : selected.size === 0
+                ? 'Nothing to add'
+                : `Add ${selected.size} item${selected.size === 1 ? '' : 's'}`}
+          </Button>
         </div>
       </div>
-    </div>
+    </Modal>
   )
 }

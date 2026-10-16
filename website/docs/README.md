@@ -8,9 +8,9 @@ top-level `docs/`.
 
 ```bash
 cd website
-npm install
-npm run dev      # http://localhost:4321
-npm run build    # → ./dist  (static site)
+pnpm install
+pnpm run dev      # http://localhost:4321
+pnpm run build    # → ./dist  (static site)
 ```
 
 ## Hosting — Cloudflare Pages
@@ -25,7 +25,7 @@ Deployed via **Cloudflare Pages** (free, serves at the root so no base-path fidd
 | Production branch | `main` |
 | Framework preset | **Astro** |
 | **Root directory** | `website` |
-| Build command | `npm run build` |
+| Build command | `pnpm run build` |
 | Build output directory | `dist` |
 
 That's it — every push to `main` that touches `website/` rebuilds and deploys to a free

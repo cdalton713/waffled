@@ -24,8 +24,11 @@ import '../styles/lists.css'
 import { CHECK } from './components/CheckGlyph'
 import { ItemAutocomplete, useItemSuggest } from './components/ItemAutocomplete'
 import { RecentItemsModal } from './components/RecentItemsModal'
-
-
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { NativeSelect } from '@/components/ui/native-select'
+import { DataIcon } from '@/components/ui/data-icon'
+import { Check } from 'lucide-react'
 
 // Pluralized summary line under the list name: "12 items · 2 done". The headline
 // count is the active (unchecked) items only — completed items don't pad the total.
@@ -54,7 +57,7 @@ function Avatar({
       role={onClick ? 'button' : undefined}
       aria-label={onClick ? 'Assign' : undefined}
     >
-      {emoji ?? '🙂'}
+      <DataIcon value={emoji ?? '🙂'} kind="list" />
     </div>
   )
 }
@@ -100,13 +103,21 @@ function ItemRow({
       onDragStart={onDragStart && !selecting ? () => onDragStart(item) : undefined}
       onDragEnd={onDragEnd}
       onDragOver={onDropOnto ? (e) => e.preventDefault() : undefined}
-      onDrop={onDropOnto ? (e) => { e.stopPropagation(); onDropOnto(item) } : undefined}
+      onDrop={
+        onDropOnto
+          ? (e) => {
+              e.stopPropagation()
+              onDropOnto(item)
+            }
+          : undefined
+      }
     >
       {/* In select mode the row shows ONLY the square selection box — the round
           completion checkbox is hidden so a tap can't accidentally check an item
           off while the user is trying to pick it. */}
       {selecting ? (
-        <button
+        <Button
+          variant="unstyled"
           type="button"
           className={`lck lsel ${selected ? 'on' : ''}`}
           aria-label={selected ? `Deselect ${item.name}` : `Select ${item.name}`}
@@ -114,10 +125,11 @@ function ItemRow({
           onClick={() => onSelect?.(item)}
         >
           {selected ? CHECK : null}
-        </button>
+        </Button>
       ) : (
         // Only the checkbox toggles; tapping the name opens the editor.
-        <button
+        <Button
+          variant="unstyled"
           type="button"
           className={`lck ${item.checked ? 'on' : ''}`}
           aria-label={item.checked ? `Uncheck ${item.name}` : `Check ${item.name}`}
@@ -125,9 +137,10 @@ function ItemRow({
           onClick={() => onToggle(item)}
         >
           {item.checked ? CHECK : null}
-        </button>
+        </Button>
       )}
-      <button
+      <Button
+        variant="unstyled"
         type="button"
         className="lnm lnm-btn"
         // While selecting, the name doubles as a select target; leave its label
@@ -146,33 +159,48 @@ function ItemRow({
                 aria-hidden
                 style={addedBy.colorHex ? { background: `${addedBy.colorHex}22` } : undefined}
               >
-                {addedBy.avatarEmoji}
+                <DataIcon value={addedBy.avatarEmoji} kind="person" />
               </span>
             )}
             added by {addedBy.name}
           </span>
         )}
-        {item.note && <span className="gattr lnote">📝 {item.note}</span>}
-      </button>
+        {item.note && (
+          <span className="gattr lnote">
+            <>
+              <DataIcon value={'📝'} kind="list" />{' '}
+            </>
+            {item.note}
+          </span>
+        )}
+      </Button>
       {item.quantity ? <span className="lqty">{item.quantity}</span> : null}
       <div className="litem-assign" style={{ position: 'relative' }}>
         {a ? (
           <Avatar emoji={a.avatarEmoji} color={a.colorHex} onClick={() => setMenuOpen((v) => !v)} />
         ) : (
-          <button
+          <Button
+            variant="unstyled"
             type="button"
             className="av sm lav"
             aria-label="Assign"
-            style={{ background: 'var(--panel)', color: 'var(--ink-3)', border: 0, cursor: 'pointer', fontSize: 14 }}
+            style={{
+              background: 'var(--panel)',
+              color: 'var(--ink-3)',
+              border: 0,
+              cursor: 'pointer',
+              fontSize: 14,
+            }}
             onClick={() => setMenuOpen((v) => !v)}
           >
             +
-          </button>
+          </Button>
         )}
         {menuOpen && (
           <div className="assign-menu" style={{ right: 0, top: 36 }}>
             {people.map((p) => (
-              <button
+              <Button
+                variant="unstyled"
                 key={p.id}
                 type="button"
                 onClick={() => {
@@ -180,20 +208,26 @@ function ItemRow({
                   setMenuOpen(false)
                 }}
               >
-                <span>{p.avatarEmoji ?? '🙂'}</span>
+                <span>
+                  <DataIcon value={p.avatarEmoji ?? '🙂'} kind="person" />
+                </span>
                 {p.name}
-              </button>
+              </Button>
             ))}
             {a && (
-              <button
+              <Button
+                variant="unstyled"
                 type="button"
                 onClick={() => {
                   onAssign(item, null)
                   setMenuOpen(false)
                 }}
               >
-                <span>✕</span> Unassign
-              </button>
+                <span>
+                  <DataIcon value={'✕'} kind="list" />
+                </span>{' '}
+                Unassign
+              </Button>
             )}
           </div>
         )}
@@ -201,7 +235,15 @@ function ItemRow({
       {/* × delete on the far right — hidden while selecting so a stray tap can't
           delete an item the user meant to pick. */}
       {!selecting && !isViewOnly() && (
-        <button type="button" className="litem-act litem-del" aria-label={`Delete ${item.name}`} onClick={() => onDelete(item)}>×</button>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="litem-act litem-del"
+          aria-label={`Delete ${item.name}`}
+          onClick={() => onDelete(item)}
+        >
+          <DataIcon value={'×'} kind="list" />
+        </Button>
       )}
     </div>
   )
@@ -217,7 +259,7 @@ const COMPLETE_GRACE_MS = 2000
 // Completed group so they visibly "go somewhere" instead of lingering inline.
 export function partitionListItems(
   items: ListItem[],
-  recent: Set<string>
+  recent: Set<string>,
 ): { active: ListItem[]; completed: ListItem[] } {
   const active: ListItem[] = []
   const completed: ListItem[] = []
@@ -233,7 +275,9 @@ export function partitionListItems(
 // ordered A–Z by name so they hold a fixed position — the API's item order isn't
 // stable across refetches, and ordering by it made sections hop around as items
 // were added/checked/moved. The no-section "Items" catch-all always sorts last.
-export function groupBySection(items: ListItem[]): Array<{ title: string; key: string; items: ListItem[] }> {
+export function groupBySection(
+  items: ListItem[],
+): Array<{ title: string; key: string; items: ListItem[] }> {
   const order: string[] = []
   const map = new Map<string, ListItem[]>()
   for (const it of items) {
@@ -292,7 +336,9 @@ function SectionPicker({
   const [creating, setCreating] = useState(false)
   const [draft, setDraft] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
-  useEffect(() => { if (creating) inputRef.current?.focus() }, [creating])
+  useEffect(() => {
+    if (creating) inputRef.current?.focus()
+  }, [creating])
 
   if (creating) {
     const confirm = () => {
@@ -301,10 +347,13 @@ function SectionPicker({
       setDraft('')
       setCreating(false)
     }
-    const cancel = () => { setDraft(''); setCreating(false) }
+    const cancel = () => {
+      setDraft('')
+      setCreating(false)
+    }
     return (
       <span className={`lists-secpick-new ${className}`}>
-        <input
+        <Input
           ref={inputRef}
           className="lists-secpick-input"
           value={draft}
@@ -313,32 +362,55 @@ function SectionPicker({
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => {
             // Guard against the enclosing add-bar <form> submitting on Enter.
-            if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); confirm() }
-            else if (e.key === 'Escape') { e.preventDefault(); cancel() }
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              e.stopPropagation()
+              confirm()
+            } else if (e.key === 'Escape') {
+              e.preventDefault()
+              cancel()
+            }
           }}
         />
-        <button type="button" className="linkbtn" onClick={confirm}>Add</button>
-        <button type="button" className="linkbtn" aria-label="Cancel new section" onClick={cancel}>×</button>
+        <Button variant="unstyled" type="button" className="linkbtn" onClick={confirm}>
+          Add
+        </Button>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="linkbtn"
+          aria-label="Cancel new section"
+          onClick={cancel}
+        >
+          <DataIcon value={'×'} kind="list" />
+        </Button>
       </span>
     )
   }
 
   return (
-    <select
+    <NativeSelect
       className={`sel ${className}`}
       aria-label={ariaLabel}
       disabled={disabled}
       value={value === undefined ? '' : (value ?? '__none__')}
       onChange={(e) => {
         const v = e.target.value
-        if (v === '__new__') { setCreating(true); return }
+        if (v === '__new__') {
+          setCreating(true)
+          return
+        }
         if (placeholder !== undefined && v === '') return
         onChange(v === '__none__' ? null : v)
       }}
     >
       {placeholder !== undefined && <option value="">{placeholder}</option>}
       <option value="__none__">{noneLabel}</option>
-      {sections.map((s) => <option key={s} value={s}>{s}</option>)}
+      {sections.map((s) => (
+        <option key={s} value={s}>
+          {s}
+        </option>
+      ))}
       {/* A just-created section isn't in `sections` yet (no item uses it until this
           value is committed) — render it so the select can actually SHOW the choice
           instead of snapping back to the first option and looking like it cleared. */}
@@ -346,7 +418,7 @@ function SectionPicker({
         <option value={value}>{value}</option>
       )}
       <option value="__new__">+ New section…</option>
-    </select>
+    </NativeSelect>
   )
 }
 
@@ -356,10 +428,18 @@ export function Lists() {
   const { persons } = usePersons()
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
-  const [editingList, setEditingList] = useState<{ id: string; name: string; emoji: string | null } | null>(null)
+  const [editingList, setEditingList] = useState<{
+    id: string
+    name: string
+    emoji: string | null
+  } | null>(null)
   // A template the user chose "Use template" on — opens the create modal pre-pointed
   // at it so they can name the new list before it's created.
-  const [templateModal, setTemplateModal] = useState<{ id: string; name: string; emoji: string | null } | null>(null)
+  const [templateModal, setTemplateModal] = useState<{
+    id: string
+    name: string
+    emoji: string | null
+  } | null>(null)
   const [confirmDel, setConfirmDel] = useState(false)
   const [draft, setDraft] = useState('')
   const viewOnly = useViewOnly()
@@ -413,8 +493,16 @@ export function Lists() {
   // null = clear, value = set).
   type BulkStaged = { section?: string | null; assignedTo?: string | null; priority?: number }
   const [bulkStaged, setBulkStaged] = useState<BulkStaged>({})
-  const startSelecting = () => { setSelecting(true); setSelectedItems(new Set()); setBulkStaged({}) }
-  const cancelSelecting = () => { setSelecting(false); setSelectedItems(new Set()); setBulkStaged({}) }
+  const startSelecting = () => {
+    setSelecting(true)
+    setSelectedItems(new Set())
+    setBulkStaged({})
+  }
+  const cancelSelecting = () => {
+    setSelecting(false)
+    setSelectedItems(new Set())
+    setBulkStaged({})
+  }
   // Drag-to-reorganize: the item being dragged (ref, not state, so the drop
   // handler reads it synchronously) + the section highlighted as a drop target.
   const dragId = useRef<string | null>(null)
@@ -461,7 +549,12 @@ export function Lists() {
     return lists.find((l) => l.listType !== 'grocery') ?? byId ?? lists[0] ?? null
   }, [lists, templates, selectedId])
   const isTemplate = selected?.listType === 'template'
-  const { items, loading: itemsLoading, setItems, refetch: refetchItems } = useListDetail(selected?.id ?? null)
+  const {
+    items,
+    loading: itemsLoading,
+    setItems,
+    refetch: refetchItems,
+  } = useListDetail(selected?.id ?? null)
   const suggest = useItemSuggest(selected?.id)
   // "Waffled suggests": the household's most-bought names that aren't on this list yet.
   const [chips, setChips] = useState<string[]>([])
@@ -469,10 +562,17 @@ export function Lists() {
   useEffect(() => {
     if (!selected?.id) return
     let live = true
-    groceryApi.suggestions('', selected.id)
-      .then((list) => { if (live) setChips(list.slice(0, 4).map((s) => s.name)) })
-      .catch(() => { if (live) setChips([]) })
-    return () => { live = false }
+    groceryApi
+      .suggestions('', selected.id)
+      .then((list) => {
+        if (live) setChips(list.slice(0, 4).map((s) => s.name))
+      })
+      .catch(() => {
+        if (live) setChips([])
+      })
+    return () => {
+      live = false
+    }
   }, [selected?.id, liveCount])
 
   // A search belongs to the list it was typed on — switching lists starts fresh
@@ -496,14 +596,19 @@ export function Lists() {
     () => (
       <>
         <Editable>
-          <button type="button" className="pill btn-primary topbar-new" onClick={() => setItemModal({ item: null })}>
+          <Button
+            variant="unstyled"
+            type="button"
+            className="pill btn-primary topbar-new"
+            onClick={() => setItemModal({ item: null })}
+          >
             <Icon name="plus" />
             <span>Add item</span>
-          </button>
+          </Button>
         </Editable>
       </>
     ),
-    []
+    [],
   )
 
   // Optimistic check toggle. A freshly-checked item lingers in place for a short
@@ -512,9 +617,21 @@ export function Lists() {
     const next = !item.checked
     if (next) {
       setRecent((s) => new Set(s).add(item.id))
-      setTimeout(() => setRecent((s) => { const n = new Set(s); n.delete(item.id); return n }), COMPLETE_GRACE_MS)
+      setTimeout(
+        () =>
+          setRecent((s) => {
+            const n = new Set(s)
+            n.delete(item.id)
+            return n
+          }),
+        COMPLETE_GRACE_MS,
+      )
     } else {
-      setRecent((s) => { const n = new Set(s); n.delete(item.id); return n })
+      setRecent((s) => {
+        const n = new Set(s)
+        n.delete(item.id)
+        return n
+      })
     }
     setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, checked: next } : i)))
     try {
@@ -549,13 +666,23 @@ export function Lists() {
     if (!item || id === target.id || !selected) return
     const moved = { ...item, section: target.section ?? null }
     const rest = items.filter((i) => i.id !== id)
-    const next = [...rest.slice(0, rest.findIndex((i) => i.id === target.id)), moved, ...rest.slice(rest.findIndex((i) => i.id === target.id))]
-      .map((i, idx) => ({ ...i, sortOrder: idx }))
+    const next = [
+      ...rest.slice(
+        0,
+        rest.findIndex((i) => i.id === target.id),
+      ),
+      moved,
+      ...rest.slice(rest.findIndex((i) => i.id === target.id)),
+    ].map((i, idx) => ({ ...i, sortOrder: idx }))
     const snapshot = items
     setItems(next)
     try {
-      if ((item.section ?? null) !== moved.section) await listWrites.patchItem(item, { section: moved.section })
-      await listWrites.reorder(selected.id, next.map((i) => i.id))
+      if ((item.section ?? null) !== moved.section)
+        await listWrites.patchItem(item, { section: moved.section })
+      await listWrites.reorder(
+        selected.id,
+        next.map((i) => i.id),
+      )
     } catch {
       setItems(snapshot)
     }
@@ -605,7 +732,11 @@ export function Lists() {
   // Apply one attribute (section / assignee / priority) to every selected item in
   // one round-trip, then refetch. Selection is kept so several attributes can be
   // applied to the same set.
-  async function applyBulk(patch: { section?: string | null; assignedTo?: string | null; priority?: number }) {
+  async function applyBulk(patch: {
+    section?: string | null
+    assignedTo?: string | null
+    priority?: number
+  }) {
     const ids = [...selectedItems]
     if (!ids.length) return
     try {
@@ -649,7 +780,11 @@ export function Lists() {
   // Reset selection only if the selected id is gone from BOTH lists and templates
   // (converting a list to a template moves it between the two — don't clear it).
   useEffect(() => {
-    if (selectedId && !lists.some((l) => l.id === selectedId) && !templates.some((t) => t.id === selectedId)) {
+    if (
+      selectedId &&
+      !lists.some((l) => l.id === selectedId) &&
+      !templates.some((t) => t.id === selectedId)
+    ) {
       setSelectedId(null)
     }
   }, [lists, templates, selectedId])
@@ -714,7 +849,11 @@ export function Lists() {
   }
 
   if (listsError) {
-    return <div className="muted" style={{ padding: 30 }}>Couldn't load your lists — try reloading or signing in again.</div>
+    return (
+      <div className="muted" style={{ padding: 30 }}>
+        Couldn't load your lists — try reloading or signing in again.
+      </div>
+    )
   }
 
   // The grocery list opens its dedicated auto-built board (takes over the screen).
@@ -728,7 +867,10 @@ export function Lists() {
   const byPerson = filterPerson ? items.filter((i) => i.assignee?.personId === filterPerson) : items
   const searching = query.trim().length > 0
   const visibleItems = filterListItems(byPerson, query)
-  const { active: activeItems, completed: completedItems } = partitionListItems(visibleItems, recent)
+  const { active: activeItems, completed: completedItems } = partitionListItems(
+    visibleItems,
+    recent,
+  )
   // While a search is running every section renders open: a match hiding inside a
   // section the user collapsed yesterday reads as "search is broken". Their collapse
   // choices are suspended, not forgotten — clearing the search puts them back. Same
@@ -756,7 +898,8 @@ export function Lists() {
             const on = l.id === selected?.id
             const auto = l.listType === 'grocery'
             return (
-              <button
+              <Button
+                variant="unstyled"
                 key={l.id}
                 type="button"
                 className={`list-item ${on ? 'on' : ''}`}
@@ -766,23 +909,41 @@ export function Lists() {
                   setConfirmDel(false)
                 }}
               >
-                <span className="lemo">{l.emoji ?? '📝'}</span>
+                <span className="lemo">
+                  <DataIcon value={l.emoji ?? '📝'} kind="list" />
+                </span>
                 {l.name}
                 <span className={`lct ${auto ? 'auto' : ''}`}>
-                  {auto ? `✦ ${l.itemCount}` : l.itemCount}
+                  {auto ? (
+                    <>
+                      <>
+                        <DataIcon value={'✦'} kind="list" />{' '}
+                      </>
+                      {l.itemCount}
+                    </>
+                  ) : (
+                    l.itemCount
+                  )}
                 </span>
-              </button>
+              </Button>
             )
           })}
           {!listsLoading && lists.length === 0 && (
-            <div className="tiny muted" style={{ padding: '4px 8px', fontWeight: 600 }}>No lists yet.</div>
+            <div className="tiny muted" style={{ padding: '4px 8px', fontWeight: 600 }}>
+              No lists yet.
+            </div>
           )}
         </div>
         <Editable>
-          <button type="button" className="btn btn-ghost lists-new" onClick={() => setCreating(true)}>
+          <Button
+            variant="ghost"
+            type="button"
+            className="lists-new"
+            onClick={() => setCreating(true)}
+          >
             <Icon name="plus" />
             New list
-          </button>
+          </Button>
         </Editable>
 
         {templates.length > 0 && !viewOnly && (
@@ -792,7 +953,8 @@ export function Lists() {
               {templates.map((t) => {
                 const on = t.id === selected?.id
                 return (
-                  <button
+                  <Button
+                    variant="unstyled"
                     key={t.id}
                     type="button"
                     className={`list-item ${on ? 'on' : ''}`}
@@ -802,10 +964,12 @@ export function Lists() {
                       setConfirmDel(false)
                     }}
                   >
-                    <span className="lemo">{t.emoji ?? '📑'}</span>
+                    <span className="lemo">
+                      <DataIcon value={t.emoji ?? '📑'} kind="list" />
+                    </span>
                     {t.name}
                     <span className="lct">{t.itemCount}</span>
-                  </button>
+                  </Button>
                 )
               })}
             </div>
@@ -817,126 +981,240 @@ export function Lists() {
         {selected && (
           <>
             <div className="lists-head">
-              <div className="lists-head-emoji">{selected.emoji ?? (isTemplate ? '📑' : '📝')}</div>
+              <div className="lists-head-emoji">
+                <DataIcon value={selected.emoji ?? (isTemplate ? '📑' : '📝')} kind="list" />
+              </div>
               <div className="card-h wf-serif lists-head-name">
                 {selected.name}
                 {isTemplate && <span className="lists-tpl-badge">TEMPLATE</span>}
               </div>
               <div className="muted" style={{ fontWeight: 600 }}>
-                {isTemplate ? `${items.length} item${items.length === 1 ? '' : 's'}` : summaryLine(items)}
+                {isTemplate
+                  ? `${items.length} item${items.length === 1 ? '' : 's'}`
+                  : summaryLine(items)}
               </div>
               <div className="lists-head-actions">
-              {/* Search sits first in the action group, ahead of the filter pills —
+                {/* Search sits first in the action group, ahead of the filter pills —
                   it narrows the same view they do. Local only; the list is already
                   loaded. */}
-              <div className="lists-search-wrap">
-                <input
-                  className="lists-search"
-                  type="text"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Escape') setQuery('') }}
-                  placeholder="Search this list…"
-                  aria-label="Search this list"
-                  autoComplete="off"
-                  spellCheck={false}
-                />
-                {query !== '' && (
-                  <button
+                <div className="lists-search-wrap">
+                  <Input
+                    className="lists-search"
+                    type="text"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Escape') setQuery('')
+                    }}
+                    placeholder="Search this list…"
+                    aria-label="Search this list"
+                    autoComplete="off"
+                    spellCheck={false}
+                  />
+                  {query !== '' && (
+                    <Button
+                      variant="unstyled"
+                      type="button"
+                      className="lists-search-clear"
+                      aria-label="Clear search"
+                      onClick={() => setQuery('')}
+                    >
+                      <DataIcon value={'×'} kind="list" />
+                    </Button>
+                  )}
+                </div>
+                <div className="filter-wrap" onClick={(e) => e.stopPropagation()}>
+                  <Button
+                    variant="unstyled"
                     type="button"
-                    className="lists-search-clear"
-                    aria-label="Clear search"
-                    onClick={() => setQuery('')}
+                    className="pill filter-pill"
+                    onClick={() => setFilterMenu((v) => !v)}
                   >
-                    ×
-                  </button>
-                )}
-              </div>
-              <div className="filter-wrap" onClick={(e) => e.stopPropagation()}>
-                <button type="button" className="pill filter-pill" onClick={() => setFilterMenu((v) => !v)}>
-                  <Icon name="filter" />
-                  {filterPerson ? persons.find((p) => p.id === filterPerson)?.name ?? 'Everyone' : 'Everyone'}
-                </button>
-                {filterMenu && (
-                  <div className="assign-menu" style={{ right: 0, top: 40 }}>
-                    <button type="button" onClick={() => { setFilterPerson(null); setFilterMenu(false) }}>
-                      <span>👪</span> Everyone
-                    </button>
-                    {persons.map((p) => (
-                      <button key={p.id} type="button" onClick={() => { setFilterPerson(p.id); setFilterMenu(false) }}>
-                        <span>{p.avatarEmoji ?? '🙂'}</span> {p.name}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <button
-                type="button"
-                className={`pill filter-pill${sortByPriority ? ' on' : ''}`}
-                aria-pressed={sortByPriority}
-                title="Sort this list by priority (highest first)"
-                onClick={() => setSortByPriority((v) => !v)}
-              >
-                <Icon name="filter" /> {sortByPriority ? 'By priority' : 'Sort: manual'}
-              </button>
-              {!selecting && (
-                <button
+                    <Icon name="filter" />
+                    {filterPerson
+                      ? (persons.find((p) => p.id === filterPerson)?.name ?? 'Everyone')
+                      : 'Everyone'}
+                  </Button>
+                  {filterMenu && (
+                    <div className="assign-menu" style={{ right: 0, top: 40 }}>
+                      <Button
+                        variant="unstyled"
+                        type="button"
+                        onClick={() => {
+                          setFilterPerson(null)
+                          setFilterMenu(false)
+                        }}
+                      >
+                        <span>
+                          <DataIcon value={'👪'} kind="list" />
+                        </span>{' '}
+                        Everyone
+                      </Button>
+                      {persons.map((p) => (
+                        <Button
+                          variant="unstyled"
+                          key={p.id}
+                          type="button"
+                          onClick={() => {
+                            setFilterPerson(p.id)
+                            setFilterMenu(false)
+                          }}
+                        >
+                          <span>
+                            <DataIcon value={p.avatarEmoji ?? '🙂'} kind="person" />
+                          </span>{' '}
+                          {p.name}
+                        </Button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <Button
+                  variant="unstyled"
                   type="button"
-                  className="pill filter-pill lists-select-pill"
-                  title="Select multiple items to edit at once"
-                  onClick={startSelecting}
+                  className={`pill filter-pill${sortByPriority ? ' on' : ''}`}
+                  aria-pressed={sortByPriority}
+                  title="Sort this list by priority (highest first)"
+                  onClick={() => setSortByPriority((v) => !v)}
                 >
-                  <Icon name="tasks" /> Select
-                </button>
-              )}
-              {isTemplate && (
-                <button type="button" className="pill btn-primary" style={{ cursor: 'pointer' }} title="Create a new list from this template (current items, unchecked)" onClick={useSelectedTemplate}>
-                  ▶ Use template
-                </button>
-              )}
-              <div className="filter-wrap" ref={actionsRef} onClick={(e) => e.stopPropagation()}>
-                <button
-                  type="button"
-                  className="pill lists-more"
-                  aria-label="More actions"
-                  aria-haspopup="menu"
-                  aria-expanded={actionsMenu}
-                  onClick={() => { setActionsMenu((v) => !v); setConfirmDel(false) }}
-                >
-                  ⋯
-                </button>
-                {actionsMenu && (
-                  <div className="assign-menu" style={{ right: 0, top: 40 }}>
-                    <button type="button" onClick={() => { setEditingList({ id: selected.id, name: selected.name, emoji: selected.emoji }); setActionsMenu(false) }}>
-                      <span aria-hidden>✎</span> {isTemplate ? 'Rename template' : 'Rename'}
-                    </button>
-                    {!isTemplate && !viewOnly && (
-                      <button type="button" onClick={() => { setShowRecent(true); setActionsMenu(false) }}>
-                        <span aria-hidden>↺</span> Recently crossed off
-                      </button>
-                    )}
-                    {/* Only worth offering while something is still outstanding. */}
-                    {hasUnchecked && (
-                      <button type="button" onClick={() => { setSharing(true); setActionsMenu(false) }}>
-                        <span aria-hidden>📤</span> Share list
-                      </button>
-                    )}
-                    {isTemplate ? (
-                      <button type="button" onClick={() => { moveTemplateToLists(); setActionsMenu(false) }}>
-                        <span aria-hidden>↩</span> Move to Lists
-                      </button>
-                    ) : (
-                      <button type="button" onClick={() => { saveSelectedAsTemplate(); setActionsMenu(false) }}>
-                        <span aria-hidden>📑</span> Save as template
-                      </button>
-                    )}
-                    {/* Two-tap confirm: the first tap keeps the menu open so the second can land. */}
-                    <button type="button" className="lists-more-del" onClick={deleteSelected}>
-                      <span aria-hidden>🗑</span> {confirmDel ? 'Tap again to delete' : isTemplate ? 'Delete template' : 'Delete'}
-                    </button>
-                  </div>
+                  <Icon name="filter" /> {sortByPriority ? 'By priority' : 'Sort: manual'}
+                </Button>
+                {!selecting && (
+                  <Button
+                    variant="unstyled"
+                    type="button"
+                    className="pill filter-pill lists-select-pill"
+                    title="Select multiple items to edit at once"
+                    onClick={startSelecting}
+                  >
+                    <Icon name="tasks" /> Select
+                  </Button>
                 )}
-              </div>
+                {isTemplate && (
+                  <Button
+                    variant="unstyled"
+                    type="button"
+                    className="pill btn-primary"
+                    style={{ cursor: 'pointer' }}
+                    title="Create a new list from this template (current items, unchecked)"
+                    onClick={useSelectedTemplate}
+                  >
+                    <>
+                      <DataIcon value={'▶'} kind="list" />
+                      {' Use template'}
+                    </>
+                  </Button>
+                )}
+                <div className="filter-wrap" ref={actionsRef} onClick={(e) => e.stopPropagation()}>
+                  <Button
+                    variant="unstyled"
+                    type="button"
+                    className="pill lists-more"
+                    aria-label="More actions"
+                    aria-haspopup="menu"
+                    aria-expanded={actionsMenu}
+                    onClick={() => {
+                      setActionsMenu((v) => !v)
+                      setConfirmDel(false)
+                    }}
+                  >
+                    ⋯
+                  </Button>
+                  {actionsMenu && (
+                    <div className="assign-menu" style={{ right: 0, top: 40 }}>
+                      <Button
+                        variant="unstyled"
+                        type="button"
+                        onClick={() => {
+                          setEditingList({
+                            id: selected.id,
+                            name: selected.name,
+                            emoji: selected.emoji,
+                          })
+                          setActionsMenu(false)
+                        }}
+                      >
+                        <span aria-hidden>
+                          <DataIcon value={'✎'} kind="list" />
+                        </span>{' '}
+                        {isTemplate ? 'Rename template' : 'Rename'}
+                      </Button>
+                      {!isTemplate && !viewOnly && (
+                        <Button
+                          variant="unstyled"
+                          type="button"
+                          onClick={() => {
+                            setShowRecent(true)
+                            setActionsMenu(false)
+                          }}
+                        >
+                          <span aria-hidden>
+                            <DataIcon value={'↺'} kind="list" />
+                          </span>{' '}
+                          Recently crossed off
+                        </Button>
+                      )}
+                      {/* Only worth offering while something is still outstanding. */}
+                      {hasUnchecked && (
+                        <Button
+                          variant="unstyled"
+                          type="button"
+                          onClick={() => {
+                            setSharing(true)
+                            setActionsMenu(false)
+                          }}
+                        >
+                          <span aria-hidden>
+                            <DataIcon value={'📤'} kind="list" />
+                          </span>{' '}
+                          Share list
+                        </Button>
+                      )}
+                      {isTemplate ? (
+                        <Button
+                          variant="unstyled"
+                          type="button"
+                          onClick={() => {
+                            moveTemplateToLists()
+                            setActionsMenu(false)
+                          }}
+                        >
+                          <span aria-hidden>↩</span> Move to Lists
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="unstyled"
+                          type="button"
+                          onClick={() => {
+                            saveSelectedAsTemplate()
+                            setActionsMenu(false)
+                          }}
+                        >
+                          <span aria-hidden>
+                            <DataIcon value={'📑'} kind="list" />
+                          </span>{' '}
+                          Save as template
+                        </Button>
+                      )}
+                      {/* Two-tap confirm: the first tap keeps the menu open so the second can land. */}
+                      <Button
+                        variant="unstyled"
+                        type="button"
+                        className="lists-more-del"
+                        onClick={deleteSelected}
+                      >
+                        <span aria-hidden>
+                          <DataIcon value={'🗑'} kind="list" />
+                        </span>{' '}
+                        {confirmDel
+                          ? 'Tap again to delete'
+                          : isTemplate
+                            ? 'Delete template'
+                            : 'Delete'}
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
             <div className="tiny muted lists-hint">
@@ -945,42 +1223,52 @@ export function Lists() {
                 : 'Tap the box to check off · tap an item to edit · tap an avatar to assign'}
             </div>
 
-            {!viewOnly && (<>
-            <form className="ai-bar lists-addbar" onSubmit={onAddSubmit}>
-              <div className="ai-spark" aria-hidden>
-                <Icon name="spark" />
-              </div>
-              <ItemAutocomplete
-                ref={addInputRef}
-                value={draft}
-                onChange={setDraft}
-                onPick={(name) => addItem(name).then(() => setDraft(''))}
-                suggest={suggest}
-                placeholder={'Add to this list… “bug spray and 2 water bottles”'}
-                aria-label="Add to this list"
-              />
-              <SectionPicker
-                className="lists-addbar-sec"
-                ariaLabel="Section for new items"
-                value={addSection}
-                sections={sectionNames}
-                onChange={setAddSection}
-              />
-              <div className="mic" aria-hidden>
-                <Icon name="mic" />
-              </div>
-            </form>
+            {!viewOnly && (
+              <>
+                <form className="ai-bar lists-addbar" onSubmit={onAddSubmit}>
+                  <div className="ai-spark" aria-hidden>
+                    <Icon name="spark" />
+                  </div>
+                  <ItemAutocomplete
+                    ref={addInputRef}
+                    value={draft}
+                    onChange={setDraft}
+                    onPick={(name) => addItem(name).then(() => setDraft(''))}
+                    suggest={suggest}
+                    placeholder={'Add to this list… “bug spray and 2 water bottles”'}
+                    aria-label="Add to this list"
+                  />
+                  <SectionPicker
+                    className="lists-addbar-sec"
+                    ariaLabel="Section for new items"
+                    value={addSection}
+                    sections={sectionNames}
+                    onChange={setAddSection}
+                  />
+                  <div className="mic" aria-hidden>
+                    <Icon name="mic" />
+                  </div>
+                </form>
 
-            {chips.length > 0 && <div className="lists-suggest">
-              <span className="tiny lists-suggest-label">Waffled suggests:</span>
-              {chips.map((s) => (
-                <button key={s} type="button" className="sug-chip" onClick={() => addItem(s)}>
-                  <svg viewBox="0 0 24 24" dangerouslySetInnerHTML={{ __html: '<path d="M12 5v14M5 12h14"/>' }} />
-                  {s}
-                </button>
-              ))}
-            </div>}
-            </>)}
+                {chips.length > 0 && (
+                  <div className="lists-suggest">
+                    <span className="tiny lists-suggest-label">Waffled suggests:</span>
+                    {chips.map((s) => (
+                      <Button
+                        variant="unstyled"
+                        key={s}
+                        type="button"
+                        className="sug-chip"
+                        onClick={() => addItem(s)}
+                      >
+                        <Check aria-hidden="true" />
+                        {s}
+                      </Button>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
 
             {selecting && (
               <div className="lists-bulkbar" role="toolbar" aria-label="Bulk edit selected items">
@@ -993,23 +1281,33 @@ export function Lists() {
                   disabled={selectedItems.size === 0}
                   onChange={(v) => setBulkStaged((s) => ({ ...s, section: v }))}
                 />
-                <select
+                <NativeSelect
                   className="sel"
                   aria-label="Assign selected to"
                   value={'assignedTo' in bulkStaged ? (bulkStaged.assignedTo ?? '__none__') : ''}
                   disabled={selectedItems.size === 0}
-                  onChange={(e) => { const v = e.target.value; if (v) setBulkStaged((s) => ({ ...s, assignedTo: v === '__none__' ? null : v })) }}
+                  onChange={(e) => {
+                    const v = e.target.value
+                    if (v) setBulkStaged((s) => ({ ...s, assignedTo: v === '__none__' ? null : v }))
+                  }}
                 >
                   <option value="">Assign…</option>
                   <option value="__none__">Unassign</option>
-                  {persons.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-                </select>
-                <select
+                  {persons.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </NativeSelect>
+                <NativeSelect
                   className="sel"
                   aria-label="Set priority for selected"
                   value={'priority' in bulkStaged ? String(bulkStaged.priority) : ''}
                   disabled={selectedItems.size === 0}
-                  onChange={(e) => { const v = e.target.value; if (v) setBulkStaged((s) => ({ ...s, priority: Number(v) })) }}
+                  onChange={(e) => {
+                    const v = e.target.value
+                    if (v) setBulkStaged((s) => ({ ...s, priority: Number(v) }))
+                  }}
                 >
                   <option value="">Priority…</option>
                   <option value="5">5 · urgent</option>
@@ -1017,14 +1315,19 @@ export function Lists() {
                   <option value="3">3 · normal</option>
                   <option value="2">2</option>
                   <option value="1">1 · not urgent</option>
-                </select>
+                </NativeSelect>
                 <div className="lists-bulkbar-actions">
-                  <button type="button" className="btn btn-ghost" onClick={cancelSelecting}>
+                  <Button variant="ghost" type="button" onClick={cancelSelecting}>
                     Cancel
-                  </button>
-                  <button type="button" className="btn btn-primary" disabled={selectedItems.size === 0} onClick={commitBulk}>
+                  </Button>
+                  <Button
+                    variant="default"
+                    type="button"
+                    disabled={selectedItems.size === 0}
+                    onClick={commitBulk}
+                  >
                     Done
-                  </button>
+                  </Button>
                 </div>
               </div>
             )}
@@ -1038,7 +1341,10 @@ export function Lists() {
               searching ? (
                 <div className="lists-empty">No items match “{query.trim()}”.</div>
               ) : (
-                <div className="lists-empty">Nothing assigned to {persons.find((p) => p.id === filterPerson)?.name ?? 'them'} here.</div>
+                <div className="lists-empty">
+                  Nothing assigned to {persons.find((p) => p.id === filterPerson)?.name ?? 'them'}{' '}
+                  here.
+                </div>
               )
             ) : (
               <>
@@ -1069,7 +1375,12 @@ export function Lists() {
                           <div
                             key={sec.key}
                             className={`lists-section${dragOverKey === sec.key ? ' drag-over' : ''}`}
-                            onDragOver={(e) => { if (dragId.current) { e.preventDefault(); setDragOverKey(sec.key) } }}
+                            onDragOver={(e) => {
+                              if (dragId.current) {
+                                e.preventDefault()
+                                setDragOverKey(sec.key)
+                              }
+                            }}
                             onDragLeave={() => setDragOverKey((k) => (k === sec.key ? null : k))}
                             onDrop={() => {
                               const id = dragId.current
@@ -1078,7 +1389,8 @@ export function Lists() {
                               if (id) moveToSection(id, sec.key)
                             }}
                           >
-                            <button
+                            <Button
+                              variant="unstyled"
                               type="button"
                               className="lists-section-title lists-section-toggle"
                               aria-expanded={!sectionCollapsed(sec.key)}
@@ -1087,34 +1399,47 @@ export function Lists() {
                               // search forces the section open, so a click here would
                               // be remembered with no visible effect and hide a section
                               // the user never chose to collapse once they cleared.
-                              onClick={() => { if (!searching) toggleSectionCollapse(sec.key) }}
+                              onClick={() => {
+                                if (!searching) toggleSectionCollapse(sec.key)
+                              }}
                             >
-                              <span className={`cal-chev ${sectionCollapsed(sec.key) ? '' : 'open'}`} aria-hidden>›</span>
+                              <span
+                                className={`cal-chev ${sectionCollapsed(sec.key) ? '' : 'open'}`}
+                                aria-hidden
+                              >
+                                <DataIcon value={'›'} kind="calendar" />
+                              </span>
                               <span className="lists-section-name">{sec.title}</span>
                               <span className="ga-n">{sec.items.length}</span>
-                            </button>
-                            {!sectionCollapsed(sec.key) && sec.items.map((it) => (
-                              <ItemRow
-                                key={it.id}
-                                item={it}
-                                people={persons}
-                                onToggle={toggle}
-                                onAssign={assign}
-                                onEdit={(i) => setItemModal({ item: i })}
-                                onDelete={remove}
-                                onDragStart={(i) => { dragId.current = i.id }}
-                                onDragEnd={() => { dragId.current = null; setDragOverKey(null) }}
-                                onDropOnto={(target) => {
-                                  const id = dragId.current
-                                  dragId.current = null
-                                  setDragOverKey(null)
-                                  if (id) moveBefore(id, target)
-                                }}
-                                selecting={selecting}
-                                selected={selectedItems.has(it.id)}
-                                onSelect={toggleItemSelected}
-                              />
-                            ))}
+                            </Button>
+                            {!sectionCollapsed(sec.key) &&
+                              sec.items.map((it) => (
+                                <ItemRow
+                                  key={it.id}
+                                  item={it}
+                                  people={persons}
+                                  onToggle={toggle}
+                                  onAssign={assign}
+                                  onEdit={(i) => setItemModal({ item: i })}
+                                  onDelete={remove}
+                                  onDragStart={(i) => {
+                                    dragId.current = i.id
+                                  }}
+                                  onDragEnd={() => {
+                                    dragId.current = null
+                                    setDragOverKey(null)
+                                  }}
+                                  onDropOnto={(target) => {
+                                    const id = dragId.current
+                                    dragId.current = null
+                                    setDragOverKey(null)
+                                    if (id) moveBefore(id, target)
+                                  }}
+                                  selecting={selecting}
+                                  selected={selectedItems.has(it.id)}
+                                  onSelect={toggleItemSelected}
+                                />
+                              ))}
                           </div>
                         ))}
                       </div>
@@ -1122,7 +1447,12 @@ export function Lists() {
                   </div>
                 )}
                 {activeItems.length === 0 && completedItems.length > 0 && (
-                  <div className="lists-empty">All done — everything’s checked off. 🎉</div>
+                  <div className="lists-empty">
+                    <>
+                      {'All done — everything’s checked off. '}
+                      <DataIcon value={'🎉'} kind="list" />
+                    </>
+                  </div>
                 )}
                 {/* Completed — checked items tuck here; collapsible, un-check to restore. */}
                 {completedItems.length > 0 && (
@@ -1137,25 +1467,41 @@ export function Lists() {
                       // click here would flip a state with no visible effect — and the
                       // user would find Completed mysteriously re-collapsed (or opened)
                       // once they cleared the search.
-                      onClick={() => { if (!searching) setShowDone((v) => !v) }}
+                      onClick={() => {
+                        if (!searching) setShowDone((v) => !v)
+                      }}
                     >
-                      <span className={`cal-chev ${doneOpen ? 'open' : ''}`} aria-hidden>›</span>
+                      <span className={`cal-chev ${doneOpen ? 'open' : ''}`} aria-hidden>
+                        <DataIcon value={'›'} kind="list" />
+                      </span>
                       <span>Completed</span>
                       <span className="ga-n">{allCompleted.length}</span>
                       {!isTemplate && (
-                        <button
+                        <Button
+                          variant="unstyled"
                           type="button"
                           className="linkbtn lists-clear-done"
-                          onClick={(e) => { e.stopPropagation(); clearCompleted() }}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            clearCompleted()
+                          }}
                         >
                           Clear
-                        </button>
+                        </Button>
                       )}
                     </div>
                     {doneOpen && (
                       <div className="lists-completed-list">
                         {completedItems.map((it) => (
-                          <ItemRow key={it.id} item={it} people={persons} onToggle={toggle} onAssign={assign} onEdit={(i) => setItemModal({ item: i })} onDelete={remove} />
+                          <ItemRow
+                            key={it.id}
+                            item={it}
+                            people={persons}
+                            onToggle={toggle}
+                            onAssign={assign}
+                            onEdit={(i) => setItemModal({ item: i })}
+                            onDelete={remove}
+                          />
                         ))}
                       </div>
                     )}
@@ -1197,7 +1543,14 @@ export function Lists() {
         />
       )}
       {showRecent && selected && (
-        <RecentItemsModal listId={selected.id} onClose={() => setShowRecent(false)} onAdded={() => { refetchItems(); refetchLists() }} />
+        <RecentItemsModal
+          listId={selected.id}
+          onClose={() => setShowRecent(false)}
+          onAdded={() => {
+            refetchItems()
+            refetchLists()
+          }}
+        />
       )}
       {sharing && (
         <ShareListModal

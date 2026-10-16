@@ -8,28 +8,95 @@ import { RewardsPanel } from './RewardsPanel'
 // Rather than mock the hooks, we mock fetch at the endpoint level (as the other
 // kiosk tests do) so the real hooks and redeem/award paths exercise.
 
-const currencies = [{ id: 'c1', key: 'stars', label: 'Stars', symbol: '⭐', color: '#f2b01e', isDefault: true, spendable: true, sortOrder: 0 }]
+const currencies = [
+  {
+    id: 'c1',
+    key: 'stars',
+    label: 'Stars',
+    symbol: '⭐',
+    color: '#f2b01e',
+    isDefault: true,
+    spendable: true,
+    sortOrder: 0,
+  },
+]
 
 // Wally has 8 stars: enough for the 5-star treat, not the 20-star adventure.
 const balances = [
-  { personId: 'p1', name: 'Wally', avatarEmoji: '🐢', colorHex: '#25A368', stars: 8, balances: [{ currency: 'stars', balance: 8 }], recent: [] },
+  {
+    personId: 'p1',
+    name: 'Wally',
+    avatarEmoji: '🐢',
+    colorHex: '#25A368',
+    stars: 8,
+    balances: [{ currency: 'stars', balance: 8 }],
+    recent: [],
+  },
 ]
 
 const rewards = [
-  { id: 'r1', title: 'Ice cream', emoji: '🍦', cost: 5, currency: 'stars', category: 'treats', sortOrder: 0, requiresApproval: false },
-  { id: 'r2', title: 'Theme park', emoji: '🎢', cost: 20, currency: 'stars', category: 'adventures', sortOrder: 1, requiresApproval: false },
+  {
+    id: 'r1',
+    title: 'Ice cream',
+    emoji: '🍦',
+    cost: 5,
+    currency: 'stars',
+    category: 'treats',
+    sortOrder: 0,
+    requiresApproval: false,
+  },
+  {
+    id: 'r2',
+    title: 'Theme park',
+    emoji: '🎢',
+    cost: 20,
+    currency: 'stars',
+    category: 'adventures',
+    sortOrder: 1,
+    requiresApproval: false,
+  },
 ]
 
 const overview = {
-  person: { id: 'p1', name: 'Wally', avatarEmoji: '🐢', colorHex: '#25A368', age: 8, memberType: 'kid' },
-  activeGoals: 0, topStreak: 0, stars: 8, currencies, balances: [{ currency: 'stars', balance: 8 }],
-  goals: [], categoryBalance: [], insight: { lean: [], light: [], suggestions: [], text: '' },
-  recentLedger: [], redemptions: [], rewardShop: [],
-  savingToward: { id: 'r2', title: 'Theme park', emoji: '🎢', cost: 20, currency: 'stars', have: 8, toGo: 12, pct: 40 },
+  person: {
+    id: 'p1',
+    name: 'Wally',
+    avatarEmoji: '🐢',
+    colorHex: '#25A368',
+    age: 8,
+    memberType: 'kid',
+  },
+  activeGoals: 0,
+  topStreak: 0,
+  stars: 8,
+  currencies,
+  balances: [{ currency: 'stars', balance: 8 }],
+  goals: [],
+  categoryBalance: [],
+  insight: { lean: [], light: [], suggestions: [], text: '' },
+  recentLedger: [],
+  redemptions: [],
+  rewardShop: [],
+  savingToward: {
+    id: 'r2',
+    title: 'Theme park',
+    emoji: '🎢',
+    cost: 20,
+    currency: 'stars',
+    have: 8,
+    toGo: 12,
+    pct: 40,
+  },
   streak: { days: 0, week: [] },
 }
 
-const me = (capabilities: string[]) => ({ id: 'p9', name: 'Kevin', memberType: 'adult', isAdmin: false, capabilities })
+const me = (capabilities: string[]) => ({
+  id: 'p9',
+  name: 'Kevin',
+  memberType: 'adult',
+  isAdmin: false,
+  capabilities,
+})
 
 let redeemBody: unknown = null
 function mockApi(person: unknown) {
@@ -38,20 +105,49 @@ function mockApi(person: unknown) {
     const u = String(url)
     if (u.includes('/api/rewards/') && u.endsWith('/redeem')) {
       redeemBody = opts?.body ? JSON.parse(String(opts.body)) : null
-      return { ok: true, status: 201, json: async () => ({ redemption: { id: 'red1', rewardId: 'r1', personId: 'p1', status: 'approved', title: 'Ice cream', emoji: '🍦', cost: 5, currency: 'stars' } }) }
+      return {
+        ok: true,
+        status: 201,
+        json: async () => ({
+          redemption: {
+            id: 'red1',
+            rewardId: 'r1',
+            personId: 'p1',
+            status: 'approved',
+            title: 'Ice cream',
+            emoji: '🍦',
+            cost: 5,
+            currency: 'stars',
+          },
+        }),
+      }
     }
-    if (u.includes('/api/rewards/archived')) return { ok: true, json: async () => ({ rewards: [] }) }
+    if (u.includes('/api/rewards/archived'))
+      return { ok: true, json: async () => ({ rewards: [] }) }
     if (u.includes('/api/rewards')) return { ok: true, json: async () => ({ rewards }) }
-    if (u.includes('/api/balances')) return { ok: true, json: async () => ({ currencies, people: balances }) }
+    if (u.includes('/api/balances'))
+      return { ok: true, json: async () => ({ currencies, people: balances }) }
     if (u.includes('/api/redemptions')) return { ok: true, json: async () => ({ redemptions: [] }) }
     if (u.includes('/api/persons/p1/overview')) return { ok: true, json: async () => overview }
-    if (u.includes('/api/household')) return { ok: true, json: async () => ({ provisioned: true, household: { id: 'h', name: 'Home', timezone: 'UTC', weekStart: 'sunday' }, person }) }
+    if (u.includes('/api/household'))
+      return {
+        ok: true,
+        json: async () => ({
+          provisioned: true,
+          household: { id: 'h', name: 'Home', timezone: 'UTC', weekStart: 'sunday' },
+          person,
+        }),
+      }
     return { ok: false, status: 404, json: async () => ({}) }
   }) as unknown as typeof fetch
 }
 
 function renderShop() {
-  return render(<MemoryRouter><RewardsPanel /></MemoryRouter>)
+  return render(
+    <MemoryRouter>
+      <RewardsPanel />
+    </MemoryRouter>,
+  )
 }
 
 // A tile being on screen does NOT mean it knows the wallet balance yet.
@@ -109,7 +205,9 @@ describe('Reward Shop', () => {
   it('renders the active kid’s saving-toward panel from the overview', async () => {
     mockApi(me([]))
     renderShop()
-    expect(await screen.findByText(/12 ★ to go/i)).toBeInTheDocument()
+    const remaining = await screen.findByText(/12\s+to go/i)
+    expect(remaining).toBeInTheDocument()
+    expect(remaining.querySelector('svg')).toBeInTheDocument()
   })
 
   it('redeeming an affordable reward opens the celebration for the active kid', async () => {

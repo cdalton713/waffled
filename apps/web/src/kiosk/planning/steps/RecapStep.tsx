@@ -1,6 +1,15 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
-import { can, fmtGoalNum, localToday, looseEndsApi, planningRecapApi, planningRecapDecision, useHousehold, type PlanningRecapView } from '../../../lib/api'
+import {
+  can,
+  fmtGoalNum,
+  localToday,
+  looseEndsApi,
+  planningRecapApi,
+  planningRecapDecision,
+  useHousehold,
+  type PlanningRecapView,
+} from '../../../lib/api'
 import { moduleEnabled } from '../../../lib/modules'
 import { ChoreModal } from '../../components/ChoreModal'
 import { EventModal } from '../../components/EventModal'
@@ -9,6 +18,8 @@ import { EventModal } from '../../components/EventModal'
 import { evVars, useEventColor } from '../../../lib/event-color'
 import type { PlanningStepModule, StepBodyProps } from '../registry'
 import '../../../styles/planning-recap.css'
+import { Button } from '@/components/ui/button'
+import { DataIcon } from '@/components/ui/data-icon'
 
 // Step 10 · Recap — read the week back, then it's over.
 //
@@ -41,9 +52,15 @@ function useRecap(sessionId: string) {
     setLoading(true)
     planningRecapApi
       .get(sessionId)
-      .then((v) => { if (alive) setView(v) })
-      .finally(() => { if (alive) setLoading(false) })
-    return () => { alive = false }
+      .then((v) => {
+        if (alive) setView(v)
+      })
+      .finally(() => {
+        if (alive) setLoading(false)
+      })
+    return () => {
+      alive = false
+    }
   }, [sessionId])
   return { view, loading, setView }
 }
@@ -72,11 +89,15 @@ export function RecapPanel({ sessionId, setDecisionData, busy, hrefForStep }: Re
   // Busy days opened in place, showing the events the server held back.
   const [openDays, setOpenDays] = useState<string[]>([])
   // A note being turned into a task or an event, through the app's own editors.
-  const [making, setMaking] = useState<{ id: string; note: string; kind: 'task' | 'event' } | null>(null)
+  const [making, setMaking] = useState<{ id: string; note: string; kind: 'task' | 'event' } | null>(
+    null,
+  )
   const [settleError, setSettleError] = useState<string | null>(null)
   const { household, person } = useHousehold()
 
-  useEffect(() => { setDecisionData(planningRecapDecision(view)) }, [view, setDecisionData])
+  useEffect(() => {
+    setDecisionData(planningRecapDecision(view))
+  }, [view, setDecisionData])
 
   // The shell leaves a URL naming a runnable step alone ("a pasted link outranks the
   // pointer"), so this moves THIS browser without touching the session's `current_step`.
@@ -95,7 +116,7 @@ export function RecapPanel({ sessionId, setDecisionData, busy, hrefForStep }: Re
         setWorking(null)
       }
     },
-    [working, busy, sessionId]
+    [working, busy, sessionId],
   )
 
   // Only an editor that really saved settles the note, the same way "Handled" does; a cancel
@@ -113,7 +134,12 @@ export function RecapPanel({ sessionId, setDecisionData, busy, hrefForStep }: Re
   }
 
   if (loading && !view) return <div className="wpr-note">Reading the week back…</div>
-  if (!view) return <div className="wpr-note">Couldn’t read the week back just now — the week itself is unaffected.</div>
+  if (!view)
+    return (
+      <div className="wpr-note">
+        Couldn’t read the week back just now — the week itself is unaffected.
+      </div>
+    )
 
   const lastCall = view.lastCall.filter((n) => !kept.includes(n.id) && !dropped.includes(n.id))
   const nothing = !view.groups.length && !view.leftAlone.length
@@ -128,33 +154,45 @@ export function RecapPanel({ sessionId, setDecisionData, busy, hrefForStep }: Re
           const meal = mealLine(d.meal, d.cook)
           return (
             <div key={d.date} className="wpr-day" data-testid={`wpr-day-${d.date}`}>
-              <div className="wpr-d">{name}<span>{num}</span></div>
+              <div className="wpr-d">
+                {name}
+                <span>{num}</span>
+              </div>
               {meal && <div className="wpr-line">{meal}</div>}
-              {(openDays.includes(d.date) ? [...d.events, ...(d.hidden ?? [])] : d.events).map((e) => (
-                <div
-                  key={e.id}
-                  className="wpr-line ev ev-tint"
-                  // `?? []` on purpose: this is the last screen of the session, and a
-                  // payload missing one array should cost a tint, not the whole recap.
-                  style={evVars(colorOf({
-                    personId: e.personId ?? null,
-                    personColor: e.personColor ?? null,
-                    participants: (e.participantIds ?? []).map((id) => ({ id })),
-                  }))}
-                  title={e.when}
-                >
-                  {e.title}
-                </div>
-              ))}
-              {d.more > 0 && !openDays.includes(d.date) && (
-                d.hidden?.length ? (
-                  <button type="button" className="wpr-more" onClick={() => setOpenDays((o) => [...o, d.date])}>
+              {(openDays.includes(d.date) ? [...d.events, ...(d.hidden ?? [])] : d.events).map(
+                (e) => (
+                  <div
+                    key={e.id}
+                    className="wpr-line ev ev-tint"
+                    // `?? []` on purpose: this is the last screen of the session, and a
+                    // payload missing one array should cost a tint, not the whole recap.
+                    style={evVars(
+                      colorOf({
+                        personId: e.personId ?? null,
+                        personColor: e.personColor ?? null,
+                        participants: (e.participantIds ?? []).map((id) => ({ id })),
+                      }),
+                    )}
+                    title={e.when}
+                  >
+                    {e.title}
+                  </div>
+                ),
+              )}
+              {d.more > 0 &&
+                !openDays.includes(d.date) &&
+                (d.hidden?.length ? (
+                  <Button
+                    variant="unstyled"
+                    type="button"
+                    className="wpr-more"
+                    onClick={() => setOpenDays((o) => [...o, d.date])}
+                  >
                     +{d.more} more
-                  </button>
+                  </Button>
                 ) : (
                   <div className="wpr-more">+{d.more} more</div>
-                )
-              )}
+                ))}
             </div>
           )
         })}
@@ -165,7 +203,9 @@ export function RecapPanel({ sessionId, setDecisionData, busy, hrefForStep }: Re
         <div className="wpr-card">
           <div className="wpr-h">
             {saved ? 'What the session changed' : 'What tonight changed'}
-            <span>{view.counts.decisions === 1 ? '1 decision' : `${view.counts.decisions} decisions`}</span>
+            <span>
+              {view.counts.decisions === 1 ? '1 decision' : `${view.counts.decisions} decisions`}
+            </span>
           </div>
           {view.groups.map((g) => {
             const inner = (
@@ -186,7 +226,9 @@ export function RecapPanel({ sessionId, setDecisionData, busy, hrefForStep }: Re
                 {inner}
               </Link>
             ) : (
-              <div key={g.key} className="wpr-row" data-testid={`wpr-group-${g.key}`}>{inner}</div>
+              <div key={g.key} className="wpr-row" data-testid={`wpr-group-${g.key}`}>
+                {inner}
+              </div>
             )
           })}
           {nothing && (
@@ -211,8 +253,13 @@ export function RecapPanel({ sessionId, setDecisionData, busy, hrefForStep }: Re
               {view.lastWeekTargets!.map((t) => (
                 <div key={t.goalId} className="wpr-row">
                   <span className="wpr-t">
-                    {t.emoji ? `${t.emoji} ` : ''}{t.title}
-                    <s>{[fmtGoalNum(t.done), 'of', fmtGoalNum(t.target), t.unit].filter(Boolean).join(' ')}</s>
+                    {t.emoji ? <>{<DataIcon value={t.emoji} kind="goal" />} </> : ''}
+                    {t.title}
+                    <s>
+                      {[fmtGoalNum(t.done), 'of', fmtGoalNum(t.target), t.unit]
+                        .filter(Boolean)
+                        .join(' ')}
+                    </s>
                   </span>
                   <span className={`wpr-n ${t.done >= t.target ? 'is-met' : 'is-short'}`}>
                     {t.done >= t.target ? 'met' : 'short'}
@@ -225,8 +272,14 @@ export function RecapPanel({ sessionId, setDecisionData, busy, hrefForStep }: Re
               one writes nothing: a note kept parked is still open next Sunday. */}
           {(lastCall.length > 0 || view.lastCallMore > 0) && (
             <div className="wpr-card">
-              <div className="wpr-h">Still on the board<span>last call</span></div>
-              {settleError && <p className="wp-pne-err" role="alert">{settleError}</p>}
+              <div className="wpr-h">
+                Still on the board<span>last call</span>
+              </div>
+              {settleError && (
+                <p className="wp-pne-err" role="alert">
+                  {settleError}
+                </p>
+              )}
               {lastCall.map((n) => (
                 <div key={n.id} className="wpr-row" data-testid={`wpr-parked-${n.id}`}>
                   <span className="wpr-t">
@@ -235,40 +288,52 @@ export function RecapPanel({ sessionId, setDecisionData, busy, hrefForStep }: Re
                   </span>
                   <span className="wpr-acts">
                     {moduleEnabled(household, 'chores') && (
-                      <button
-                        type="button" className="btn btn-ghost wpr-act"
+                      <Button
+                        variant="ghost"
+                        type="button"
+                        className="wpr-act"
                         disabled={busy || working === n.id}
                         onClick={() => setMaking({ id: n.id, note: n.note, kind: 'task' })}
                       >
                         Make a task
-                      </button>
+                      </Button>
                     )}
-                    <button
-                      type="button" className="btn btn-ghost wpr-act"
+                    <Button
+                      variant="ghost"
+                      type="button"
+                      className="wpr-act"
                       disabled={busy || working === n.id}
                       onClick={() => setMaking({ id: n.id, note: n.note, kind: 'event' })}
                     >
                       Make an event
-                    </button>
-                    <button
-                      type="button" className="btn btn-ghost wpr-act"
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      type="button"
+                      className="wpr-act"
                       disabled={busy || working === n.id}
                       onClick={() => setKept((k) => [...k, n.id])}
                     >
                       Keep it parked
-                    </button>
-                    <button
-                      type="button" className="btn btn-ghost wpr-act is-drop"
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      type="button"
+                      className="wpr-act is-drop"
                       disabled={busy || working === n.id}
                       onClick={() => drop(n.id)}
                     >
                       Drop it
-                    </button>
+                    </Button>
                   </span>
                 </div>
               ))}
               {view.lastCallMore > 0 && (
-                <div className="wpr-row"><span className="wpr-t mut">…and {view.lastCallMore} more still on the board</span></div>
+                <div className="wpr-row">
+                  <span className="wpr-t mut">
+                    …and {view.lastCallMore} more still on the board
+                  </span>
+                </div>
               )}
             </div>
           )}
@@ -291,11 +356,18 @@ export function RecapPanel({ sessionId, setDecisionData, busy, hrefForStep }: Re
                 )
                 const href = l.stepKey ? hrefFor(l.stepKey) : null
                 return href ? (
-                  <Link key={l.key} to={href} className="wpr-row" data-testid={`wpr-alone-${l.key}`}>
+                  <Link
+                    key={l.key}
+                    to={href}
+                    className="wpr-row"
+                    data-testid={`wpr-alone-${l.key}`}
+                  >
                     {inner}
                   </Link>
                 ) : (
-                  <div key={l.key} className="wpr-row" data-testid={`wpr-alone-${l.key}`}>{inner}</div>
+                  <div key={l.key} className="wpr-row" data-testid={`wpr-alone-${l.key}`}>
+                    {inner}
+                  </div>
                 )
               })}
             </div>
@@ -304,8 +376,8 @@ export function RecapPanel({ sessionId, setDecisionData, busy, hrefForStep }: Re
       </div>
 
       <div className="wpr-foot">
-        Every line above is a <b>pointer</b>, not a copy — it is already live in Calendar,
-        Meals, Lists, Chores and Goals.{' '}
+        Every line above is a <b>pointer</b>, not a copy — it is already live in Calendar, Meals,
+        Lists, Chores and Goals.{' '}
         {saved
           ? 'The record was written when the week was saved: what was decided, what was deferred, what rolled over. Today is the surface now, not this session.'
           : 'Saving writes the record: what was decided, what was deferred, what rolled over, with a timestamp. After that Today is the surface, not this session.'}

@@ -11,9 +11,9 @@
 //      and mix the dark fill by exactly the ratio the math assumes. Without (2)
 //      a revert to `color: var(--on-accent)` would leave (1) green and the
 //      calendar illegible.
-import { describe, it, expect } from 'vitest'
-import { existsSync, readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { beforeAll, describe, it, expect } from 'vitest'
+import { compileStyles, compiledStyle } from '../test/styles'
+import postcss from 'postcss'
 import { COLOR_SWATCHES } from '../kiosk/components/ColorPicker'
 import {
   DEFAULT_FAMILY_COLOR,
@@ -31,19 +31,24 @@ import {
 const READABLE_LC = 50
 const AA = 4.5
 
-// Read the stylesheet as text (Vitest stubs CSS imports to an empty string, so
-// `?raw` won't do); vitest runs from apps/web, but tolerate a repo-root run.
-const STYLESHEET = ['src/styles/waffled.css', 'apps/web/src/styles/waffled.css']
-  .map((p) => resolve(process.cwd(), p))
-  .find((p) => existsSync(p))!
-const CSS = readFileSync(STYLESHEET, 'utf8')
+let CSS: string
+beforeAll(async () => {
+  await compileStyles()
+  CSS = compiledStyle('waffled.css').replace(/(\[[^\]=]+=)'([^']*)'(\])/g, '$1"$2"$3')
+})
 
 /** The declaration block for a selector, as written in styles/waffled.css. */
 function ruleFor(selectorFragment: string): string {
-  const at = CSS.indexOf(selectorFragment)
-  expect(at, `selector not found: ${selectorFragment}`).toBeGreaterThan(-1)
-  const open = CSS.indexOf('{', at)
-  return CSS.slice(open + 1, CSS.indexOf('}', open))
+  const selector = selectorFragment.trim().replace(/[,{]$/, '').trim()
+  const declarations: string[] = []
+  postcss.parse(CSS).walkRules((rule) => {
+    if (!rule.selectors.includes(selector)) return
+    rule.walkDecls((declaration) => {
+      declarations.push(`${declaration.prop}: ${declaration.value};`)
+    })
+  })
+  expect(declarations.length, `selector not found: ${selector}`).toBeGreaterThan(0)
+  return declarations.join('\n')
 }
 
 /** A design-token value (`--ink-3`) from the light root or the dark override. */
@@ -56,13 +61,24 @@ function token(name: string, theme: 'light' | 'dark'): string {
 // Everything a household can end up with: the eight presets, the two built-in
 // colors, plus custom hexes — a near-crossover grey (the worst case any color
 // can produce), a pale wash, and near-black.
-const CASES = [...COLOR_SWATCHES, DEFAULT_FAMILY_COLOR, UNASSIGNED_COLOR, '#757575', '#FFF3B0', '#111111']
+const CASES = [
+  ...COLOR_SWATCHES,
+  DEFAULT_FAMILY_COLOR,
+  UNASSIGNED_COLOR,
+  '#757575',
+  '#FFF3B0',
+  '#111111',
+]
 
 describe('solid event chips are readable on every color', () => {
   it.each(CASES)('%s is readable in light and dark', (hex) => {
     const ink = solidChipInk(hex)
-    expect(apcaContrast(ink.light, solidChipBackground(hex, 'light'))).toBeGreaterThanOrEqual(READABLE_LC)
-    expect(apcaContrast(ink.dark, solidChipBackground(hex, 'dark'))).toBeGreaterThanOrEqual(READABLE_LC)
+    expect(apcaContrast(ink.light, solidChipBackground(hex, 'light'))).toBeGreaterThanOrEqual(
+      READABLE_LC,
+    )
+    expect(apcaContrast(ink.dark, solidChipBackground(hex, 'dark'))).toBeGreaterThanOrEqual(
+      READABLE_LC,
+    )
   })
 
   it('puts white on the saturated mid-tones, where black reads worse', () => {
@@ -98,8 +114,12 @@ describe('solid event chips are readable on every color', () => {
 })
 
 describe('the solid rules in styles/waffled.css consume that foreground', () => {
-  const light = ruleFor(':root[data-ev-style="solid"] .ev-tint {')
-  const dark = ruleFor(':root[data-ev-style="solid"][data-theme="dark"] .ev-tint,')
+  let light: string
+  let dark: string
+  beforeAll(() => {
+    light = ruleFor(':root[data-ev-style="solid"] .ev-tint {')
+    dark = ruleFor(':root[data-ev-style="solid"][data-theme="dark"] .ev-tint,')
+  })
 
   it('paints the light fill with --ev and its matching ink', () => {
     expect(light).toMatch(/background:\s*var\(--ev,/)
@@ -124,8 +144,12 @@ describe('the solid rules in styles/waffled.css consume that foreground', () => 
     // survive that too, in both themes.
     const lightInk = /color:\s*var\(--ev-on,\s*([^)]+)\)/.exec(light)![1].trim()
     const darkInk = /color:\s*var\(--ev-on-dark,\s*([^)]+)\)/.exec(dark)![1].trim()
-    expect(contrastRatio(solidChipBackground(token('--ink-3', 'light'), 'light'), lightInk)).toBeGreaterThanOrEqual(AA)
-    expect(contrastRatio(solidChipBackground(token('--ink-3', 'dark'), 'dark'), darkInk)).toBeGreaterThanOrEqual(AA)
+    expect(
+      contrastRatio(solidChipBackground(token('--ink-3', 'light'), 'light'), lightInk),
+    ).toBeGreaterThanOrEqual(AA)
+    expect(
+      contrastRatio(solidChipBackground(token('--ink-3', 'dark'), 'dark'), darkInk),
+    ).toBeGreaterThanOrEqual(AA)
   })
 })
 

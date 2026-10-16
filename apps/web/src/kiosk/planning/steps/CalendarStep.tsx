@@ -7,6 +7,7 @@ import type { PlanningStepModule, StepBodyProps } from '../registry'
 import { useHandoffAction } from '../handoff'
 import { PlanningEventChip } from '../PlanningEventChip'
 import '../../../styles/planning-calendar.css'
+import { Button } from '@/components/ui/button'
 
 // Step 2 · Calendar — the week is the whole screen, and it is the REAL calendar.
 //
@@ -31,7 +32,10 @@ export function weekRangeLabel(weekStart: string): string {
   const a = new Date(`${weekStart}T00:00:00`)
   const b = addDays(a, 6)
   const left = `${MONTHS_SHORT[a.getMonth()]} ${a.getDate()}`
-  const right = a.getMonth() === b.getMonth() ? `${b.getDate()}` : `${MONTHS_SHORT[b.getMonth()]} ${b.getDate()}`
+  const right =
+    a.getMonth() === b.getMonth()
+      ? `${b.getDate()}`
+      : `${MONTHS_SHORT[b.getMonth()]} ${b.getDate()}`
   return `${left} – ${right}`
 }
 
@@ -46,7 +50,8 @@ function names(list: string[]): string {
  * it is the thing a family can still decide about — so they are named, not counted.
  */
 export function weekSummary(total: number, openDays: string[]): string {
-  const count = total === 0 ? 'Nothing on the week yet' : total === 1 ? '1 event' : `${total} events`
+  const count =
+    total === 0 ? 'Nothing on the week yet' : total === 1 ? '1 event' : `${total} events`
   const open =
     openDays.length === 0
       ? 'every day has something'
@@ -102,7 +107,9 @@ function Body({ weekStart, setDecisionData, refresh, busy }: StepBodyProps) {
       map[k].sort((a, b) =>
         a.allDay === b.allDay
           ? new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime()
-          : a.allDay ? -1 : 1
+          : a.allDay
+            ? -1
+            : 1,
       )
     }
     return map
@@ -135,7 +142,10 @@ function Body({ weekStart, setDecisionData, refresh, busy }: StepBodyProps) {
     setAdded(n)
     setDecisionData({ added: n })
     // Something was really created, so a note that opened this modal is settled.
-    if (fromNote !== null) { setFromNote(null); finishHandoff(true) }
+    if (fromNote !== null) {
+      setFromNote(null)
+      finishHandoff(true)
+    }
     refetch()
     refresh()
   }
@@ -143,7 +153,10 @@ function Body({ weekStart, setDecisionData, refresh, busy }: StepBodyProps) {
   function onCloseModal() {
     setAddOn(null)
     // Closed without saving: the note stays on the banner, still needing doing.
-    if (fromNote !== null) { setFromNote(null); finishHandoff(false) }
+    if (fromNote !== null) {
+      setFromNote(null)
+      finishHandoff(false)
+    }
   }
 
   return (
@@ -152,12 +165,20 @@ function Body({ weekStart, setDecisionData, refresh, busy }: StepBodyProps) {
         <div className="wpc-head-l">
           <div className="wpc-range wf-serif">{weekRangeLabel(weekStart)}</div>
           <p className="wpc-sum">
-            {loading && !events.length ? 'Reading your calendars…' : weekSummary(events.length, openDays)}
+            {loading && !events.length
+              ? 'Reading your calendars…'
+              : weekSummary(events.length, openDays)}
           </p>
         </div>
-        <button type="button" className="btn wpc-new" disabled={busy} onClick={() => setAddOn(headerDay)}>
+        <Button
+          variant="plain"
+          type="button"
+          className="wpc-new"
+          disabled={busy}
+          onClick={() => setAddOn(headerDay)}
+        >
           <span aria-hidden>+</span> Add an event
-        </button>
+        </Button>
       </header>
 
       <div className="wpc-week">
@@ -178,21 +199,31 @@ function Body({ weekStart, setDecisionData, refresh, busy }: StepBodyProps) {
 
               <div className="wpc-evs">
                 {shown.map((e) => (
-                  <PlanningEventChip key={`${e.id}-${e.occurrenceStart ?? ''}`} e={e} color={colorOf(e)} label={`Edit ${e.title}`} onClick={() => setEditing(e)} />
+                  <PlanningEventChip
+                    key={`${e.id}-${e.occurrenceStart ?? ''}`}
+                    e={e}
+                    color={colorOf(e)}
+                    label={`Edit ${e.title}`}
+                    onClick={() => setEditing(e)}
+                  />
                 ))}
                 {hidden > 0 && (
-                  <button
+                  <Button
+                    variant="unstyled"
                     type="button"
                     className="wpc-more"
                     onClick={() => setOpened((cur) => new Set(cur).add(d.key))}
                   >
                     +{hidden} more
-                  </button>
+                  </Button>
                 )}
-                {!list.length && !loading && <span className="wpc-none">Nothing on the calendar</span>}
+                {!list.length && !loading && (
+                  <span className="wpc-none">Nothing on the calendar</span>
+                )}
               </div>
 
-              <button
+              <Button
+                variant="unstyled"
                 type="button"
                 className="wpc-add"
                 disabled={busy}
@@ -200,15 +231,18 @@ function Body({ weekStart, setDecisionData, refresh, busy }: StepBodyProps) {
                 onClick={() => setAddOn(d.key)}
               >
                 <span aria-hidden>+</span>
-              </button>
+              </Button>
             </div>
           )
         })}
       </div>
 
-      <p className="wpc-note">This is everything your calendars already have. Add what isn&rsquo;t here yet.</p>
+      <p className="wpc-note">
+        This is everything your calendars already have. Add what isn&rsquo;t here yet.
+      </p>
       <p className="wpc-note wpc-note-q">
-        Busy weeks stay one screen &mdash; a day over four events shows &ldquo;+N more&rdquo;, which opens that day.
+        Busy weeks stay one screen &mdash; a day over four events shows &ldquo;+N more&rdquo;, which
+        opens that day.
       </p>
 
       {/* The app's own event modal — NOT a second event form. It owns the time and the write. */}
@@ -224,7 +258,10 @@ function Body({ weekStart, setDecisionData, refresh, busy }: StepBodyProps) {
         <EventModal
           event={editing}
           onClose={() => setEditing(null)}
-          onSaved={() => { refetch(); refresh() }}
+          onSaved={() => {
+            refetch()
+            refresh()
+          }}
         />
       )}
     </div>

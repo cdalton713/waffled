@@ -1,4 +1,5 @@
 import { useSustainedOffline } from '../../lib/pwa'
+import { DataIcon } from '@/components/ui/data-icon'
 
 // A quiet strip the kiosk shows when the network drops. The service worker keeps
 // serving the last-known state, so this just tells the family what they're seeing.
@@ -9,7 +10,10 @@ export function OfflineBanner() {
   if (!offline) return null
   return (
     <div className="offline-banner" role="status">
-      ⚡ Offline — showing the last saved view. Changes will wait until you’re back online.
+      <>
+        <DataIcon value={'⚡'} kind="general" />
+        {' Offline — showing the last saved view. Changes will wait until you’re back online.'}
+      </>
     </div>
   )
 }

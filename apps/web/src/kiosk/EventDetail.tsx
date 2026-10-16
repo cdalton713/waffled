@@ -2,12 +2,33 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
 import { EventModal } from './components/EventModal'
 import { useTopbarFull } from './topbar-slot'
-import { api, eventsApi, useEvent, useEventsRange, useHousehold, useGoals, mealsApi, invalidateGetCache, type AgendaEvent } from '../lib/api'
+import {
+  api,
+  eventsApi,
+  useEvent,
+  useEventsRange,
+  useHousehold,
+  useGoals,
+  mealsApi,
+  invalidateGetCache,
+  type AgendaEvent,
+} from '../lib/api'
 import { useEventColor } from '../lib/event-color'
 import { deleteEventLocal, tombstoneEvent } from '../lib/powersync/events-local'
 import { suggestGoalForEvent } from '../lib/goal-match'
 import { describeRrule } from './components/recurrence'
-import { DOW_FULL, MONTHS, fmtTime, durationMin, eventPeople, localDate, eventDetailPath } from './components/cal-utils'
+import {
+  DOW_FULL,
+  MONTHS,
+  fmtTime,
+  durationMin,
+  eventPeople,
+  localDate,
+  eventDetailPath,
+} from './components/cal-utils'
+import { Button } from '@/components/ui/button'
+import { DataIcon } from '@/components/ui/data-icon'
+import { Card } from '@/components/ui/card'
 
 function durationLabel(mins: number): string {
   if (mins % 60 === 0) return `${mins / 60} hr`
@@ -33,7 +54,9 @@ function DayTimeline({ event, tz }: { event: AgendaEvent; tz: string }) {
   const colorOf = useEventColor('#A6A29B')
   const day = localDate(event.startsAt, tz)
   const { events } = useEventsRange(day, day)
-  const sorted = [...events].sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime())
+  const sorted = [...events].sort(
+    (a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime(),
+  )
   const idx = sorted.findIndex((e) => e.id === event.id)
   const conflict = sorted.some((e) => {
     if (e.id === event.id || e.allDay || event.allDay) return false
@@ -45,8 +68,10 @@ function DayTimeline({ event, tz }: { event: AgendaEvent; tz: string }) {
   })
 
   return (
-    <div className="card ed-fall">
-      <div className="card-h" style={{ marginBottom: 12 }}>Where it falls today</div>
+    <Card className="card ed-fall">
+      <div className="card-h" style={{ marginBottom: 12 }}>
+        Where it falls today
+      </div>
       {sorted.map((e) => {
         const me = e.id === event.id
         const color = colorOf(e)
@@ -61,14 +86,22 @@ function DayTimeline({ event, tz }: { event: AgendaEvent; tz: string }) {
             <div className="ed-fall-time">{e.allDay ? 'all day' : fmtTime(e)}</div>
             <div className="ed-fall-bar" style={{ background: color }} />
             <div className="ed-fall-title">{e.title}</div>
-            {me ? <span className="ed-fall-tag">this event</span> : <span className="muted ed-fall-gap">{gapLabel(e.startsAt, event.startsAt)}</span>}
+            {me ? (
+              <span className="ed-fall-tag">this event</span>
+            ) : (
+              <span className="muted ed-fall-gap">{gapLabel(e.startsAt, event.startsAt)}</span>
+            )}
           </div>
         )
       })}
       <div className="ed-fall-foot muted">
-        {conflict ? 'Heads up — this overlaps another event.' : idx >= 0 ? "No conflicts — you're clear right before & after." : ''}
+        {conflict
+          ? 'Heads up — this overlaps another event.'
+          : idx >= 0
+            ? "No conflicts — you're clear right before & after."
+            : ''}
       </div>
-    </div>
+    </Card>
   )
 }
 
@@ -101,8 +134,13 @@ export function EventDetail() {
     let alive = true
     setInsight(null)
     setRemindShown(false)
-    eventsApi.eventInsight(id).then((d) => alive && setInsight(d)).catch(() => {})
-    return () => { alive = false }
+    eventsApi
+      .eventInsight(id)
+      .then((d) => alive && setInsight(d))
+      .catch(() => {})
+    return () => {
+      alive = false
+    }
   }, [id])
 
   // Resolve the recipe for a planned-meal event so we can offer "View recipe".
@@ -113,8 +151,13 @@ export function EventDetail() {
   useEffect(() => {
     if (!isMeal || !event?.originRefId) return
     let alive = true
-    mealsApi.entry(event.originRefId).then((r) => alive && setRecipeId(r.recipeId)).catch(() => {})
-    return () => { alive = false }
+    mealsApi
+      .entry(event.originRefId)
+      .then((r) => alive && setRecipeId(r.recipeId))
+      .catch(() => {})
+    return () => {
+      alive = false
+    }
   }, [isMeal, event?.originRefId])
 
   async function del() {
@@ -144,34 +187,70 @@ export function EventDetail() {
   useTopbarFull(
     () => (
       <div className="ed-topbar">
-        <button type="button" className="pill" onClick={() => navigate('/calendar')}>
-          ‹ Calendar
-        </button>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="pill"
+          onClick={() => navigate('/calendar')}
+        >
+          <>
+            <DataIcon value={'‹'} kind="calendar" />
+            {' Calendar'}
+          </>
+        </Button>
         <div className="ed-actions">
           {/* A feed event mirrors someone else's calendar — the api refuses to
               patch/delete it (409), and the next poll would restamp any change
               anyway. Offer only what actually works: a local reminder. */}
           {!isFeedEvent && (
             <>
-              <button type="button" className="pill" onClick={del}>
-                🗑 {confirmDelete ? 'Confirm' : event?.rrule && occurrenceOn ? 'Delete this' : 'Delete'}
-              </button>
-              <button type="button" className="pill" onClick={() => setEditing(true)}>
-                ✎ Edit
-              </button>
+              <Button variant="unstyled" type="button" className="pill" onClick={del}>
+                <>
+                  <DataIcon value={'🗑'} kind="calendar" />{' '}
+                </>
+                {confirmDelete
+                  ? 'Confirm'
+                  : event?.rrule && occurrenceOn
+                    ? 'Delete this'
+                    : 'Delete'}
+              </Button>
+              <Button
+                variant="unstyled"
+                type="button"
+                className="pill"
+                onClick={() => setEditing(true)}
+              >
+                <>
+                  <DataIcon value={'✎'} kind="calendar" />
+                  {' Edit'}
+                </>
+              </Button>
             </>
           )}
-          <button type="button" className="btn btn-primary" onClick={() => setRemindShown(true)}>
-            ⏰ Remind me
-          </button>
+          <Button variant="default" type="button" onClick={() => setRemindShown(true)}>
+            <>
+              <DataIcon value={'⏰'} kind="calendar" />
+              {' Remind me'}
+            </>
+          </Button>
         </div>
       </div>
     ),
-    [confirmDelete, deleting, id, event?.rrule, occurrenceOn, isFeedEvent]
+    [confirmDelete, deleting, id, event?.rrule, occurrenceOn, isFeedEvent],
   )
 
-  if (loading && !event) return <div className="muted" style={{ padding: 40 }}>Loading…</div>
-  if (notFound || !event) return <div className="muted" style={{ padding: 40 }}>This event no longer exists.</div>
+  if (loading && !event)
+    return (
+      <div className="muted" style={{ padding: 40 }}>
+        Loading…
+      </div>
+    )
+  if (notFound || !event)
+    return (
+      <div className="muted" style={{ padding: 40 }}>
+        This event no longer exists.
+      </div>
+    )
 
   // For a recurring occurrence (opened via ?on=), show THIS slot's date/time and
   // carry the series id + slot into edits/deletes — the loaded `event` is the
@@ -181,7 +260,9 @@ export function EventDetail() {
       ? {
           ...event,
           startsAt: occurrenceOn,
-          endsAt: event.endsAt ? new Date(new Date(occurrenceOn).getTime() + durationMin(event) * 60_000).toISOString() : null,
+          endsAt: event.endsAt
+            ? new Date(new Date(occurrenceOn).getTime() + durationMin(event) * 60_000).toISOString()
+            : null,
           seriesId: event.id,
           occurrenceStart: occurrenceOn,
         }
@@ -202,7 +283,11 @@ export function EventDetail() {
   // Smart suggestion for an untagged, non-meal, single event that looks like a
   // goal. "Link" opens the editor pre-linked so the human confirms (and can pick
   // a checklist step). Hidden once dismissed or if the event is already linked.
-  const attendeeIds = view.participants.length ? view.participants.map((p) => p.id) : view.personId ? [view.personId] : []
+  const attendeeIds = view.participants.length
+    ? view.participants.map((p) => p.id)
+    : view.personId
+      ? [view.personId]
+      : []
   const suggestedGoal =
     !view.goalId && !view.rrule && view.origin !== 'meal_plan' && !dismissedSuggest
       ? suggestGoalForEvent(view.title, null, attendeeIds, goals)
@@ -211,15 +296,25 @@ export function EventDetail() {
   return (
     <div className="ed-screen">
       <div className="ed-main">
-        <div className="ed-hero" style={{ background: `linear-gradient(135deg, ${color}, ${color}cc)` }}>
+        <div
+          className="ed-hero"
+          style={{ background: `linear-gradient(135deg, ${color}, ${color}cc)` }}
+        >
           {view.personName && (
             <span className="ed-hero-who">
-              {view.personEmoji ?? '🙂'} {view.personName}
+              <DataIcon value={view.personEmoji ?? '🙂'} kind="person" /> {view.personName}
             </span>
           )}
           {/* Booking-shaped on purpose: a rhythm is satisfied by this slot existing,
               so there is nothing here to mark done and no streak to keep. */}
-          {view.rhythmId && <span className="ed-hero-who ed-hero-rhythm">🔁 This slot keeps a rhythm</span>}
+          {view.rhythmId && (
+            <span className="ed-hero-who ed-hero-rhythm">
+              <>
+                <DataIcon value={'🔁'} kind="rhythm" />
+                {' This slot keeps a rhythm'}
+              </>
+            </span>
+          )}
           <div className="ed-hero-title wf-serif">{view.title}</div>
           <div className="ed-hero-when">
             {view.allDay ? (
@@ -236,39 +331,72 @@ export function EventDetail() {
 
         {suggestedGoal && (
           <div className="ed-suggest">
-            <span className="ed-suggest-spark">✨</span>
+            <span className="ed-suggest-spark">
+              <DataIcon value={'✨'} kind="calendar" />
+            </span>
             <span className="ed-suggest-txt">
               Looks like this counts toward{' '}
-              <b>{suggestedGoal.emoji ? `${suggestedGoal.emoji} ` : ''}{suggestedGoal.title}</b>
+              <b>
+                {suggestedGoal.emoji ? (
+                  <>{<DataIcon value={suggestedGoal.emoji} kind="calendar" />} </>
+                ) : (
+                  ''
+                )}
+                {suggestedGoal.title}
+              </b>
             </span>
-            <button
+            <Button
+              variant="default"
               type="button"
-              className="btn btn-primary ed-suggest-link"
+              className="ed-suggest-link"
               onClick={() => {
                 setEditGoalId(suggestedGoal.id)
                 setEditing(true)
               }}
             >
               Link it
-            </button>
-            <button type="button" className="ed-suggest-x" aria-label="Dismiss" onClick={() => setDismissedSuggest(true)}>
-              ✕
-            </button>
+            </Button>
+            <Button
+              variant="unstyled"
+              type="button"
+              className="ed-suggest-x"
+              aria-label="Dismiss"
+              onClick={() => setDismissedSuggest(true)}
+            >
+              <DataIcon value={'✕'} kind="calendar" />
+            </Button>
           </div>
         )}
 
-        <div className="card ed-rows">
+        <Card className="card ed-rows">
           {isMeal && recipeId && (
-            <button type="button" className="ed-row ed-row-btn" onClick={() => navigate(`/meals/recipe/${recipeId}`)}>
-              <span className="ed-row-ic">📖</span>
-              <span className="ed-row-main"><span className="ed-row-k">Recipe</span><span className="ed-row-v">View the recipe</span></span>
-              <span className="ed-row-go">›</span>
-            </button>
+            <Button
+              variant="unstyled"
+              type="button"
+              className="ed-row ed-row-btn"
+              onClick={() => navigate(`/meals/recipe/${recipeId}`)}
+            >
+              <span className="ed-row-ic">
+                <DataIcon value={'📖'} kind="meal" />
+              </span>
+              <span className="ed-row-main">
+                <span className="ed-row-k">Recipe</span>
+                <span className="ed-row-v">View the recipe</span>
+              </span>
+              <span className="ed-row-go">
+                <DataIcon value={'›'} kind="meal" />
+              </span>
+            </Button>
           )}
           {view.location && (
             <div className="ed-row">
-              <span className="ed-row-ic">📍</span>
-              <span className="ed-row-main"><span className="ed-row-k">Location</span><span className="ed-row-v">{view.location}</span></span>
+              <span className="ed-row-ic">
+                <DataIcon value={'📍'} kind="calendar" />
+              </span>
+              <span className="ed-row-main">
+                <span className="ed-row-k">Location</span>
+                <span className="ed-row-v">{view.location}</span>
+              </span>
               <a
                 className="pill ed-row-act"
                 href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(view.location)}`}
@@ -280,51 +408,88 @@ export function EventDetail() {
             </div>
           )}
           <div className="ed-row">
-            <span className="ed-row-ic">📅</span>
-            <span className="ed-row-main"><span className="ed-row-k">Calendar</span><span className="ed-row-v">{calStatus}</span></span>
-            {view.syncState === 'synced' && <span className="ed-dot" style={{ background: color }} />}
+            <span className="ed-row-ic">
+              <DataIcon value={'📅'} kind="calendar" />
+            </span>
+            <span className="ed-row-main">
+              <span className="ed-row-k">Calendar</span>
+              <span className="ed-row-v">{calStatus}</span>
+            </span>
+            {view.syncState === 'synced' && (
+              <span className="ed-dot" style={{ background: color }} />
+            )}
           </div>
           {view.rrule && (
             <div className="ed-row">
-              <span className="ed-row-ic">🔁</span>
-              <span className="ed-row-main"><span className="ed-row-k">Repeats</span><span className="ed-row-v">{describeRrule(view.rrule, new Date(view.startsAt))}</span></span>
+              <span className="ed-row-ic">
+                <DataIcon value={'🔁'} kind="calendar" />
+              </span>
+              <span className="ed-row-main">
+                <span className="ed-row-k">Repeats</span>
+                <span className="ed-row-v">
+                  {describeRrule(view.rrule, new Date(view.startsAt))}
+                </span>
+              </span>
             </div>
           )}
           {people.length > 0 && (
             <div className="ed-row">
-              <span className="ed-row-ic">👥</span>
+              <span className="ed-row-ic">
+                <DataIcon value={'👥'} kind="calendar" />
+              </span>
               <span className="ed-row-main">
                 <span className="ed-row-k">With</span>
-                <span className="ed-row-v">{people.map((p) => p.name).filter(Boolean).join(' · ')}</span>
+                <span className="ed-row-v">
+                  {people
+                    .map((p) => p.name)
+                    .filter(Boolean)
+                    .join(' · ')}
+                </span>
               </span>
               <span className="ed-row-avs">
                 {people.slice(0, 4).map((p, i) => (
-                  <span key={p.id} className="av sm" style={{ background: `${p.colorHex ?? '#A6A29B'}22`, marginLeft: i ? -8 : 0 }}>
-                    {p.avatarEmoji ?? '🙂'}
+                  <span
+                    key={p.id}
+                    className="av sm"
+                    style={{ background: `${p.colorHex ?? '#A6A29B'}22`, marginLeft: i ? -8 : 0 }}
+                  >
+                    <DataIcon value={p.avatarEmoji ?? '🙂'} kind="person" />
                   </span>
                 ))}
               </span>
             </div>
           )}
-        </div>
+        </Card>
 
         {view.description && (
-          <div className="card ed-notes">
-            <div className="card-h" style={{ marginBottom: 8 }}>Notes</div>
+          <Card className="card ed-notes">
+            <div className="card-h" style={{ marginBottom: 8 }}>
+              Notes
+            </div>
             <div className="ed-notes-b">{view.description}</div>
-          </div>
+          </Card>
         )}
       </div>
 
       <div className="ed-side">
         <div className="ed-ai">
-          <div className={`ed-ai-icon ${insight ? '' : 'thinking'}`}>✦</div>
+          <div className={`ed-ai-icon ${insight ? '' : 'thinking'}`}>
+            <DataIcon value={'✦'} kind="calendar" />
+          </div>
           <div className="ed-ai-main">
             {insight ? (
               <>
                 <div className="ed-ai-h">{insight.headline}</div>
                 <div className="ed-ai-b">{insight.body}</div>
-                {insight.leaveBy && <div className="ed-ai-chip">🚗 Leave by {insight.leaveBy}</div>}
+                {insight.leaveBy && (
+                  <div className="ed-ai-chip">
+                    <>
+                      <DataIcon value={'🚗'} kind="calendar" />
+                      {' Leave by '}
+                    </>
+                    {insight.leaveBy}
+                  </div>
+                )}
               </>
             ) : (
               // Don't assert a headline before the model has decided — shimmer it too.
@@ -336,7 +501,10 @@ export function EventDetail() {
             )}
             {remindShown && (
               <div className="ed-ai-reminder">
-                ⏰ {insight ? insight.reminder : 'One moment…'}
+                <>
+                  <DataIcon value={'⏰'} kind="calendar" />{' '}
+                </>
+                {insight ? insight.reminder : 'One moment…'}
                 <span className="tiny muted"> · reminders don’t fire yet — coming soon</span>
               </div>
             )}

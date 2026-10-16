@@ -8,13 +8,36 @@
 // Deterministic matching lives server-side; only shown when the meals module is on.
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
-import { pantryApi, groceryApi, mealsApi, daysUntil, useHousehold, type PantryItem, type CookReady, type CookMain } from '../../lib/api'
+import {
+  pantryApi,
+  groceryApi,
+  mealsApi,
+  daysUntil,
+  useHousehold,
+  type PantryItem,
+  type CookReady,
+  type CookMain,
+} from '../../lib/api'
 import { MEALS, MEAL_LABEL } from './RecipeBrowser'
 import { moduleEnabled } from '../../lib/modules'
+import { Button } from '@/components/ui/button'
+import { NativeSelect } from '@/components/ui/native-select'
+import { Input } from '@/components/ui/input'
+import { DataIcon } from '@/components/ui/data-icon'
+import { Modal } from '@/components/ui/modal'
 
 const PROTEIN_EMOJI: Record<string, string> = {
-  pork: '🐖', beef: '🥩', chicken: '🍗', turkey: '🦃', fish: '🐟', shrimp: '🦐', seafood: '🦐',
-  tofu: '🧈', lamb: '🍖', sausage: '🥓', egg: '🥚',
+  pork: '🐖',
+  beef: '🥩',
+  chicken: '🍗',
+  turkey: '🦃',
+  fish: '🐟',
+  shrimp: '🦐',
+  seafood: '🦐',
+  tofu: '🧈',
+  lamb: '🍖',
+  sausage: '🥓',
+  egg: '🥚',
 }
 const proteinEmoji = (p: string) => PROTEIN_EMOJI[p.toLowerCase()] ?? '🍖'
 
@@ -32,14 +55,29 @@ function dayLabel(d: string): string {
   if (d === new Date().toISOString().slice(0, 10)) return 'today'
   return new Date(`${d}T00:00:00`).toLocaleDateString(undefined, { weekday: 'short' })
 }
-const isSoon = (i: PantryItem) => { const d = daysUntil(i.expiresOn); return d != null && d <= 3 }
+const isSoon = (i: PantryItem) => {
+  const d = daysUntil(i.expiresOn)
+  return d != null && d <= 3
+}
 
-export function CookFromPantry({ items, onChanged }: { items: PantryItem[]; onChanged?: () => void }) {
+export function CookFromPantry({
+  items,
+  onChanged,
+}: {
+  items: PantryItem[]
+  onChanged?: () => void
+}) {
   const { household } = useHousehold()
   const mealsOn = moduleEnabled(household, 'meals')
   const [cook, setCook] = useState<{ ready: CookReady[]; mains: CookMain[] } | null>(null)
   const [open, setOpen] = useState(false)
-  useEffect(() => { if (mealsOn) pantryApi.cookable().then(setCook).catch(() => {}) }, [mealsOn])
+  useEffect(() => {
+    if (mealsOn)
+      pantryApi
+        .cookable()
+        .then(setCook)
+        .catch(() => {})
+  }, [mealsOn])
   if (!mealsOn) return null
 
   const ready = cook?.ready ?? []
@@ -50,16 +88,48 @@ export function CookFromPantry({ items, onChanged }: { items: PantryItem[]; onCh
 
   return (
     <div className="pl-cook">
-      <div className="pl-cook-h">🍳 Cook from your pantry</div>
-      <div className="pl-cook-sub">
-        {ready.length > 0 && <><b>{ready.length}</b> ready</>}
-        {ready.length > 0 && mains.length > 0 && ' · '}
-        {mains.length > 0 && <><b>{mains.length}</b> main{mains.length === 1 ? '' : 's'}</>}
-        {(ready.length > 0 || mains.length > 0) && (meals.length + useSoon.length) > 0 && ' · '}
-        {(meals.length + useSoon.length) > 0 && <><b>{meals.length + useSoon.length}</b> to use up</>}
+      <div className="pl-cook-h">
+        <>
+          <DataIcon value={'🍳'} kind="meal" />
+          {' Cook from your pantry'}
+        </>
       </div>
-      <button type="button" className="pill pl-cook-btn" onClick={() => setOpen(true)}>Plan from pantry</button>
-      {open && <CookModal items={items} ready={ready} mains={mains} onClose={() => setOpen(false)} onChanged={onChanged} />}
+      <div className="pl-cook-sub">
+        {ready.length > 0 && (
+          <>
+            <b>{ready.length}</b> ready
+          </>
+        )}
+        {ready.length > 0 && mains.length > 0 && ' · '}
+        {mains.length > 0 && (
+          <>
+            <b>{mains.length}</b> main{mains.length === 1 ? '' : 's'}
+          </>
+        )}
+        {(ready.length > 0 || mains.length > 0) && meals.length + useSoon.length > 0 && ' · '}
+        {meals.length + useSoon.length > 0 && (
+          <>
+            <b>{meals.length + useSoon.length}</b> to use up
+          </>
+        )}
+      </div>
+      <Button
+        variant="unstyled"
+        type="button"
+        className="pill pl-cook-btn"
+        onClick={() => setOpen(true)}
+      >
+        Plan from pantry
+      </Button>
+      {open && (
+        <CookModal
+          items={items}
+          ready={ready}
+          mains={mains}
+          onClose={() => setOpen(false)}
+          onChanged={onChanged}
+        />
+      )}
     </div>
   )
 }
@@ -67,19 +137,37 @@ export function CookFromPantry({ items, onChanged }: { items: PantryItem[]; onCh
 function Dots({ have, total }: { have: number; total: number }) {
   return (
     <span className="pl-dots" aria-label={`have ${have} of ${total}`}>
-      {Array.from({ length: Math.min(total, 6) }).map((_, i) => <span key={i} className={`pl-dot${i < have ? ' on' : ''}`} />)}
+      {Array.from({ length: Math.min(total, 6) }).map((_, i) => (
+        <span key={i} className={`pl-dot${i < have ? ' on' : ''}`} />
+      ))}
     </span>
   )
 }
 
-function CookModal({ items, ready, mains, onClose, onChanged }: { items: PantryItem[]; ready: CookReady[]; mains: CookMain[]; onClose: () => void; onChanged?: () => void }) {
+function CookModal({
+  items,
+  ready,
+  mains,
+  onClose,
+  onChanged,
+}: {
+  items: PantryItem[]
+  ready: CookReady[]
+  mains: CookMain[]
+  onClose: () => void
+  onChanged?: () => void
+}) {
   const navigate = useNavigate()
   const [added, setAdded] = useState<Set<string>>(new Set())
   // Leftovers you've eaten (marked used-up) — hidden immediately, refetched on close.
   const [eaten, setEaten] = useState<Set<string>>(new Set())
   async function ateIt(item: PantryItem) {
     setEaten((s) => new Set(s).add(item.id))
-    try { await pantryApi.consume([{ id: item.id, mode: 'used_up' }]) } catch { /* ignore */ }
+    try {
+      await pantryApi.consume([{ id: item.id, mode: 'used_up' }])
+    } catch {
+      /* ignore */
+    }
     onChanged?.()
   }
   // Planning a meal-flagged item into a slot (tonight or another day/meal).
@@ -91,16 +179,24 @@ function CookModal({ items, ready, mains, onClose, onChanged }: { items: PantryI
   // scheduled shows "Planned" across reopens and we don't double-add it.
   const [plannedMap, setPlannedMap] = useState<Record<string, string>>({})
   useEffect(() => {
-    mealsApi.mealsWeek(today, 21).then((d) => {
-      const m: Record<string, string> = {}
-      for (const e of d.entries) if (e.title && e.date >= today) m[e.title.trim().toLowerCase()] = e.date
-      setPlannedMap(m)
-    }).catch(() => {})
+    mealsApi
+      .mealsWeek(today, 21)
+      .then((d) => {
+        const m: Record<string, string> = {}
+        for (const e of d.entries)
+          if (e.title && e.date >= today) m[e.title.trim().toLowerCase()] = e.date
+        setPlannedMap(m)
+      })
+      .catch(() => {})
   }, [today])
   const plannedDate = (item: PantryItem) => plannedMap[item.name.trim().toLowerCase()]
 
   async function planItem(item: PantryItem) {
-    try { await mealsApi.planSlot({ date: planDate, mealType: planMeal, title: item.name }) } catch { /* ignore */ }
+    try {
+      await mealsApi.planSlot({ date: planDate, mealType: planMeal, title: item.name })
+    } catch {
+      /* ignore */
+    }
     setPlannedMap((m) => ({ ...m, [item.name.trim().toLowerCase()]: planDate }))
     setPlanFor(null)
   }
@@ -111,59 +207,152 @@ function CookModal({ items, ready, mains, onClose, onChanged }: { items: PantryI
   const loose = items.filter((i) => !i.isMeal && isSoon(i) && !mainNames.has(i.name))
 
   function planMyWeek() {
-    if (useSoonNames.length) sessionStorage.setItem('waffled.planUseUp', JSON.stringify(useSoonNames.slice(0, 12)))
+    if (useSoonNames.length)
+      sessionStorage.setItem('waffled.planUseUp', JSON.stringify(useSoonNames.slice(0, 12)))
     navigate('/meals')
   }
   async function addMissing(key: string, missing: string[]) {
     setAdded((s) => new Set(s).add(key))
-    try { await Promise.all(missing.map((m) => groceryApi.addGroceryItem(m))) } catch { /* ignore */ }
+    try {
+      await Promise.all(missing.map((m) => groceryApi.addGroceryItem(m)))
+    } catch {
+      /* ignore */
+    }
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <Modal className="modal-overlay" onClose={onClose}>
       <div className="modal-card pl-cookm" onClick={(e) => e.stopPropagation()}>
-        <button type="button" className="modal-close" aria-label="Close" onClick={onClose}>×</button>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="modal-close"
+          aria-label="Close"
+          onClick={onClose}
+        >
+          <DataIcon value={'×'} kind="meal" />
+        </Button>
         <div className="wf-serif pl-cookm-title">Cook from your pantry</div>
 
-        <button type="button" className="pl-cookm-plan" onClick={planMyWeek}>
-          <span className="pl-cookm-plan-ic">✨</span>
+        <Button variant="unstyled" type="button" className="pl-cookm-plan" onClick={planMyWeek}>
+          <span className="pl-cookm-plan-ic">
+            <DataIcon value={'✨'} kind="meal" />
+          </span>
           <span className="pl-cookm-plan-t">
             <b>Plan my week</b>
-            <span>{useSoonNames.length > 0 ? `Builds your week & uses up ${useSoonNames.length} before they spoil` : 'Build your dinners with AI'}</span>
+            <span>
+              {useSoonNames.length > 0
+                ? `Builds your week & uses up ${useSoonNames.length} before they spoil`
+                : 'Build your dinners with AI'}
+            </span>
           </span>
-          <span className="pl-cookm-go">›</span>
-        </button>
+          <span className="pl-cookm-go">
+            <DataIcon value={'›'} kind="meal" />
+          </span>
+        </Button>
 
         {meals.length > 0 && (
           <section className="pl-sec">
-            <div className="pl-sec-h"><span>🕘 Tonight · no cooking</span></div>
+            <div className="pl-sec-h">
+              <span>
+                <>
+                  <DataIcon value={'🕘'} kind="meal" />
+                  {' Tonight · no cooking'}
+                </>
+              </span>
+            </div>
             {meals.map((m) => {
               const heat = (m.location ?? '').toLowerCase().includes('freez')
               return (
                 <div key={m.id} className="pl-cookm-card">
-                  <span className="pl-cookm-thumb">{m.imageUrl ? <img src={m.imageUrl} alt="" /> : '🍱'}</span>
+                  <span className="pl-cookm-thumb">
+                    {m.imageUrl ? (
+                      <img src={m.imageUrl} alt="" />
+                    ) : (
+                      <DataIcon value={'🍱'} kind="meal" />
+                    )}
+                  </span>
                   <div className="pl-cookm-cardmain">
                     <div className="pl-cookm-cardrow">
                       <span className="pl-cookm-cardname">{m.name}</span>
                       <span className="pl-cookm-cardacts">
-                        <button type="button" className="pl-ate-btn" onClick={() => ateIt(m)}>Ate it</button>
-                        <button type="button" className={`pl-plan-btn${plannedDate(m) ? ' done' : ''}`} onClick={() => { if (plannedDate(m)) { navigate('/meals'); return } setPlanDate(today); setPlanMeal('dinner'); setPlanFor(planFor === m.id ? null : m.id) }}>
-                          {plannedDate(m) ? `✓ Planned ${dayLabel(plannedDate(m)!)}` : 'Plan'}
-                        </button>
+                        <Button
+                          variant="unstyled"
+                          type="button"
+                          className="pl-ate-btn"
+                          onClick={() => ateIt(m)}
+                        >
+                          Ate it
+                        </Button>
+                        <Button
+                          variant="unstyled"
+                          type="button"
+                          className={`pl-plan-btn${plannedDate(m) ? ' done' : ''}`}
+                          onClick={() => {
+                            if (plannedDate(m)) {
+                              navigate('/meals')
+                              return
+                            }
+                            setPlanDate(today)
+                            setPlanMeal('dinner')
+                            setPlanFor(planFor === m.id ? null : m.id)
+                          }}
+                        >
+                          {plannedDate(m) ? (
+                            <>
+                              <>
+                                <DataIcon value={'✓'} kind="meal" />
+                                {' Planned '}
+                              </>
+                              {dayLabel(plannedDate(m)!)}
+                            </>
+                          ) : (
+                            'Plan'
+                          )}
+                        </Button>
                       </span>
                     </div>
                     <div className="pl-cookm-badges">
-                      <span className="pl-badge green">{heat ? 'Heat & serve' : 'Ready to eat'}</span>
-                      {m.expiresOn && <span className="pl-badge amber">{expiryNote(m.expiresOn)} left</span>}
+                      <span className="pl-badge green">
+                        {heat ? 'Heat & serve' : 'Ready to eat'}
+                      </span>
+                      {m.expiresOn && (
+                        <span className="pl-badge amber">{expiryNote(m.expiresOn)} left</span>
+                      )}
                     </div>
-                    {(m.note || m.amount) && <div className="pl-cookm-cardsub">{m.note || [m.amount, m.unit, m.location].filter(Boolean).join(' ')}</div>}
+                    {(m.note || m.amount) && (
+                      <div className="pl-cookm-cardsub">
+                        {m.note || [m.amount, m.unit, m.location].filter(Boolean).join(' ')}
+                      </div>
+                    )}
                     {planFor === m.id && (
                       <div className="pl-plan-pick">
-                        <select value={planMeal} onChange={(e) => setPlanMeal(e.target.value)} aria-label="Meal">
-                          {MEALS.map((mt) => <option key={mt} value={mt}>{MEAL_LABEL[mt]}</option>)}
-                        </select>
-                        <input type="date" value={planDate} onChange={(e) => setPlanDate(e.target.value)} aria-label="Day" />
-                        <button type="button" className="pill btn-primary" style={{ color: 'var(--on-accent)', border: 0 }} onClick={() => planItem(m)}>Add to plan</button>
+                        <NativeSelect
+                          value={planMeal}
+                          onChange={(e) => setPlanMeal(e.target.value)}
+                          aria-label="Meal"
+                        >
+                          {MEALS.map((mt) => (
+                            <option key={mt} value={mt}>
+                              {MEAL_LABEL[mt]}
+                            </option>
+                          ))}
+                        </NativeSelect>
+                        <Input
+                          type="date"
+                          value={planDate}
+                          onChange={(e) => setPlanDate(e.target.value)}
+                          aria-label="Day"
+                        />
+                        <Button
+                          variant="unstyled"
+                          type="button"
+                          className="pill btn-primary"
+                          style={{ color: 'var(--on-accent)', border: 0 }}
+                          onClick={() => planItem(m)}
+                        >
+                          Add to plan
+                        </Button>
                       </div>
                     )}
                   </div>
@@ -175,17 +364,50 @@ function CookModal({ items, ready, mains, onClose, onChanged }: { items: PantryI
 
         {ready.length > 0 && (
           <section className="pl-sec">
-            <div className="pl-sec-h"><span>✓ You have everything</span><span className="pl-sec-r">Nothing to buy</span></div>
+            <div className="pl-sec-h">
+              <span>
+                <>
+                  <DataIcon value={'✓'} kind="meal" />
+                  {' You have everything'}
+                </>
+              </span>
+              <span className="pl-sec-r">Nothing to buy</span>
+            </div>
             {ready.map((r) => (
               <div key={r.recipeId} className="pl-cookm-card">
-                <button type="button" className="pl-cookm-thumb btn" onClick={() => navigate(`/meals/recipe/${r.recipeId}`)}>{r.emoji ?? '🍽️'}</button>
+                <Button
+                  variant="plain"
+                  type="button"
+                  className="pl-cookm-thumb"
+                  onClick={() => navigate(`/meals/recipe/${r.recipeId}`)}
+                >
+                  <DataIcon value={r.emoji ?? '🍽️'} kind="meal" />
+                </Button>
                 <div className="pl-cookm-cardmain">
                   <div className="pl-cookm-cardrow">
                     <span className="pl-cookm-cardname">{r.title}</span>
-                    <button type="button" className="pl-cook-go" onClick={() => navigate(`/meals/recipe/${r.recipeId}/cook`)}>Cook</button>
+                    <Button
+                      variant="unstyled"
+                      type="button"
+                      className="pl-cook-go"
+                      onClick={() => navigate(`/meals/recipe/${r.recipeId}/cook`)}
+                    >
+                      Cook
+                    </Button>
                   </div>
-                  {r.expiringItem && <div className="pl-cookm-uses">Uses {r.expiringItem} due soon</div>}
-                  <div className="pl-chips">{r.have.map((h) => <span key={h} className="pl-chip ok">✓ {h}</span>)}</div>
+                  {r.expiringItem && (
+                    <div className="pl-cookm-uses">Uses {r.expiringItem} due soon</div>
+                  )}
+                  <div className="pl-chips">
+                    {r.have.map((h) => (
+                      <span key={h} className="pl-chip ok">
+                        <>
+                          <DataIcon value={'✓'} kind="meal" />{' '}
+                        </>
+                        {h}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
             ))}
@@ -194,31 +416,85 @@ function CookModal({ items, ready, mains, onClose, onChanged }: { items: PantryI
 
         {mains.length > 0 && (
           <section className="pl-sec">
-            <div className="pl-sec-h"><span>📈 You have the main</span><span className="pl-sec-r">A few things to grab</span></div>
+            <div className="pl-sec-h">
+              <span>
+                <>
+                  <DataIcon value={'📈'} kind="meal" />
+                  {' You have the main'}
+                </>
+              </span>
+              <span className="pl-sec-r">A few things to grab</span>
+            </div>
             {mains.map((m) => {
               const soon = m.item && isSoonDate(m.item.expiresOn)
               return (
                 <div key={m.protein} className="pl-main">
-                  <button type="button" className="pl-main-head" onClick={() => navigate(`/meals/recipes?protein=${encodeURIComponent(m.protein)}`)}>
-                    <span className="pl-main-emoji">{proteinEmoji(m.protein)}</span>
+                  <Button
+                    variant="unstyled"
+                    type="button"
+                    className="pl-main-head"
+                    onClick={() =>
+                      navigate(`/meals/recipes?protein=${encodeURIComponent(m.protein)}`)
+                    }
+                  >
+                    <span className="pl-main-emoji">
+                      <DataIcon value={proteinEmoji(m.protein)} kind="meal" />
+                    </span>
                     <span className="pl-main-name">{m.item?.name ?? cap(m.protein)}</span>
                     <span className={`pl-main-meta${soon ? ' soon' : ''}`}>
-                      {m.item && [
-                        m.item.amount && `${m.item.amount}${m.item.unit ? ' ' + m.item.unit : ''}`,
-                        m.item.expiresOn ? ((daysUntil(m.item.expiresOn) ?? 99) <= 0 ? expiryNote(m.item.expiresOn) : `use in ${expiryNote(m.item.expiresOn)}`) : '',
-                      ].filter(Boolean).join(' · ')}
+                      {m.item &&
+                        [
+                          m.item.amount &&
+                            `${m.item.amount}${m.item.unit ? ' ' + m.item.unit : ''}`,
+                          m.item.expiresOn
+                            ? (daysUntil(m.item.expiresOn) ?? 99) <= 0
+                              ? expiryNote(m.item.expiresOn)
+                              : `use in ${expiryNote(m.item.expiresOn)}`
+                            : '',
+                        ]
+                          .filter(Boolean)
+                          .join(' · ')}
                     </span>
-                    <span className="pl-main-all">{m.count} recipes ›</span>
-                  </button>
+                    <span className="pl-main-all">
+                      {m.count}
+                      <>
+                        {' recipes '}
+                        <DataIcon value={'›'} kind="meal" />
+                      </>
+                    </span>
+                  </Button>
                   {m.recipes.map((rec) => {
                     const key = m.protein + rec.recipeId
                     return (
                       <div key={rec.recipeId} className="pl-main-rec">
-                        <button type="button" className="pl-main-rec-main" onClick={() => navigate(`/meals/recipe/${rec.recipeId}`)}>
+                        <Button
+                          variant="unstyled"
+                          type="button"
+                          className="pl-main-rec-main"
+                          onClick={() => navigate(`/meals/recipe/${rec.recipeId}`)}
+                        >
                           <span className="pl-main-rec-name">{rec.title}</span>
-                          <span className="pl-main-rec-prog"><Dots have={rec.have} total={rec.total} /> Have {rec.have} of {rec.total} · need {rec.missing.length <= 1 ? (rec.missing[0] ?? '—') : rec.missing.length}</span>
-                        </button>
-                        <button type="button" className="pill pl-cookm-add" onClick={() => addMissing(key, rec.missing)}>{added.has(key) ? '✓ Added' : '+ List'}</button>
+                          <span className="pl-main-rec-prog">
+                            <Dots have={rec.have} total={rec.total} /> Have {rec.have} of{' '}
+                            {rec.total} · need{' '}
+                            {rec.missing.length <= 1 ? (rec.missing[0] ?? '—') : rec.missing.length}
+                          </span>
+                        </Button>
+                        <Button
+                          variant="unstyled"
+                          type="button"
+                          className="pill pl-cookm-add"
+                          onClick={() => addMissing(key, rec.missing)}
+                        >
+                          {added.has(key) ? (
+                            <>
+                              <DataIcon value={'✓'} kind="meal" />
+                              {' Added'}
+                            </>
+                          ) : (
+                            '+ List'
+                          )}
+                        </Button>
                       </div>
                     )
                   })}
@@ -230,19 +506,37 @@ function CookModal({ items, ready, mains, onClose, onChanged }: { items: PantryI
 
         {loose.length > 0 && (
           <section className="pl-sec">
-            <div className="pl-sec-h"><span>🗑 Use up soon</span><span className="pl-sec-r">Loose items</span></div>
+            <div className="pl-sec-h">
+              <span>
+                <>
+                  <DataIcon value={'🗑'} kind="meal" />
+                  {' Use up soon'}
+                </>
+              </span>
+              <span className="pl-sec-r">Loose items</span>
+            </div>
             <div className="pl-loose">
               {loose.map((i) => (
-                <span key={i.id} className="pl-loose-chip">{i.name}<span className="pl-loose-exp">{expiryNote(i.expiresOn)}</span></span>
+                <span key={i.id} className="pl-loose-chip">
+                  {i.name}
+                  <span className="pl-loose-exp">{expiryNote(i.expiresOn)}</span>
+                </span>
               ))}
             </div>
           </section>
         )}
 
-        <div className="pl-cookm-foot"><button type="button" className="pill" onClick={onClose}>Done</button></div>
+        <div className="pl-cookm-foot">
+          <Button variant="unstyled" type="button" className="pill btn-primary" onClick={onClose}>
+            Done
+          </Button>
+        </div>
       </div>
-    </div>
+    </Modal>
   )
 }
 
-function isSoonDate(d: string | null): boolean { const x = daysUntil(d); return x != null && x <= 1 }
+function isSoonDate(d: string | null): boolean {
+  const x = daysUntil(d)
+  return x != null && x <= 1
+}

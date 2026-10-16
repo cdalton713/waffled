@@ -9,10 +9,10 @@ site (no Starlight, no framework integrations). It funnels visitors to the docs
 
 ```bash
 cd website/home
-npm install
-npm run dev      # http://localhost:4321
-npm run build    # → ./dist  (static site)
-npm run preview  # serve the built ./dist
+pnpm install
+pnpm run dev      # http://localhost:4321
+pnpm run build    # → ./dist  (static site)
+pnpm run preview  # serve the built ./dist
 ```
 
 ## Structure

@@ -2,8 +2,22 @@
 import { fmtGoalNum } from '../../lib/api'
 import { parseLocalDateKey } from '../../lib/goalStats'
 import type { DataViewProps } from './types'
+import { Button } from '@/components/ui/button'
 
-const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const MONTH_NAMES = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+]
 const BAR_H = 190
 
 export function ByPersonBars({ goal, stats, personMap, onMonthClick, headerRight }: DataViewProps) {
@@ -26,7 +40,8 @@ export function ByPersonBars({ goal, stats, personMap, onMonthClick, headerRight
           const perMember = stats.byMonthPerMember[m]
           const ids = Object.keys(perMember).filter((id) => perMember[id] > 0)
           return (
-            <button
+            <Button
+              variant="unstyled"
               key={m}
               type="button"
               className="gdv-byperson-col"
@@ -38,20 +53,26 @@ export function ByPersonBars({ goal, stats, personMap, onMonthClick, headerRight
                   <div
                     key={id}
                     className="gdv-byperson-seg"
-                    style={{ height: `${(perMember[id] / monthMax) * BAR_H}px`, background: personMap.get(id)?.colorHex ?? 'var(--ink-3)' }}
+                    style={{
+                      height: `${(perMember[id] / monthMax) * BAR_H}px`,
+                      background: personMap.get(id)?.colorHex ?? 'var(--ink-3)',
+                    }}
                     title={`${personMap.get(id)?.name ?? ''} ${fmtGoalNum(perMember[id])}`}
                   />
                 ))}
               </div>
               <span className="tiny muted gdv-byperson-lbl">{MONTH_NAMES[m]}</span>
-            </button>
+            </Button>
           )
         })}
       </div>
       <div className="gdv-byperson-chips">
         {[...personMap.values()].map((p) => (
           <div key={p.personId} className="gdv-byperson-chip">
-            <span className="gdv-dot" style={{ width: 12, height: 12, background: p.colorHex ?? 'var(--ink-3)' }} />
+            <span
+              className="gdv-dot"
+              style={{ width: 12, height: 12, background: p.colorHex ?? 'var(--ink-3)' }}
+            />
             <div>
               <div className="tiny gdv-byperson-chip-name">{p.name}</div>
               <div className="wf-serif gdv-byperson-chip-total">

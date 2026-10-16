@@ -15,6 +15,12 @@ import {
   type PlanningFamilyNightPart,
 } from '../../../lib/api'
 import '../../../styles/planning-familyNight.css'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { NativeSelect } from '@/components/ui/native-select'
+import { DataIcon } from '@/components/ui/data-icon'
+import { Modal } from '@/components/ui/modal'
 
 // Step 4 · Family night. The affirmative is an acknowledgement: it writes nothing.
 //
@@ -37,7 +43,12 @@ const EMPTY: StepState = { key: '', board: null, loading: true, error: null, bus
 // Body and FooterExtra are SIBLING trees under the shell, so the state must outlive both.
 let state: StepState = EMPTY
 const listeners = new Set<() => void>()
-const subscribe = (l: () => void) => { listeners.add(l); return () => { listeners.delete(l) } }
+const subscribe = (l: () => void) => {
+  listeners.add(l)
+  return () => {
+    listeners.delete(l)
+  }
+}
 const snapshot = () => state
 function set(patch: Partial<StepState>) {
   state = { ...state, ...patch }
@@ -89,7 +100,10 @@ function useFamilyNightStep(p: StepBodyProps, primary = false): StepState {
   const key = `${p.sessionId}|${p.weekStart}`
   useEffect(() => {
     if (state.key !== key) void load(key, p.weekStart)
-    else if (primary && !state.loading) void reread(p.weekStart).catch(() => { /* the card simply stays as it was */ })
+    else if (primary && !state.loading)
+      void reread(p.weekStart).catch(() => {
+        /* the card simply stays as it was */
+      })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key])
   const s = useSyncExternalStore(subscribe, snapshot)
@@ -105,7 +119,11 @@ function useFamilyNightStep(p: StepBodyProps, primary = false): StepState {
 
 // "Wednesday, Sep 9" — a fixed noon, so no timezone shifts the gathering onto the day before.
 function longDate(date: string): string {
-  return new Date(`${date}T12:00:00`).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })
+  return new Date(`${date}T12:00:00`).toLocaleDateString(undefined, {
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric',
+  })
 }
 
 function clockTime(time: string): string {
@@ -115,28 +133,37 @@ function clockTime(time: string): string {
   return d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
 }
 
-function PartRow({ part, board, p, disabled }: {
+function PartRow({
+  part,
+  board,
+  p,
+  disabled,
+}: {
   part: PlanningFamilyNightPart
   board: PlanningFamilyNightBoard
   p: StepBodyProps
   disabled: boolean
 }) {
-  const sub = part.personName === null
-    ? 'nobody yet'
-    : part.pinned
-      ? `pinned for this week · ${part.personName}`
-      : `suggested · ${part.personName}, next in the rotation`
+  const sub =
+    part.personName === null
+      ? 'nobody yet'
+      : part.pinned
+        ? `pinned for this week · ${part.personName}`
+        : `suggested · ${part.personName}, next in the rotation`
 
   return (
     <div className="wpfn-row" data-testid={`wpfn-row-${part.label}`}>
-      <div className="wpfn-emoji" aria-hidden>{part.emoji}</div>
+      <div className="wpfn-emoji" aria-hidden>
+        <DataIcon value={part.emoji} kind="general" />
+      </div>
       <div className="wpfn-main">
         <div className="wpfn-label">{part.label}</div>
         <div className={`wpfn-sug${part.pinned ? ' pinned' : ''}`}>{sub}</div>
       </div>
       <div className="wpfn-faces">
         {board.members.map((m) => (
-          <button
+          <Button
+            variant="unstyled"
             key={m.id}
             type="button"
             className={`wpfn-face${m.id === part.personId ? ' on' : ''}`}
@@ -148,10 +175,12 @@ function PartRow({ part, board, p, disabled }: {
             aria-pressed={part.pinned && m.id === part.personId}
             title={`${m.name} takes ${part.label.toLowerCase()}`}
             disabled={disabled}
-            onClick={() => void write(p, (date) => planningFamilyNightApi.pin(date, part.partId, m.id))}
+            onClick={() =>
+              void write(p, (date) => planningFamilyNightApi.pin(date, part.partId, m.id))
+            }
           >
-            {m.avatarEmoji ?? '🙂'}
-          </button>
+            <DataIcon value={m.avatarEmoji ?? '🙂'} kind="person" />
+          </Button>
         ))}
       </div>
 
@@ -163,10 +192,14 @@ function PartRow({ part, board, p, disabled }: {
         label="What"
         srLabel={`What is the ${part.label.toLowerCase()}?`}
         value={part.detail ?? ''}
-        placeholder={DETAIL_HINTS[part.partId] ?? `optional — what's the ${part.label.toLowerCase()}?`}
+        placeholder={
+          DETAIL_HINTS[part.partId] ?? `optional — what's the ${part.label.toLowerCase()}?`
+        }
         maxLength={200}
         disabled={disabled}
-        onCommit={(text) => void write(p, (date) => planningFamilyNightApi.setDetail(date, part.partId, text))}
+        onCommit={(text) =>
+          void write(p, (date) => planningFamilyNightApi.setDetail(date, part.partId, text))
+        }
       />
     </div>
   )
@@ -183,7 +216,16 @@ const DETAIL_HINTS: Record<string, string> = {
  * A free-text line saved on blur (and on Enter), not per keystroke. Shared by the theme and
  * every part's detail: same clearing rule ('' clears, null means "leave it").
  */
-function CommitLine({ label, srLabel, value, placeholder, maxLength, disabled, onCommit, className }: {
+function CommitLine({
+  label,
+  srLabel,
+  value,
+  placeholder,
+  maxLength,
+  disabled,
+  onCommit,
+  className,
+}: {
   label: string
   /**
    * The accessible name, when the visible label is too terse: three rows showing "What"
@@ -199,7 +241,9 @@ function CommitLine({ label, srLabel, value, placeholder, maxLength, disabled, o
 }) {
   const [draft, setDraft] = useState(value)
   // Re-sync when the board comes back changed; a draft survives its own re-read.
-  useEffect(() => { setDraft(value) }, [value])
+  useEffect(() => {
+    setDraft(value)
+  }, [value])
 
   const commit = () => {
     if (draft === value || disabled) return
@@ -209,9 +253,9 @@ function CommitLine({ label, srLabel, value, placeholder, maxLength, disabled, o
   // The app's own labelled-field shape, so it inherits the design system's input and the
   // label is the accessible name for free.
   return (
-    <label className={`field ${className}`}>
+    <Label className={`field ${className}`}>
       <span>{label}</span>
-      <input
+      <Input
         type="text"
         {...(srLabel ? { 'aria-label': srLabel } : {})}
         value={draft}
@@ -220,14 +264,27 @@ function CommitLine({ label, srLabel, value, placeholder, maxLength, disabled, o
         placeholder={placeholder}
         onChange={(e) => setDraft(e.target.value)}
         onBlur={commit}
-        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); (e.target as HTMLInputElement).blur() } }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault()
+            ;(e.target as HTMLInputElement).blur()
+          }
+        }}
       />
-    </label>
+    </Label>
   )
 }
 
 // A free-text line on the night, saved on blur (and on Enter) — see `DetailField`.
-function ThemeLine({ board, p, disabled }: { board: PlanningFamilyNightBoard; p: StepBodyProps; disabled: boolean }) {
+function ThemeLine({
+  board,
+  p,
+  disabled,
+}: {
+  board: PlanningFamilyNightBoard
+  p: StepBodyProps
+  disabled: boolean
+}) {
   return (
     <CommitLine
       className="wpfn-theme"
@@ -246,7 +303,11 @@ function ThemeLine({ board, p, disabled }: { board: PlanningFamilyNightBoard; p:
  * The week's events, to point one at. Its own component so the FETCH only happens once
  * somebody opens the picker: a hook cannot be called conditionally.
  */
-function EventPicker({ weekStart, disabled, onPick }: {
+function EventPicker({
+  weekStart,
+  disabled,
+  onPick,
+}: {
   weekStart: string
   disabled: boolean
   onPick: (eventId: string) => void
@@ -265,7 +326,11 @@ function EventPicker({ weekStart, disabled, onPick }: {
   const days = Object.keys(byDay).sort()
   for (const k of days) {
     byDay[k].sort((a, b) =>
-      a.allDay === b.allDay ? new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime() : a.allDay ? -1 : 1
+      a.allDay === b.allDay
+        ? new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime()
+        : a.allDay
+          ? -1
+          : 1,
     )
   }
   const dayLabel = (key: string) => {
@@ -275,13 +340,22 @@ function EventPicker({ weekStart, disabled, onPick }: {
 
   return (
     <div className="wpfn-cal-list" aria-label="Events on this week">
-      {linkable.length === 0 && <div className="wpfn-cal-empty">Nothing on the week to point at yet.</div>}
+      {linkable.length === 0 && (
+        <div className="wpfn-cal-empty">Nothing on the week to point at yet.</div>
+      )}
       {days.map((key) => (
         <div key={key} className="wpfn-cal-day">
           <div className="wpfn-cal-dow">{dayLabel(key)}</div>
           <div className="wpfn-cal-chips">
             {byDay[key].map((e) => (
-              <PlanningEventChip key={e.id} e={e} color={colorOf(e)} label={`Link ${e.title}`} disabled={disabled} onClick={() => onPick(e.id)} />
+              <PlanningEventChip
+                key={e.id}
+                e={e}
+                color={colorOf(e)}
+                label={`Link ${e.title}`}
+                disabled={disabled}
+                onClick={() => onPick(e.id)}
+              />
             ))}
           </div>
         </div>
@@ -297,7 +371,11 @@ function EventPicker({ weekStart, disabled, onPick }: {
  * then makes ONE server call that creates and links atomically, because the web writes events
  * LOCALLY first and a client id would not exist server-side yet.
  */
-function CalendarLine({ board, p, disabled }: {
+function CalendarLine({
+  board,
+  p,
+  disabled,
+}: {
   board: PlanningFamilyNightBoard
   p: StepBodyProps
   disabled: boolean
@@ -308,27 +386,32 @@ function CalendarLine({ board, p, disabled }: {
   if (board.eventId) {
     return (
       <div className="wpfn-cal" data-testid="wpfn-cal">
-        <span className="wpfn-cal-emoji" aria-hidden>📅</span>
+        <span className="wpfn-cal-emoji" aria-hidden>
+          <DataIcon value={'📅'} kind="general" />
+        </span>
         <div className="wpfn-cal-main">
           <div className="wpfn-cal-t">{board.eventTitle}</div>
           <div className="wpfn-cal-s">{board.eventWhen} · on the calendar for this week</div>
         </div>
-        <button
+        <Button
+          variant="ghost"
           type="button"
-          className="btn btn-ghost wpfn-cal-act"
+          className="wpfn-cal-act"
           disabled={disabled}
-           // Unlinks ONLY: "this isn't family night after all" must never delete Friday.
+          // Unlinks ONLY: "this isn't family night after all" must never delete Friday.
           onClick={() => void write(p, (date) => planningFamilyNightApi.linkEvent(date, null))}
         >
           Unlink
-        </button>
+        </Button>
       </div>
     )
   }
 
   return (
     <div className="wpfn-cal" data-testid="wpfn-cal">
-      <span className="wpfn-cal-emoji" aria-hidden>📅</span>
+      <span className="wpfn-cal-emoji" aria-hidden>
+        <DataIcon value={'📅'} kind="general" />
+      </span>
       <div className="wpfn-cal-main">
         <div className="wpfn-cal-t">Not on the calendar this week</div>
         <div className="wpfn-cal-s">
@@ -337,30 +420,38 @@ function CalendarLine({ board, p, disabled }: {
             : 'Add it as an event, or point at something already on the week.'}
         </div>
         <div className="wpfn-cal-acts">
-          <button
+          <Button
+            variant="ghost"
             type="button"
-            className="btn btn-ghost wpfn-cal-act"
+            className="wpfn-cal-act"
             disabled={disabled}
-            onClick={() => { setPicking(false); setAdding(true) }}
+            onClick={() => {
+              setPicking(false)
+              setAdding(true)
+            }}
           >
             Add to calendar
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
             type="button"
-            className="btn btn-ghost wpfn-cal-act"
+            className="wpfn-cal-act"
             disabled={disabled}
             aria-expanded={picking}
             onClick={() => setPicking((v) => !v)}
           >
             {picking ? 'Never mind' : 'Link an event'}
-          </button>
+          </Button>
         </div>
 
         {picking && (
           <EventPicker
             weekStart={board.weekStart}
             disabled={disabled}
-            onPick={(eventId) => { setPicking(false); void write(p, (date) => planningFamilyNightApi.linkEvent(date, eventId)) }}
+            onPick={(eventId) => {
+              setPicking(false)
+              void write(p, (date) => planningFamilyNightApi.linkEvent(date, eventId))
+            }}
           />
         )}
 
@@ -368,7 +459,10 @@ function CalendarLine({ board, p, disabled }: {
           <AddEventModal
             board={board}
             onClose={() => setAdding(false)}
-            onAdd={(event) => { setAdding(false); void write(p, (date) => planningFamilyNightApi.addEvent(date, event)) }}
+            onAdd={(event) => {
+              setAdding(false)
+              void write(p, (date) => planningFamilyNightApi.addEvent(date, event))
+            }}
           />
         )}
       </div>
@@ -377,56 +471,95 @@ function CalendarLine({ board, p, disabled }: {
 }
 
 const EVENT_DURATIONS = [30, 60, 90, 120, 180]
-const durationLabel = (m: number) => (m < 60 ? `${m} min` : m % 60 ? `${Math.floor(m / 60)} hr ${m % 60} min` : `${m / 60} hr`)
+const durationLabel = (m: number) =>
+  m < 60 ? `${m} min` : m % 60 ? `${Math.floor(m / 60)} hr ${m % 60} min` : `${m / 60} hr`
 
 // Confirms what the week's event will say before the server makes it. The server still creates
 // and links it in one call; see planningFamilyNightApi.addEvent.
-function AddEventModal({ board, onClose, onAdd }: {
+function AddEventModal({
+  board,
+  onClose,
+  onAdd,
+}: {
   board: PlanningFamilyNightBoard
   onClose: () => void
   onAdd: (event: { title: string; time: string; durationMin: number }) => void
 }) {
-  const [title, setTitle] = useState(board.theme?.trim() ? `🏡 ${board.theme.trim()}` : '🏡 Family Night')
+  const [title, setTitle] = useState(
+    board.theme?.trim() ? `🏡 ${board.theme.trim()}` : '🏡 Family Night',
+  )
   const [time, setTime] = useState(board.time)
   const [durationMin, setDurationMin] = useState(60)
   const ready = title.trim() !== '' && /^\d{2}:\d{2}$/.test(time)
-  const day = new Date(`${board.date}T00:00:00`).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })
+  const day = new Date(`${board.date}T00:00:00`).toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric',
+  })
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-card wpfn-modal" role="dialog" aria-label="Add family night to the calendar" onClick={(e) => e.stopPropagation()}>
-        <button type="button" className="modal-close" onClick={onClose} aria-label="Close">×</button>
+    <Modal className="modal-overlay" onClose={onClose}>
+      <div
+        className="modal-card wpfn-modal"
+        role="dialog"
+        aria-label="Add family night to the calendar"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <Button
+          variant="unstyled"
+          type="button"
+          className="modal-close"
+          onClick={onClose}
+          aria-label="Close"
+        >
+          <DataIcon value={'×'} kind="calendar" />
+        </Button>
         <div className="wpfn-modal-t wf-serif">Add family night to the calendar</div>
         <div className="wpfn-modal-s">{day}</div>
-        <label className="field">
+        <Label className="field">
           <span>Title</span>
-          <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={200} autoFocus />
-        </label>
+          <Input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            maxLength={200}
+            autoFocus
+          />
+        </Label>
         <div className="wpfn-modal-row">
-          <label className="field">
+          <Label className="field">
             <span>Time</span>
-            <input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
-          </label>
-          <label className="field">
+            <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
+          </Label>
+          <Label className="field">
             <span>Duration</span>
-            <select value={durationMin} onChange={(e) => setDurationMin(Number(e.target.value))}>
-              {EVENT_DURATIONS.map((m) => <option key={m} value={m}>{durationLabel(m)}</option>)}
-            </select>
-          </label>
+            <NativeSelect
+              value={durationMin}
+              onChange={(e) => setDurationMin(Number(e.target.value))}
+            >
+              {EVENT_DURATIONS.map((m) => (
+                <option key={m} value={m}>
+                  {durationLabel(m)}
+                </option>
+              ))}
+            </NativeSelect>
+          </Label>
         </div>
         <div className="wpfn-modal-acts">
-          <button type="button" className="btn btn-ghost" onClick={onClose}>Cancel</button>
-          <button
+          <Button variant="ghost" type="button" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            variant="default"
             type="button"
-            className="btn btn-primary"
+
             disabled={!ready}
             onClick={() => onAdd({ title: title.trim(), time, durationMin })}
           >
             Add to calendar
-          </button>
+          </Button>
         </div>
       </div>
-    </div>
+    </Modal>
   )
 }
 
@@ -437,7 +570,8 @@ function Body(p: StepBodyProps) {
   const disabled = p.busy || s.busy
 
   if (s.loading) return <div className="wp-empty">Reading this week's family night…</div>
-  if (!s.board) return <div className="wp-empty">{s.error ?? "Couldn't read this week's family night."}</div>
+  if (!s.board)
+    return <div className="wp-empty">{s.error ?? "Couldn't read this week's family night."}</div>
 
   const b = s.board
   const skipped = b.status === 'skipped'
@@ -446,9 +580,16 @@ function Body(p: StepBodyProps) {
     <div className="wpfn">
       <div className={`wpfn-card${skipped ? ' skipped' : ''}`}>
         <div className="wpfn-h">
-          <div className="wpfn-t">🏡 Family Night</div>
+          <div className="wpfn-t">
+            <>
+              <DataIcon value={'🏡'} kind="general" />
+              {' Family Night'}
+            </>
+          </div>
           <div className="wpfn-rec">every {weekdayName(b.dayOfWeek)}</div>
-          <div className="wpfn-when">{longDate(b.date)} · {clockTime(b.time)}</div>
+          <div className="wpfn-when">
+            {longDate(b.date)} · {clockTime(b.time)}
+          </div>
         </div>
 
         <ThemeLine board={b} p={p} disabled={disabled || skipped} />
@@ -458,7 +599,9 @@ function Body(p: StepBodyProps) {
         ))}
 
         {b.members.length === 0 && (
-          <div className="wpfn-note">Add family members and the rotation has somebody to offer.</div>
+          <div className="wpfn-note">
+            Add family members and the rotation has somebody to offer.
+          </div>
         )}
 
         <CalendarLine board={b} p={p} disabled={disabled || skipped} />
@@ -466,22 +609,28 @@ function Body(p: StepBodyProps) {
 
       {skipped ? (
         <div className="wpfn-skipbar">
-          <span className="wpfn-skip-emoji" aria-hidden>⏭</span>
+          <span className="wpfn-skip-emoji" aria-hidden>
+            <DataIcon value={'⏭'} kind="general" />
+          </span>
           <div className="wpfn-skip-main">
             <div className="wpfn-skip-t">Skipped this week</div>
             <div className="wpfn-skip-s">
-              The gathering is marked skipped{b.onCalendar && ', and the recurring calendar event is left alone'}.
-              Everyone&rsquo;s turn still moves on, so next week is the next person up.
+              The gathering is marked skipped
+              {b.onCalendar && ', and the recurring calendar event is left alone'}. Everyone&rsquo;s
+              turn still moves on, so next week is the next person up.
             </div>
           </div>
-          <button
+          <Button
+            variant="ghost"
             type="button"
-            className="btn btn-ghost wpfn-undo"
+            className="wpfn-undo"
             disabled={disabled}
-            onClick={() => void write(p, (date) => planningFamilyNightApi.setStatus(date, 'planned'))}
+            onClick={() =>
+              void write(p, (date) => planningFamilyNightApi.setStatus(date, 'planned'))
+            }
           >
             Undo
-          </button>
+          </Button>
         </div>
       ) : (
         // NOT "who did what last time": the rotation COUNTS gatherings against the family's
@@ -506,14 +655,15 @@ function FooterExtra(p: StepBodyProps) {
   const s = useFamilyNightStep(p)
   if (!s.board || s.board.status === 'skipped') return null
   return (
-    <button
+    <Button
+      variant="ghost"
       type="button"
-      className="btn btn-ghost wpfn-skip"
+      className="wpfn-skip"
       disabled={p.busy || s.busy}
       onClick={() => void write(p, (date) => planningFamilyNightApi.setStatus(date, 'skipped'))}
     >
       Skip this week
-    </button>
+    </Button>
   )
 }
 

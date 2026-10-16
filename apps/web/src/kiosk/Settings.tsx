@@ -3,7 +3,82 @@ import { avTint } from './components/Avatar'
 import { useSearchParams } from 'react-router'
 import { useSyncHealth, type SyncHealthStatus } from '../lib/powersync/sync-health'
 import { restartPowerSyncHard } from '../lib/powersync/db'
-import { personsApi, permissionsApi, healthApi, updatesApi, type UpdateInfo, accountApi, type AccountInfo, apiKeysApi, captureApi, calendarsApi, mealsApi, currenciesApi, conversionsApi, rewardsApi, choresApi, goalCalendarApi, groceryApi, authApi, kioskApi, usePantry, pantryApi, useCountdowns, countdownsApi, DEFAULT_BIRTHDAY_HORIZON_DAYS, useFamilyNight, familyNightApi, weekdayName, type FamilyNightPart, useWeeklyPlanning, weeklyPlanningApi, planningDayName, ALLERGEN_LABELS, ALLERGEN_KEYS, isDisplayMode, setDisplayMode, isKioskMode, usePersons, useCurrencies, useConversions, useHousehold, useHouseholdSettings, useWeather, useEventsToday, usePhotos, googlePhotosApi, useGooglePhotosStatus, emitHouseholdChanged, CAPABILITIES, CAPABILITY_LABELS, ROLE_LABELS, type SettingsMember, type CaptureConfig, type Provider, type CalendarStatus, type CalendarLink, type IcsFeed, type MealCalendarSettings, type Currency, type MemoryGroup, type IgnoreGroup, type PantryStaple, type OidcConfig, type OidcConfigPatch, type KioskDevice, type DisplayConfig, type StoredProof, type PermissionMatrix, type Role, type Capability, type HealthReport, type HealthStatus, type ApiKey, type ApiScopeDef, type PlanningListCandidate } from '../lib/api'
+import {
+  personsApi,
+  permissionsApi,
+  healthApi,
+  updatesApi,
+  type UpdateInfo,
+  accountApi,
+  type AccountInfo,
+  apiKeysApi,
+  captureApi,
+  calendarsApi,
+  mealsApi,
+  currenciesApi,
+  conversionsApi,
+  rewardsApi,
+  choresApi,
+  goalCalendarApi,
+  groceryApi,
+  authApi,
+  kioskApi,
+  usePantry,
+  pantryApi,
+  useCountdowns,
+  countdownsApi,
+  DEFAULT_BIRTHDAY_HORIZON_DAYS,
+  useFamilyNight,
+  familyNightApi,
+  weekdayName,
+  type FamilyNightPart,
+  useWeeklyPlanning,
+  weeklyPlanningApi,
+  planningDayName,
+  ALLERGEN_LABELS,
+  ALLERGEN_KEYS,
+  isDisplayMode,
+  setDisplayMode,
+  isKioskMode,
+  usePersons,
+  useCurrencies,
+  useConversions,
+  useHousehold,
+  useHouseholdSettings,
+  useWeather,
+  useEventsToday,
+  usePhotos,
+  googlePhotosApi,
+  useGooglePhotosStatus,
+  emitHouseholdChanged,
+  CAPABILITIES,
+  CAPABILITY_LABELS,
+  ROLE_LABELS,
+  type SettingsMember,
+  type CaptureConfig,
+  type Provider,
+  type CalendarStatus,
+  type CalendarLink,
+  type IcsFeed,
+  type MealCalendarSettings,
+  type Currency,
+  type MemoryGroup,
+  type IgnoreGroup,
+  type PantryStaple,
+  type OidcConfig,
+  type OidcConfigPatch,
+  type KioskDevice,
+  type DisplayConfig,
+  type StoredProof,
+  type PermissionMatrix,
+  type Role,
+  type Capability,
+  type HealthReport,
+  type HealthStatus,
+  type ApiKey,
+  type ApiScopeDef,
+  type PlanningListCandidate,
+} from '../lib/api'
 import { MODULES, moduleEnabled } from '../lib/modules'
 import { useThemePref, type Palette, type ResolvedTheme } from '../lib/theme'
 import { setViewOnly, useViewOnly } from '../lib/viewOnly'
@@ -18,6 +93,18 @@ import { Screensaver, screensaverPhotos } from './components/Screensaver'
 import { GooglePhotosImportModal } from './components/GooglePhotosImportModal'
 import '../styles/settings.css'
 import '../styles/pantry.css'
+import '../styles/grocery.css'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { NativeSelect } from '@/components/ui/native-select'
+import { DataIcon } from '@/components/ui/data-icon'
+import { IconPicker } from '@/components/ui/icon-picker'
+import { SelectField } from '@/components/ui/select-field'
+import { Modal } from '@/components/ui/modal'
+import { IconValue } from '@/components/ui/icon-value'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Switch as UISwitch } from '@/components/ui/switch'
 
 // `admin` tabs are only shown to admins, so nobody is offered options they can't use.
 // Three tiers: Account (you) · Family (shared config an admin sets) · System (self-host).
@@ -43,7 +130,11 @@ const NAV = [
   { key: 'about', icon: 'ℹ️', label: 'About', group: 'about' },
 ]
 
-const NAV_GROUP_LABELS: Record<string, string> = { account: 'Account', family: 'Family', system: 'System' }
+const NAV_GROUP_LABELS: Record<string, string> = {
+  account: 'Account',
+  family: 'Family',
+  system: 'System',
+}
 
 const TIMEZONES = [
   'America/New_York',
@@ -62,7 +153,11 @@ function ageFrom(birthday: string | null | undefined): number | null {
   if (isNaN(b.getTime())) return null
   const now = new Date()
   let age = now.getFullYear() - b.getFullYear()
-  if (now.getMonth() < b.getMonth() || (now.getMonth() === b.getMonth() && now.getDate() < b.getDate())) age--
+  if (
+    now.getMonth() < b.getMonth() ||
+    (now.getMonth() === b.getMonth() && now.getDate() < b.getDate())
+  )
+    age--
   return age >= 0 ? age : null
 }
 
@@ -88,25 +183,54 @@ function MemberRow({ m, onClick }: { m: SettingsMember; onClick: () => void }) {
   const bday = fmtBirthday(m.birthday)
   return (
     <div className="set-member" onClick={onClick}>
-      <div className="av md" style={{ background: avTint(m.colorHex) }}>{m.avatarEmoji ?? '🙂'}</div>
+      <div className="av md" style={{ background: avTint(m.colorHex) }}>
+        <DataIcon value={m.avatarEmoji ?? '🙂'} kind="person" />
+      </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div className="set-member-n">{m.name}</div>
-        <div className="tiny muted" style={{ fontWeight: 600 }}>{roleLine(m)}</div>
+        <div className="tiny muted" style={{ fontWeight: 600 }}>
+          {roleLine(m)}
+        </div>
       </div>
-      {bday && <div className="tiny muted set-bday" style={{ fontWeight: 600 }}>🎂 {bday}</div>}
+      {bday && (
+        <div className="tiny muted set-bday" style={{ fontWeight: 600 }}>
+          <>
+            <DataIcon value={'🎂'} kind="general" />{' '}
+          </>
+          {bday}
+        </div>
+      )}
       <div className="set-swatch" style={{ background: m.colorHex ?? '#A6A29B' }} />
-      <div className="set-chev">›</div>
+      <div className="set-chev">
+        <DataIcon value={'›'} kind="general" />
+      </div>
     </div>
   )
 }
 
-function SettingRow({ icon, title, sub, children }: { icon: string; title: string; sub?: string; children: React.ReactNode }) {
+function SettingRow({
+  icon,
+  title,
+  sub,
+  children,
+}: {
+  icon: string
+  title: string
+  sub?: string
+  children: React.ReactNode
+}) {
   return (
     <div className="set-row2">
-      <div className="set-ic2">{icon}</div>
-      <div style={{ flex: 1 }}>
+      <div className="set-ic2">
+        <DataIcon value={icon} kind="general" />
+      </div>
+      <div className="set-row2-b">
         <div className="set-row2-t">{title}</div>
-        {sub && <div className="tiny muted" style={{ fontWeight: 600 }}>{sub}</div>}
+        {sub && (
+          <div className="tiny muted" style={{ fontWeight: 600 }}>
+            {sub}
+          </div>
+        )}
       </div>
       {children}
     </div>
@@ -115,11 +239,23 @@ function SettingRow({ icon, title, sub, children }: { icon: string; title: strin
 
 // A title (+ optional sub) heading a settings card, or a labelled section within one (`mid`
 // when it follows rows). Uses the shared `.set-card-head` spacing, not ad-hoc margins.
-function CardHeader({ title, sub, mid }: { title: React.ReactNode; sub?: React.ReactNode; mid?: boolean }) {
+function CardHeader({
+  title,
+  sub,
+  mid,
+}: {
+  title: React.ReactNode
+  sub?: React.ReactNode
+  mid?: boolean
+}) {
   return (
     <div className={`set-card-head${mid ? ' set-card-head--mid' : ''}`}>
       <div className="set-row2-t">{title}</div>
-      {sub && <div className="tiny muted" style={{ fontWeight: 600 }}>{sub}</div>}
+      {sub && (
+        <div className="tiny muted" style={{ fontWeight: 600 }}>
+          {sub}
+        </div>
+      )}
     </div>
   )
 }
@@ -133,49 +269,67 @@ function PermissionsCard() {
   const [saving, setSaving] = useState(false)
   useEffect(() => {
     let alive = true
-    permissionsApi.getPermissions()
+    permissionsApi
+      .getPermissions()
       .then((d) => alive && setMatrix(d.permissions))
       .catch(() => alive && setError(true))
-    return () => { alive = false }
+    return () => {
+      alive = false
+    }
   }, [])
 
   async function toggle(role: Role, cap: Capability) {
     if (!matrix || saving) return
     const prev = matrix
-    const next: PermissionMatrix = { ...matrix, [role]: { ...matrix[role], [cap]: !matrix[role][cap] } }
+    const next: PermissionMatrix = {
+      ...matrix,
+      [role]: { ...matrix[role], [cap]: !matrix[role][cap] },
+    }
     setMatrix(next)
     setSaving(true)
-    try { setMatrix(await permissionsApi.setPermissions(next)) }
-    catch { setMatrix(prev) }
-    finally { setSaving(false) }
+    try {
+      setMatrix(await permissionsApi.setPermissions(next))
+    } catch {
+      setMatrix(prev)
+    } finally {
+      setSaving(false)
+    }
   }
 
   if (error) return null // non-admins (403) simply don't see this card
   return (
     <SettingCard style={{ marginTop: 18 }}>
-      <CardHeader title="Permissions" sub="Choose what each role can do. Admins can always do everything. Everyone can always complete their own chores, redeem their own rewards, and log their own goals." />
+      <CardHeader
+        title="Permissions"
+        sub="Choose what each role can do. Admins can always do everything. Everyone can always complete their own chores, redeem their own rewards, and log their own goals."
+      />
       {matrix === null ? (
-        <div className="tiny muted" style={{ fontWeight: 600 }}>Loading…</div>
+        <div className="tiny muted" style={{ fontWeight: 600 }}>
+          Loading…
+        </div>
       ) : (
         <div className="perm-grid" role="table" aria-label="Role permissions">
           <div className="perm-row perm-head" role="row">
             <span className="perm-role" role="columnheader" />
             {CAPABILITIES.map((cap) => (
-              <span key={cap} className="perm-cap" role="columnheader">{CAPABILITY_LABELS[cap]}</span>
+              <span key={cap} className="perm-cap" role="columnheader">
+                {CAPABILITY_LABELS[cap]}
+              </span>
             ))}
           </div>
           {PERM_ROLES.map((role) => (
             <div key={role} className="perm-row" role="row">
-              <span className="perm-role" role="rowheader">{ROLE_LABELS[role]}</span>
+              <span className="perm-role" role="rowheader">
+                {ROLE_LABELS[role]}
+              </span>
               {CAPABILITIES.map((cap) => (
                 <span key={cap} className="perm-cell" role="cell">
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     className="set-check"
                     checked={matrix[role][cap]}
                     disabled={saving}
                     aria-label={`${ROLE_LABELS[role]}: ${CAPABILITY_LABELS[cap]}`}
-                    onChange={() => toggle(role, cap)}
+                    onCheckedChange={() => toggle(role, cap)}
                   />
                 </span>
               ))}
@@ -198,7 +352,12 @@ const HEALTH_TITLE: Record<string, string> = {
 }
 
 // One health check as a card: status badge + its non-status fields as key=value chips.
-type JobSnapshot = { name: string; lastRunAt: string | null; lastError: string | null; runCount: number }
+type JobSnapshot = {
+  name: string
+  lastRunAt: string | null
+  lastError: string | null
+  runCount: number
+}
 
 // Raw bytes → "1.0 MB" so a backup size is legible at a glance.
 function formatBytes(n: number): string {
@@ -207,7 +366,10 @@ function formatBytes(n: number): string {
   const units = ['KB', 'MB', 'GB', 'TB', 'PB']
   let val = n / 1024
   let i = 0
-  while (val >= 1024 && i < units.length - 1) { val /= 1024; i++ }
+  while (val >= 1024 && i < units.length - 1) {
+    val /= 1024
+    i++
+  }
   return `${val < 10 ? val.toFixed(1) : Math.round(val)} ${units[i]}`
 }
 
@@ -225,7 +387,13 @@ function formatHealthField(key: string, value: unknown): { label: string; text: 
   return { label, text: typeof value === 'object' ? JSON.stringify(value) : String(value) }
 }
 
-function HealthCheckCard({ name, check }: { name: string; check: { status: HealthStatus } & Record<string, unknown> }) {
+function HealthCheckCard({
+  name,
+  check,
+}: {
+  name: string
+  check: { status: HealthStatus } & Record<string, unknown>
+}) {
   const jobs = check.jobs as JobSnapshot[] | undefined
   const note = check.note as string | undefined
   const hint = check.hint as string | undefined
@@ -243,7 +411,14 @@ function HealthCheckCard({ name, check }: { name: string; check: { status: Healt
           ) : (
             jobs.map((j) => (
               <div key={j.name} className="tiny" style={{ fontWeight: 600 }}>
-                {j.lastError ? '⚠' : '✓'} {j.name} · {j.runCount} runs{j.lastRunAt ? ` · last ${new Date(j.lastRunAt).toLocaleTimeString()}` : ''}{j.lastError ? ` · ${j.lastError}` : ''}
+                {j.lastError ? (
+                  <DataIcon value={'⚠'} kind="general" />
+                ) : (
+                  <DataIcon value={'✓'} kind="general" />
+                )}{' '}
+                {j.name} · {j.runCount} runs
+                {j.lastRunAt ? ` · last ${new Date(j.lastRunAt).toLocaleTimeString()}` : ''}
+                {j.lastError ? ` · ${j.lastError}` : ''}
               </div>
             ))
           )}
@@ -252,7 +427,11 @@ function HealthCheckCard({ name, check }: { name: string; check: { status: Healt
         <div className="health-fields">
           {fields.map(([k, v]) => {
             const f = formatHealthField(k, v)
-            return <span key={k} className="health-chip">{f.label}: {f.text}</span>
+            return (
+              <span key={k} className="health-chip">
+                {f.label}: {f.text}
+              </span>
+            )
           })}
         </div>
       )}
@@ -283,10 +462,17 @@ function ApiKeysPanel() {
   const [copied, setCopied] = useState(false)
   const [revoking, setRevoking] = useState<ApiKey | null>(null)
 
-  const refetch = () => apiKeysApi.list().then(setKeys).catch(() => setKeys([]))
+  const refetch = () =>
+    apiKeysApi
+      .list()
+      .then(setKeys)
+      .catch(() => setKeys([]))
   useEffect(() => {
     refetch()
-    apiKeysApi.listScopes().then(setCatalog).catch(() => setCatalog([]))
+    apiKeysApi
+      .listScopes()
+      .then(setCatalog)
+      .catch(() => setCatalog([]))
   }, [])
 
   const label = scopeLabeler(catalog)
@@ -294,26 +480,47 @@ function ApiKeysPanel() {
   const secretRef = useRef<HTMLElement | null>(null)
   async function copySecret() {
     if (!justCreated) return
-    const flash = () => { setCopied(true); setTimeout(() => setCopied(false), 1500) }
+    const flash = () => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    }
     // navigator.clipboard is undefined in non-secure contexts (Safari over http://),
     // so fall back to execCommand, then to just selecting the text for a manual copy.
     try {
-      if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(justCreated.secret); flash(); return }
-    } catch { /* fall through */ }
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(justCreated.secret)
+        flash()
+        return
+      }
+    } catch {
+      /* fall through */
+    }
     try {
       const ta = document.createElement('textarea')
       ta.value = justCreated.secret
-      ta.style.position = 'fixed'; ta.style.top = '0'; ta.style.opacity = '0'
-      document.body.appendChild(ta); ta.focus(); ta.select()
+      ta.style.position = 'fixed'
+      ta.style.top = '0'
+      ta.style.opacity = '0'
+      document.body.appendChild(ta)
+      ta.focus()
+      ta.select()
       const ok = document.execCommand('copy')
       document.body.removeChild(ta)
-      if (ok) { flash(); return }
-    } catch { /* fall through */ }
+      if (ok) {
+        flash()
+        return
+      }
+    } catch {
+      /* fall through */
+    }
     // Last resort: select the on-screen secret so the user can press ⌘/Ctrl-C.
     const el = secretRef.current
     if (el) {
-      const range = document.createRange(); range.selectNodeContents(el)
-      const sel = window.getSelection(); sel?.removeAllRanges(); sel?.addRange(range)
+      const range = document.createRange()
+      range.selectNodeContents(el)
+      const sel = window.getSelection()
+      sel?.removeAllRanges()
+      sel?.addRange(range)
     }
   }
 
@@ -321,29 +528,62 @@ function ApiKeysPanel() {
     <div className="set-panel">
       <div className="set-head">
         <div className="wf-serif set-head-t">API Keys</div>
-        <button type="button" className="btn btn-primary" onClick={() => setCreating(true)}>+ New key</button>
+        <Button variant="default" type="button" onClick={() => setCreating(true)}>
+          + New key
+        </Button>
       </div>
-      <div className="tiny muted" style={{ fontWeight: 600, margin: '-6px 2px 16px', lineHeight: 1.45 }}>
-        Give an external tool access to your household over the API. Send the key as the
-        {' '}<code>x-api-key</code> header. A key acts as you — it can only do what your account can,
+      <div
+        className="tiny muted"
+        style={{ fontWeight: 600, margin: '-6px 2px 16px', lineHeight: 1.45 }}
+      >
+        Give an external tool access to your household over the API. Send the key as the{' '}
+        <code>x-api-key</code> header. A key acts as you — it can only do what your account can,
         limited further to the scopes you grant. Revoke it any time.
       </div>
 
       {justCreated && (
         <div className="apikey-reveal">
-          <div className="apikey-reveal-h">🔑 Copy your new key now — you won't be able to see it again.</div>
-          <div className="apikey-reveal-row">
-            <code className="apikey-secret" ref={secretRef}>{justCreated.secret}</code>
-            <button type="button" className="btn btn-ghost apikey-copy" onClick={copySecret}>{copied ? 'Copied ✓' : 'Copy'}</button>
+          <div className="apikey-reveal-h">
+            <>
+              <DataIcon value={'🔑'} kind="general" />
+              {" Copy your new key now — you won't be able to see it again."}
+            </>
           </div>
-          <button type="button" className="btn btn-ghost tiny" style={{ marginTop: 10 }} onClick={() => setJustCreated(null)}>Done</button>
+          <div className="apikey-reveal-row">
+            <code className="apikey-secret" ref={secretRef}>
+              {justCreated.secret}
+            </code>
+            <Button variant="ghost" type="button" className="apikey-copy" onClick={copySecret}>
+              {copied ? (
+                <>
+                  {'Copied '}
+                  <DataIcon value={'✓'} kind="general" />
+                </>
+              ) : (
+                'Copy'
+              )}
+            </Button>
+          </div>
+          <Button
+            variant="ghost"
+            type="button"
+            className="tiny"
+            style={{ marginTop: 10 }}
+            onClick={() => setJustCreated(null)}
+          >
+            Done
+          </Button>
         </div>
       )}
 
       {keys == null ? (
-        <div className="tiny muted" style={{ fontWeight: 600, padding: 8 }}>Loading…</div>
+        <div className="tiny muted" style={{ fontWeight: 600, padding: 8 }}>
+          Loading…
+        </div>
       ) : keys.length === 0 ? (
-        <div className="tiny muted" style={{ fontWeight: 600, padding: '14px 2px' }}>No API keys yet. Create one to let an outside app reach Waffled.</div>
+        <div className="tiny muted" style={{ fontWeight: 600, padding: '14px 2px' }}>
+          No API keys yet. Create one to let an outside app reach Waffled.
+        </div>
       ) : (
         <div className="apikey-list">
           {keys.map((k) => (
@@ -352,15 +592,32 @@ function ApiKeysPanel() {
                 <div className="apikey-name">{k.name}</div>
                 <code className="apikey-prefix">{k.prefix}…</code>
                 <div className="apikey-scopes">
-                  {k.scopes.length ? k.scopes.map((s) => <span key={s} className="apikey-scope">{label(s)}</span>) : <span className="tiny muted">no scopes</span>}
+                  {k.scopes.length ? (
+                    k.scopes.map((s) => (
+                      <span key={s} className="apikey-scope">
+                        {label(s)}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="tiny muted">no scopes</span>
+                  )}
                 </div>
                 <div className="tiny muted apikey-meta">
-                  {k.lastUsedAt ? `Last used ${new Date(k.lastUsedAt).toLocaleDateString()}` : 'Never used'}
+                  {k.lastUsedAt
+                    ? `Last used ${new Date(k.lastUsedAt).toLocaleDateString()}`
+                    : 'Never used'}
                   {' · '}Created {new Date(k.createdAt).toLocaleDateString()}
                   {k.expiresAt ? ` · Expires ${new Date(k.expiresAt).toLocaleDateString()}` : ''}
                 </div>
               </div>
-              <button type="button" className="btn btn-ghost apikey-revoke" onClick={() => setRevoking(k)}>Revoke</button>
+              <Button
+                variant="ghost"
+                type="button"
+                className="apikey-revoke"
+                onClick={() => setRevoking(k)}
+              >
+                Revoke
+              </Button>
             </div>
           ))}
         </div>
@@ -370,7 +627,12 @@ function ApiKeysPanel() {
         <NewApiKeyModal
           catalog={catalog}
           onClose={() => setCreating(false)}
-          onCreated={(name, secret) => { setCreating(false); setJustCreated({ name, secret }); setCopied(false); refetch() }}
+          onCreated={(name, secret) => {
+            setCreating(false)
+            setJustCreated({ name, secret })
+            setCopied(false)
+            refetch()
+          }}
         />
       )}
       {revoking && (
@@ -379,7 +641,11 @@ function ApiKeysPanel() {
           message="Any tool using this key will immediately lose access. This can't be undone."
           confirmLabel="Revoke"
           danger
-          onConfirm={async () => { await apiKeysApi.revoke(revoking.id); setRevoking(null); refetch() }}
+          onConfirm={async () => {
+            await apiKeysApi.revoke(revoking.id)
+            setRevoking(null)
+            refetch()
+          }}
           onClose={() => setRevoking(null)}
         />
       )}
@@ -387,7 +653,11 @@ function ApiKeysPanel() {
   )
 }
 
-function NewApiKeyModal({ catalog, onClose, onCreated }: {
+function NewApiKeyModal({
+  catalog,
+  onClose,
+  onCreated,
+}: {
   catalog: ApiScopeDef[]
   onClose: () => void
   onCreated: (name: string, secret: string) => void
@@ -398,7 +668,8 @@ function NewApiKeyModal({ catalog, onClose, onCreated }: {
   const [saving, setSaving] = useState(false)
   const [err, setErr] = useState<string | null>(null)
 
-  const setLevel = (resource: string, level: ScopeLevel) => setLevels((m) => ({ ...m, [resource]: level }))
+  const setLevel = (resource: string, level: ScopeLevel) =>
+    setLevels((m) => ({ ...m, [resource]: level }))
 
   function buildScopes(): string[] {
     return Object.entries(levels)
@@ -408,12 +679,22 @@ function NewApiKeyModal({ catalog, onClose, onCreated }: {
 
   async function save() {
     const scopes = buildScopes()
-    if (!name.trim()) { setErr('Give the key a name.'); return }
-    if (scopes.length === 0) { setErr('Grant at least one scope.'); return }
+    if (!name.trim()) {
+      setErr('Give the key a name.')
+      return
+    }
+    if (scopes.length === 0) {
+      setErr('Grant at least one scope.')
+      return
+    }
     setSaving(true)
     setErr(null)
     try {
-      const res = await apiKeysApi.create({ name: name.trim(), scopes, expiresAt: expiresAt || null })
+      const res = await apiKeysApi.create({
+        name: name.trim(),
+        scopes,
+        expiresAt: expiresAt || null,
+      })
       onCreated(res.apiKey.name, res.key)
     } catch {
       setErr('Could not create the key — please try again.')
@@ -422,14 +703,32 @@ function NewApiKeyModal({ catalog, onClose, onCreated }: {
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <Modal className="modal-overlay" onClose={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 520 }}>
-        <button type="button" className="modal-close" aria-label="Close" onClick={onClose}>×</button>
-        <div className="wf-serif" style={{ fontSize: 20, fontWeight: 600, marginBottom: 14 }}>New API key</div>
-        <label className="pantry-field"><span>Name</span>
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Home Assistant" autoFocus />
-        </label>
-        <div className="pantry-field"><span>Scopes</span></div>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="modal-close"
+          aria-label="Close"
+          onClick={onClose}
+        >
+          <DataIcon value={'×'} kind="general" />
+        </Button>
+        <div className="wf-serif" style={{ fontSize: 20, fontWeight: 600, marginBottom: 14 }}>
+          New API key
+        </div>
+        <Label className="pantry-field">
+          <span>Name</span>
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Home Assistant"
+            autoFocus
+          />
+        </Label>
+        <div className="pantry-field">
+          <span>Scopes</span>
+        </div>
         <div className="apikey-scopegrid">
           {catalog.map((s) => {
             const level = levels[s.resource] ?? 'none'
@@ -437,28 +736,59 @@ function NewApiKeyModal({ catalog, onClose, onCreated }: {
               <div key={s.resource} className="apikey-scoperow">
                 <div className="apikey-scoperow-main">
                   <div className="apikey-scoperow-label">{s.label}</div>
-                  <div className="tiny muted">{s.description}{s.readOnly ? ' · read-only' : ''}</div>
+                  <div className="tiny muted">
+                    {s.description}
+                    {s.readOnly ? ' · read-only' : ''}
+                  </div>
                 </div>
                 <div className="apikey-seg">
-                  <button type="button" className={level === 'none' ? 'on' : ''} onClick={() => setLevel(s.resource, 'none')}>None</button>
-                  <button type="button" className={level === 'read' ? 'on' : ''} onClick={() => setLevel(s.resource, 'read')}>Read</button>
-                  {!s.readOnly && <button type="button" className={level === 'write' ? 'on' : ''} onClick={() => setLevel(s.resource, 'write')}>Write</button>}
+                  <Button
+                    variant="unstyled"
+                    type="button"
+                    className={level === 'none' ? 'on' : ''}
+                    onClick={() => setLevel(s.resource, 'none')}
+                  >
+                    None
+                  </Button>
+                  <Button
+                    variant="unstyled"
+                    type="button"
+                    className={level === 'read' ? 'on' : ''}
+                    onClick={() => setLevel(s.resource, 'read')}
+                  >
+                    Read
+                  </Button>
+                  {!s.readOnly && (
+                    <Button
+                      variant="unstyled"
+                      type="button"
+                      className={level === 'write' ? 'on' : ''}
+                      onClick={() => setLevel(s.resource, 'write')}
+                    >
+                      Write
+                    </Button>
+                  )}
                 </div>
               </div>
             )
           })}
         </div>
-        <label className="pantry-field" style={{ marginTop: 12 }}><span>Expires (optional)</span>
-          <input type="date" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} />
-        </label>
+        <Label className="pantry-field" style={{ marginTop: 12 }}>
+          <span>Expires (optional)</span>
+          <Input type="date" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} />
+        </Label>
         {err && <div className="pantry-err">{err}</div>}
         <div className="pantry-modal-actions">
           <span style={{ flex: 1 }} />
-          <button type="button" className="btn btn-ghost" disabled={saving} onClick={onClose}>Cancel</button>
-          <button type="button" className="btn btn-primary" disabled={saving} onClick={save}>{saving ? 'Creating…' : 'Create key'}</button>
+          <Button variant="ghost" type="button" disabled={saving} onClick={onClose}>
+            Cancel
+          </Button>
+          <Button variant="default" type="button" disabled={saving} onClick={save}>
+            {saving ? 'Creating…' : 'Create key'}
+          </Button>
         </div>
       </div>
-    </div>
+    </Modal>
   )
 }
 
@@ -480,7 +810,11 @@ function BrowserSyncCard() {
   const health = useSyncHealth()
   const [restarting, setRestarting] = useState(false)
   const badge: HealthStatus =
-    health.status === 'ok' ? 'ok' : health.status === 'stalled' || health.status === 'failed' ? 'down' : 'degraded'
+    health.status === 'ok'
+      ? 'ok'
+      : health.status === 'stalled' || health.status === 'failed'
+        ? 'down'
+        : 'degraded'
   function run(restart: () => Promise<void>) {
     setRestarting(true)
     void restart().finally(() => setRestarting(false))
@@ -494,27 +828,43 @@ function BrowserSyncCard() {
       <div className="health-fields">
         <span className="health-chip">state: {SYNC_STATE_LABEL[health.status]}</span>
         {health.lastSyncedAt != null && (
-          <span className="health-chip">last synced: {new Date(health.lastSyncedAt).toLocaleString()}</span>
+          <span className="health-chip">
+            last synced: {new Date(health.lastSyncedAt).toLocaleString()}
+          </span>
         )}
-        {health.restartCount > 0 && <span className="health-chip">watchdog restarts: {health.restartCount}</span>}
-        {health.status === 'failed' && health.lastError && <span className="health-chip">error: {health.lastError}</span>}
+        {health.restartCount > 0 && (
+          <span className="health-chip">watchdog restarts: {health.restartCount}</span>
+        )}
+        {health.status === 'failed' && health.lastError && (
+          <span className="health-chip">error: {health.lastError}</span>
+        )}
       </div>
-      <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-        <button className="btn btn-ghost" disabled={restarting} onClick={() => run(() => restartPowerSyncHard())}>
+      <div
+        style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}
+      >
+        <Button
+          variant="ghost"
+          disabled={restarting}
+          onClick={() => run(() => restartPowerSyncHard())}
+        >
           ⟳ Restart sync
-        </button>
+        </Button>
         {/* The watchdog wipes at most once per stall and never on the failed path
             (a boot crash is no evidence the replica is bad), so a genuinely corrupt
             local copy needs this button reachable from both states. */}
         {(health.status === 'stalled' || health.status === 'failed') && (
-          <button
-            className="btn btn-ghost"
+          <Button
+            variant="ghost"
+
             disabled={restarting}
             title="Wipes this browser's local copy and re-downloads everything from the server. Skipped automatically if unsent changes are still queued, or if the queue can't be read."
             onClick={() => run(() => restartPowerSyncHard({ clear: true }))}
           >
-            🧹 Reset local copy
-          </button>
+            <>
+              <DataIcon value={'🧹'} kind="general" />
+              {' Reset local copy'}
+            </>
+          </Button>
         )}
       </div>
     </SettingCard>
@@ -529,12 +879,21 @@ function SystemHealthPanel() {
   useEffect(() => {
     let alive = true
     const load = () =>
-      healthApi.get().then((d) => alive && setReport(d)).catch(() => alive && setError(true))
+      healthApi
+        .get()
+        .then((d) => alive && setReport(d))
+        .catch(() => alive && setError(true))
     load()
     const t = setInterval(load, 10000)
     // Update check is a slow outbound call (cached server-side) — fetch once, not on the loop.
-    updatesApi.get().then((d) => alive && setUpd(d)).catch(() => {})
-    return () => { alive = false; clearInterval(t) }
+    updatesApi
+      .get()
+      .then((d) => alive && setUpd(d))
+      .catch(() => {})
+    return () => {
+      alive = false
+      clearInterval(t)
+    }
   }, [])
 
   async function toggleUpd(v: boolean) {
@@ -552,13 +911,17 @@ function SystemHealthPanel() {
       <div className="set-head">
         <div className="wf-serif set-head-t">System Health</div>
         {report && (
-          <span className={`health-badge health-${report.status} health-badge-lg`} title={`Overall: ${report.status}`}>
+          <span
+            className={`health-badge health-${report.status} health-badge-lg`}
+            title={`Overall: ${report.status}`}
+          >
             {HEALTH_ICON[report.status]} {report.status.toUpperCase()}
           </span>
         )}
       </div>
       <div className="tiny muted" style={{ fontWeight: 600, margin: '-6px 2px 14px' }}>
-        Live status of the self-hosted stack. Same data as <code>./waffled doctor</code> in a terminal.
+        Live status of the self-hosted stack. Same data as <code>./waffled doctor</code> in a
+        terminal.
       </div>
       {upd && <UpdateBanner upd={upd} onToggle={toggleUpd} toggling={togglingUpd} />}
       {/* This browser's own sync state, outside the server-report gate below: an
@@ -571,7 +934,9 @@ function SystemHealthPanel() {
           Couldn’t reach the server for the rest of the report.
         </div>
       ) : !report ? (
-        <div className="tiny muted" style={{ fontWeight: 600, padding: 8 }}>Loading…</div>
+        <div className="tiny muted" style={{ fontWeight: 600, padding: 8 }}>
+          Loading…
+        </div>
       ) : (
         <>
           <div className="health-grid">
@@ -580,7 +945,11 @@ function SystemHealthPanel() {
             ))}
           </div>
           <div className="tiny muted" style={{ fontWeight: 600, marginTop: 12 }}>
-            Build {report.version.sha}{report.version.buildTime ? ` · ${new Date(report.version.buildTime).toLocaleString()}` : ''} · refreshed {new Date(report.generatedAt).toLocaleTimeString()}
+            Build {report.version.sha}
+            {report.version.buildTime
+              ? ` · ${new Date(report.version.buildTime).toLocaleString()}`
+              : ''}{' '}
+            · refreshed {new Date(report.generatedAt).toLocaleTimeString()}
           </div>
         </>
       )}
@@ -589,7 +958,15 @@ function SystemHealthPanel() {
 }
 
 // Update notifier row, hidden entirely when the operator disabled it via env.
-function UpdateBanner({ upd, onToggle, toggling }: { upd: UpdateInfo; onToggle: (v: boolean) => void; toggling: boolean }) {
+function UpdateBanner({
+  upd,
+  onToggle,
+  toggling,
+}: {
+  upd: UpdateInfo
+  onToggle: (v: boolean) => void
+  toggling: boolean
+}) {
   const envOff = !upd.enabled && upd.reason === 'env'
   return (
     <SettingCard style={{ marginBottom: 14 }}>
@@ -597,10 +974,18 @@ function UpdateBanner({ upd, onToggle, toggling }: { upd: UpdateInfo; onToggle: 
         <div style={{ flex: 1 }}>
           {upd.updateAvailable && upd.latest ? (
             <>
-              <div className="card-h" style={{ margin: 0 }}>⬆ Update available — {upd.latest.tag}</div>
+              <div className="card-h" style={{ margin: 0 }}>
+                <>
+                  <DataIcon value={'⬆'} kind="general" />
+                  {' Update available — '}
+                </>
+                {upd.latest.tag}
+              </div>
               <div className="tiny muted" style={{ fontWeight: 600 }}>
                 You're on {upd.current.version} ({upd.current.sha}).{' '}
-                <a href={upd.latest.url} target="_blank" rel="noreferrer">View release ↗</a>
+                <a href={upd.latest.url} target="_blank" rel="noreferrer">
+                  View release ↗
+                </a>
               </div>
               <div className="tiny muted" style={{ fontWeight: 600, marginTop: 2 }}>
                 On the server, run <code>./waffled upgrade</code> to update.
@@ -608,28 +993,47 @@ function UpdateBanner({ upd, onToggle, toggling }: { upd: UpdateInfo; onToggle: 
             </>
           ) : upd.enabled && upd.latest ? (
             <>
-              <div className="card-h" style={{ margin: 0 }}>✓ Up to date</div>
+              <div className="card-h" style={{ margin: 0 }}>
+                <>
+                  <DataIcon value={'✓'} kind="general" />
+                  {' Up to date'}
+                </>
+              </div>
               <div className="tiny muted" style={{ fontWeight: 600 }}>
                 Running {upd.current.version} ({upd.current.sha}) · latest is {upd.latest.tag}
               </div>
             </>
           ) : upd.enabled ? (
             <>
-              <div className="card-h" style={{ margin: 0 }}>Update check</div>
+              <div className="card-h" style={{ margin: 0 }}>
+                Update check
+              </div>
               <div className="tiny muted" style={{ fontWeight: 600 }}>
-                Running {upd.current.version} ({upd.current.sha}){upd.error ? ` · ${upd.error}` : ''}
+                Running {upd.current.version} ({upd.current.sha})
+                {upd.error ? ` · ${upd.error}` : ''}
               </div>
             </>
           ) : (
             <>
-              <div className="card-h" style={{ margin: 0 }}>Update checks off</div>
+              <div className="card-h" style={{ margin: 0 }}>
+                Update checks off
+              </div>
               <div className="tiny muted" style={{ fontWeight: 600 }}>
-                {envOff ? 'Disabled by the operator (UPDATE_CHECK_ENABLED).' : "Waffled won't check GitHub for new releases."}
+                {envOff
+                  ? 'Disabled by the operator (UPDATE_CHECK_ENABLED).'
+                  : "Waffled won't check GitHub for new releases."}
               </div>
             </>
           )}
         </div>
-        {!envOff && <Switch checked={upd.enabled} disabled={toggling} onChange={onToggle} ariaLabel="Check for updates" />}
+        {!envOff && (
+          <Switch
+            checked={upd.enabled}
+            disabled={toggling}
+            onChange={onToggle}
+            ariaLabel="Check for updates"
+          />
+        )}
       </div>
     </SettingCard>
   )
@@ -659,7 +1063,8 @@ function MyProfilePanel() {
 
   useEffect(() => {
     let alive = true
-    accountApi.get()
+    accountApi
+      .get()
       .then((a) => {
         if (!alive) return
         setInfo(a)
@@ -669,11 +1074,27 @@ function MyProfilePanel() {
         setBirthday(a.birthday ? String(a.birthday).slice(0, 10) : '')
       })
       .catch(() => alive && setError(true))
-    return () => { alive = false }
+    return () => {
+      alive = false
+    }
   }, [])
 
-  if (error) return <div className="set-panel"><div className="muted" style={{ padding: 20 }}>Couldn't load your profile — try reloading or signing in again.</div></div>
-  if (!info) return <div className="set-panel"><div className="muted" style={{ padding: 20 }}>Loading…</div></div>
+  if (error)
+    return (
+      <div className="set-panel">
+        <div className="muted" style={{ padding: 20 }}>
+          Couldn't load your profile — try reloading or signing in again.
+        </div>
+      </div>
+    )
+  if (!info)
+    return (
+      <div className="set-panel">
+        <div className="muted" style={{ padding: 20 }}>
+          Loading…
+        </div>
+      </div>
+    )
 
   const dirty =
     name.trim() !== info.name ||
@@ -683,7 +1104,9 @@ function MyProfilePanel() {
 
   async function save() {
     if (!name.trim() || saving) return
-    setSaving(true); setSaved(false); setSaveErr(null)
+    setSaving(true)
+    setSaved(false)
+    setSaveErr(null)
     try {
       await accountApi.updateProfile({
         name: name.trim(),
@@ -691,7 +1114,17 @@ function MyProfilePanel() {
         colorHex,
         birthday: birthday || null,
       })
-      setInfo((i) => (i ? { ...i, name: name.trim(), avatarEmoji: avatarEmoji.trim() || null, colorHex, birthday: birthday || null } : i))
+      setInfo((i) =>
+        i
+          ? {
+              ...i,
+              name: name.trim(),
+              avatarEmoji: avatarEmoji.trim() || null,
+              colorHex,
+              birthday: birthday || null,
+            }
+          : i,
+      )
       emitHouseholdChanged() // refresh topbar avatar/name immediately
       setSaved(true)
       setTimeout(() => setSaved(false), 1800)
@@ -706,39 +1139,86 @@ function MyProfilePanel() {
     <div className="set-panel">
       <div className="set-head">
         <div className="wf-serif set-head-t">My Profile</div>
-        <div className="tiny muted" style={{ fontWeight: 600 }}>How you appear on the kiosk</div>
+        <div className="tiny muted" style={{ fontWeight: 600 }}>
+          How you appear on the kiosk
+        </div>
       </div>
 
       <SettingCard>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
-          <div className="av md" style={{ background: `${colorHex}22`, fontSize: 26 }}>{avatarEmoji || '🙂'}</div>
+          <div className="av md" style={{ background: `${colorHex}22`, fontSize: 26 }}>
+            <DataIcon value={avatarEmoji || '🙂'} kind="person" />
+          </div>
           <div className="field" style={{ flex: 1, marginBottom: 0 }}>
             <span>Name</span>
-            <input value={name} onChange={(e) => { setName(e.target.value); setSaved(false) }} placeholder="Your name" />
+            <Input
+              value={name}
+              onChange={(e) => {
+                setName(e.target.value)
+                setSaved(false)
+              }}
+              placeholder="Your name"
+            />
           </div>
           <div className="field" style={{ width: 80, marginBottom: 0 }}>
             <span>Avatar</span>
-            <input value={avatarEmoji} onChange={(e) => { setAvatarEmoji(e.target.value); setSaved(false) }} placeholder="🙂" maxLength={4} />
+            <IconPicker
+              kind="general"
+              value={avatarEmoji}
+              onValueChange={(e) => {
+                setAvatarEmoji(e)
+                setSaved(false)
+              }}
+            />
           </div>
         </div>
 
         <div className="field">
           <span>Color</span>
-          <ColorPicker value={colorHex} onChange={(c) => { setColorHex(c); setSaved(false) }} />
+          <ColorPicker
+            value={colorHex}
+            onChange={(c) => {
+              setColorHex(c)
+              setSaved(false)
+            }}
+          />
         </div>
 
-        <label className="field">
+        <Label className="field">
           <span>Birthday (optional)</span>
-          <input type="date" value={birthday} onChange={(e) => { setBirthday(e.target.value); setSaved(false) }} />
-        </label>
+          <Input
+            type="date"
+            value={birthday}
+            onChange={(e) => {
+              setBirthday(e.target.value)
+              setSaved(false)
+            }}
+          />
+        </Label>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 6 }}>
-          <button type="button" className="btn btn-primary" onClick={save} disabled={!dirty || !name.trim() || saving}>
+          <Button
+            variant="default"
+            type="button"
+            onClick={save}
+            disabled={!dirty || !name.trim() || saving}
+          >
             {saving ? 'Saving…' : 'Save'}
-          </button>
-          {saved && <span className="tiny" style={{ color: 'var(--success)', fontWeight: 700 }}>✓ Saved</span>}
+          </Button>
+          {saved && (
+            <span className="tiny" style={{ color: 'var(--success)', fontWeight: 700 }}>
+              <>
+                <DataIcon value={'✓'} kind="general" />
+                {' Saved'}
+              </>
+            </span>
+          )}
         </div>
-        {saveErr && <div className="tiny" style={{ fontWeight: 700, color: 'var(--primary)', marginTop: 10 }}>{saveErr}</div>}
+        {saveErr && (
+          <div className="tiny" style={{ fontWeight: 700, color: 'var(--primary)', marginTop: 10 }}>
+            {saveErr}
+          </div>
+        )}
       </SettingCard>
     </div>
   )
@@ -767,18 +1247,41 @@ function MyAccountPanel() {
 
   useEffect(() => {
     let alive = true
-    accountApi.get()
-      .then((a) => { if (!alive) return; setInfo(a); setEmail(a.email ?? '') })
+    accountApi
+      .get()
+      .then((a) => {
+        if (!alive) return
+        setInfo(a)
+        setEmail(a.email ?? '')
+      })
       .catch(() => alive && setError(true))
-    return () => { alive = false }
+    return () => {
+      alive = false
+    }
   }, [])
 
-  if (error) return <div className="set-panel"><div className="muted" style={{ padding: 20 }}>Couldn't load your account — try reloading or signing in again.</div></div>
-  if (!info) return <div className="set-panel"><div className="muted" style={{ padding: 20 }}>Loading…</div></div>
+  if (error)
+    return (
+      <div className="set-panel">
+        <div className="muted" style={{ padding: 20 }}>
+          Couldn't load your account — try reloading or signing in again.
+        </div>
+      </div>
+    )
+  if (!info)
+    return (
+      <div className="set-panel">
+        <div className="muted" style={{ padding: 20 }}>
+          Loading…
+        </div>
+      </div>
+    )
 
   async function saveEmail() {
     if (!info || emailBusy) return
-    setEmailBusy(true); setEmailOk(false); setEmailErr(null)
+    setEmailBusy(true)
+    setEmailOk(false)
+    setEmailErr(null)
     try {
       await accountApi.changeEmail({ email: email.trim(), currentPassword: emailPw })
       setInfo((i) => (i ? { ...i, email: email.trim() } : i))
@@ -794,12 +1297,22 @@ function MyAccountPanel() {
 
   async function savePassword() {
     if (pwBusy) return
-    if (newPw.length < 8) { setPwErr('New password must be at least 8 characters.'); return }
-    if (newPw !== confirmPw) { setPwErr('Those passwords don’t match.'); return }
-    setPwBusy(true); setPwOk(false); setPwErr(null)
+    if (newPw.length < 8) {
+      setPwErr('New password must be at least 8 characters.')
+      return
+    }
+    if (newPw !== confirmPw) {
+      setPwErr('Those passwords don’t match.')
+      return
+    }
+    setPwBusy(true)
+    setPwOk(false)
+    setPwErr(null)
     try {
       await accountApi.changePassword({ currentPassword: curPw, newPassword: newPw })
-      setCurPw(''); setNewPw(''); setConfirmPw('')
+      setCurPw('')
+      setNewPw('')
+      setConfirmPw('')
       setPwOk(true)
       setTimeout(() => setPwOk(false), 2500)
     } catch (e) {
@@ -815,12 +1328,16 @@ function MyAccountPanel() {
     <div className="set-panel">
       <div className="set-head">
         <div className="wf-serif set-head-t">My Account</div>
-        <div className="tiny muted" style={{ fontWeight: 600 }}>Login &amp; security</div>
+        <div className="tiny muted" style={{ fontWeight: 600 }}>
+          Login &amp; security
+        </div>
       </div>
 
       {oidc ? (
         <SettingCard>
-          <div className="set-row2-t" style={{ marginBottom: 4 }}>Email</div>
+          <div className="set-row2-t" style={{ marginBottom: 4 }}>
+            Email
+          </div>
           <div style={{ fontWeight: 700, fontSize: 15 }}>{info.email}</div>
           <div className="tiny muted" style={{ fontWeight: 600, marginTop: 8 }}>
             Managed by your SSO provider — change it there.
@@ -829,45 +1346,134 @@ function MyAccountPanel() {
       ) : (
         <>
           <SettingCard>
-            <div className="set-row2-t" style={{ marginBottom: 12 }}>Change Email</div>
-            <label className="field" style={{ marginBottom: 10 }}>
-              <span>Email</span>
-              <input type="email" autoComplete="off" value={email} onChange={(e) => { setEmail(e.target.value); setEmailOk(false) }} placeholder="name@example.com" />
-            </label>
-            <label className="field" style={{ marginBottom: 10 }}>
-              <span>Current password</span>
-              <input type="password" autoComplete="current-password" value={emailPw} onChange={(e) => { setEmailPw(e.target.value); setEmailOk(false) }} placeholder="Enter your current password" />
-            </label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <button type="button" className="btn btn-primary" onClick={saveEmail} disabled={emailBusy || !email.trim() || !emailPw || email.trim() === (info.email ?? '')}>
-                {emailBusy ? 'Saving…' : 'Update email'}
-              </button>
-              {emailOk && <span className="tiny" style={{ color: 'var(--success)', fontWeight: 700 }}>✓ Saved</span>}
+            <div className="set-row2-t" style={{ marginBottom: 12 }}>
+              Change Email
             </div>
-            {emailErr && <div className="tiny" style={{ fontWeight: 700, color: 'var(--primary)', marginTop: 10 }}>{emailErr}</div>}
+            <Label className="field" style={{ marginBottom: 10 }}>
+              <span>Email</span>
+              <Input
+                type="email"
+                autoComplete="off"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value)
+                  setEmailOk(false)
+                }}
+                placeholder="name@example.com"
+              />
+            </Label>
+            <Label className="field" style={{ marginBottom: 10 }}>
+              <span>Current password</span>
+              <Input
+                type="password"
+                autoComplete="current-password"
+                value={emailPw}
+                onChange={(e) => {
+                  setEmailPw(e.target.value)
+                  setEmailOk(false)
+                }}
+                placeholder="Enter your current password"
+              />
+            </Label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <Button
+                variant="default"
+                type="button"
+                onClick={saveEmail}
+                disabled={
+                  emailBusy || !email.trim() || !emailPw || email.trim() === (info.email ?? '')
+                }
+              >
+                {emailBusy ? 'Saving…' : 'Update email'}
+              </Button>
+              {emailOk && (
+                <span className="tiny" style={{ color: 'var(--success)', fontWeight: 700 }}>
+                  <>
+                    <DataIcon value={'✓'} kind="general" />
+                    {' Saved'}
+                  </>
+                </span>
+              )}
+            </div>
+            {emailErr && (
+              <div
+                className="tiny"
+                style={{ fontWeight: 700, color: 'var(--primary)', marginTop: 10 }}
+              >
+                {emailErr}
+              </div>
+            )}
           </SettingCard>
 
           <SettingCard style={{ marginTop: 16 }}>
-            <div className="set-row2-t" style={{ marginBottom: 12 }}>Change Password</div>
-            <label className="field" style={{ marginBottom: 10 }}>
-              <span>Current password</span>
-              <input type="password" autoComplete="current-password" value={curPw} onChange={(e) => { setCurPw(e.target.value); setPwOk(false) }} placeholder="Enter your current password" />
-            </label>
-            <label className="field" style={{ marginBottom: 10 }}>
-              <span>New password</span>
-              <input type="password" autoComplete="new-password" value={newPw} onChange={(e) => { setNewPw(e.target.value); setPwOk(false) }} placeholder="At least 8 characters" />
-            </label>
-            <label className="field" style={{ marginBottom: 10 }}>
-              <span>Confirm new password</span>
-              <input type="password" autoComplete="new-password" value={confirmPw} onChange={(e) => { setConfirmPw(e.target.value); setPwOk(false) }} placeholder="Re-enter new password" />
-            </label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <button type="button" className="btn btn-primary" onClick={savePassword} disabled={pwBusy || !curPw || !newPw || !confirmPw}>
-                {pwBusy ? 'Saving…' : 'Update password'}
-              </button>
-              {pwOk && <span className="tiny" style={{ color: 'var(--success)', fontWeight: 700 }}>✓ Saved</span>}
+            <div className="set-row2-t" style={{ marginBottom: 12 }}>
+              Change Password
             </div>
-            {pwErr && <div className="tiny" style={{ fontWeight: 700, color: 'var(--primary)', marginTop: 10 }}>{pwErr}</div>}
+            <Label className="field" style={{ marginBottom: 10 }}>
+              <span>Current password</span>
+              <Input
+                type="password"
+                autoComplete="current-password"
+                value={curPw}
+                onChange={(e) => {
+                  setCurPw(e.target.value)
+                  setPwOk(false)
+                }}
+                placeholder="Enter your current password"
+              />
+            </Label>
+            <Label className="field" style={{ marginBottom: 10 }}>
+              <span>New password</span>
+              <Input
+                type="password"
+                autoComplete="new-password"
+                value={newPw}
+                onChange={(e) => {
+                  setNewPw(e.target.value)
+                  setPwOk(false)
+                }}
+                placeholder="At least 8 characters"
+              />
+            </Label>
+            <Label className="field" style={{ marginBottom: 10 }}>
+              <span>Confirm new password</span>
+              <Input
+                type="password"
+                autoComplete="new-password"
+                value={confirmPw}
+                onChange={(e) => {
+                  setConfirmPw(e.target.value)
+                  setPwOk(false)
+                }}
+                placeholder="Re-enter new password"
+              />
+            </Label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <Button
+                variant="default"
+                type="button"
+                onClick={savePassword}
+                disabled={pwBusy || !curPw || !newPw || !confirmPw}
+              >
+                {pwBusy ? 'Saving…' : 'Update password'}
+              </Button>
+              {pwOk && (
+                <span className="tiny" style={{ color: 'var(--success)', fontWeight: 700 }}>
+                  <>
+                    <DataIcon value={'✓'} kind="general" />
+                    {' Saved'}
+                  </>
+                </span>
+              )}
+            </div>
+            {pwErr && (
+              <div
+                className="tiny"
+                style={{ fontWeight: 700, color: 'var(--primary)', marginTop: 10 }}
+              >
+                {pwErr}
+              </div>
+            )}
           </SettingCard>
         </>
       )}
@@ -887,42 +1493,81 @@ function KioskPinCard({ personId, hasPin }: { personId: string; hasPin: boolean 
   const [err, setErr] = useState('')
   const valid = /^\d{4,8}$/.test(pin)
   async function save() {
-    setBusy(true); setErr(''); setOk(false)
-    try { await accountApi.setPin(personId, pin); setPin(''); setPinSet(true); setOk(true) }
-    catch (e) { setErr(accountErrMsg(e, 'Could not set your PIN — please try again.')) }
-    finally { setBusy(false) }
+    setBusy(true)
+    setErr('')
+    setOk(false)
+    try {
+      await accountApi.setPin(personId, pin)
+      setPin('')
+      setPinSet(true)
+      setOk(true)
+    } catch (e) {
+      setErr(accountErrMsg(e, 'Could not set your PIN — please try again.'))
+    } finally {
+      setBusy(false)
+    }
   }
   async function remove() {
-    setBusy(true); setErr(''); setOk(false)
-    try { await accountApi.removePin(personId); setPinSet(false); setPin(''); setOk(true) }
-    catch (e) { setErr(accountErrMsg(e, 'Could not remove your PIN — please try again.')) }
-    finally { setBusy(false) }
+    setBusy(true)
+    setErr('')
+    setOk(false)
+    try {
+      await accountApi.removePin(personId)
+      setPinSet(false)
+      setPin('')
+      setOk(true)
+    } catch (e) {
+      setErr(accountErrMsg(e, 'Could not remove your PIN — please try again.'))
+    } finally {
+      setBusy(false)
+    }
   }
   return (
     <SettingCard style={{ marginTop: 16 }}>
-      <div className="set-row2-t" style={{ marginBottom: 4 }}>Kiosk PIN</div>
-      <div className="tiny muted" style={{ fontWeight: 600, marginBottom: 12 }}>
-        An optional 4–8 digit PIN to open your profile on the shared kiosk. {pinSet ? 'A PIN is set.' : 'No PIN set.'}
+      <div className="set-row2-t" style={{ marginBottom: 4 }}>
+        Kiosk PIN
       </div>
-      <label className="field" style={{ marginBottom: 10 }}>
+      <div className="tiny muted" style={{ fontWeight: 600, marginBottom: 12 }}>
+        An optional 4–8 digit PIN to open your profile on the shared kiosk.{' '}
+        {pinSet ? 'A PIN is set.' : 'No PIN set.'}
+      </div>
+      <Label className="field" style={{ marginBottom: 10 }}>
         <span>{pinSet ? 'New PIN' : 'PIN'}</span>
-        <input
+        <Input
           type="password"
           inputMode="numeric"
           autoComplete="off"
           value={pin}
-          onChange={(e) => { setPin(e.target.value.replace(/\D/g, '').slice(0, 8)); setOk(false) }}
+          onChange={(e) => {
+            setPin(e.target.value.replace(/\D/g, '').slice(0, 8))
+            setOk(false)
+          }}
           placeholder="4–8 digits"
         />
-      </label>
+      </Label>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <button type="button" className="btn btn-primary" onClick={save} disabled={busy || !valid}>
+        <Button variant="default" type="button" onClick={save} disabled={busy || !valid}>
           {busy ? 'Saving…' : pinSet ? 'Update PIN' : 'Set PIN'}
-        </button>
-        {pinSet && <button type="button" className="btn btn-ghost" onClick={remove} disabled={busy}>Remove PIN</button>}
-        {ok && <span className="tiny" style={{ color: 'var(--success)', fontWeight: 700 }}>✓ Saved</span>}
+        </Button>
+        {pinSet && (
+          <Button variant="ghost" type="button" onClick={remove} disabled={busy}>
+            Remove PIN
+          </Button>
+        )}
+        {ok && (
+          <span className="tiny" style={{ color: 'var(--success)', fontWeight: 700 }}>
+            <>
+              <DataIcon value={'✓'} kind="general" />
+              {' Saved'}
+            </>
+          </span>
+        )}
       </div>
-      {err && <div className="tiny" style={{ fontWeight: 700, color: 'var(--primary)', marginTop: 10 }}>{err}</div>}
+      {err && (
+        <div className="tiny" style={{ fontWeight: 700, color: 'var(--primary)', marginTop: 10 }}>
+          {err}
+        </div>
+      )}
     </SettingCard>
   )
 }
@@ -934,8 +1579,18 @@ function FamilyPanel() {
   const [nameDraft, setNameDraft] = useState<string | null>(null)
   const [locDraft, setLocDraft] = useState<string | null>(null)
 
-  if (loading) return <div className="muted" style={{ padding: 20 }}>Loading…</div>
-  if (error || !household) return <div className="muted" style={{ padding: 20 }}>Couldn't load your family — try reloading or signing in again.</div>
+  if (loading)
+    return (
+      <div className="muted" style={{ padding: 20 }}>
+        Loading…
+      </div>
+    )
+  if (error || !household)
+    return (
+      <div className="muted" style={{ padding: 20 }}>
+        Couldn't load your family — try reloading or signing in again.
+      </div>
+    )
 
   async function saveHousehold(patch: Record<string, unknown>) {
     await personsApi.updateHousehold(patch)
@@ -943,7 +1598,7 @@ function FamilyPanel() {
     refetch()
   }
 
-    // emitHouseholdChanged() re-reads the household, so the calendar restyles without a reload.
+  // emitHouseholdChanged() re-reads the household, so the calendar restyles without a reload.
   async function saveDisplay(patch: { eventStyle?: string; familyColorHex?: string }) {
     await personsApi.setDisplay(patch)
     emitHouseholdChanged()
@@ -954,7 +1609,9 @@ function FamilyPanel() {
     <div className="set-panel">
       <div className="set-head">
         <div className="wf-serif set-head-t">Family &amp; People</div>
-        <div className="tiny muted" style={{ fontWeight: 600 }}>{members.length} {members.length === 1 ? 'person' : 'people'}</div>
+        <div className="tiny muted" style={{ fontWeight: 600 }}>
+          {members.length} {members.length === 1 ? 'person' : 'people'}
+        </div>
       </div>
 
       <SettingCard>
@@ -962,20 +1619,37 @@ function FamilyPanel() {
           <MemberRow key={m.id} m={m} onClick={() => setEditing(m)} />
         ))}
       </SettingCard>
-      <button type="button" className="btn btn-ghost set-add" onClick={() => setAdding(true)}>＋ Add a person</button>
+      <Button variant="ghost" type="button" className="set-add" onClick={() => setAdding(true)}>
+        <>
+          <DataIcon value={'＋'} kind="general" />
+          {' Add a person'}
+        </>
+      </Button>
 
       <SettingCard style={{ marginTop: 18 }}>
         <SettingRow icon="🏡" title="Household name" sub="Shows on the kiosk &amp; invites">
           {nameDraft === null ? (
-            <button type="button" className="sel" onClick={() => setNameDraft(household.name)}>{household.name} ▾</button>
+            <Button
+              variant="unstyled"
+              type="button"
+              className="sel"
+              onClick={() => setNameDraft(household.name)}
+            >
+              {household.name}
+              <>
+                {' '}
+                <DataIcon value={'▾'} kind="general" />
+              </>
+            </Button>
           ) : (
-            <input
+            <Input
               className="set-inline-input"
               autoFocus
               value={nameDraft}
               onChange={(e) => setNameDraft(e.target.value)}
               onBlur={() => {
-                if (nameDraft.trim() && nameDraft !== household.name) saveHousehold({ name: nameDraft.trim() })
+                if (nameDraft.trim() && nameDraft !== household.name)
+                  saveHousehold({ name: nameDraft.trim() })
                 setNameDraft(null)
               }}
               onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
@@ -983,13 +1657,17 @@ function FamilyPanel() {
           )}
         </SettingRow>
         <SettingRow icon="🗓️" title="Week starts on">
-          <select className="sel" value={household.weekStart} onChange={(e) => saveHousehold({ weekStart: e.target.value })}>
+          <NativeSelect
+            className="sel"
+            value={household.weekStart}
+            onChange={(e) => saveHousehold({ weekStart: e.target.value })}
+          >
             <option value="sunday">Sunday</option>
             <option value="monday">Monday</option>
-          </select>
+          </NativeSelect>
         </SettingRow>
         <SettingRow icon="🎨" title="Event style" sub="How calendar events are colored">
-          <select
+          <NativeSelect
             className="sel"
             aria-label="Event style"
             value={eventStyle(household)}
@@ -997,32 +1675,63 @@ function FamilyPanel() {
           >
             <option value="solid">Solid colors</option>
             <option value="tinted">Tinted</option>
-          </select>
+          </NativeSelect>
         </SettingRow>
-        <SettingRow icon="👨‍👩‍👧‍👦" title="Family color" sub="Events with the whole family use this color">
-          <ColorPicker value={familyColorHex(household)} onChange={(hex) => saveDisplay({ familyColorHex: hex })} size={24} />
+        <SettingRow
+          icon="👨‍👩‍👧‍👦"
+          title="Family color"
+          sub="Events with the whole family use this color"
+        >
+          <ColorPicker
+            value={familyColorHex(household)}
+            onChange={(hex) => saveDisplay({ familyColorHex: hex })}
+            size={24}
+          />
         </SettingRow>
         <SettingRow icon="🌐" title="Time zone" sub="Used for every calendar &amp; reminder">
-          <select className="sel" value={household.timezone} onChange={(e) => saveHousehold({ timezone: e.target.value })}>
-            {(TIMEZONES.includes(household.timezone) ? TIMEZONES : [household.timezone, ...TIMEZONES]).map((tz) => (
-              <option key={tz} value={tz}>{tz.split('/').pop()?.replace('_', ' ')}</option>
+          <NativeSelect
+            className="sel"
+            value={household.timezone}
+            onChange={(e) => saveHousehold({ timezone: e.target.value })}
+          >
+            {(TIMEZONES.includes(household.timezone)
+              ? TIMEZONES
+              : [household.timezone, ...TIMEZONES]
+            ).map((tz) => (
+              <option key={tz} value={tz}>
+                {tz.split('/').pop()?.replace('_', ' ')}
+              </option>
             ))}
-          </select>
+          </NativeSelect>
         </SettingRow>
-        <SettingRow icon="📍" title="Location" sub="For local weather on the kiosk (weather wiring coming soon)">
+        <SettingRow
+          icon="📍"
+          title="Location"
+          sub="For local weather on the kiosk (weather wiring coming soon)"
+        >
           {locDraft === null ? (
-            <button type="button" className="sel" onClick={() => setLocDraft(household.location ?? '')}>
-              {household.location || 'Set location'} ▾
-            </button>
+            <Button
+              variant="unstyled"
+              type="button"
+              className="sel"
+              onClick={() => setLocDraft(household.location ?? '')}
+            >
+              {household.location || 'Set location'}
+              <>
+                {' '}
+                <DataIcon value={'▾'} kind="general" />
+              </>
+            </Button>
           ) : (
-            <input
+            <Input
               className="set-inline-input"
               autoFocus
               placeholder="City, State"
               value={locDraft}
               onChange={(e) => setLocDraft(e.target.value)}
               onBlur={() => {
-                if ((locDraft.trim() || null) !== (household.location ?? null)) saveHousehold({ location: locDraft.trim() || null })
+                if ((locDraft.trim() || null) !== (household.location ?? null))
+                  saveHousehold({ location: locDraft.trim() || null })
                 setLocDraft(null)
               }}
               onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
@@ -1034,7 +1743,14 @@ function FamilyPanel() {
       <PermissionsCard />
 
       {(editing || adding) && (
-        <PersonModal person={editing} onClose={() => { setEditing(null); setAdding(false) }} onSaved={refetch} />
+        <PersonModal
+          person={editing}
+          onClose={() => {
+            setEditing(null)
+            setAdding(false)
+          }}
+          onSaved={refetch}
+        />
       )}
     </div>
   )
@@ -1042,9 +1758,21 @@ function FamilyPanel() {
 
 const PROVIDER_META: Record<Provider, { label: string; sub: string; envHint: string }> = {
   heuristic: { label: 'On-device', sub: 'Built-in parser — no AI, works offline', envHint: '' },
-  anthropic: { label: 'Claude (Anthropic)', sub: 'Most accurate · hosted', envHint: 'ANTHROPIC_API_KEY' },
-  openai: { label: 'OpenAI / compatible', sub: 'Hosted, or a local OpenAI-compatible server', envHint: 'OPENAI_API_KEY' },
-  ollama: { label: 'Local server (Ollama)', sub: 'Private — text stays on your network', envHint: 'OLLAMA_HOST' },
+  anthropic: {
+    label: 'Claude (Anthropic)',
+    sub: 'Most accurate · hosted',
+    envHint: 'ANTHROPIC_API_KEY',
+  },
+  openai: {
+    label: 'OpenAI / compatible',
+    sub: 'Hosted, or a local OpenAI-compatible server',
+    envHint: 'OPENAI_API_KEY',
+  },
+  ollama: {
+    label: 'Local server (Ollama)',
+    sub: 'Private — text stays on your network',
+    envHint: 'OLLAMA_HOST',
+  },
 }
 const PROVIDER_ORDER: Provider[] = ['heuristic', 'ollama', 'anthropic', 'openai']
 
@@ -1053,15 +1781,24 @@ const PROVIDER_ORDER: Provider[] = ['heuristic', 'ollama', 'anthropic', 'openai'
 function LearnedMatches() {
   const [groups, setGroups] = useState<MemoryGroup[] | null>(null)
   const [confirmClear, setConfirmClear] = useState(false)
-  const load = () => goalCalendarApi.memory().then((d) => setGroups(d.groups)).catch(() => setGroups([]))
-  useEffect(() => { load() }, [])
+  const load = () =>
+    goalCalendarApi
+      .memory()
+      .then((d) => setGroups(d.groups))
+      .catch(() => setGroups([]))
+  useEffect(() => {
+    load()
+  }, [])
 
   async function forget(goalId: string, token: string) {
     await goalCalendarApi.forgetMemory({ goalId, token })
     load()
   }
   async function clearAll() {
-    if (!confirmClear) { setConfirmClear(true); return }
+    if (!confirmClear) {
+      setConfirmClear(true)
+      return
+    }
     await goalCalendarApi.clearMemory()
     setConfirmClear(false)
     load()
@@ -1070,9 +1807,12 @@ function LearnedMatches() {
 
   return (
     <SettingCard style={{ marginTop: 18 }}>
-      <div className="set-row2-t" style={{ marginBottom: 4 }}>Smart Matching</div>
+      <div className="set-row2-t" style={{ marginBottom: 4 }}>
+        Smart Matching
+      </div>
       <div className="tiny muted" style={{ fontWeight: 600, marginBottom: 12 }}>
-        Words Waffled has learned to link to a goal, from the events you’ve linked. Remove any that look wrong.
+        Words Waffled has learned to link to a goal, from the events you’ve linked. Remove any that
+        look wrong.
       </div>
       {groups.length === 0 ? (
         <div className="tiny muted" style={{ fontWeight: 600 }}>
@@ -1082,12 +1822,25 @@ function LearnedMatches() {
         <div className="sm-list">
           {groups.map((g) => (
             <div key={g.goalId} className="sm-group">
-              <div className="sm-goal">{g.goalEmoji ? `${g.goalEmoji} ` : ''}{g.goalTitle}</div>
+              <div className="sm-goal">
+                {g.goalEmoji ? <>{<DataIcon value={g.goalEmoji} kind="goal" />} </> : ''}
+                {g.goalTitle}
+              </div>
               <div className="sm-chips">
                 {g.tokens.map((t) => (
-                  <button key={t.token} type="button" className="sm-chip" onClick={() => forget(g.goalId, t.token)} title="Forget this word">
-                    {t.token}<span className="sm-x">✕</span>
-                  </button>
+                  <Button
+                    variant="unstyled"
+                    key={t.token}
+                    type="button"
+                    className="sm-chip"
+                    onClick={() => forget(g.goalId, t.token)}
+                    title="Forget this word"
+                  >
+                    {t.token}
+                    <span className="sm-x">
+                      <DataIcon value={'✕'} kind="goal" />
+                    </span>
+                  </Button>
                 ))}
               </div>
             </div>
@@ -1095,9 +1848,9 @@ function LearnedMatches() {
         </div>
       )}
       {groups.length > 0 && (
-        <button type="button" className="btn btn-ghost" style={{ marginTop: 14 }} onClick={clearAll}>
+        <Button variant="ghost" type="button" style={{ marginTop: 14 }} onClick={clearAll}>
           {confirmClear ? 'Tap again to reset everything' : 'Reset learned matches'}
-        </button>
+        </Button>
       )}
       <IgnoredWords />
     </SettingCard>
@@ -1108,8 +1861,14 @@ function LearnedMatches() {
 // events be suggested for that goal again.
 function IgnoredWords() {
   const [groups, setGroups] = useState<IgnoreGroup[]>([])
-  const load = () => goalCalendarApi.ignores().then((d) => setGroups(d.groups)).catch(() => setGroups([]))
-  useEffect(() => { load() }, [])
+  const load = () =>
+    goalCalendarApi
+      .ignores()
+      .then((d) => setGroups(d.groups))
+      .catch(() => setGroups([]))
+  useEffect(() => {
+    load()
+  }, [])
   if (groups.length === 0) return null
 
   async function remove(goalId: string, word: string) {
@@ -1118,19 +1877,34 @@ function IgnoredWords() {
   }
   return (
     <div style={{ marginTop: 18 }}>
-      <div className="set-row2-t" style={{ marginBottom: 4 }}>Ignored for suggestions</div>
+      <div className="set-row2-t" style={{ marginBottom: 4 }}>
+        Ignored for suggestions
+      </div>
       <div className="tiny muted" style={{ fontWeight: 600, marginBottom: 12 }}>
         Events with these words are never suggested for the goal. Remove one to allow it again.
       </div>
       <div className="sm-list">
         {groups.map((g) => (
           <div key={g.goalId} className="sm-group">
-            <div className="sm-goal">{g.goalEmoji ? `${g.goalEmoji} ` : ''}{g.goalTitle}</div>
+            <div className="sm-goal">
+              {g.goalEmoji ? <>{<DataIcon value={g.goalEmoji} kind="goal" />} </> : ''}
+              {g.goalTitle}
+            </div>
             <div className="sm-chips">
               {g.words.map((w) => (
-                <button key={w} type="button" className="sm-chip" onClick={() => remove(g.goalId, w)} title="Stop ignoring this word">
-                  {w}<span className="sm-x">✕</span>
-                </button>
+                <Button
+                  variant="unstyled"
+                  key={w}
+                  type="button"
+                  className="sm-chip"
+                  onClick={() => remove(g.goalId, w)}
+                  title="Stop ignoring this word"
+                >
+                  {w}
+                  <span className="sm-x">
+                    <DataIcon value={'✕'} kind="goal" />
+                  </span>
+                </Button>
               ))}
             </div>
           </div>
@@ -1166,8 +1940,22 @@ function AiPanel() {
     }
   }, [])
 
-  if (error) return <div className="set-panel"><div className="muted" style={{ padding: 20 }}>Couldn't load AI settings — try reloading or signing in again.</div></div>
-  if (!cfg) return <div className="set-panel"><div className="muted" style={{ padding: 20 }}>Loading…</div></div>
+  if (error)
+    return (
+      <div className="set-panel">
+        <div className="muted" style={{ padding: 20 }}>
+          Couldn't load AI settings — try reloading or signing in again.
+        </div>
+      </div>
+    )
+  if (!cfg)
+    return (
+      <div className="set-panel">
+        <div className="muted" style={{ padding: 20 }}>
+          Loading…
+        </div>
+      </div>
+    )
 
   function pick(p: Provider) {
     if (p !== 'heuristic' && !cfg!.available[p]) return
@@ -1190,13 +1978,17 @@ function AiPanel() {
     }
   }
 
-  const dirty = provider !== cfg.provider || (provider !== 'heuristic' && (model.trim() || null) !== (cfg.model ?? null))
+  const dirty =
+    provider !== cfg.provider ||
+    (provider !== 'heuristic' && (model.trim() || null) !== (cfg.model ?? null))
 
   return (
     <div className="set-panel">
       <div className="set-head">
         <div className="wf-serif set-head-t">AI &amp; Capture</div>
-        <div className="tiny muted" style={{ fontWeight: 600 }}>Powers the “Add anything” bar</div>
+        <div className="tiny muted" style={{ fontWeight: 600 }}>
+          Powers the “Add anything” bar
+        </div>
       </div>
 
       <SettingCard>
@@ -1205,7 +1997,8 @@ function AiPanel() {
           const on = provider === p
           const enabled = p === 'heuristic' || cfg.available[p]
           return (
-            <button
+            <Button
+              variant="unstyled"
               type="button"
               key={p}
               className={`ai-prov ${on ? 'on' : ''}`}
@@ -1221,9 +2014,11 @@ function AiPanel() {
                 </span>
               </span>
               {p !== 'heuristic' && (
-                <span className={`ai-badge ${enabled ? 'ok' : ''}`}>{enabled ? 'key detected' : 'not configured'}</span>
+                <span className={`ai-badge ${enabled ? 'ok' : ''}`}>
+                  {enabled ? 'key detected' : 'not configured'}
+                </span>
               )}
-            </button>
+            </Button>
           )
         })}
       </SettingCard>
@@ -1231,10 +2026,13 @@ function AiPanel() {
       {provider !== 'heuristic' && (
         <SettingCard style={{ marginTop: 16 }}>
           <SettingRow icon="🧠" title="Model" sub="Overrides the server default for this provider">
-            <input
+            <Input
               className="set-inline-input"
               value={model}
-              onChange={(e) => { setModel(e.target.value); setSaved(false) }}
+              onChange={(e) => {
+                setModel(e.target.value)
+                setSaved(false)
+              }}
               placeholder={cfg.defaultModels[provider as 'anthropic' | 'openai' | 'ollama']}
               style={{ minWidth: 200 }}
             />
@@ -1243,10 +2041,17 @@ function AiPanel() {
       )}
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 16 }}>
-        <button type="button" className="btn btn-primary" onClick={save} disabled={!dirty || saving}>
+        <Button variant="default" type="button" onClick={save} disabled={!dirty || saving}>
           {saving ? 'Saving…' : 'Save'}
-        </button>
-        {saved && <span className="tiny" style={{ color: 'var(--success)', fontWeight: 700 }}>✓ Saved</span>}
+        </Button>
+        {saved && (
+          <span className="tiny" style={{ color: 'var(--success)', fontWeight: 700 }}>
+            <>
+              <DataIcon value={'✓'} kind="general" />
+              {' Saved'}
+            </>
+          </span>
+        )}
         <span className="tiny muted" style={{ fontWeight: 600 }}>
           Keys are read from the server environment and never leave it.
         </span>
@@ -1269,32 +2074,67 @@ function StaplesEditor() {
   const [staples, setStaples] = useState<PantryStaple[] | null>(null)
   const [draft, setDraft] = useState('')
   const [busy, setBusy] = useState(false)
-  const load = () => groceryApi.pantryStaples().then((r) => setStaples(r.staples)).catch(() => setStaples([]))
-  useEffect(() => { load() }, [])
+  const load = () =>
+    groceryApi
+      .pantryStaples()
+      .then((r) => setStaples(r.staples))
+      .catch(() => setStaples([]))
+  useEffect(() => {
+    load()
+  }, [])
   async function add(e: FormEvent) {
     e.preventDefault()
     const name = draft.trim()
     if (!name || busy) return
     setBusy(true)
-    try { await groceryApi.addStaple(name); setDraft(''); await load() } finally { setBusy(false) }
+    try {
+      await groceryApi.addStaple(name)
+      setDraft('')
+      await load()
+    } finally {
+      setBusy(false)
+    }
   }
-  async function remove(id: string) { await groceryApi.removeStaple(id); await load() }
+  async function remove(id: string) {
+    await groceryApi.removeStaple(id)
+    await load()
+  }
   return (
     <SettingCard style={{ marginTop: 16 }}>
-      <CardHeader title="Pantry Staples" sub="Assumed in the house — the grocery list leaves these off. Manage them here or from the Lists grocery board." />
+      <CardHeader
+        title="Pantry Staples"
+        sub="Assumed in the house — the grocery list leaves these off. Manage them here or from the Lists grocery board."
+      />
       <form onSubmit={add} style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
-        <input className="set-inline-input" style={{ flex: 1, width: 'auto' }} value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Add a staple… (e.g. Soy sauce)" />
-        <button type="submit" className="btn btn-primary" disabled={!draft.trim() || busy}>Add</button>
+        <Input
+          className="set-inline-input"
+          style={{ flex: 1, width: 'auto' }}
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          placeholder="Add a staple… (e.g. Soy sauce)"
+        />
+        <Button variant="default" type="submit" disabled={!draft.trim() || busy}>
+          Add
+        </Button>
       </form>
       <div className="grocery-staples">
         {(staples ?? []).map((s) => (
           <span key={s.id} className="staple-chip editable">
             {s.name}
-            <button type="button" aria-label={`Remove ${s.name}`} onClick={() => remove(s.id)}>×</button>
+            <Button
+              variant="unstyled"
+              type="button"
+              aria-label={`Remove ${s.name}`}
+              onClick={() => remove(s.id)}
+            >
+              <DataIcon value={'×'} kind="pantry" />
+            </Button>
           </span>
         ))}
         {staples != null && staples.length === 0 && (
-          <div className="tiny muted" style={{ fontWeight: 600 }}>No staples yet — add the things you always have.</div>
+          <div className="tiny muted" style={{ fontWeight: 600 }}>
+            No staples yet — add the things you always have.
+          </div>
         )}
       </div>
     </SettingCard>
@@ -1308,14 +2148,17 @@ function MealsPanel() {
   const [cfg, setCfg] = useState<MealCalendarSettings | null>(null)
   const [error, setError] = useState(false)
   const [savedFlash, setSavedFlash] = useState(false)
-    // Auto-save (like pantry staples), so meal settings and staples behave the same. dirtyRef
-    // gates the debounced save, or echoing the server's normalized cfg back would re-save.
+  // Auto-save (like pantry staples), so meal settings and staples behave the same. dirtyRef
+  // gates the debounced save, or echoing the server's normalized cfg back would re-save.
   const dirtyRef = useRef(false)
 
   useEffect(() => {
     mealsApi
       .calendarSettings()
-      .then((s) => { setCfg(s); setError(false) })
+      .then((s) => {
+        setCfg(s)
+        setError(false)
+      })
       .catch(() => setError(true))
   }, [])
 
@@ -1340,8 +2183,22 @@ function MealsPanel() {
     return () => clearTimeout(t)
   }, [cfg])
 
-  if (error) return <div className="set-panel"><div className="muted" style={{ padding: 20 }}>Couldn't load meal settings — try reloading or signing in again.</div></div>
-  if (!cfg) return <div className="set-panel"><div className="muted" style={{ padding: 20 }}>Loading…</div></div>
+  if (error)
+    return (
+      <div className="set-panel">
+        <div className="muted" style={{ padding: 20 }}>
+          Couldn't load meal settings — try reloading or signing in again.
+        </div>
+      </div>
+    )
+  if (!cfg)
+    return (
+      <div className="set-panel">
+        <div className="muted" style={{ padding: 20 }}>
+          Loading…
+        </div>
+      </div>
+    )
 
   // null participantIds == the whole family; resolve to concrete ids for the chips.
   const allIds = persons.map((p) => p.id)
@@ -1356,37 +2213,98 @@ function MealsPanel() {
     <div className="set-panel">
       <div className="set-head" style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
         <div className="wf-serif set-head-t">Meals</div>
-        {savedFlash && <span className="tiny" style={{ color: 'var(--success)', fontWeight: 700 }}>✓ Saved · meals updated</span>}
-        <span className="tiny muted" style={{ marginLeft: 'auto', fontWeight: 600 }}>Changes save automatically</span>
+        {savedFlash && (
+          <span className="tiny" style={{ color: 'var(--success)', fontWeight: 700 }}>
+            <>
+              <DataIcon value={'✓'} kind="general" />
+              {' Saved · meals updated'}
+            </>
+          </span>
+        )}
+        <span className="tiny muted" style={{ marginLeft: 'auto', fontWeight: 600 }}>
+          Changes save automatically
+        </span>
       </div>
 
       <SettingCard>
-        <SettingRow icon="📅" title="Add planned meals to the calendar" sub="Each meal you plan shows on the Waffled calendar, linked to its recipe.">
-          <input type="checkbox" className="set-check" checked={cfg.addToCalendar} onChange={(e) => update({ addToCalendar: e.target.checked })} />
+        <SettingRow
+          icon="📅"
+          title="Add planned meals to the calendar"
+          sub="Each meal you plan shows on the Waffled calendar, linked to its recipe."
+        >
+          <Checkbox
+            className="set-check"
+            checked={cfg.addToCalendar}
+            onCheckedChange={(e) => update({ addToCalendar: e === true })}
+          />
         </SettingRow>
-        <SettingRow icon="🔄" title="Sync them to Google Calendar" sub="Also push meal events to the calendar below, so they show on everyone’s phones.">
-          <input type="checkbox" className="set-check" disabled={!cfg.addToCalendar} checked={cfg.addToCalendar && cfg.pushToGoogle} onChange={(e) => update({ pushToGoogle: e.target.checked })} />
+        <SettingRow
+          icon="🔄"
+          title="Sync them to Google Calendar"
+          sub="Also push meal events to the calendar below, so they show on everyone’s phones."
+        >
+          <Checkbox
+            className="set-check"
+            disabled={!cfg.addToCalendar}
+            checked={cfg.addToCalendar && cfg.pushToGoogle}
+            onCheckedChange={(e) => update({ pushToGoogle: e === true })}
+          />
         </SettingRow>
-        <SettingRow icon="👤" title="Add to this person’s calendar" sub="Meal events use this person’s color and their Google write-target calendar.">
-          <select className="sel" disabled={!cfg.addToCalendar} value={cfg.calendarPersonId ?? ''} onChange={(e) => update({ calendarPersonId: e.target.value || null })}>
+        <SettingRow
+          icon="👤"
+          title="Add to this person’s calendar"
+          sub="Meal events use this person’s color and their Google write-target calendar."
+        >
+          <NativeSelect
+            className="sel"
+            disabled={!cfg.addToCalendar}
+            value={cfg.calendarPersonId ?? ''}
+            onChange={(e) => update({ calendarPersonId: e.target.value || null })}
+          >
             <option value="">Unassigned</option>
             {persons.map((p) => (
-              <option key={p.id} value={p.id}>{p.name}</option>
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
             ))}
-          </select>
+          </NativeSelect>
         </SettingRow>
       </SettingCard>
 
       <SettingCard style={{ marginTop: 16 }}>
-        <SettingRow icon="🧑‍🤝‍🧑" title="Who’s invited" sub={cfg.participantIds === null ? 'The whole family' : `${selected.length} ${selected.length === 1 ? 'person' : 'people'}`}>
+        <SettingRow
+          icon="🧑‍🤝‍🧑"
+          title="Who’s invited"
+          sub={
+            cfg.participantIds === null
+              ? 'The whole family'
+              : `${selected.length} ${selected.length === 1 ? 'person' : 'people'}`
+          }
+        >
           <div />
         </SettingRow>
         <div className="meal-chips">
-          <button type="button" className={`tag ${cfg.participantIds === null ? 'on' : ''}`} disabled={!cfg.addToCalendar} onClick={() => update({ participantIds: null })}>Whole family</button>
+          <Button
+            variant="unstyled"
+            type="button"
+            className={`tag ${cfg.participantIds === null ? 'on' : ''}`}
+            disabled={!cfg.addToCalendar}
+            onClick={() => update({ participantIds: null })}
+          >
+            Whole family
+          </Button>
           {persons.map((p) => (
-            <button key={p.id} type="button" className={`tag ${selected.includes(p.id) ? 'on' : ''}`} disabled={!cfg.addToCalendar} onClick={() => toggleParticipant(p.id)}>
-              {p.avatarEmoji ? `${p.avatarEmoji} ` : ''}{p.name}
-            </button>
+            <Button
+              variant="unstyled"
+              key={p.id}
+              type="button"
+              className={`tag ${selected.includes(p.id) ? 'on' : ''}`}
+              disabled={!cfg.addToCalendar}
+              onClick={() => toggleParticipant(p.id)}
+            >
+              {p.avatarEmoji ? <>{<DataIcon value={p.avatarEmoji} kind="person" />} </> : ''}
+              {p.name}
+            </Button>
           ))}
         </div>
       </SettingCard>
@@ -1400,7 +2318,7 @@ function MealsPanel() {
         <CardHeader title="Meal Times" sub="When each meal lands on the calendar." mid />
         {MEAL_TIME_ROWS.map((m) => (
           <SettingRow key={m.key} icon={m.icon} title={m.label}>
-            <input
+            <Input
               type="time"
               className="set-inline-input"
               disabled={!cfg.addToCalendar}
@@ -1411,12 +2329,28 @@ function MealsPanel() {
         ))}
 
         {/* Section 2 — the same-day "get it out of the freezer" nudge. */}
-        <CardHeader title="Thaw Reminder" sub="A same-day calendar reminder to pull the protein/ingredients out of the freezer for that day’s planned meal." mid />
-        <SettingRow icon="🧊" title="Remind me to thaw" sub="Off by default — turn on to add the reminder.">
-          <input type="checkbox" className="set-check" checked={cfg.prepReminder} onChange={(e) => update({ prepReminder: e.target.checked })} />
+        <CardHeader
+          title="Thaw Reminder"
+          sub="A same-day calendar reminder to pull the protein/ingredients out of the freezer for that day’s planned meal."
+          mid
+        />
+        <SettingRow
+          icon="🧊"
+          title="Remind me to thaw"
+          sub="Off by default — turn on to add the reminder."
+        >
+          <Checkbox
+            className="set-check"
+            checked={cfg.prepReminder}
+            onCheckedChange={(e) => update({ prepReminder: e === true })}
+          />
         </SettingRow>
-        <SettingRow icon="⏰" title="Remind me at" sub="Time the reminder lands, on the meal’s own day.">
-          <input
+        <SettingRow
+          icon="⏰"
+          title="Remind me at"
+          sub="Time the reminder lands, on the meal’s own day."
+        >
+          <Input
             type="time"
             className="set-inline-input"
             disabled={!cfg.prepReminder}
@@ -1429,7 +2363,8 @@ function MealsPanel() {
           {MEAL_TIME_ROWS.map((m) => {
             const on = cfg.prepReminderMealTypes.includes(m.key)
             return (
-              <button
+              <Button
+                variant="unstyled"
                 key={m.key}
                 type="button"
                 className={`tag ${on ? 'on' : ''}`}
@@ -1442,8 +2377,8 @@ function MealsPanel() {
                   })
                 }
               >
-                {m.icon} {m.label}
-              </button>
+                <DataIcon value={m.icon} kind="general" /> {m.label}
+              </Button>
             )
           })}
         </div>
@@ -1458,7 +2393,12 @@ function fmtWhen(iso: string | null): string {
   if (!iso) return 'never'
   const d = new Date(iso)
   if (isNaN(d.getTime())) return 'never'
-  return d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+  return d.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  })
 }
 
 // Subscriptions you can't edit come back as reader / freeBusyReader; owner/writer are yours.
@@ -1471,10 +2411,20 @@ function isReadOnly(accessRole: string | null): boolean {
 // The no-OAuth calendar source: any published .ics / webcal link, polled. Renders whether or
 // not an OAuth provider is configured — that independence is the point.
 function feedHost(url: string): string {
-  try { return new URL(url.replace(/^webcal:\/\//i, 'https://')).host } catch { return url }
+  try {
+    return new URL(url.replace(/^webcal:\/\//i, 'https://')).host
+  } catch {
+    return url
+  }
 }
 
-export function CalendarFeedsCard({ feeds, onChanged }: { feeds: IcsFeed[]; onChanged: () => void }) {
+export function CalendarFeedsCard({
+  feeds,
+  onChanged,
+}: {
+  feeds: IcsFeed[]
+  onChanged: () => void
+}) {
   const { persons } = usePersons()
   const [url, setUrl] = useState('')
   const [name, setName] = useState('')
@@ -1487,7 +2437,10 @@ export function CalendarFeedsCard({ feeds, onChanged }: { feeds: IcsFeed[]; onCh
     setBusy(true)
     setErr('')
     try {
-      const { feed } = await calendarsApi.addFeed({ url: url.trim(), name: name.trim() || undefined })
+      const { feed } = await calendarsApi.addFeed({
+        url: url.trim(),
+        name: name.trim() || undefined,
+      })
       setUrl('')
       setName('')
       onChanged()
@@ -1512,7 +2465,9 @@ export function CalendarFeedsCard({ feeds, onChanged }: { feeds: IcsFeed[]; onCh
   }
 
   async function toggleVisibility(f: IcsFeed) {
-    await calendarsApi.updateFeed(f.id, { visibility: f.visibility === 'personal' ? 'family' : 'personal' })
+    await calendarsApi.updateFeed(f.id, {
+      visibility: f.visibility === 'personal' ? 'family' : 'personal',
+    })
     onChanged()
   }
 
@@ -1534,25 +2489,45 @@ export function CalendarFeedsCard({ feeds, onChanged }: { feeds: IcsFeed[]; onCh
 
   return (
     <SettingCard style={{ marginTop: 18 }}>
-      <div className="set-row2-t" style={{ marginBottom: 4 }}>🔗 Calendar feeds</div>
+      <div className="set-row2-t" style={{ marginBottom: 4 }}>
+        <>
+          <DataIcon value={'🔗'} kind="general" />
+          {' Calendar feeds'}
+        </>
+      </div>
       <div className="tiny muted" style={{ fontWeight: 600, marginBottom: 12 }}>
-        Subscribe to any published calendar link (.ics or webcal) — school schedules, sports teams, a work
-        calendar published from Outlook. No sign-in needed; Waffled checks for changes every 15 minutes.
+        Subscribe to any published calendar link (.ics or webcal) — school schedules, sports teams,
+        a work calendar published from Outlook. No sign-in needed; Waffled checks for changes every
+        15 minutes.
       </div>
 
       {feeds.map((f) => (
         <div className="set-row2" key={f.id}>
-          <div className="set-ic2">📡</div>
+          <div className="set-ic2">
+            <DataIcon value={'📡'} kind="general" />
+          </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="set-row2-t" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <div
+              className="set-row2-t"
+              style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+            >
               {f.name ?? feedHost(f.url)}
             </div>
             <div className="tiny muted" style={{ fontWeight: 600 }}>
-              {feedHost(f.url)} · {f.lastSyncedAt ? `Last synced ${fmtWhen(f.lastSyncedAt)}` : 'Not synced yet'}
-              {f.lastError && <span style={{ color: 'var(--primary)', fontWeight: 700 }}> · ⚠ {f.lastError}</span>}
+              {feedHost(f.url)} ·{' '}
+              {f.lastSyncedAt ? `Last synced ${fmtWhen(f.lastSyncedAt)}` : 'Not synced yet'}
+              {f.lastError && (
+                <span style={{ color: 'var(--primary)', fontWeight: 700 }}>
+                  <>
+                    {' · '}
+                    <DataIcon value={'⚠'} kind="general" />{' '}
+                  </>
+                  {f.lastError}
+                </span>
+              )}
             </div>
           </div>
-          <select
+          <NativeSelect
             className="sel"
             value={f.personId ?? ''}
             onChange={(e) => setPerson(f, e.target.value)}
@@ -1561,13 +2536,15 @@ export function CalendarFeedsCard({ feeds, onChanged }: { feeds: IcsFeed[]; onCh
           >
             <option value="">Unassigned</option>
             {persons.map((p) => (
-              <option key={p.id} value={p.id}>{p.name}</option>
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
             ))}
-          </select>
+          </NativeSelect>
           {/* Only offered once the feed belongs to someone — "private to nobody" is a
               feed no one can see, and the API refuses it. */}
           {f.personId && (
-            <label
+            <Label
               className="cal-sync"
               title={
                 f.visibility === 'personal'
@@ -1575,51 +2552,72 @@ export function CalendarFeedsCard({ feeds, onChanged }: { feeds: IcsFeed[]; onCh
                   : 'Visible to the whole family, including the shared kiosk. Check to keep it private.'
               }
             >
-              <input
-                type="checkbox"
+              <Checkbox
                 checked={f.visibility === 'personal'}
-                onChange={() => toggleVisibility(f)}
+                onCheckedChange={() => toggleVisibility(f)}
                 aria-label={`Private feed ${f.name ?? feedHost(f.url)}`}
               />
               Private
-            </label>
+            </Label>
           )}
-          <button
+          <Button
+            variant="ghost"
             type="button"
-            className="btn btn-ghost"
+
             onClick={() => syncNow(f)}
             disabled={syncingId === f.id}
             title="Refresh this feed now"
             aria-label={`Sync feed ${f.name ?? feedHost(f.url)}`}
           >
-            ↻
-          </button>
-          <button
+            <DataIcon value={'↻'} kind="general" />
+          </Button>
+          <Button
+            variant="ghost"
             type="button"
-            className="btn btn-ghost"
+
             onClick={() => remove(f)}
             title="Remove this feed"
             aria-label={`Remove feed ${f.name ?? feedHost(f.url)}`}
           >
-            ×
-          </button>
+            <DataIcon value={'×'} kind="general" />
+          </Button>
         </div>
       ))}
 
-      <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', flexWrap: 'wrap', marginTop: feeds.length ? 12 : 0 }}>
-        <label className="field" style={{ flex: '2 1 220px' }}>
+      <div
+        style={{
+          display: 'flex',
+          gap: 10,
+          alignItems: 'flex-end',
+          flexWrap: 'wrap',
+          marginTop: feeds.length ? 12 : 0,
+        }}
+      >
+        <Label className="field" style={{ flex: '2 1 220px' }}>
           <span>Feed URL</span>
-          <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://…/calendar.ics" />
-        </label>
-        <label className="field" style={{ flex: '1 1 140px' }}>
+          <Input
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="https://…/calendar.ics"
+          />
+        </Label>
+        <Label className="field" style={{ flex: '1 1 140px' }}>
           <span>Name (optional)</span>
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="School calendar" />
-        </label>
-        <button type="button" className="btn btn-primary" onClick={add} disabled={busy || !canAdd}>
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="School calendar"
+          />
+        </Label>
+        <Button variant="default" type="button" onClick={add} disabled={busy || !canAdd}>
           {busy ? 'Adding…' : 'Add feed'}
-        </button>
+        </Button>
       </div>
-      {err && <div className="tiny" style={{ fontWeight: 700, color: 'var(--primary)', marginTop: 8 }}>{err}</div>}
+      {err && (
+        <div className="tiny" style={{ fontWeight: 700, color: 'var(--primary)', marginTop: 8 }}>
+          {err}
+        </div>
+      )}
     </SettingCard>
   )
 }
@@ -1640,13 +2638,34 @@ function CalendarsPanel() {
   function load() {
     calendarsApi
       .calendarStatus()
-      .then((s) => { setStatus(s); setLoading(false); setError(false) })
-      .catch(() => { setError(true); setLoading(false) })
+      .then((s) => {
+        setStatus(s)
+        setLoading(false)
+        setError(false)
+      })
+      .catch(() => {
+        setError(true)
+        setLoading(false)
+      })
   }
   useEffect(load, [])
 
-  if (loading) return <div className="set-panel"><div className="muted" style={{ padding: 20 }}>Loading…</div></div>
-  if (error || !status) return <div className="set-panel"><div className="muted" style={{ padding: 20 }}>Couldn't load calendars — try reloading or signing in again.</div></div>
+  if (loading)
+    return (
+      <div className="set-panel">
+        <div className="muted" style={{ padding: 20 }}>
+          Loading…
+        </div>
+      </div>
+    )
+  if (error || !status)
+    return (
+      <div className="set-panel">
+        <div className="muted" style={{ padding: 20 }}>
+          Couldn't load calendars — try reloading or signing in again.
+        </div>
+      </div>
+    )
 
   async function connect(provider: 'google' | 'microsoft' = 'google') {
     setConnecting(true)
@@ -1670,7 +2689,7 @@ function CalendarsPanel() {
       setSyncMsg(
         errs.length
           ? `Synced with ${errs.length} error${errs.length > 1 ? 's' : ''}: ${errs[0].error}`
-          : `Imported ${r.imported}, updated ${r.updated}, removed ${r.deleted}.`
+          : `Imported ${r.imported}, updated ${r.updated}, removed ${r.deleted}.`,
       )
       load()
     } catch {
@@ -1681,7 +2700,9 @@ function CalendarsPanel() {
   }
 
   function replaceCal(updated: CalendarLink) {
-    setStatus((s) => (s ? { ...s, calendars: s.calendars.map((c) => (c.id === updated.id ? updated : c)) } : s))
+    setStatus((s) =>
+      s ? { ...s, calendars: s.calendars.map((c) => (c.id === updated.id ? updated : c)) } : s,
+    )
   }
   async function setPerson(cal: CalendarLink, personId: string) {
     const { calendar } = await calendarsApi.updateCalendar(cal.id, { personId: personId || null })
@@ -1691,25 +2712,32 @@ function CalendarsPanel() {
     const { calendar } = await calendarsApi.updateCalendar(cal.id, { selected: !cal.selected })
     replaceCal(calendar)
   }
-    // Family (on the shared kiosk) vs personal. Flipping this re-stamps the events server-side.
+  // Family (on the shared kiosk) vs personal. Flipping this re-stamps the events server-side.
   async function toggleVisibility(cal: CalendarLink) {
     const next = cal.visibility === 'personal' ? 'family' : 'personal'
     const { calendar } = await calendarsApi.updateCalendar(cal.id, { visibility: next })
     replaceCal(calendar)
   }
-    // Setting a write target clears the flag on the person's other calendars, so refetch all.
+  // Setting a write target clears the flag on the person's other calendars, so refetch all.
   async function toggleWriteTarget(cal: CalendarLink) {
     await calendarsApi.updateCalendar(cal.id, { isWriteTarget: !cal.isWriteTarget })
     load()
   }
   async function disconnect(accountId: string) {
-    if (!window.confirm('Disconnect this Google account? Its calendars stop syncing (already-imported events stay).')) return
+    if (
+      !window.confirm(
+        'Disconnect this Google account? Its calendars stop syncing (already-imported events stay).',
+      )
+    )
+      return
     await calendarsApi.disconnectAccount(accountId)
     load()
   }
   async function setAll(cals: CalendarLink[], selected: boolean) {
     const toChange = cals.filter((c) => c.selected !== selected)
-    const updated = await Promise.all(toChange.map((c) => calendarsApi.updateCalendar(c.id, { selected })))
+    const updated = await Promise.all(
+      toChange.map((c) => calendarsApi.updateCalendar(c.id, { selected })),
+    )
     setStatus((s) => {
       if (!s) return s
       const byId = new Map(updated.map((u) => [u.calendar.id, u.calendar]))
@@ -1722,11 +2750,21 @@ function CalendarsPanel() {
     const canTarget = !!cal.personId && !isReadOnly(cal.accessRole)
     return (
       <div className="set-row2">
-        <div className="set-ic2" style={{ background: avTint(cal.colorHex) }}>📅</div>
+        <div className="set-ic2" style={{ background: avTint(cal.colorHex) }}>
+          <DataIcon value={'📅'} kind="general" />
+        </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div className="set-row2-t" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div
+            className="set-row2-t"
+            style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+          >
             {cal.summary ?? cal.googleCalendarId}
-            {cal.isPrimary && <span className="tiny muted" style={{ fontWeight: 600 }}> · primary</span>}
+            {cal.isPrimary && (
+              <span className="tiny muted" style={{ fontWeight: 600 }}>
+                {' '}
+                · primary
+              </span>
+            )}
           </div>
           <div className="tiny muted" style={{ fontWeight: 600 }}>
             {cal.selected ? `Last synced ${fmtWhen(cal.lastSyncedAt)}` : 'Sync off'}
@@ -1734,24 +2772,51 @@ function CalendarsPanel() {
             {cal.selected && (
               <span style={{ fontWeight: 700 }}>
                 {' · '}
-                {cal.visibility === 'personal' ? '🔒 Private (only you)' : '👪 Family viewable'}
+                {cal.visibility === 'personal' ? (
+                  <>
+                    <DataIcon value={'🔒'} kind="general" />
+                    {' Private (only you)'}
+                  </>
+                ) : (
+                  <>
+                    <DataIcon value={'👪'} kind="general" />
+                    {' Family viewable'}
+                  </>
+                )}
               </span>
             )}
-            {cal.isWriteTarget && <span style={{ color: 'var(--info)' }}> · ★ new events go here</span>}
+            {cal.isWriteTarget && (
+              <span style={{ color: 'var(--info)' }}>
+                <>
+                  {' · '}
+                  <DataIcon value={'★'} kind="general" />
+                  {' new events go here'}
+                </>
+              </span>
+            )}
           </div>
         </div>
         {canTarget && (
-          <button
+          <Button
+            variant="unstyled"
             type="button"
             className={`cal-star ${cal.isWriteTarget ? 'on' : ''}`}
             onClick={() => toggleWriteTarget(cal)}
-            title={cal.isWriteTarget ? 'Default calendar for new events for this person' : 'Make this the default for new events for this person'}
+            title={
+              cal.isWriteTarget
+                ? 'Default calendar for new events for this person'
+                : 'Make this the default for new events for this person'
+            }
             aria-pressed={cal.isWriteTarget}
           >
-            {cal.isWriteTarget ? '★' : '☆'}
-          </button>
+            {cal.isWriteTarget ? (
+              <DataIcon value={'★'} kind="person" />
+            ) : (
+              <DataIcon value={'☆'} kind="person" />
+            )}
+          </Button>
         )}
-        <select
+        <NativeSelect
           className="sel"
           value={cal.personId ?? ''}
           onChange={(e) => setPerson(cal, e.target.value)}
@@ -1759,11 +2824,13 @@ function CalendarsPanel() {
         >
           <option value="">Unassigned</option>
           {persons.map((p) => (
-            <option key={p.id} value={p.id}>{p.name}</option>
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
           ))}
-        </select>
+        </NativeSelect>
         {cal.selected && (
-          <label
+          <Label
             className="cal-sync"
             title={
               cal.visibility === 'personal'
@@ -1771,14 +2838,17 @@ function CalendarsPanel() {
                 : 'Visible to the whole family, including the shared kiosk. Check to keep it private (only you).'
             }
           >
-            <input type="checkbox" checked={cal.visibility === 'personal'} onChange={() => toggleVisibility(cal)} />
+            <Checkbox
+              checked={cal.visibility === 'personal'}
+              onCheckedChange={() => toggleVisibility(cal)}
+            />
             Private
-          </label>
+          </Label>
         )}
-        <label className="cal-sync" title="Sync this calendar into Waffled">
-          <input type="checkbox" checked={cal.selected} onChange={() => toggleSelected(cal)} />
+        <Label className="cal-sync" title="Sync this calendar into Waffled">
+          <Checkbox checked={cal.selected} onCheckedChange={() => toggleSelected(cal)} />
           Sync
-        </label>
+        </Label>
       </div>
     )
   }
@@ -1786,12 +2856,15 @@ function CalendarsPanel() {
   if (!status.configured && !status.microsoftConfigured) {
     return (
       <div className="set-panel">
-        <div className="set-head"><div className="wf-serif set-head-t">Calendars</div></div>
+        <div className="set-head">
+          <div className="wf-serif set-head-t">Calendars</div>
+        </div>
         <SettingCard>
           <div className="muted" style={{ fontWeight: 600 }}>
-            No calendar provider is configured on the server yet. For Google set <code>GOOGLE_CLIENT_ID</code>,{' '}
-            <code>GOOGLE_CLIENT_SECRET</code>, <code>GOOGLE_CALENDAR_REDIRECT_URI</code>; for Outlook set{' '}
-            <code>MS_CLIENT_ID</code>, <code>MS_CLIENT_SECRET</code>, <code>MS_CALENDAR_REDIRECT_URI</code> — plus{' '}
+            No calendar provider is configured on the server yet. For Google set{' '}
+            <code>GOOGLE_CLIENT_ID</code>, <code>GOOGLE_CLIENT_SECRET</code>,{' '}
+            <code>GOOGLE_CALENDAR_REDIRECT_URI</code>; for Outlook set <code>MS_CLIENT_ID</code>,{' '}
+            <code>MS_CLIENT_SECRET</code>, <code>MS_CALENDAR_REDIRECT_URI</code> — plus{' '}
             <code>TOKEN_ENCRYPTION_KEY</code> — then reload.
           </div>
         </SettingCard>
@@ -1806,30 +2879,57 @@ function CalendarsPanel() {
       <div className="set-head">
         <div className="wf-serif set-head-t">Calendars</div>
         {status.connected && (
-          <button type="button" className="btn btn-primary" onClick={syncNow} disabled={syncing}>
-            {syncing ? 'Syncing…' : '↻ Sync now'}
-          </button>
+          <Button variant="default" type="button" onClick={syncNow} disabled={syncing}>
+            {syncing ? (
+              'Syncing…'
+            ) : (
+              <>
+                <DataIcon value={'↻'} kind="general" />
+                {' Sync now'}
+              </>
+            )}
+          </Button>
         )}
       </div>
 
-      {syncMsg && <div className="tiny" style={{ fontWeight: 700, margin: '0 2px 12px', color: 'var(--ink)' }}>{syncMsg}</div>}
+      {syncMsg && (
+        <div
+          className="tiny"
+          style={{ fontWeight: 700, margin: '0 2px 12px', color: 'var(--ink)' }}
+        >
+          {syncMsg}
+        </div>
+      )}
 
       {!status.connected ? (
         <SettingCard>
-          <div className="set-row2-t" style={{ marginBottom: 6 }}>Connect a calendar account</div>
+          <div className="set-row2-t" style={{ marginBottom: 6 }}>
+            Connect a calendar account
+          </div>
           <div className="tiny muted" style={{ fontWeight: 600, marginBottom: 16 }}>
-            Bring your family’s calendars into Waffled. You’ll pick which ones sync and who each one belongs to.
+            Bring your family’s calendars into Waffled. You’ll pick which ones sync and who each one
+            belongs to.
           </div>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             {status.configured && (
-              <button type="button" className="btn btn-primary" onClick={() => connect('google')} disabled={connecting}>
+              <Button
+                variant="default"
+                type="button"
+                onClick={() => connect('google')}
+                disabled={connecting}
+              >
                 {connecting ? 'Opening…' : 'Connect Google Calendar'}
-              </button>
+              </Button>
             )}
             {status.microsoftConfigured && (
-              <button type="button" className="btn btn-primary" onClick={() => connect('microsoft')} disabled={connecting}>
+              <Button
+                variant="default"
+                type="button"
+                onClick={() => connect('microsoft')}
+                disabled={connecting}
+              >
                 {connecting ? 'Opening…' : 'Connect Outlook Calendar'}
-              </button>
+              </Button>
             )}
           </div>
         </SettingCard>
@@ -1837,20 +2937,26 @@ function CalendarsPanel() {
         <>
           {status.calendars.length > 6 && (
             <div className="cal-toolbar">
-              <input
+              <Input
                 className="cal-search"
                 placeholder="Search calendars…"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
               />
-              <label className="cal-sync" title="Hide calendars that aren’t syncing">
-                <input type="checkbox" checked={syncedOnly} onChange={() => setSyncedOnly((v) => !v)} />
+              <Label className="cal-sync" title="Hide calendars that aren’t syncing">
+                <Checkbox checked={syncedOnly} onCheckedChange={() => setSyncedOnly((v) => !v)} />
                 Synced only
-              </label>
-              <label className="cal-sync" title="Hide read-only subscriptions (holidays, others’ calendars)">
-                <input type="checkbox" checked={hideReadOnly} onChange={() => setHideReadOnly((v) => !v)} />
+              </Label>
+              <Label
+                className="cal-sync"
+                title="Hide read-only subscriptions (holidays, others’ calendars)"
+              >
+                <Checkbox
+                  checked={hideReadOnly}
+                  onCheckedChange={() => setHideReadOnly((v) => !v)}
+                />
                 Hide read-only
-              </label>
+              </Label>
             </div>
           )}
 
@@ -1874,40 +2980,91 @@ function CalendarsPanel() {
                   tabIndex={0}
                   onClick={() => setCollapsed((c) => ({ ...c, [acct.id]: !c[acct.id] }))}
                 >
-                  <span className="set-ic2">{acct.provider === 'microsoft' ? '📧' : '🔗'}</span>
+                  <span className="set-ic2">
+                    {acct.provider === 'microsoft' ? (
+                      <DataIcon value={'📧'} kind="general" />
+                    ) : (
+                      <DataIcon value={'🔗'} kind="general" />
+                    )}
+                  </span>
                   <span style={{ flex: 1, minWidth: 0 }}>
-                    <span className="set-row2-t" style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <span
+                      className="set-row2-t"
+                      style={{
+                        display: 'block',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
                       {acct.email ?? acct.googleSub}
                     </span>
                     <span className="tiny muted" style={{ fontWeight: 600 }}>
-                      {acct.provider === 'microsoft' ? 'Outlook' : 'Google'} · {syncingCount} of {all.length} syncing · connected {fmtWhen(acct.connectedAt)}
+                      {acct.provider === 'microsoft' ? 'Outlook' : 'Google'} · {syncingCount} of{' '}
+                      {all.length} syncing · connected {fmtWhen(acct.connectedAt)}
                     </span>
                   </span>
                   {/* A dead Google sign-in (expired/revoked refresh token) surfaces here
                       with a one-tap Reconnect that re-auths IN PLACE — keeps every
                       calendar→person mapping + ★ write-target (unlike Disconnect). */}
                   {acct.lastSyncError && (
-                    <button type="button" className="btn btn-primary cal-reconnect" disabled={connecting} onClick={(e) => { e.stopPropagation(); connect() }}>
+                    <Button
+                      variant="default"
+                      type="button"
+                      className="cal-reconnect"
+                      disabled={connecting}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        connect()
+                      }}
+                    >
                       Reconnect
-                    </button>
+                    </Button>
                   )}
-                  <button type="button" className="btn btn-ghost" onClick={(e) => { e.stopPropagation(); disconnect(acct.id) }}>
+                  <Button
+                    variant="ghost"
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      disconnect(acct.id)
+                    }}
+                  >
                     Disconnect
-                  </button>
-                  <span className={`cal-chev ${open ? 'open' : ''}`}>›</span>
+                  </Button>
+                  <span className={`cal-chev ${open ? 'open' : ''}`}>
+                    <DataIcon value={'›'} kind="general" />
+                  </span>
                 </div>
                 {acct.lastSyncError && (
                   <div className="cal-acct-error">
-                    ⚠ Problem syncing — Google sign-in expired or was revoked. Click <b>Reconnect</b> to fix (your calendar assignments are kept).
+                    <>
+                      <DataIcon value={'⚠'} kind="general" />
+                      {' Problem syncing — Google sign-in expired or was revoked. Click '}
+                    </>
+                    <b>Reconnect</b> to fix (your calendar assignments are kept).
                   </div>
                 )}
 
                 {open && (
                   <div className="cal-acct-body">
                     <div className="cal-bulk">
-                      <button type="button" className="linkbtn" onClick={() => setAll(shown, true)}>Sync all</button>
+                      <Button
+                        variant="unstyled"
+                        type="button"
+                        className="linkbtn"
+                        onClick={() => setAll(shown, true)}
+                      >
+                        Sync all
+                      </Button>
                       <span className="muted">·</span>
-                      <button type="button" className="linkbtn" onClick={() => setAll(shown, false)}>Sync none</button>
+                      <Button
+                        variant="unstyled"
+                        type="button"
+                        className="linkbtn"
+                        onClick={() => setAll(shown, false)}
+                      >
+                        Sync none
+                      </Button>
                     </div>
                     {shown.length === 0 ? (
                       <div className="muted" style={{ padding: '6px 2px 2px', fontWeight: 600 }}>
@@ -1923,14 +3080,32 @@ function CalendarsPanel() {
           })}
 
           {status.configured && (
-            <button type="button" className="btn btn-ghost set-add" onClick={() => connect('google')} disabled={connecting}>
-              ＋ Connect another Google account
-            </button>
+            <Button
+              variant="ghost"
+              type="button"
+              className="set-add"
+              onClick={() => connect('google')}
+              disabled={connecting}
+            >
+              <>
+                <DataIcon value={'＋'} kind="general" />
+                {' Connect another Google account'}
+              </>
+            </Button>
           )}
           {status.microsoftConfigured && (
-            <button type="button" className="btn btn-ghost set-add" onClick={() => connect('microsoft')} disabled={connecting}>
-              ＋ Connect an Outlook account
-            </button>
+            <Button
+              variant="ghost"
+              type="button"
+              className="set-add"
+              onClick={() => connect('microsoft')}
+              disabled={connecting}
+            >
+              <>
+                <DataIcon value={'＋'} kind="general" />
+                {' Connect an Outlook account'}
+              </>
+            </Button>
           )}
         </>
       )}
@@ -1967,25 +3142,48 @@ function CountdownsSettings() {
   }
   return (
     <SettingCard style={{ marginTop: 18 }}>
-      <div className="set-row2-t" style={{ marginBottom: 4 }}>⏳ Countdowns</div>
+      <div className="set-row2-t" style={{ marginBottom: 4 }}>
+        <>
+          <DataIcon value={'⏳'} kind="general" />
+          {' Countdowns'}
+        </>
+      </div>
       <div className="tiny muted" style={{ fontWeight: 600, marginBottom: 16 }}>
-        Count down to trips, birthdays, and anything you flag on the calendar. Add one from the Today “Countdowns” card, or tick “Show a countdown” when editing an event.
+        Count down to trips, birthdays, and anything you flag on the calendar. Add one from the
+        Today “Countdowns” card, or tick “Show a countdown” when editing an event.
       </div>
 
-      <label
-        style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', fontWeight: 600 }}
-        onClick={(e) => { e.preventDefault(); toggle(!on) }}
+      <Label
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          cursor: 'pointer',
+          fontWeight: 600,
+        }}
+        onClick={(e) => {
+          e.preventDefault()
+          toggle(!on)
+        }}
       >
-        <span className={`toggle ${on ? 'on' : ''}`} role="switch" aria-checked={on} aria-label="Count in sleeps instead of days" />
+        <span
+          className={`toggle ${on ? 'on' : ''}`}
+          role="switch"
+          aria-checked={on}
+          aria-label="Count in sleeps instead of days"
+        />
         <span>Count in “sleeps” instead of “days” (kid-friendly)</span>
-      </label>
+      </Label>
 
       <div style={{ marginTop: 18 }}>
-        <div className="set-row2-t" style={{ marginBottom: 4 }}>Show birthdays within</div>
-        <div className="tiny muted" style={{ fontWeight: 600, marginBottom: 10 }}>
-          A birthday only appears on the countdown list once it’s this close — so the whole family’s birthdays don’t crowd it a year out.
+        <div className="set-row2-t" style={{ marginBottom: 4 }}>
+          Show birthdays within
         </div>
-        <select
+        <div className="tiny muted" style={{ fontWeight: 600, marginBottom: 10 }}>
+          A birthday only appears on the countdown list once it’s this close — so the whole family’s
+          birthdays don’t crowd it a year out.
+        </div>
+        <NativeSelect
           className="sel"
           value={horizon}
           aria-label="Show birthdays within"
@@ -1996,9 +3194,11 @@ function CountdownsSettings() {
             <option value={horizon}>{horizon} days</option>
           )}
           {BIRTHDAY_HORIZON_OPTIONS.map((o) => (
-            <option key={o.days} value={o.days}>{o.label}</option>
+            <option key={o.days} value={o.days}>
+              {o.label}
+            </option>
           ))}
-        </select>
+        </NativeSelect>
       </div>
     </SettingCard>
   )
@@ -2012,20 +3212,64 @@ function CurrencyRow({ c, canDelete }: { c: Currency; canDelete: boolean }) {
   const save = (patch: Record<string, unknown>) => currenciesApi.update(c.id, patch).catch(() => {})
   return (
     <div className="cur-row">
-      <input className="cur-sym" value={symbol} maxLength={2} aria-label="Symbol"
-        onChange={(e) => setSymbol(e.target.value)} onBlur={() => symbol !== (c.symbol ?? '') && save({ symbol: symbol || null })} />
-      <input className="cur-label" value={label} aria-label="Label"
-        onChange={(e) => setLabel(e.target.value)} onBlur={() => label.trim() && label !== c.label && save({ label: label.trim() })} />
-      <button type="button" className={`cur-flag ${c.isDefault ? 'on' : ''}`} title="Default earn currency"
-        onClick={() => !c.isDefault && save({ isDefault: true })}>{c.isDefault ? '★ Default' : 'Make default'}</button>
-      <button type="button" className={`cur-flag ${c.spendable ? 'on' : ''}`} title="Can be spent on rewards"
-        onClick={() => save({ spendable: !c.spendable })}>{c.spendable ? 'Spendable' : 'Earn-only'}</button>
+      <IconPicker
+        allowText
+        kind="reward"
+        className="cur-sym"
+        value={symbol}
+        aria-label="Symbol"
+        onValueChange={(next) => {
+          setSymbol(next)
+          if (next !== (c.symbol ?? '')) void save({ symbol: next || null })
+        }}
+      />
+      <Input
+        className="cur-label"
+        value={label}
+        aria-label="Label"
+        onChange={(e) => setLabel(e.target.value)}
+        onBlur={() => label.trim() && label !== c.label && save({ label: label.trim() })}
+      />
+      <Button
+        variant="unstyled"
+        type="button"
+        className={`cur-flag ${c.isDefault ? 'on' : ''}`}
+        title="Default earn currency"
+        onClick={() => !c.isDefault && save({ isDefault: true })}
+      >
+        {c.isDefault ? (
+          <>
+            <DataIcon value={'★'} kind="general" />
+            {' Default'}
+          </>
+        ) : (
+          'Make default'
+        )}
+      </Button>
+      <Button
+        variant="unstyled"
+        type="button"
+        className={`cur-flag ${c.spendable ? 'on' : ''}`}
+        title="Can be spent on rewards"
+        onClick={() => save({ spendable: !c.spendable })}
+      >
+        {c.spendable ? 'Spendable' : 'Earn-only'}
+      </Button>
       {canDelete && !c.isDefault ? (
-        <button type="button" className="cur-del" aria-label={`Delete ${c.label}`}
-          onClick={() => (confirmDel ? currenciesApi.remove(c.id).catch(() => {}) : setConfirmDel(true))}>
-          {confirmDel ? 'Tap to confirm' : '×'}
-        </button>
-      ) : <span className="cur-del-sp" />}
+        <Button
+          variant="unstyled"
+          type="button"
+          className="cur-del"
+          aria-label={`Delete ${c.label}`}
+          onClick={() =>
+            confirmDel ? currenciesApi.remove(c.id).catch(() => {}) : setConfirmDel(true)
+          }
+        >
+          {confirmDel ? 'Tap to confirm' : <DataIcon value={'×'} kind="general" />}
+        </Button>
+      ) : (
+        <span className="cur-del-sp" />
+      )}
     </div>
   )
 }
@@ -2037,27 +3281,54 @@ function RewardApprovalCard() {
   const [saving, setSaving] = useState(false)
   useEffect(() => {
     let alive = true
-    rewardsApi.settings()
+    rewardsApi
+      .settings()
       .then((s) => alive && setRequireApproval(s.requireApproval))
       .catch(() => alive && setRequireApproval(true))
-    return () => { alive = false }
+    return () => {
+      alive = false
+    }
   }, [])
   async function toggle() {
     if (requireApproval === null || saving) return
     const next = !requireApproval
     setRequireApproval(next)
     setSaving(true)
-    try { await rewardsApi.setSettings(next) }
-    catch { setRequireApproval(!next) }
-    finally { setSaving(false) }
+    try {
+      await rewardsApi.setSettings(next)
+    } catch {
+      setRequireApproval(!next)
+    } finally {
+      setSaving(false)
+    }
   }
   return (
     <SettingCard style={{ marginTop: 14 }}>
-      <CardHeader title="Reward Approvals" sub={<>Sets the default for <b>new</b> rewards. On = a parent OKs the purchase; off = the kid redeems instantly with what they’ve earned. Even if off, each reward can have an override to explicitly require approval.</>} />
-      <SettingRow icon="✅" title="New rewards need a parent’s OK by default"
-        sub={requireApproval === false ? 'Off — new rewards are instant unless you switch them on.' : 'On — new rewards wait in the approval queue unless you switch them off.'}>
-        <input type="checkbox" className="set-check" checked={requireApproval ?? true}
-          disabled={requireApproval === null || saving} onChange={toggle} />
+      <CardHeader
+        title="Reward Approvals"
+        sub={
+          <>
+            Sets the default for <b>new</b> rewards. On = a parent OKs the purchase; off = the kid
+            redeems instantly with what they’ve earned. Even if off, each reward can have an
+            override to explicitly require approval.
+          </>
+        }
+      />
+      <SettingRow
+        icon="✅"
+        title="New rewards need a parent’s OK by default"
+        sub={
+          requireApproval === false
+            ? 'Off — new rewards are instant unless you switch them on.'
+            : 'On — new rewards wait in the approval queue unless you switch them off.'
+        }
+      >
+        <Checkbox
+          className="set-check"
+          checked={requireApproval ?? true}
+          disabled={requireApproval === null || saving}
+          onCheckedChange={toggle}
+        />
       </SettingRow>
     </SettingCard>
   )
@@ -2075,23 +3346,35 @@ const PROOF_TTL_OPTIONS = [
 function ChoreProofCard() {
   const [ttl, setTtl] = useState<number | null>(null)
   const [saving, setSaving] = useState(false)
-    // Loaded for the button's count and handed to the drawer so it doesn't refetch.
+  // Loaded for the button's count and handed to the drawer so it doesn't refetch.
   const [proofs, setProofs] = useState<StoredProof[] | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
   useEffect(() => {
     let alive = true
-    choresApi.getSettings().then((s) => alive && setTtl(s.proofTtlDays)).catch(() => alive && setTtl(3))
-    choresApi.listProofs().then((r) => alive && setProofs(r.proofs)).catch(() => alive && setProofs([]))
-    return () => { alive = false }
+    choresApi
+      .getSettings()
+      .then((s) => alive && setTtl(s.proofTtlDays))
+      .catch(() => alive && setTtl(3))
+    choresApi
+      .listProofs()
+      .then((r) => alive && setProofs(r.proofs))
+      .catch(() => alive && setProofs([]))
+    return () => {
+      alive = false
+    }
   }, [])
   async function update(next: number) {
     if (ttl === null || saving) return
     const prev = ttl
     setTtl(next)
     setSaving(true)
-    try { await choresApi.setProofTtlDays(next) }
-    catch { setTtl(prev) }
-    finally { setSaving(false) }
+    try {
+      await choresApi.setProofTtlDays(next)
+    } catch {
+      setTtl(prev)
+    } finally {
+      setSaving(false)
+    }
   }
   const sub =
     ttl === 0
@@ -2100,22 +3383,46 @@ function ChoreProofCard() {
   const count = proofs?.length ?? 0
   return (
     <SettingCard style={{ marginTop: 14 }}>
-      <CardHeader title="Photo Proof" sub="Some chores require a photo to complete. These are quick proof shots, not memories — Waffled deletes them automatically after the chore is settled (a note that a photo was attached stays). Rejected chores’ photos are removed right away." />
+      <CardHeader
+        title="Photo Proof"
+        sub="Some chores require a photo to complete. These are quick proof shots, not memories — Waffled deletes them automatically after the chore is settled (a note that a photo was attached stays). Rejected chores’ photos are removed right away."
+      />
       <SettingRow icon="📸" title="Keep proof photos for" sub={sub}>
-        <select className="sel" value={ttl ?? 3} disabled={ttl === null || saving}
-          onChange={(e) => update(Number(e.target.value))}>
-          {PROOF_TTL_OPTIONS.map((o) => <option key={o.v} value={o.v}>{o.label}</option>)}
-        </select>
+        <NativeSelect
+          className="sel"
+          value={ttl ?? 3}
+          disabled={ttl === null || saving}
+          onChange={(e) => update(Number(e.target.value))}
+        >
+          {PROOF_TTL_OPTIONS.map((o) => (
+            <option key={o.v} value={o.v}>
+              {o.label}
+            </option>
+          ))}
+        </NativeSelect>
       </SettingRow>
       {count > 0 && (
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
-          <button type="button" className="proof-view-btn" onClick={() => setDrawerOpen(true)}>
-            View stored photos ({count}) ›
-          </button>
+          <Button
+            variant="unstyled"
+            type="button"
+            className="proof-view-btn"
+            onClick={() => setDrawerOpen(true)}
+          >
+            View stored photos ({count}
+            <>
+              {') '}
+              <DataIcon value={'›'} kind="general" />
+            </>
+          </Button>
         </div>
       )}
       {drawerOpen && (
-        <ChoreProofsDrawer proofs={proofs} onChanged={setProofs} onClose={() => setDrawerOpen(false)} />
+        <ChoreProofsDrawer
+          proofs={proofs}
+          onChanged={setProofs}
+          onClose={() => setDrawerOpen(false)}
+        />
       )}
     </SettingCard>
   )
@@ -2142,7 +3449,9 @@ function ChoreProofsDrawer({
   const [enlarge, setEnlarge] = useState<StoredProof | null>(null)
   const [confirmClear, setConfirmClear] = useState(false)
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
@@ -2150,48 +3459,107 @@ function ChoreProofsDrawer({
   const count = list.length
   async function del(id: string) {
     setBusy(id)
-    try { await choresApi.deleteProof(id); onChanged(list.filter((x) => x.instanceId !== id)) }
-    finally { setBusy(null) }
+    try {
+      await choresApi.deleteProof(id)
+      onChanged(list.filter((x) => x.instanceId !== id))
+    } finally {
+      setBusy(null)
+    }
   }
   async function clearAll() {
     setBusy('all')
-    try { await choresApi.clearProofs(); onChanged([]) }
-    finally { setBusy(null); setConfirmClear(false) }
+    try {
+      await choresApi.clearProofs()
+      onChanged([])
+    } finally {
+      setBusy(null)
+      setConfirmClear(false)
+    }
   }
   return (
     <>
       <div className="proof-drawer-scrim" onClick={onClose}>
-        <div className="proof-drawer" role="dialog" aria-label="Stored proof photos" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="proof-drawer"
+          role="dialog"
+          aria-label="Stored proof photos"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="proof-drawer-head">
-            <button type="button" className="pill" style={{ cursor: 'pointer' }} onClick={onClose}>‹ Back</button>
+            <Button
+              variant="unstyled"
+              type="button"
+              className="pill btn-primary"
+              style={{ cursor: 'pointer' }}
+              onClick={onClose}
+            >
+              <>
+                <DataIcon value={'‹'} kind="photo" />
+                {' Back'}
+              </>
+            </Button>
             <div className="wf-serif">Stored proof photos</div>
           </div>
           <div className="proof-drawer-body">
             <div className="tiny muted" style={{ fontWeight: 600, marginBottom: 14 }}>
-              Proof photos still on the server. They’re removed automatically per your retention setting — delete any here to clear them sooner.
+              Proof photos still on the server. They’re removed automatically per your retention
+              setting — delete any here to clear them sooner.
             </div>
             {proofs === null ? (
-              <div className="muted" style={{ fontWeight: 600 }}>Loading…</div>
+              <div className="muted" style={{ fontWeight: 600 }}>
+                Loading…
+              </div>
             ) : count === 0 ? (
-              <div className="muted" style={{ fontWeight: 600 }}>No stored proof photos.</div>
+              <div className="muted" style={{ fontWeight: 600 }}>
+                No stored proof photos.
+              </div>
             ) : (
               <>
                 <div className="proof-grid">
                   {list.map((p) => (
                     <div className="proof-cell" key={p.instanceId}>
-                      <button type="button" className="proof-thumb" onClick={() => setEnlarge(p)} title="View larger">
+                      <Button
+                        variant="unstyled"
+                        type="button"
+                        className="proof-thumb"
+                        onClick={() => setEnlarge(p)}
+                        title="View larger"
+                      >
                         {p.proofUrl && <img src={p.proofUrl} alt={`Proof for ${p.choreTitle}`} />}
-                      </button>
+                      </Button>
                       <div className="proof-meta">
-                        <div className="proof-title">{p.emoji ? `${p.emoji} ` : ''}{p.choreTitle}</div>
-                        <div className="tiny muted">{p.personName ?? '—'}{fmtProofDate(p.completedAt) ? ` · ${fmtProofDate(p.completedAt)}` : ''}</div>
+                        <div className="proof-title">
+                          {p.emoji ? <>{<DataIcon value={p.emoji} kind="general" />} </> : ''}
+                          {p.choreTitle}
+                        </div>
+                        <div className="tiny muted">
+                          {p.personName ?? '—'}
+                          {fmtProofDate(p.completedAt) ? ` · ${fmtProofDate(p.completedAt)}` : ''}
+                        </div>
                       </div>
-                      <button type="button" className="proof-del" aria-label={`Delete proof for ${p.choreTitle}`} disabled={busy === p.instanceId} onClick={() => del(p.instanceId)}>🗑</button>
+                      <Button
+                        variant="unstyled"
+                        type="button"
+                        className="proof-del"
+                        aria-label={`Delete proof for ${p.choreTitle}`}
+                        disabled={busy === p.instanceId}
+                        onClick={() => del(p.instanceId)}
+                      >
+                        <DataIcon value={'🗑'} kind="chore" />
+                      </Button>
                     </div>
                   ))}
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 14 }}>
-                  <button type="button" className="pill" disabled={busy === 'all'} onClick={() => setConfirmClear(true)}>Clear all ({count})</button>
+                  <Button
+                    variant="unstyled"
+                    type="button"
+                    className="pill btn-primary"
+                    disabled={busy === 'all'}
+                    onClick={() => setConfirmClear(true)}
+                  >
+                    Clear all ({count})
+                  </Button>
                 </div>
               </>
             )}
@@ -2199,22 +3567,65 @@ function ChoreProofsDrawer({
         </div>
       </div>
       {enlarge && (
-        <div className="modal-overlay" style={{ zIndex: 1100 }} onClick={() => setEnlarge(null)}>
+        <Modal className="modal-overlay" style={{ zIndex: 1100 }} onClose={() => setEnlarge(null)}>
           <div className="modal-card chore-proof-modal" onClick={(e) => e.stopPropagation()}>
-            <button type="button" className="modal-close" aria-label="Close" onClick={() => setEnlarge(null)}>×</button>
-            <div className="cpm-head"><div className="cpm-head-tx">
-              <div className="cpm-title">{enlarge.emoji ? `${enlarge.emoji} ` : ''}{enlarge.choreTitle}</div>
-              <div className="cpm-sub">{enlarge.personName ?? '—'}{fmtProofDate(enlarge.completedAt) ? ` · ${fmtProofDate(enlarge.completedAt)}` : ''}</div>
-            </div></div>
-            <div className="cpm-stage">{enlarge.proofUrl && <img src={enlarge.proofUrl} alt={`Proof for ${enlarge.choreTitle}`} />}</div>
+            <Button
+              variant="unstyled"
+              type="button"
+              className="modal-close"
+              aria-label="Close"
+              onClick={() => setEnlarge(null)}
+            >
+              <DataIcon value={'×'} kind="chore" />
+            </Button>
+            <div className="cpm-head">
+              <div className="cpm-head-tx">
+                <div className="cpm-title">
+                  {enlarge.emoji ? <>{<DataIcon value={enlarge.emoji} kind="general" />} </> : ''}
+                  {enlarge.choreTitle}
+                </div>
+                <div className="cpm-sub">
+                  {enlarge.personName ?? '—'}
+                  {fmtProofDate(enlarge.completedAt)
+                    ? ` · ${fmtProofDate(enlarge.completedAt)}`
+                    : ''}
+                </div>
+              </div>
+            </div>
+            <div className="cpm-stage">
+              {enlarge.proofUrl && (
+                <img src={enlarge.proofUrl} alt={`Proof for ${enlarge.choreTitle}`} />
+              )}
+            </div>
             <div className="cpm-actions">
-              <button type="button" className="pill" disabled={busy === enlarge.instanceId} onClick={() => { del(enlarge.instanceId); setEnlarge(null) }}>🗑 Delete</button>
+              <Button
+                variant="unstyled"
+                type="button"
+                className="pill btn-primary"
+                disabled={busy === enlarge.instanceId}
+                onClick={() => {
+                  del(enlarge.instanceId)
+                  setEnlarge(null)
+                }}
+              >
+                <>
+                  <DataIcon value={'🗑'} kind="chore" />
+                  {' Delete'}
+                </>
+              </Button>
             </div>
           </div>
-        </div>
+        </Modal>
       )}
       {confirmClear && (
-        <ConfirmDialog title="Delete all proof photos?" message={`This removes all ${count} stored proof photos. The record that a photo was attached stays.`} confirmLabel="Delete all" danger onConfirm={clearAll} onClose={() => setConfirmClear(false)} />
+        <ConfirmDialog
+          title="Delete all proof photos?"
+          message={`This removes all ${count} stored proof photos. The record that a photo was attached stays.`}
+          confirmLabel="Delete all"
+          danger
+          onConfirm={clearAll}
+          onClose={() => setConfirmClear(false)}
+        />
       )}
     </>
   )
@@ -2230,7 +3641,8 @@ function RewardsSettingsPanel() {
     setAdding(true)
     try {
       await currenciesApi.create({ label: newLabel.trim(), symbol: newSymbol.trim() || null })
-      setNewLabel(''); setNewSymbol('')
+      setNewLabel('')
+      setNewSymbol('')
     } finally {
       setAdding(false)
     }
@@ -2239,23 +3651,63 @@ function RewardsSettingsPanel() {
     <div className="set-panel">
       <div className="set-head">
         <div className="wf-serif set-head-t">Chores &amp; Rewards</div>
-        <div className="tiny muted" style={{ fontWeight: 600 }}>The currencies your family earns &amp; spends</div>
+        <div className="tiny muted" style={{ fontWeight: 600 }}>
+          The currencies your family earns &amp; spends
+        </div>
       </div>
       {/* Economy widget — the currencies a family earns/spends and the trades
           between them belong together, so box them into one card with two
           subsections. */}
       <SettingCard>
         <CardHeader title="Currencies & Conversions" />
-        <CardHeader title="Currencies" sub={<>Rename stars, add your own, or run several. The <b>default</b> is what new chores award; <b>spendable</b> ones can buy rewards. Set up trades between them under <b>Conversions</b> below.</>} mid />
+        <CardHeader
+          title="Currencies"
+          sub={
+            <>
+              Rename stars, add your own, or run several. The <b>default</b> is what new chores
+              award; <b>spendable</b> ones can buy rewards. Set up trades between them under{' '}
+              <b>Conversions</b> below.
+            </>
+          }
+          mid
+        />
         {loading ? (
-          <div className="muted" style={{ fontWeight: 600 }}>Loading…</div>
+          <div className="muted" style={{ fontWeight: 600 }}>
+            Loading…
+          </div>
         ) : (
           currencies.map((c) => <CurrencyRow key={c.id} c={c} canDelete={currencies.length > 1} />)
         )}
         <div className="cur-add">
-          <input className="cur-sym" value={newSymbol} maxLength={2} placeholder="⭐" aria-label="New symbol" onChange={(e) => setNewSymbol(e.target.value)} />
-          <input className="cur-label" value={newLabel} placeholder="Add a currency (e.g. Family Dollars)" aria-label="New label" onChange={(e) => setNewLabel(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && add()} />
-          <button type="button" className="pill btn-primary" style={{ color: 'var(--on-accent)', border: 0 }} disabled={adding || !newLabel.trim()} onClick={add}>＋ Add</button>
+          <IconPicker
+            allowText
+            kind="reward"
+            className="cur-sym"
+            value={newSymbol}
+            aria-label="New symbol"
+            onValueChange={setNewSymbol}
+          />
+          <Input
+            className="cur-label"
+            value={newLabel}
+            placeholder="Add a currency (e.g. Family Dollars)"
+            aria-label="New label"
+            onChange={(e) => setNewLabel(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && add()}
+          />
+          <Button
+            variant="unstyled"
+            type="button"
+            className="pill btn-primary"
+            style={{ color: 'var(--on-accent)', border: 0 }}
+            disabled={adding || !newLabel.trim()}
+            onClick={add}
+          >
+            <>
+              <DataIcon value={'＋'} kind="general" />
+              {' Add'}
+            </>
+          </Button>
         </div>
         {currencies.length > 1 && <ConversionsSection currencies={currencies} />}
       </SettingCard>
@@ -2282,35 +3734,124 @@ function ConversionsSection({ currencies }: { currencies: Currency[] }) {
     if (!fromCur || !toCur || fromCur === toCur) return
     setBusy(true)
     try {
-      await conversionsApi.create({ fromCurrency: fromCur, toCurrency: toCur, fromAmount: fromAmt, toAmount: toAmt })
+      await conversionsApi.create({
+        fromCurrency: fromCur,
+        toCurrency: toCur,
+        fromAmount: fromAmt,
+        toAmount: toAmt,
+      })
     } finally {
       setBusy(false)
     }
   }
   return (
     <>
-      <CardHeader title="Conversions" sub={<>Let the family trade up a tier — e.g. <b>10 ⭐ → 1 💵</b>. Anyone can convert their own balance on the Rewards tab.</>} mid />
+      <CardHeader
+        title="Conversions"
+        sub={
+          <>
+            Let the family trade up a tier — e.g.{' '}
+            <b>
+              <>
+                <>
+                  {'10 '}
+                  <DataIcon value={'⭐'} kind="general" />{' '}
+                </>
+                <DataIcon value={'→'} kind="general" />
+                {' 1 '}
+                <DataIcon value={'💵'} kind="general" />
+              </>
+            </b>
+            . Anyone can convert their own balance on the Rewards tab.
+          </>
+        }
+        mid
+      />
       {conversions.map((c) => (
         <div key={c.id} className="conv-row">
           <span className="conv-rate">
-            {c.fromAmount} {c.from.symbol ?? sym(c.fromCurrency)} {c.from.label ?? c.fromCurrency}
-            <span className="conv-arrow">→</span>
-            {c.toAmount} {c.to.symbol ?? sym(c.toCurrency)} {c.to.label ?? c.toCurrency}
+            {c.fromAmount} <IconValue value={c.from.symbol ?? sym(c.fromCurrency)} />{' '}
+            {c.from.label ?? c.fromCurrency}
+            <span className="conv-arrow">
+              <DataIcon value={'→'} kind="general" />
+            </span>
+            {c.toAmount} <IconValue value={c.to.symbol ?? sym(c.toCurrency)} />{' '}
+            {c.to.label ?? c.toCurrency}
           </span>
-          <button type="button" className="cur-del" aria-label="Delete conversion" onClick={() => conversionsApi.remove(c.id)}>×</button>
+          <Button
+            variant="unstyled"
+            type="button"
+            className="cur-del"
+            aria-label="Delete conversion"
+            onClick={() => conversionsApi.remove(c.id)}
+          >
+            <DataIcon value={'×'} kind="general" />
+          </Button>
         </div>
       ))}
       <div className="conv-add">
-        <input type="number" min={1} className="conv-amt" value={fromAmt} onChange={(e) => setFromAmt(Number(e.target.value) || 1)} aria-label="From amount" />
-        <select className="conv-cur" value={fromCur} onChange={(e) => setFromCur(e.target.value)} aria-label="From currency">
-          {currencies.map((c) => <option key={c.key} value={c.key}>{(c.symbol ? `${c.symbol} ` : '') + c.label}</option>)}
-        </select>
-        <span className="conv-arrow">→</span>
-        <input type="number" min={1} className="conv-amt" value={toAmt} onChange={(e) => setToAmt(Number(e.target.value) || 1)} aria-label="To amount" />
-        <select className="conv-cur" value={toCur} onChange={(e) => setToCur(e.target.value)} aria-label="To currency">
-          {currencies.map((c) => <option key={c.key} value={c.key}>{(c.symbol ? `${c.symbol} ` : '') + c.label}</option>)}
-        </select>
-        <button type="button" className="pill btn-primary" style={{ color: 'var(--on-accent)', border: 0 }} disabled={busy || fromCur === toCur} onClick={add}>＋ Add</button>
+        <Input
+          type="number"
+          min={1}
+          className="conv-amt"
+          value={fromAmt}
+          onChange={(e) => setFromAmt(Number(e.target.value) || 1)}
+          aria-label="From amount"
+        />
+        <SelectField
+          className="conv-cur"
+          value={fromCur}
+          onValueChange={(e) => setFromCur(e)}
+          aria-label="From currency"
+        >
+          {currencies.map((c) => (
+            <option key={c.key} value={c.key}>
+              <>
+                {c.symbol ? <>{<IconValue value={c.symbol} />} </> : ''}
+                {c.label}
+              </>
+            </option>
+          ))}
+        </SelectField>
+        <span className="conv-arrow">
+          <DataIcon value={'→'} kind="general" />
+        </span>
+        <Input
+          type="number"
+          min={1}
+          className="conv-amt"
+          value={toAmt}
+          onChange={(e) => setToAmt(Number(e.target.value) || 1)}
+          aria-label="To amount"
+        />
+        <SelectField
+          className="conv-cur"
+          value={toCur}
+          onValueChange={(e) => setToCur(e)}
+          aria-label="To currency"
+        >
+          {currencies.map((c) => (
+            <option key={c.key} value={c.key}>
+              <>
+                {c.symbol ? <>{<IconValue value={c.symbol} />} </> : ''}
+                {c.label}
+              </>
+            </option>
+          ))}
+        </SelectField>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="pill btn-primary"
+          style={{ color: 'var(--on-accent)', border: 0 }}
+          disabled={busy || fromCur === toCur}
+          onClick={add}
+        >
+          <>
+            <DataIcon value={'＋'} kind="general" />
+            {' Add'}
+          </>
+        </Button>
       </div>
     </>
   )
@@ -2322,7 +3863,10 @@ function SignOutButton({ className }: { className?: string }) {
   const [confirm, setConfirm] = useState(false)
   const [busy, setBusy] = useState(false)
   async function signOut() {
-    if (!confirm) { setConfirm(true); return }
+    if (!confirm) {
+      setConfirm(true)
+      return
+    }
     setBusy(true)
     try {
       await authApi.logout()
@@ -2331,27 +3875,49 @@ function SignOutButton({ className }: { className?: string }) {
     }
   }
   return (
-    <button type="button" className={className ?? 'btn btn-ghost'} onClick={signOut} disabled={busy}>
-      {busy ? 'Signing out…' : confirm ? 'Tap again to sign out' : '⏻ Sign out'}
-    </button>
+    <Button
+      variant="unstyled"
+      type="button"
+      className={className ?? 'btn btn-ghost'}
+      onClick={signOut}
+      disabled={busy}
+    >
+      {busy ? (
+        'Signing out…'
+      ) : confirm ? (
+        'Tap again to sign out'
+      ) : (
+        <>
+          <DataIcon value={'⏻'} kind="general" />
+          {' Sign out'}
+        </>
+      )}
+    </Button>
   )
 }
 
 // About / account — what this Waffled is, plus the sign-out control.
 // A pill toggle switch (replaces the bare checkbox for on/off settings).
-function Switch({ checked, disabled, onChange, ariaLabel }: { checked: boolean; disabled?: boolean; onChange: (v: boolean) => void; ariaLabel: string }) {
+function Switch({
+  checked,
+  disabled,
+  onChange,
+  ariaLabel,
+}: {
+  checked: boolean
+  disabled?: boolean
+  onChange: (v: boolean) => void
+  ariaLabel: string
+}) {
   return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
+    <UISwitch
+      checked={checked}
       aria-label={ariaLabel}
       disabled={disabled}
       className={`set-switch${checked ? ' on' : ''}`}
-      onClick={() => onChange(!checked)}
-    >
-      <span className="set-switch-knob" />
-    </button>
+      thumbClassName="set-switch-knob"
+      onCheckedChange={onChange}
+    />
   )
 }
 
@@ -2376,23 +3942,31 @@ function ModulesPanel() {
     <div className="set-panel">
       <div className="set-head">
         <div className="wf-serif set-head-t">Modules</div>
-        <div className="set-head-sub">Optional features for your household — turn on just what you want.</div>
+        <div className="set-head-sub">
+          Optional features for your household — turn on just what you want.
+        </div>
       </div>
       <div className="set-modules">
         {MODULES.map((m) => {
           const available = m.status === 'available'
           const on = available && moduleEnabled(household, m.key)
-          const anylistPantry = m.key === 'pantry' && moduleEnabled(household, 'anylist')
           return (
             <div key={m.key} className={`set-module${on ? ' on' : ''}`}>
               <div className="set-module-row">
-                <div className="set-module-ic">{m.icon}</div>
+                <div className="set-module-ic">
+                  <DataIcon value={m.icon} kind="general" />
+                </div>
                 <div className="set-module-main">
                   <div className="set-module-name">{m.name}</div>
                   <div className="set-module-desc">{m.description}</div>
                 </div>
                 {available ? (
-                  <Switch checked={on} disabled={saving === m.key} onChange={(v) => toggle(m.key, v)} ariaLabel={`Enable ${m.name}`} />
+                  <Switch
+                    checked={on}
+                    disabled={saving === m.key}
+                    onChange={(v) => toggle(m.key, v)}
+                    ariaLabel={`Enable ${m.name}`}
+                  />
                 ) : (
                   <span className="set-module-soon">Coming soon</span>
                 )}
@@ -2411,7 +3985,15 @@ function ModulesPanel() {
 
 // Pantry's own settings: the Today-card toggle and the location list. Saves immediately.
 function PantrySettings() {
-  const { locations, showOnToday, avoidAllergens, lowThreshold, locationIcons, staleMonths, loading } = usePantry()
+  const {
+    locations,
+    showOnToday,
+    avoidAllergens,
+    lowThreshold,
+    locationIcons,
+    staleMonths,
+    loading,
+  } = usePantry()
   const [list, setList] = useState<string[]>([])
   const [adding, setAdding] = useState('')
   const [show, setShow] = useState(true)
@@ -2419,36 +4001,75 @@ function PantrySettings() {
   const [low, setLow] = useState('1')
   const [stale, setStale] = useState('6')
   const [icons, setIcons] = useState<Record<string, string>>({})
-  useEffect(() => { if (!loading) { setList(locations); setShow(showOnToday); setAvoid(avoidAllergens); setLow(String(lowThreshold)); setStale(String(staleMonths)); setIcons(locationIcons) } }, [loading, locations, showOnToday, avoidAllergens, lowThreshold, staleMonths, locationIcons])
+  useEffect(() => {
+    if (!loading) {
+      setList(locations)
+      setShow(showOnToday)
+      setAvoid(avoidAllergens)
+      setLow(String(lowThreshold))
+      setStale(String(staleMonths))
+      setIcons(locationIcons)
+    }
+  }, [loading, locations, showOnToday, avoidAllergens, lowThreshold, staleMonths, locationIcons])
 
   async function commitLocations(next: string[]) {
     setList(next)
-    try { await pantryApi.setConfig({ locations: next.filter((x) => x.trim()) }); emitHouseholdChanged() } catch { /* ignore */ }
+    try {
+      await pantryApi.setConfig({ locations: next.filter((x) => x.trim()) })
+      emitHouseholdChanged()
+    } catch {
+      /* ignore */
+    }
   }
   async function toggleShow(v: boolean) {
     setShow(v)
-    try { await pantryApi.setConfig({ showOnToday: v }); emitHouseholdChanged() } catch { /* ignore */ }
+    try {
+      await pantryApi.setConfig({ showOnToday: v })
+      emitHouseholdChanged()
+    } catch {
+      /* ignore */
+    }
   }
   async function toggleAvoid(key: string) {
     const next = avoid.includes(key) ? avoid.filter((a) => a !== key) : [...avoid, key]
     setAvoid(next)
-    try { await pantryApi.setConfig({ avoidAllergens: next }); emitHouseholdChanged() } catch { /* ignore */ }
+    try {
+      await pantryApi.setConfig({ avoidAllergens: next })
+      emitHouseholdChanged()
+    } catch {
+      /* ignore */
+    }
   }
   async function commitLow(v: string) {
     const n = Number(v)
     if (!Number.isFinite(n) || n < 0) return
-    try { await pantryApi.setConfig({ lowThreshold: n }); emitHouseholdChanged() } catch { /* ignore */ }
+    try {
+      await pantryApi.setConfig({ lowThreshold: n })
+      emitHouseholdChanged()
+    } catch {
+      /* ignore */
+    }
   }
   async function commitStale(v: string) {
     const n = Math.round(Number(v))
     if (!Number.isFinite(n) || n < 1 || n > 60) return
-    try { await pantryApi.setConfig({ staleMonths: n }); emitHouseholdChanged() } catch { /* ignore */ }
+    try {
+      await pantryApi.setConfig({ staleMonths: n })
+      emitHouseholdChanged()
+    } catch {
+      /* ignore */
+    }
   }
   async function commitIcon(loc: string, emoji: string) {
     const next = { ...icons, [loc]: emoji.trim() }
     if (!emoji.trim()) delete next[loc]
     setIcons(next)
-    try { await pantryApi.setConfig({ locationIcons: next }); emitHouseholdChanged() } catch { /* ignore */ }
+    try {
+      await pantryApi.setConfig({ locationIcons: next })
+      emitHouseholdChanged()
+    } catch {
+      /* ignore */
+    }
   }
 
   if (loading) return null
@@ -2460,21 +4081,45 @@ function PantrySettings() {
       </div>
       <div className="set-module-setrow">
         <span>Running low at (or below)</span>
-        <input type="number" min="0" step="any" className="pl-low-input" value={low}
-          onChange={(e) => setLow(e.target.value)} onBlur={() => commitLow(low)}
-          onKeyDown={(e) => { if (e.key === 'Enter') commitLow(low) }} aria-label="Running low threshold" />
+        <Input
+          type="number"
+          min="0"
+          step="any"
+          className="pl-low-input"
+          value={low}
+          onChange={(e) => setLow(e.target.value)}
+          onBlur={() => commitLow(low)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') commitLow(low)
+          }}
+          aria-label="Running low threshold"
+        />
       </div>
       <div className="set-module-desc" style={{ marginBottom: 4 }}>
         Default for all items; set a per-item override in the item editor’s “Warn below”.
       </div>
       <div className="set-module-setrow">
         <span>Flag items older than (months)</span>
-        <input type="number" min="1" max="60" className="pl-low-input" value={stale}
-          onChange={(e) => setStale(e.target.value)} onBlur={() => commitStale(stale)}
-          onKeyDown={(e) => { if (e.key === 'Enter') commitStale(stale) }} aria-label="Old item threshold (months)" />
+        <Input
+          type="number"
+          min="1"
+          max="60"
+          className="pl-low-input"
+          value={stale}
+          onChange={(e) => setStale(e.target.value)}
+          onBlur={() => commitStale(stale)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') commitStale(stale)
+          }}
+          aria-label="Old item threshold (months)"
+        />
       </div>
       <div className="set-module-desc" style={{ marginBottom: 4 }}>
-        Items on hand longer than this get a 🕰️ age badge and a “Been a while” group.
+        <>
+          {'Items on hand longer than this get a '}
+          <DataIcon value={'🕰️'} kind="general" />
+          {' age badge and a “Been a while” group.'}
+        </>
       </div>
       <div className="set-module-setlabel">Allergens to avoid</div>
       <div className="set-module-desc" style={{ marginBottom: 8 }}>
@@ -2482,7 +4127,8 @@ function PantrySettings() {
       </div>
       <div className="pl-allergen-pick">
         {ALLERGEN_KEYS.map((key) => (
-          <button
+          <Button
+            variant="unstyled"
             key={key}
             type="button"
             className={`pl-allergen-chip${avoid.includes(key) ? ' on' : ''}`}
@@ -2490,39 +4136,63 @@ function PantrySettings() {
             onClick={() => toggleAvoid(key)}
           >
             {ALLERGEN_LABELS[key]}
-          </button>
+          </Button>
         ))}
       </div>
       <div className="set-module-setlabel">Locations</div>
       <div className="pantry-loc-list">
         {list.map((l, i) => (
           <div className="pantry-loc-row" key={i}>
-            <input
+            <IconPicker
+              kind="pantry"
               className="pl-loc-icon"
               value={icons[l] ?? ''}
-              placeholder="📦"
-              maxLength={4}
               aria-label={`Icon for ${l}`}
-              onChange={(e) => setIcons((m) => ({ ...m, [l]: e.target.value }))}
-              onBlur={() => commitIcon(l, icons[l] ?? '')}
+              onValueChange={(next) => {
+                setIcons((m) => ({ ...m, [l]: next }))
+                commitIcon(l, next)
+              }}
             />
-            <input
+            <Input
               value={l}
               onChange={(e) => setList((ls) => ls.map((x, j) => (j === i ? e.target.value : x)))}
               onBlur={() => commitLocations(list)}
             />
-            <button type="button" aria-label={`Remove ${l}`} onClick={() => commitLocations(list.filter((_, j) => j !== i))}>×</button>
+            <Button
+              variant="unstyled"
+              type="button"
+              aria-label={`Remove ${l}`}
+              onClick={() => commitLocations(list.filter((_, j) => j !== i))}
+            >
+              <DataIcon value={'×'} kind="pantry" />
+            </Button>
           </div>
         ))}
       </div>
       <div className="pantry-loc-add">
-        <input
+        <Input
           value={adding}
           onChange={(e) => setAdding(e.target.value)}
           placeholder="Add a location…"
-          onKeyDown={(e) => { if (e.key === 'Enter' && adding.trim()) { commitLocations([...list, adding.trim()]); setAdding('') } }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && adding.trim()) {
+              commitLocations([...list, adding.trim()])
+              setAdding('')
+            }
+          }}
         />
-        <button type="button" className="pill" disabled={!adding.trim()} onClick={() => { commitLocations([...list, adding.trim()]); setAdding('') }}>Add</button>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="pill btn-primary"
+          disabled={!adding.trim()}
+          onClick={() => {
+            commitLocations([...list, adding.trim()])
+            setAdding('')
+          }}
+        >
+          Add
+        </Button>
       </div>
     </div>
   )
@@ -2532,10 +4202,20 @@ function PantrySettings() {
 // economy, so it lives here — it can't be on without chores.
 function ChoresModuleSettings() {
   const [rewards, setRewards] = useState<boolean | null>(null)
-  useEffect(() => { choresApi.getSettings().then((s) => setRewards(s.rewards)).catch(() => setRewards(true)) }, [])
+  useEffect(() => {
+    choresApi
+      .getSettings()
+      .then((s) => setRewards(s.rewards))
+      .catch(() => setRewards(true))
+  }, [])
   async function toggle(v: boolean) {
     setRewards(v)
-    try { await choresApi.setRewardsEnabled(v); emitHouseholdChanged() } catch { /* reverts on next refetch */ }
+    try {
+      await choresApi.setRewardsEnabled(v)
+      emitHouseholdChanged()
+    } catch {
+      /* reverts on next refetch */
+    }
   }
   if (rewards === null) return null
   return (
@@ -2553,37 +4233,61 @@ function ChoresModuleSettings() {
 
 // Family Night's own settings: when it happens, the agenda parts, the calendar. Admin-only.
 const FN_DAYS = [0, 1, 2, 3, 4, 5, 6]
-const slug = (label: string) => label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'part'
+const slug = (label: string) =>
+  label
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '') || 'part'
 
 function FamilyNightSettings() {
   const { view, loading } = useFamilyNight()
   const [parts, setParts] = useState<FamilyNightPart[] | null>(null)
   const [saving, setSaving] = useState(false)
 
-  useEffect(() => { if (view) setParts(view.config.parts) }, [view])
+  useEffect(() => {
+    if (view) setParts(view.config.parts)
+  }, [view])
   if (loading || !view || !parts) return null
   const config = view.config
   const onCalendar = !!config.eventId
 
   async function save(patch: Parameters<typeof familyNightApi.setConfig>[0]) {
     setSaving(true)
-    try { await familyNightApi.setConfig(patch) } finally { setSaving(false) }
+    try {
+      await familyNightApi.setConfig(patch)
+    } finally {
+      setSaving(false)
+    }
   }
 
   function editPart(i: number, patch: Partial<FamilyNightPart>) {
     setParts((ps) => (ps ? ps.map((p, j) => (j === i ? { ...p, ...patch } : p)) : ps))
   }
-  function addPart() { setParts((ps) => [...(ps ?? []), { id: `part${Date.now()}`, label: 'New part', emoji: '⭐', rotates: true }]) }
-  function removePart(i: number) { setParts((ps) => (ps ? ps.filter((_, j) => j !== i) : ps)) }
+  function addPart() {
+    setParts((ps) => [
+      ...(ps ?? []),
+      { id: `part${Date.now()}`, label: 'New part', emoji: '⭐', rotates: true },
+    ])
+  }
+  function removePart(i: number) {
+    setParts((ps) => (ps ? ps.filter((_, j) => j !== i) : ps))
+  }
   async function saveParts() {
-    const clean = (parts ?? []).map((p) => ({ ...p, id: p.id || slug(p.label), label: p.label.trim() || 'Part' })).filter((p) => p.label)
+    const clean = (parts ?? [])
+      .map((p) => ({ ...p, id: p.id || slug(p.label), label: p.label.trim() || 'Part' }))
+      .filter((p) => p.label)
     if (!clean.length) return
     await save({ parts: clean })
   }
 
   async function toggleCalendar(v: boolean) {
     setSaving(true)
-    try { if (v) await familyNightApi.schedule(); else await familyNightApi.unschedule() } finally { setSaving(false) }
+    try {
+      if (v) await familyNightApi.schedule()
+      else await familyNightApi.unschedule()
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -2591,41 +4295,112 @@ function FamilyNightSettings() {
       <div className="set-module-setrow">
         <span>Happens on</span>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <select className="sel" value={config.dayOfWeek} disabled={saving} onChange={(e) => save({ dayOfWeek: Number(e.target.value) })}>
-            {FN_DAYS.map((d) => <option key={d} value={d}>{weekdayName(d)}</option>)}
-          </select>
-          <input className="set-inline-input" type="time" value={config.time} disabled={saving} onChange={(e) => save({ time: e.target.value })} style={{ width: 120 }} />
+          <NativeSelect
+            className="sel"
+            value={config.dayOfWeek}
+            disabled={saving}
+            onChange={(e) => save({ dayOfWeek: Number(e.target.value) })}
+          >
+            {FN_DAYS.map((d) => (
+              <option key={d} value={d}>
+                {weekdayName(d)}
+              </option>
+            ))}
+          </NativeSelect>
+          <Input
+            className="set-inline-input"
+            type="time"
+            value={config.time}
+            disabled={saving}
+            onChange={(e) => save({ time: e.target.value })}
+            style={{ width: 120 }}
+          />
         </div>
       </div>
 
       <div className="set-module-setrow">
         <span>Show on the Today page</span>
-        <Switch checked={config.showOnToday !== false} disabled={saving} onChange={(v) => save({ showOnToday: v })} ariaLabel="Show Family Night on Today" />
+        <Switch
+          checked={config.showOnToday !== false}
+          disabled={saving}
+          onChange={(v) => save({ showOnToday: v })}
+          ariaLabel="Show Family Night on Today"
+        />
       </div>
 
       <div className="set-module-setrow">
         <span>Show on the calendar</span>
-        <Switch checked={onCalendar} disabled={saving} onChange={toggleCalendar} ariaLabel="Show Family Night on the calendar" />
+        <Switch
+          checked={onCalendar}
+          disabled={saving}
+          onChange={toggleCalendar}
+          ariaLabel="Show Family Night on the calendar"
+        />
       </div>
       <div className="set-module-desc" style={{ marginTop: -4, marginBottom: 8 }}>
-        Adds a weekly “🏡 Family Night” event to the family calendar (syncs to Google if that calendar is connected). Changing the day or time re-schedules it.
+        <>
+          {'Adds a weekly “'}
+          <DataIcon value={'🏡'} kind="general" />
+          {
+            ' Family Night” event to the family calendar (syncs to Google if that calendar is connected). Changing the day or time re-schedules it.'
+          }
+        </>
       </div>
 
-      <div className="set-row2-t" style={{ marginTop: 6, marginBottom: 4 }}>Agenda Parts</div>
+      <div className="set-row2-t" style={{ marginTop: 6, marginBottom: 4 }}>
+        Agenda Parts
+      </div>
       <div className="set-module-desc" style={{ marginBottom: 8 }}>
-        Roles that rotate among family members each week. Turn off “Rotate” for a part someone always does.
+        Roles that rotate among family members each week. Turn off “Rotate” for a part someone
+        always does.
       </div>
       {parts.map((p, i) => (
         <div key={i} className="fn-part-edit">
-          <input className="fn-part-emoji" value={p.emoji} maxLength={4} onChange={(e) => editPart(i, { emoji: e.target.value })} aria-label="Emoji" />
-          <input className="fn-part-label" value={p.label} onChange={(e) => editPart(i, { label: e.target.value })} aria-label="Part name" />
-          <label className="fn-part-rot"><input type="checkbox" checked={p.rotates} onChange={(e) => editPart(i, { rotates: e.target.checked })} /> Rotate</label>
-          <button type="button" className="fn-part-x" aria-label={`Remove ${p.label}`} onClick={() => removePart(i)}>×</button>
+          <IconPicker
+            kind="general"
+            className="fn-part-emoji"
+            value={p.emoji}
+            onValueChange={(e) => editPart(i, { emoji: e })}
+            aria-label="Icon"
+          />
+          <Input
+            className="fn-part-label"
+            value={p.label}
+            onChange={(e) => editPart(i, { label: e.target.value })}
+            aria-label="Part name"
+          />
+          <Label className="fn-part-rot">
+            <Checkbox
+              checked={p.rotates}
+              onCheckedChange={(e) => editPart(i, { rotates: e === true })}
+            />{' '}
+            Rotate
+          </Label>
+          <Button
+            variant="unstyled"
+            type="button"
+            className="fn-part-x"
+            aria-label={`Remove ${p.label}`}
+            onClick={() => removePart(i)}
+          >
+            <DataIcon value={'×'} kind="general" />
+          </Button>
         </div>
       ))}
       <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-        <button type="button" className="pill" onClick={addPart}>+ Add part</button>
-        <button type="button" className="pill primary" disabled={saving} onClick={saveParts} style={{ marginLeft: 'auto' }}>Save agenda</button>
+        <Button variant="unstyled" type="button" className="pill btn-primary" onClick={addPart}>
+          + Add part
+        </Button>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="pill primary"
+          disabled={saving}
+          onClick={saveParts}
+          style={{ marginLeft: 'auto' }}
+        >
+          Save agenda
+        </Button>
       </div>
     </div>
   )
@@ -2636,44 +4411,75 @@ function FamilyNightSettings() {
 function WeeklyPlanningSettings() {
   const { view, loading } = useWeeklyPlanning()
   const [saving, setSaving] = useState(false)
-    // The lists step 1 could ask about, from /config rather than the session view: which are
-    // even candidates is step 1's rule, and the server resolving it stops this panel offering a
-    // switch for the grocery list. Only the NAMES come from here.
+  // The lists step 1 could ask about, from /config rather than the session view: which are
+  // even candidates is step 1's rule, and the server resolving it stops this panel offering a
+  // switch for the grocery list. Only the NAMES come from here.
   const [candidates, setCandidates] = useState<PlanningListCandidate[]>([])
   useEffect(() => {
     let alive = true
-    weeklyPlanningApi.getConfig()
-      .then((r) => { if (alive) setCandidates(r.lists ?? []) })
-      .catch(() => { /* the rest of the panel is unaffected */ })
-    return () => { alive = false }
+    weeklyPlanningApi
+      .getConfig()
+      .then((r) => {
+        if (alive) setCandidates(r.lists ?? [])
+      })
+      .catch(() => {
+        /* the rest of the panel is unaffected */
+      })
+    return () => {
+      alive = false
+    }
   }, [])
   if (loading || !view) return null
   const config = view.config
 
   async function save(patch: Parameters<typeof weeklyPlanningApi.setConfig>[0]) {
     setSaving(true)
-    try { await weeklyPlanningApi.setConfig(patch) } finally { setSaving(false) }
+    try {
+      await weeklyPlanningApi.setConfig(patch)
+    } finally {
+      setSaving(false)
+    }
   }
 
-  const offForModule = view.steps.filter((s) => s.requiresModule && config.steps[s.key] !== false && !s.available)
-  const choosable = view.steps.filter((s) => !s.requiresModule || s.available || config.steps[s.key] === false)
+  const offForModule = view.steps.filter(
+    (s) => s.requiresModule && config.steps[s.key] !== false && !s.available,
+  )
+  const choosable = view.steps.filter(
+    (s) => !s.requiresModule || s.available || config.steps[s.key] === false,
+  )
 
   return (
     <div className="set-module-settings">
       <div className="set-module-setrow">
         <span>Session happens on</span>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <select className="sel" value={config.dayOfWeek} disabled={saving} onChange={(e) => save({ dayOfWeek: Number(e.target.value) })}>
-            {FN_DAYS.map((d) => <option key={d} value={d}>{planningDayName(d)}</option>)}
-          </select>
+          <NativeSelect
+            className="sel"
+            value={config.dayOfWeek}
+            disabled={saving}
+            onChange={(e) => save({ dayOfWeek: Number(e.target.value) })}
+          >
+            {FN_DAYS.map((d) => (
+              <option key={d} value={d}>
+                {planningDayName(d)}
+              </option>
+            ))}
+          </NativeSelect>
           {/* 140, not the 120 the Family Night row uses — a 12-hour locale renders
               "05:00 PM" plus the clock affordance and clips at 120. */}
-          <input className="set-inline-input" type="time" value={config.time} disabled={saving} onChange={(e) => save({ time: e.target.value })} style={{ width: 140 }} />
+          <Input
+            className="set-inline-input"
+            type="time"
+            value={config.time}
+            disabled={saving}
+            onChange={(e) => save({ time: e.target.value })}
+            style={{ width: 140 }}
+          />
         </div>
       </div>
       <div className="set-module-desc" style={{ marginTop: -4, marginBottom: 8 }}>
-        When to nudge the family to sit down. The session always plans the week ahead — which
-        seven days that is follows your household's first day of the week.
+        When to nudge the family to sit down. The session always plans the week ahead — which seven
+        days that is follows your household's first day of the week.
       </div>
 
       {/* WHERE THIS APPLIES, said out loud. The only consumer is the iPad display's
@@ -2684,15 +4490,22 @@ function WeeklyPlanningSettings() {
           a household setting whose effect is on another surface. */}
       <div className="set-module-setrow">
         <span>Show on the family display’s Today</span>
-        <Switch checked={config.showOnToday !== false} disabled={saving} onChange={(v) => save({ showOnToday: v })} ariaLabel="Show the planning session on the family display’s Today page" />
+        <Switch
+          checked={config.showOnToday !== false}
+          disabled={saving}
+          onChange={(v) => save({ showOnToday: v })}
+          ariaLabel="Show the planning session on the family display’s Today page"
+        />
       </div>
       <div className="set-module-desc" style={{ marginTop: -4, marginBottom: 8 }}>
-        A card on the session day, on the <b>family display</b>. The web Today page and the
-        phone don’t show a planning card — reach the session from the Planning page here, or
-        the Family tab on the phone.
+        A card on the session day, on the <b>family display</b>. The web Today page and the phone
+        don’t show a planning card — reach the session from the Planning page here, or the Family
+        tab on the phone.
       </div>
 
-      <div className="set-row2-t" style={{ marginTop: 6, marginBottom: 4 }}>Steps</div>
+      <div className="set-row2-t" style={{ marginTop: 6, marginBottom: 4 }}>
+        Steps
+      </div>
       <div className="set-module-desc" style={{ marginBottom: 8 }}>
         Turn off anything your family doesn't do — the session skips it and never counts it.
       </div>
@@ -2709,7 +4522,8 @@ function WeeklyPlanningSettings() {
       ))}
       {offForModule.length > 0 && (
         <div className="set-module-desc" style={{ marginTop: 8 }}>
-          Not in the session because the module it reads is off: {offForModule.map((s) => s.title).join(', ')}.
+          Not in the session because the module it reads is off:{' '}
+          {offForModule.map((s) => s.title).join(', ')}.
         </div>
       )}
 
@@ -2723,16 +4537,20 @@ function WeeklyPlanningSettings() {
           this sees exactly what it saw before. */}
       {candidates.length > 0 && (
         <>
-          <div className="set-row2-t" style={{ marginTop: 6, marginBottom: 4 }}>Lists it asks about</div>
+          <div className="set-row2-t" style={{ marginTop: 6, marginBottom: 4 }}>
+            Lists it asks about
+          </div>
           <div className="set-module-desc" style={{ marginBottom: 8 }}>
             The first step asks about anything still unchecked from before this week. Turn off a
             list that is meant to stay open — a someday list, a wishlist — and it stops coming up
-            every session. Your grocery list is never asked about: it rebuilds itself from the
-            meal plan.
+            every session. Your grocery list is never asked about: it rebuilds itself from the meal
+            plan.
           </div>
           {candidates.map((l) => (
             <div key={l.id} className="set-module-setrow">
-              <span>{[l.emoji, l.name].filter(Boolean).join(' ')}</span>
+              <span>
+                <DataIcon value={l.emoji} kind="pantry" /> {l.name}
+              </span>
               <Switch
                 checked={config.lists?.[l.id] !== false}
                 disabled={saving}
@@ -2751,15 +4569,22 @@ function AboutPanel() {
   const { household } = useHousehold()
   return (
     <div className="set-panel">
-      <div className="set-head"><div className="wf-serif set-head-t">About</div></div>
+      <div className="set-head">
+        <div className="wf-serif set-head-t">About</div>
+      </div>
       <SettingCard>
-        <div className="set-row2-t" style={{ marginBottom: 4 }}>Waffled — Family Hub</div>
+        <div className="set-row2-t" style={{ marginBottom: 4 }}>
+          Waffled — Family Hub
+        </div>
         <div className="tiny muted" style={{ fontWeight: 600 }}>
-          Self-hosted{household?.name ? ` · ${household.name}` : ''}. Version and storage info land here.
+          Self-hosted{household?.name ? ` · ${household.name}` : ''}. Version and storage info land
+          here.
         </div>
       </SettingCard>
       <SettingCard style={{ marginTop: 18 }}>
-        <div className="set-row2-t" style={{ marginBottom: 4 }}>Account</div>
+        <div className="set-row2-t" style={{ marginBottom: 4 }}>
+          Account
+        </div>
         <div className="tiny muted" style={{ fontWeight: 600, marginBottom: 16 }}>
           Sign this kiosk out to switch to another family member's account.
         </div>
@@ -2799,9 +4624,13 @@ function HouseholdsPanel() {
 
   return (
     <div className="set-panel">
-      <div className="set-head"><div className="wf-serif set-head-t">Households</div></div>
+      <div className="set-head">
+        <div className="wf-serif set-head-t">Households</div>
+      </div>
       <SettingCard>
-        <div className="set-row2-t" style={{ marginBottom: 4 }}>Your Households</div>
+        <div className="set-row2-t" style={{ marginBottom: 4 }}>
+          Your Households
+        </div>
         <div className="tiny muted" style={{ fontWeight: 600, marginBottom: 16 }}>
           {soloAndNoInvites
             ? 'You belong to one household. Invitations to join others will show up here.'
@@ -2810,14 +4639,30 @@ function HouseholdsPanel() {
         {memberships.map((m) => {
           const current = m.householdId === household?.id
           return (
-            <div key={m.householdId} className="set-row2" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10 }}>
+            <div
+              key={m.householdId}
+              className="set-row2"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginTop: 10,
+              }}
+            >
               <div className="set-row2-t">{m.householdName}</div>
               {current ? (
-                <span className="tiny muted" style={{ fontWeight: 700 }}>Current</span>
+                <span className="tiny muted" style={{ fontWeight: 700 }}>
+                  Current
+                </span>
               ) : (
-                <button type="button" className="btn btn-primary" disabled={switching === m.householdId} onClick={() => doSwitch(m.householdId)}>
+                <Button
+                  variant="default"
+                  type="button"
+                  disabled={switching === m.householdId}
+                  onClick={() => doSwitch(m.householdId)}
+                >
                   {switching === m.householdId ? 'Switching…' : 'Switch'}
-                </button>
+                </Button>
               )}
             </div>
           )
@@ -2825,16 +4670,32 @@ function HouseholdsPanel() {
       </SettingCard>
       {pendingInvites.length > 0 && (
         <SettingCard style={{ marginTop: 18 }}>
-          <div className="set-row2-t" style={{ marginBottom: 4 }}>Pending Invitations</div>
+          <div className="set-row2-t" style={{ marginBottom: 4 }}>
+            Pending Invitations
+          </div>
           <div className="tiny muted" style={{ fontWeight: 600, marginBottom: 16 }}>
             Accept an invitation to join another household. It then appears above.
           </div>
           {pendingInvites.map((inv) => (
-            <div key={inv.id} className="set-row2" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10 }}>
+            <div
+              key={inv.id}
+              className="set-row2"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginTop: 10,
+              }}
+            >
               <div className="set-row2-t">{inv.householdName}</div>
-              <button type="button" className="btn btn-primary" disabled={accepting === inv.id} onClick={() => doAccept(inv.id)}>
+              <Button
+                variant="default"
+                type="button"
+                disabled={accepting === inv.id}
+                onClick={() => doAccept(inv.id)}
+              >
                 {accepting === inv.id ? 'Accepting…' : 'Accept'}
-              </button>
+              </Button>
             </div>
           ))}
         </SettingCard>
@@ -2871,28 +4732,45 @@ function SecurityPanel() {
     setSecret('')
   }
   useEffect(() => {
-    authApi.getConfig().then(hydrate).catch(() => setForbidden(true))
+    authApi
+      .getConfig()
+      .then(hydrate)
+      .catch(() => setForbidden(true))
   }, [])
 
-  if (forbidden) return (
-    <div className="set-panel">
-      <div className="set-head"><div className="wf-serif set-head-t">Sign-in &amp; Security</div></div>
-      <SettingCard>
-        <div className="muted" style={{ fontWeight: 600 }}>
-          Only the installation owner can manage login methods and SSO settings.
+  if (forbidden)
+    return (
+      <div className="set-panel">
+        <div className="set-head">
+          <div className="wf-serif set-head-t">Sign-in &amp; Security</div>
         </div>
-      </SettingCard>
-      <KioskDevicesSection />
-    </div>
-  )
-  if (!cfg) return <div className="set-panel"><div className="muted" style={{ padding: 20 }}>Loading…</div></div>
+        <SettingCard>
+          <div className="muted" style={{ fontWeight: 600 }}>
+            Only the installation owner can manage login methods and SSO settings.
+          </div>
+        </SettingCard>
+        <KioskDevicesSection />
+      </div>
+    )
+  if (!cfg)
+    return (
+      <div className="set-panel">
+        <div className="muted" style={{ padding: 20 }}>
+          Loading…
+        </div>
+      </div>
+    )
 
   async function test() {
     setTestMsg(null)
     setBusy(true)
     try {
       const r = await authApi.testConfig(issuer.trim())
-      setTestMsg(r.ok ? { ok: true, text: `Connected — ${r.issuer}` } : { ok: false, text: r.message || 'Could not reach the provider.' })
+      setTestMsg(
+        r.ok
+          ? { ok: true, text: `Connected — ${r.issuer}` }
+          : { ok: false, text: r.message || 'Could not reach the provider.' },
+      )
     } catch {
       setTestMsg({ ok: false, text: 'Could not reach the provider.' })
     } finally {
@@ -2911,7 +4789,9 @@ function SecurityPanel() {
       setSaved(true)
       setTimeout(() => setSaved(false), 1800)
     } catch {
-      setError('Could not save. Check the issuer, client ID and secret — and that the server has TOKEN_ENCRYPTION_KEY set.')
+      setError(
+        'Could not save. Check the issuer, client ID and secret — and that the server has TOKEN_ENCRYPTION_KEY set.',
+      )
     } finally {
       setBusy(false)
     }
@@ -2933,58 +4813,141 @@ function SecurityPanel() {
     <div className="set-panel">
       <div className="set-head" style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
         <div className="wf-serif set-head-t">Sign-in &amp; Security</div>
-        {saved && <span className="tiny" style={{ color: 'var(--success)', fontWeight: 700 }}>✓ Saved</span>}
+        {saved && (
+          <span className="tiny" style={{ color: 'var(--success)', fontWeight: 700 }}>
+            <>
+              <DataIcon value={'✓'} kind="general" />
+              {' Saved'}
+            </>
+          </span>
+        )}
       </div>
 
       {!cfg.encryptionAvailable && (
         <SettingCard style={{ marginBottom: 16 }}>
           <div className="tiny" style={{ fontWeight: 700, color: 'var(--primary)' }}>
-            Set <code>TOKEN_ENCRYPTION_KEY</code> in the server environment to store the OIDC client secret securely. OIDC can't be enabled until then.
+            Set <code>TOKEN_ENCRYPTION_KEY</code> in the server environment to store the OIDC client
+            secret securely. OIDC can't be enabled until then.
           </div>
         </SettingCard>
       )}
 
       <SettingCard>
-        <SettingRow icon="🔐" title="Single sign-on (OIDC)" sub="Let family members sign in through your identity provider (Authentik, Keycloak, Google, …).">
-          <input type="checkbox" className="set-check" checked={enabled} disabled={!cfg.encryptionAvailable} onChange={(e) => setEnabled(e.target.checked)} />
+        <SettingRow
+          icon="🔐"
+          title="Single sign-on (OIDC)"
+          sub="Let family members sign in through your identity provider (Authentik, Keycloak, Google, …)."
+        >
+          <Checkbox
+            className="set-check"
+            checked={enabled}
+            disabled={!cfg.encryptionAvailable}
+            onCheckedChange={(e) => setEnabled(e === true)}
+          />
         </SettingRow>
 
         <div className="sec-form">
-          <label className="auth-label">Issuer URL</label>
+          <Label className="auth-label">Issuer URL</Label>
           <div style={{ display: 'flex', gap: 8 }}>
-            <input className="set-inline-input" style={{ flex: 1, width: 'auto' }} value={issuer} onChange={(e) => setIssuer(e.target.value)} placeholder="https://auth.example.com/application/o/waffled/" />
-            <button type="button" className="btn btn-ghost" onClick={test} disabled={busy || !issuer.trim()}>Test</button>
+            <Input
+              className="set-inline-input"
+              style={{ flex: 1, width: 'auto' }}
+              value={issuer}
+              onChange={(e) => setIssuer(e.target.value)}
+              placeholder="https://auth.example.com/application/o/waffled/"
+            />
+            <Button variant="ghost" type="button" onClick={test} disabled={busy || !issuer.trim()}>
+              Test
+            </Button>
           </div>
-          {testMsg && <div className="tiny" style={{ fontWeight: 700, marginTop: 6, color: testMsg.ok ? 'var(--success)' : 'var(--primary)' }}>{testMsg.text}</div>}
+          {testMsg && (
+            <div
+              className="tiny"
+              style={{
+                fontWeight: 700,
+                marginTop: 6,
+                color: testMsg.ok ? 'var(--success)' : 'var(--primary)',
+              }}
+            >
+              {testMsg.text}
+            </div>
+          )}
 
-          <label className="auth-label">Client ID</label>
-          <input className="set-inline-input" style={{ width: '100%' }} value={clientId} onChange={(e) => setClientId(e.target.value)} placeholder="waffled" />
+          <Label className="auth-label">Client ID</Label>
+          <Input
+            className="set-inline-input"
+            style={{ width: '100%' }}
+            value={clientId}
+            onChange={(e) => setClientId(e.target.value)}
+            placeholder="waffled"
+          />
 
-          <label className="auth-label">Client secret</label>
-          <input className="set-inline-input" style={{ width: '100%' }} type="password" value={secret} onChange={(e) => setSecret(e.target.value)} placeholder={cfg.secretSet ? '•••••••• (leave blank to keep)' : 'Paste the client secret'} />
+          <Label className="auth-label">Client secret</Label>
+          <Input
+            className="set-inline-input"
+            style={{ width: '100%' }}
+            type="password"
+            value={secret}
+            onChange={(e) => setSecret(e.target.value)}
+            placeholder={
+              cfg.secretSet ? '•••••••• (leave blank to keep)' : 'Paste the client secret'
+            }
+          />
 
-          <label className="auth-label">Button label</label>
-          <input className="set-inline-input" style={{ width: '100%' }} value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Sign in with SSO" />
+          <Label className="auth-label">Button label</Label>
+          <Input
+            className="set-inline-input"
+            style={{ width: '100%' }}
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+            placeholder="Sign in with SSO"
+          />
 
-          <label className="auth-label">Scopes</label>
-          <input className="set-inline-input" style={{ width: '100%' }} value={scopes} onChange={(e) => setScopes(e.target.value)} placeholder="openid email profile" />
+          <Label className="auth-label">Scopes</Label>
+          <Input
+            className="set-inline-input"
+            style={{ width: '100%' }}
+            value={scopes}
+            onChange={(e) => setScopes(e.target.value)}
+            placeholder="openid email profile"
+          />
 
           <div className="tiny muted" style={{ fontWeight: 600, marginTop: 10 }}>
-            Redirect URI to register at your provider: <code>{window.location.origin}/api/auth/oidc/callback</code>. Sign-in is invite-only — the provider's verified email must already belong to a family member.
+            Redirect URI to register at your provider:{' '}
+            <code>{window.location.origin}/api/auth/oidc/callback</code>. Sign-in is invite-only —
+            the provider's verified email must already belong to a family member.
           </div>
           {error && <div className="auth-error">{error}</div>}
-          <button type="button" className="btn btn-primary" style={{ marginTop: 14 }} onClick={saveOidc} disabled={busy}>Save SSO settings</button>
+          <Button
+            variant="default"
+            type="button"
+            style={{ marginTop: 14 }}
+            onClick={saveOidc}
+            disabled={busy}
+          >
+            Save SSO settings
+          </Button>
         </div>
       </SettingCard>
 
       <SettingCard style={{ marginTop: 16 }}>
-        <SettingRow icon="🔑" title="Password login" sub={canDisablePw ? 'Turn off to require everyone to use SSO.' : 'Enable & save SSO before you can turn this off.'}>
-          <input
-            type="checkbox"
+        <SettingRow
+          icon="🔑"
+          title="Password login"
+          sub={
+            canDisablePw
+              ? 'Turn off to require everyone to use SSO.'
+              : 'Enable & save SSO before you can turn this off.'
+          }
+        >
+          <Checkbox
             className="set-check"
             checked={pwEnabled}
             disabled={!canDisablePw && pwEnabled}
-            onChange={(e) => { setPwEnabled(e.target.checked); save({ passwordLoginEnabled: e.target.checked }) }}
+            onCheckedChange={(e) => {
+              setPwEnabled(e === true)
+              save({ passwordLoginEnabled: e === true })
+            }}
           />
         </SettingRow>
       </SettingCard>
@@ -3004,10 +4967,19 @@ function KioskDevicesSection() {
   const [err, setErr] = useState<string | null>(null)
   const [note, setNote] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
-  const [dialog, setDialog] = useState<{ kind: 'remove' | 'promote' | 'rename'; device?: KioskDevice } | null>(null)
+  const [dialog, setDialog] = useState<{
+    kind: 'remove' | 'promote' | 'rename'
+    device?: KioskDevice
+  } | null>(null)
 
-  const load = () => kioskApi.devices().then(setDevices).catch(() => setErr('Only an admin can manage devices.'))
-  useEffect(() => { load() }, [])
+  const load = () =>
+    kioskApi
+      .devices()
+      .then(setDevices)
+      .catch(() => setErr('Only an admin can manage devices.'))
+  useEffect(() => {
+    load()
+  }, [])
 
   const adminsNoPin = members.filter((m) => m.isAdmin && !m.hasPin)
 
@@ -3015,15 +4987,27 @@ function KioskDevicesSection() {
     setBusy(true)
     setNote(null)
     setCopied(false)
-    try { setCode(await kioskApi.createPairingCode()) } catch { setErr('Could not create a code.') } finally { setBusy(false) }
+    try {
+      setCode(await kioskApi.createPairingCode())
+    } catch {
+      setErr('Could not create a code.')
+    } finally {
+      setBusy(false)
+    }
   }
 
   async function copyCode() {
     if (!code) return
-    try { await navigator.clipboard.writeText(code.code); setCopied(true); setTimeout(() => setCopied(false), 2000) } catch { /* clipboard blocked */ }
+    try {
+      await navigator.clipboard.writeText(code.code)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      /* clipboard blocked */
+    }
   }
 
-    // While a code is shown, poll for the pairing: the new device appearing means it was used.
+  // While a code is shown, poll for the pairing: the new device appearing means it was used.
   useEffect(() => {
     if (!code) return
     const baseline = devices?.length ?? 0
@@ -3037,7 +5021,9 @@ function KioskDevicesSection() {
           setCode(null)
           clearInterval(id)
         }
-      } catch { /* keep polling */ }
+      } catch {
+        /* keep polling */
+      }
     }, 5000)
     return () => clearInterval(id)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -3052,11 +5038,15 @@ function KioskDevicesSection() {
         setNote('This device is now a kiosk — use “Switch” in the rail to reach the picker.')
         load()
         // Chain straight into naming the new device.
-        setDialog({ kind: 'rename', device: { id, label: 'Kiosk', lastSeenAt: null, createdAt: '' } })
+        setDialog({
+          kind: 'rename',
+          device: { id, label: 'Kiosk', lastSeenAt: null, createdAt: '' },
+        })
         return
       }
       if (d.kind === 'remove' && d.device) await kioskApi.revokeDevice(d.device.id)
-      else if (d.kind === 'rename' && d.device && value) await kioskApi.renameDevice(d.device.id, value)
+      else if (d.kind === 'rename' && d.device && value)
+        await kioskApi.renameDevice(d.device.id, value)
       load()
       setDialog(null)
     } catch {
@@ -3067,11 +5057,19 @@ function KioskDevicesSection() {
 
   return (
     <SettingCard style={{ marginTop: 16 }}>
-      <CardHeader title="Kiosk Devices" sub="Turn a tablet into a shared family display with a profile picker. Pair it from here, or set up the tablet itself with a code." />
+      <CardHeader
+        title="Kiosk Devices"
+        sub="Turn a tablet into a shared family display with a profile picker. Pair it from here, or set up the tablet itself with a code."
+      />
 
       {adminsNoPin.length > 0 && (
         <SettingCard style={{ marginBottom: 14, borderLeft: '3px solid var(--primary)' }}>
-          <div className="set-row2-t" style={{ marginBottom: 4 }}>⚠️ Set a PIN for your admins</div>
+          <div className="set-row2-t" style={{ marginBottom: 4 }}>
+            <>
+              <DataIcon value={'⚠️'} kind="general" />
+              {' Set a PIN for your admins'}
+            </>
+          </div>
           <div className="tiny muted" style={{ fontWeight: 600 }}>
             On a shared kiosk, anyone can tap an admin profile with no PIN and gain full control.
             Add a PIN for {adminsNoPin.map((m) => m.name).join(', ')} in Family &amp; People.
@@ -3080,37 +5078,90 @@ function KioskDevicesSection() {
       )}
 
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-        <button type="button" className="btn btn-primary" onClick={() => setDialog({ kind: 'promote' })}>Use this device as a kiosk</button>
-        <button type="button" className="btn btn-ghost" onClick={genCode} disabled={busy}>
+        <Button variant="default" type="button" onClick={() => setDialog({ kind: 'promote' })}>
+          Use this device as a kiosk
+        </Button>
+        <Button variant="ghost" type="button" onClick={genCode} disabled={busy}>
           {busy ? 'Generating…' : 'Generate pairing code'}
-        </button>
+        </Button>
       </div>
-      {note && <div className="tiny" style={{ fontWeight: 700, color: 'var(--success)', marginTop: 10 }}>{note}</div>}
+      {note && (
+        <div className="tiny" style={{ fontWeight: 700, color: 'var(--success)', marginTop: 10 }}>
+          {note}
+        </div>
+      )}
       {code && (
         <div style={{ marginTop: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <span className="kp-code kp-code-sel">{code.code}</span>
-            <button type="button" className="btn btn-ghost" onClick={copyCode}>{copied ? '✓ Copied' : 'Copy'}</button>
-            <span className="tiny muted" style={{ fontWeight: 600 }}>Waiting for a device to pair…</span>
+            <Button variant="ghost" type="button" onClick={copyCode}>
+              {copied ? (
+                <>
+                  <DataIcon value={'✓'} kind="general" />
+                  {' Copied'}
+                </>
+              ) : (
+                'Copy'
+              )}
+            </Button>
+            <span className="tiny muted" style={{ fontWeight: 600 }}>
+              Waiting for a device to pair…
+            </span>
           </div>
           <div className="tiny muted" style={{ fontWeight: 600, marginTop: 8 }}>
-            On the new tablet: open this Waffled’s address → “Set up this device as a kiosk” → enter this code. One-time, expires in ~10 minutes.
+            <>
+              {'On the new tablet: open this Waffled’s address '}
+              <DataIcon value={'→'} kind="general" />
+              {' “Set up this device as a kiosk” '}
+              <DataIcon value={'→'} kind="general" />
+              {' enter this code. One-time, expires in ~10 minutes.'}
+            </>
           </div>
         </div>
       )}
-      {err && <div className="auth-error" style={{ marginTop: 12 }}>{err}</div>}
+      {err && (
+        <div className="auth-error" style={{ marginTop: 12 }}>
+          {err}
+        </div>
+      )}
 
       <div style={{ marginTop: 16 }}>
-        <div className="set-row2-t" style={{ margin: '2px 2px 4px' }}>Paired Devices</div>
+        <div className="set-row2-t" style={{ margin: '2px 2px 4px' }}>
+          Paired Devices
+        </div>
         {devices === null ? (
-          <div className="tiny muted" style={{ fontWeight: 600, padding: '8px 2px' }}>Loading…</div>
+          <div className="tiny muted" style={{ fontWeight: 600, padding: '8px 2px' }}>
+            Loading…
+          </div>
         ) : devices.length === 0 ? (
-          <div className="tiny muted" style={{ fontWeight: 600, padding: '8px 2px' }}>No kiosks paired yet.</div>
+          <div className="tiny muted" style={{ fontWeight: 600, padding: '8px 2px' }}>
+            No kiosks paired yet.
+          </div>
         ) : (
           devices.map((d) => (
-            <SettingRow key={d.id} icon="🖥️" title={d.label} sub={`Last seen ${fmtWhen(d.lastSeenAt)} · paired ${fmtWhen(d.createdAt)}`}>
-              <button type="button" className="linkbtn" onClick={() => setDialog({ kind: 'rename', device: d })}>Rename</button>
-              <button type="button" className="linkbtn" style={{ color: 'var(--primary)' }} onClick={() => setDialog({ kind: 'remove', device: d })}>Remove</button>
+            <SettingRow
+              key={d.id}
+              icon="🖥️"
+              title={d.label}
+              sub={`Last seen ${fmtWhen(d.lastSeenAt)} · paired ${fmtWhen(d.createdAt)}`}
+            >
+              <Button
+                variant="unstyled"
+                type="button"
+                className="linkbtn"
+                onClick={() => setDialog({ kind: 'rename', device: d })}
+              >
+                Rename
+              </Button>
+              <Button
+                variant="unstyled"
+                type="button"
+                className="linkbtn"
+                style={{ color: 'var(--primary)' }}
+                onClick={() => setDialog({ kind: 'remove', device: d })}
+              >
+                Remove
+              </Button>
             </SettingRow>
           ))
         )}
@@ -3164,7 +5215,13 @@ const INTERVAL_OPTS = [5, 10, 20, 30]
 
 // Connect/disconnect the household's Google Photos account, and import an album
 // straight into the screensaver mix (the Photos screen has the same import).
-function GooglePhotosRow({ albums, onImported }: { albums: string[]; onImported: (album: string) => void }) {
+function GooglePhotosRow({
+  albums,
+  onImported,
+}: {
+  albums: string[]
+  onImported: (album: string) => void
+}) {
   const { status, refetch } = useGooglePhotosStatus()
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
@@ -3206,27 +5263,68 @@ function GooglePhotosRow({ albums, onImported }: { albums: string[]; onImported:
       <SettingRow icon="🌈" title="Google Photos" sub={err ?? sub}>
         {account ? (
           <div style={{ display: 'flex', gap: 8 }}>
-            <button type="button" className="btn btn-primary" disabled={busy} onClick={() => setImportAlbum('')}>Import album</button>
-            <button type="button" className="btn btn-ghost" disabled={busy} onClick={() => setConfirmDisconnect(true)}>Disconnect</button>
+            <Button
+              variant="default"
+              type="button"
+              disabled={busy}
+              onClick={() => setImportAlbum('')}
+            >
+              Import album
+            </Button>
+            <Button
+              variant="ghost"
+              type="button"
+              disabled={busy}
+              onClick={() => setConfirmDisconnect(true)}
+            >
+              Disconnect
+            </Button>
           </div>
         ) : (
-          <button type="button" className="btn btn-primary" disabled={busy || !status.configured} onClick={connect}>Connect Google Photos</button>
+          <Button
+            variant="default"
+            type="button"
+            disabled={busy || !status.configured}
+            onClick={connect}
+          >
+            Connect Google Photos
+          </Button>
         )}
       </SettingRow>
       {account && (
         <div style={{ padding: '0 16px 14px 64px' }}>
-          <div className="tiny muted" style={{ fontWeight: 600, marginBottom: (status.albums ?? []).length ? 8 : 0 }}>
-            Waffled keeps its own copies. Photos you add to Google later won’t appear here until you re-sync that album; ones you already have are skipped.
+          <div
+            className="tiny muted"
+            style={{ fontWeight: 600, marginBottom: (status.albums ?? []).length ? 8 : 0 }}
+          >
+            Waffled keeps its own copies. Photos you add to Google later won’t appear here until you
+            re-sync that album; ones you already have are skipped.
           </div>
           {(status.albums ?? []).map((a) => (
-            <div key={a.name} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0' }}>
+            <div
+              key={a.name}
+              style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0' }}
+            >
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 700 }}>{a.name}</div>
                 <div className="tiny muted" style={{ fontWeight: 600 }}>
-                  {a.photoCount} {a.photoCount === 1 ? 'photo' : 'photos'} · synced {fmtWhen(a.lastSyncedAt)}
+                  {a.photoCount} {a.photoCount === 1 ? 'photo' : 'photos'} · synced{' '}
+                  {fmtWhen(a.lastSyncedAt)}
                 </div>
               </div>
-              <button type="button" className="pill" aria-label={`Re-sync ${a.name}`} disabled={busy} onClick={() => setImportAlbum(a.name)}>↻ Re-sync</button>
+              <Button
+                variant="unstyled"
+                type="button"
+                className="pill btn-primary"
+                aria-label={`Re-sync ${a.name}`}
+                disabled={busy}
+                onClick={() => setImportAlbum(a.name)}
+              >
+                <>
+                  <DataIcon value={'↻'} kind="general" />
+                  {' Re-sync'}
+                </>
+              </Button>
             </div>
           ))}
         </div>
@@ -3277,7 +5375,13 @@ function DisplayKioskPanel() {
   )
 
   useEffect(() => {
-    kioskApi.displayConfig().then((c) => { setCfg(c); setError(false) }).catch(() => setError(true))
+    kioskApi
+      .displayConfig()
+      .then((c) => {
+        setCfg(c)
+        setError(false)
+      })
+      .catch(() => setError(true))
   }, [])
 
   function update(patch: Partial<DisplayConfig>) {
@@ -3288,7 +5392,13 @@ function DisplayKioskPanel() {
     refetchPhotos()
     if (!album) return
     setCfg((c) =>
-      c ? { ...c, photoSource: 'albums', photoAlbums: c.photoAlbums.includes(album) ? c.photoAlbums : [...c.photoAlbums, album] } : c,
+      c
+        ? {
+            ...c,
+            photoSource: 'albums',
+            photoAlbums: c.photoAlbums.includes(album) ? c.photoAlbums : [...c.photoAlbums, album],
+          }
+        : c,
     )
     dirtyRef.current = true
   }
@@ -3297,7 +5407,7 @@ function DisplayKioskPanel() {
     dirtyRef.current = true
   }
 
-    // Debounced auto-save; dirtyRef stops the server's normalized cfg retriggering a save.
+  // Debounced auto-save; dirtyRef stops the server's normalized cfg retriggering a save.
   useEffect(() => {
     if (!cfg || !dirtyRef.current) return
     const t = setTimeout(async () => {
@@ -3326,24 +5436,52 @@ function DisplayKioskPanel() {
     <div className="set-panel">
       <div className="set-head" style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
         <div className="wf-serif set-head-t">Display &amp; Kiosk</div>
-        {savedFlash && <span className="tiny" style={{ color: 'var(--success)', fontWeight: 700 }}>✓ Saved</span>}
-        <span className="tiny muted" style={{ marginLeft: 'auto', fontWeight: 600 }}>Screensaver settings save automatically</span>
+        {savedFlash && (
+          <span className="tiny" style={{ color: 'var(--success)', fontWeight: 700 }}>
+            <>
+              <DataIcon value={'✓'} kind="general" />
+              {' Saved'}
+            </>
+          </span>
+        )}
+        <span className="tiny muted" style={{ marginLeft: 'auto', fontWeight: 600 }}>
+          Screensaver settings save automatically
+        </span>
       </div>
 
       <SettingCard>
-        <SettingRow icon="🖥️" title="Use this browser as the family display" sub={paired ? 'On — this device is paired as a kiosk.' : 'This device only. Enables the screensaver & keeps the screen awake.'}>
-          <input type="checkbox" className="set-check" checked={displayOn} disabled={paired} onChange={toggleDisplay} />
+        <SettingRow
+          icon="🖥️"
+          title="Use this browser as the family display"
+          sub={
+            paired
+              ? 'On — this device is paired as a kiosk.'
+              : 'This device only. Enables the screensaver & keeps the screen awake.'
+          }
+        >
+          <Checkbox
+            className="set-check"
+            checked={displayOn}
+            disabled={paired}
+            onCheckedChange={toggleDisplay}
+          />
         </SettingRow>
         {!displayOn && (
           <div className="tiny muted" style={{ padding: '0 16px 14px', fontWeight: 600 }}>
-            The screensaver, keep-awake and reset-to-Today below only run on a browser that’s set as the display. Turn this on to test them here.
+            The screensaver, keep-awake and reset-to-Today below only run on a browser that’s set as
+            the display. Turn this on to test them here.
           </div>
         )}
       </SettingCard>
 
       <SettingCard style={{ marginTop: 16 }}>
-        <SettingRow icon="🔒" title="Kiosk mode" sub="Hides add buttons, the capture bar, editors and Customize so content gets the room. Checking things off, timers, approvals and cook mode still work. This device only.">
-          <button
+        <SettingRow
+          icon="🔒"
+          title="Kiosk mode"
+          sub="Hides add buttons, the capture bar, editors and Customize so content gets the room. Checking things off, timers, approvals and cook mode still work. This device only."
+        >
+          <Button
+            variant="unstyled"
             type="button"
             role="switch"
             aria-checked={viewOnly}
@@ -3354,134 +5492,274 @@ function DisplayKioskPanel() {
         </SettingRow>
       </SettingCard>
 
-      <div className="flabel" style={{ padding: '18px 2px 10px' }}>THEME ON THIS DEVICE</div>
+      <div className="flabel" style={{ padding: '18px 2px 10px' }}>
+        THEME ON THIS DEVICE
+      </div>
       <ThemePicker />
       <TypefaceSection />
 
-      {error && <SettingCard style={{ marginTop: 16 }}><div className="muted" style={{ fontWeight: 600 }}>Couldn’t load display settings.</div></SettingCard>}
+      {error && (
+        <SettingCard style={{ marginTop: 16 }}>
+          <div className="muted" style={{ fontWeight: 600 }}>
+            Couldn’t load display settings.
+          </div>
+        </SettingCard>
+      )}
       {cfg && (
         <>
           <SettingCard style={{ marginTop: 16 }}>
-            <div className="flabel" style={{ padding: '14px 16px 4px' }}>SCREENSAVER</div>
-            <SettingRow icon="🌅" title="Screensaver after" sub="Minutes of inactivity before the screensaver appears.">
-              <input type="number" min={1} max={120} className="set-inline-input" style={{ width: 80 }} value={cfg.screensaverMinutes} onChange={(e) => update({ screensaverMinutes: Number(e.target.value) || 1 })} />
+            <div className="flabel" style={{ padding: '14px 16px 4px' }}>
+              SCREENSAVER
+            </div>
+            <SettingRow
+              icon="🌅"
+              title="Screensaver after"
+              sub="Minutes of inactivity before the screensaver appears."
+            >
+              <Input
+                type="number"
+                min={1}
+                max={120}
+                className="set-inline-input"
+                style={{ width: 80 }}
+                value={cfg.screensaverMinutes}
+                onChange={(e) => update({ screensaverMinutes: Number(e.target.value) || 1 })}
+              />
             </SettingRow>
             <div className="set-row2">
-              <div className="set-ic2">🖼️</div>
-              <div style={{ flex: 1 }}>
-                <div className="set-row2-t">What it shows</div>
-                <div className="tiny muted" style={{ fontWeight: 600 }}>“Photos + clock” is a photo slideshow with the clock, weather &amp; next event overlaid. Photos need a signed-in profile; the picker always shows the clock.</div>
+              <div className="set-ic2">
+                <DataIcon value={'🖼️'} kind="general" />
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div className="set-row2-b">
+                <div className="set-row2-t">What it shows</div>
+                <div className="tiny muted" style={{ fontWeight: 600 }}>
+                  “Photos + clock” is a photo slideshow with the clock, weather &amp; next event
+                  overlaid. Photos need a signed-in profile; the picker always shows the clock.
+                </div>
+              </div>
+              <div
+                className="set-row2-ctl"
+                style={{ display: 'flex', alignItems: 'center', gap: 10 }}
+              >
                 <div className="seg" style={{ width: 'fit-content' }}>
                   {CONTENT_OPTS.map((o) => (
-                    <button type="button" key={o.key} className={cfg.content === o.key ? 'on' : ''} style={{ cursor: 'pointer' }} onClick={() => update({ content: o.key })}>{o.label}</button>
+                    <Button
+                      variant="unstyled"
+                      type="button"
+                      key={o.key}
+                      className={cfg.content === o.key ? 'on' : ''}
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => update({ content: o.key })}
+                    >
+                      {o.label}
+                    </Button>
                   ))}
                 </div>
-                <button type="button" className="btn btn-ghost" disabled={cfg.content === 'off'} onClick={() => setPreview(true)}>Preview</button>
+                <Button
+                  variant="ghost"
+                  type="button"
+                  disabled={cfg.content === 'off'}
+                  onClick={() => setPreview(true)}
+                >
+                  Preview
+                </Button>
               </div>
             </div>
-            <SettingRow icon="🔒" title="Return to profile picker afterward" sub="When the screensaver wakes on a paired kiosk, drop to the profile picker.">
-              <input type="checkbox" className="set-check" checked={cfg.returnToPicker} onChange={(e) => update({ returnToPicker: e.target.checked })} />
+            <SettingRow
+              icon="🔒"
+              title="Return to profile picker afterward"
+              sub="When the screensaver wakes on a paired kiosk, drop to the profile picker."
+            >
+              <Checkbox
+                className="set-check"
+                checked={cfg.returnToPicker}
+                onCheckedChange={(e) => update({ returnToPicker: e === true })}
+              />
             </SettingRow>
 
             {cfg.content === 'photos' && (
               <>
                 <div className="set-row2">
-                  <div className="set-ic2">📷</div>
-                  <div style={{ flex: 1 }}>
-                    <div className="set-row2-t">Photo source</div>
-                    <div className="tiny muted" style={{ fontWeight: 600 }}>Which photos the slideshow plays.</div>
+                  <div className="set-ic2">
+                    <DataIcon value={'📷'} kind="general" />
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                  <div className="set-row2-b">
+                    <div className="set-row2-t">Photo source</div>
+                    <div className="tiny muted" style={{ fontWeight: 600 }}>
+                      Which photos the slideshow plays.
+                    </div>
+                  </div>
+                  <div
+                    className="set-row2-ctl"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
+                      flexWrap: 'wrap',
+                      justifyContent: 'flex-end',
+                    }}
+                  >
                     <div className="seg" style={{ width: 'fit-content' }}>
                       {PHOTO_SOURCE_OPTS.map((o) => (
-                        <button
+                        <Button
+                          variant="unstyled"
                           type="button"
                           key={o.key}
                           className={cfg.photoSource === o.key ? 'on' : ''}
-                          style={{ cursor: o.key.startsWith('album') && albums.length === 0 ? 'not-allowed' : 'pointer' }}
+                          style={{
+                            cursor:
+                              o.key.startsWith('album') && albums.length === 0
+                                ? 'not-allowed'
+                                : 'pointer',
+                          }}
                           disabled={o.key.startsWith('album') && albums.length === 0}
-                          title={o.key.startsWith('album') && albums.length === 0 ? 'No albums yet — import one from Google Photos below, or group photos into an album.' : undefined}
+                          title={
+                            o.key.startsWith('album') && albums.length === 0
+                              ? 'No albums yet — import one from Google Photos below, or group photos into an album.'
+                              : undefined
+                          }
                           onClick={() => update({ photoSource: o.key })}
                         >
                           {o.label}
-                        </button>
+                        </Button>
                       ))}
                     </div>
                     {cfg.photoSource === 'album' && albums.length > 0 && (
-                      <select
+                      <NativeSelect
                         className="set-inline-input"
                         value={cfg.photoAlbum ?? ''}
                         onChange={(e) => update({ photoAlbum: e.target.value || null })}
                       >
                         <option value="">Choose an album…</option>
                         {albums.map((a) => (
-                          <option key={a} value={a}>{a}</option>
+                          <option key={a} value={a}>
+                            {a}
+                          </option>
                         ))}
-                      </select>
+                      </NativeSelect>
                     )}
                   </div>
                 </div>
                 {cfg.photoSource === 'albums' && albums.length > 0 && (
-                  <div className="ph-filter" style={{ padding: '0 16px 14px' }} aria-label="Screensaver albums">
+                  <div
+                    className="ph-filter"
+                    style={{ padding: '0 16px 14px' }}
+                    aria-label="Screensaver albums"
+                  >
                     {albums.map((a) => {
                       const on = cfg.photoAlbums.includes(a)
                       return (
-                        <button
+                        <Button
+                          variant="unstyled"
                           key={a}
                           type="button"
                           aria-pressed={on}
                           className={`pill ph-chip ${on ? 'on' : ''}`}
-                          onClick={() => update({ photoAlbums: on ? cfg.photoAlbums.filter((x) => x !== a) : [...cfg.photoAlbums, a] })}
+                          onClick={() =>
+                            update({
+                              photoAlbums: on
+                                ? cfg.photoAlbums.filter((x) => x !== a)
+                                : [...cfg.photoAlbums, a],
+                            })
+                          }
                         >
                           {a}
-                        </button>
+                        </Button>
                       )
                     })}
                     <span className="tiny muted" style={{ fontWeight: 600, alignSelf: 'center' }}>
-                      {cfg.photoAlbums.length === 0 ? 'Pick the albums to mix — none picked plays every photo.' : 'Plays a random mix of these albums.'}
+                      {cfg.photoAlbums.length === 0
+                        ? 'Pick the albums to mix — none picked plays every photo.'
+                        : 'Plays a random mix of these albums.'}
                     </span>
                   </div>
                 )}
                 <GooglePhotosRow albums={albums} onImported={addToMix} />
 
-                <SettingRow icon="⏱️" title="Transition speed" sub="Seconds each photo stays on screen.">
-                  <select
+                <SettingRow
+                  icon="⏱️"
+                  title="Transition speed"
+                  sub="Seconds each photo stays on screen."
+                >
+                  <NativeSelect
                     className="set-inline-input"
                     style={{ width: 110 }}
                     value={cfg.photoInterval}
                     onChange={(e) => update({ photoInterval: Number(e.target.value) || 10 })}
                   >
                     {INTERVAL_OPTS.map((s) => (
-                      <option key={s} value={s}>{s} seconds</option>
+                      <option key={s} value={s}>
+                        {s} seconds
+                      </option>
                     ))}
-                  </select>
+                  </NativeSelect>
                 </SettingRow>
 
-                <SettingRow icon="🔀" title="Shuffle photos" sub="Play the photos in a random order.">
-                  <input type="checkbox" className="set-check" checked={cfg.photoShuffle} onChange={(e) => update({ photoShuffle: e.target.checked })} />
+                <SettingRow
+                  icon="🔀"
+                  title="Shuffle photos"
+                  sub="Play the photos in a random order."
+                >
+                  <Checkbox
+                    className="set-check"
+                    checked={cfg.photoShuffle}
+                    onCheckedChange={(e) => update({ photoShuffle: e === true })}
+                  />
                 </SettingRow>
               </>
             )}
           </SettingCard>
 
           <SettingCard style={{ marginTop: 16 }}>
-            <SettingRow icon="🏠" title="Return to Today when idle" sub="Minutes before an idle screen resets to the dashboard (0 = never).">
-              <input type="number" min={0} max={60} className="set-inline-input" style={{ width: 80 }} value={cfg.resetHomeMinutes} onChange={(e) => update({ resetHomeMinutes: Math.max(0, Number(e.target.value) || 0) })} />
+            <SettingRow
+              icon="🏠"
+              title="Return to Today when idle"
+              sub="Minutes before an idle screen resets to the dashboard (0 = never)."
+            >
+              <Input
+                type="number"
+                min={0}
+                max={60}
+                className="set-inline-input"
+                style={{ width: 80 }}
+                value={cfg.resetHomeMinutes}
+                onChange={(e) =>
+                  update({ resetHomeMinutes: Math.max(0, Number(e.target.value) || 0) })
+                }
+              />
             </SettingRow>
           </SettingCard>
 
           <SettingCard style={{ marginTop: 16 }}>
-            <SettingRow icon="🌙" title="Night dimming" sub="Dim the display on a schedule (overnight).">
-              <input type="checkbox" className="set-check" checked={cfg.nightDim.enabled} onChange={(e) => updateDim({ enabled: e.target.checked })} />
+            <SettingRow
+              icon="🌙"
+              title="Night dimming"
+              sub="Dim the display on a schedule (overnight)."
+            >
+              <Checkbox
+                className="set-check"
+                checked={cfg.nightDim.enabled}
+                onCheckedChange={(e) => updateDim({ enabled: e === true })}
+              />
             </SettingRow>
             {cfg.nightDim.enabled && (
               <SettingRow icon="🕙" title="Dim from → to">
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <input type="time" className="set-inline-input" value={cfg.nightDim.start} onChange={(e) => updateDim({ start: e.target.value })} />
-                  <span className="muted">→</span>
-                  <input type="time" className="set-inline-input" value={cfg.nightDim.end} onChange={(e) => updateDim({ end: e.target.value })} />
+                  <Input
+                    type="time"
+                    className="set-inline-input"
+                    value={cfg.nightDim.start}
+                    onChange={(e) => updateDim({ start: e.target.value })}
+                  />
+                  <span className="muted">
+                    <DataIcon value={'→'} kind="general" />
+                  </span>
+                  <Input
+                    type="time"
+                    className="set-inline-input"
+                    value={cfg.nightDim.end}
+                    onChange={(e) => updateDim({ end: e.target.value })}
+                  />
                 </div>
               </SettingRow>
             )}
@@ -3506,7 +5784,13 @@ function DisplayKioskPanel() {
 
 // Appearance — theme preference, stored per-device in localStorage. The two preview cards
 // intentionally use fixed literal hexes: they DEPICT each theme, whatever the active one is.
-function ThemePreview({ label, active, pinned, colors, onSelect }: {
+function ThemePreview({
+  label,
+  active,
+  pinned,
+  colors,
+  onSelect,
+}: {
   label: string
   active: boolean
   pinned: boolean
@@ -3514,25 +5798,79 @@ function ThemePreview({ label, active, pinned, colors, onSelect }: {
   onSelect: () => void
 }) {
   return (
-    <button type="button" className={`appr-card${pinned ? ' pinned' : ''}`} aria-pressed={pinned} onClick={onSelect}>
-      <div className="appr-mini" style={{ background: colors.bg, boxShadow: colors.rail ? `inset 14px 0 0 ${colors.rail}` : undefined, paddingLeft: colors.rail ? 24 : undefined }}>
+    <Button
+      variant="unstyled"
+      type="button"
+      className={`appr-card${pinned ? ' pinned' : ''}`}
+      aria-pressed={pinned}
+      onClick={onSelect}
+    >
+      <div
+        className="appr-mini"
+        style={{
+          background: colors.bg,
+          boxShadow: colors.rail ? `inset 14px 0 0 ${colors.rail}` : undefined,
+          paddingLeft: colors.rail ? 24 : undefined,
+        }}
+      >
         <span className="appr-mini-line" style={{ background: colors.line }} />
         <span className="appr-mini-card" style={{ background: colors.card }} />
         <span className="appr-mini-card sm" style={{ background: colors.card }} />
       </div>
       <div className="appr-card-lbl">
-        {active && <span className="appr-check" aria-hidden="true">✓</span>}
+        {active && (
+          <span className="appr-check" aria-hidden="true">
+            <DataIcon value={'✓'} kind="general" />
+          </span>
+        )}
         {label}
       </div>
-    </button>
+    </Button>
   )
 }
 
-const THEMES: Array<{ label: string; palette: Palette; mode: ResolvedTheme; colors: { bg: string; card: string; line: string; rail?: string } }> = [
-  { label: 'Classic', palette: 'classic', mode: 'light', colors: { bg: '#FAF7F2', card: '#FFFFFF', line: '#C9C3B8' } },
-  { label: 'Classic dark', palette: 'classic', mode: 'dark', colors: { bg: '#14110C', card: '#232019', line: '#4A453C' } },
-  { label: 'Kitchen', palette: 'kitchen', mode: 'light', colors: { bg: '#EDEFEA', card: '#FFFFFF', line: '#C93A24', rail: '#16201A' } },
-  { label: 'Kitchen night', palette: 'kitchen', mode: 'dark', colors: { bg: '#0E1410', card: '#1C2620', line: '#E0533B', rail: '#0A0F0C' } },
+const THEMES: Array<{
+  label: string
+  palette: Palette
+  mode: ResolvedTheme
+  colors: { bg: string; card: string; line: string; rail?: string }
+}> = [
+  {
+    label: 'Classic',
+    palette: 'classic',
+    mode: 'light',
+    colors: { bg: '#FAF7F2', card: '#FFFFFF', line: '#C9C3B8' },
+  },
+  {
+    label: 'Classic dark',
+    palette: 'classic',
+    mode: 'dark',
+    colors: { bg: '#14110C', card: '#232019', line: '#4A453C' },
+  },
+  {
+    label: 'Kitchen',
+    palette: 'kitchen',
+    mode: 'light',
+    colors: { bg: '#EDEFEA', card: '#FFFFFF', line: '#C93A24', rail: '#16201A' },
+  },
+  {
+    label: 'Kitchen night',
+    palette: 'kitchen',
+    mode: 'dark',
+    colors: { bg: '#0E1410', card: '#1C2620', line: '#E0533B', rail: '#0A0F0C' },
+  },
+  {
+    label: 'Night Pantry day',
+    palette: 'night-pantry',
+    mode: 'light',
+    colors: { bg: '#F4F1E8', card: '#FFFFFF', line: '#F2C14E', rail: '#EAE6DA' },
+  },
+  {
+    label: 'Night Pantry',
+    palette: 'night-pantry',
+    mode: 'dark',
+    colors: { bg: '#0E1916', card: '#15241F', line: '#F2C14E', rail: '#0A1311' },
+  },
 ]
 
 // Shared by Appearance and Display & Kiosk. Picking a card pins both the palette and
@@ -3550,7 +5888,10 @@ function ThemePicker() {
             active={active}
             pinned={active && pref !== 'system'}
             colors={t.colors}
-            onSelect={() => { setPalette(t.palette); setPref(t.mode) }}
+            onSelect={() => {
+              setPalette(t.palette)
+              setPref(t.mode)
+            }}
           />
         )
       })}
@@ -3563,10 +5904,13 @@ function TypefaceSection() {
   const { typeface, setTypeface } = useThemePref()
   return (
     <>
-      <div className="flabel" style={{ padding: '18px 2px 10px' }}>TYPEFACE ON THIS DEVICE</div>
+      <div className="flabel" style={{ padding: '18px 2px 10px' }}>
+        TYPEFACE ON THIS DEVICE
+      </div>
       <SettingCard>
         <div className="tiny muted" style={{ fontWeight: 600, marginBottom: 14 }}>
-          Changes the lettering on this screen. Pick the one that's easiest to read from where you stand.
+          Changes the lettering on this screen. Pick the one that's easiest to read from where you
+          stand.
         </div>
         <TypefacePicker value={typeface} onChange={setTypeface} />
       </SettingCard>
@@ -3579,14 +5923,23 @@ function AppearancePanel() {
   const matchSystem = pref === 'system'
   return (
     <div className="set-panel">
-      <div className="set-head"><div className="wf-serif set-head-t">Appearance</div></div>
+      <div className="set-head">
+        <div className="wf-serif set-head-t">Appearance</div>
+      </div>
 
-      <div className="flabel" style={{ padding: '0 2px 10px' }}>THEME</div>
+      <div className="flabel" style={{ padding: '0 2px 10px' }}>
+        THEME
+      </div>
       <ThemePicker />
 
       <SettingCard style={{ marginTop: 4 }}>
-        <SettingRow icon="🌗" title="Match system" sub="Follow your device's light/dark setting automatically.">
-          <button
+        <SettingRow
+          icon="🌗"
+          title="Match system"
+          sub="Follow your device's light/dark setting automatically."
+        >
+          <Button
+            variant="unstyled"
             type="button"
             role="switch"
             aria-checked={matchSystem}
@@ -3600,7 +5953,8 @@ function AppearancePanel() {
       <TypefaceSection />
 
       <div className="tiny muted" style={{ padding: '12px 2px 0', fontWeight: 600 }}>
-        These choices are saved on this device only. Kitchen is tuned for a wall tablet: larger type and touch targets.
+        These choices are saved on this device only. Kitchen is tuned for a wall tablet: larger type
+        and touch targets.
       </div>
     </div>
   )
@@ -3613,46 +5967,90 @@ export function Settings() {
   const tab = params.get('tab') ?? 'family'
   const setTab = (key: string) => setParams({ tab: key }, { replace: true })
 
-    // Only a real personal login has an account, so these items stay hidden on the kiosk.
+  // Only a real personal login has an account, so these items stay hidden on the kiosk.
   const [account, setAccount] = useState<AccountInfo | null>(null)
   useEffect(() => {
     let alive = true
-    accountApi.get().then((a) => alive && setAccount(a)).catch(() => alive && setAccount(null))
-    return () => { alive = false }
+    accountApi
+      .get()
+      .then((a) => alive && setAccount(a))
+      .catch(() => alive && setAccount(null))
+    return () => {
+      alive = false
+    }
   }, [])
 
   // Wait until we know who's signed in, so admins don't flash the trimmed nav.
-  if (!household) return <div className="settings-screen"><div className="set-content"><div className="muted" style={{ padding: 20 }}>Loading…</div></div></div>
+  if (!household)
+    return (
+      <div className="settings-screen">
+        <div className="set-content">
+          <div className="muted" style={{ padding: 20 }}>
+            Loading…
+          </div>
+        </div>
+      </div>
+    )
 
-    // Admin-only tabs are hidden rather than shown-then-blocked.
+  // Admin-only tabs are hidden rather than shown-then-blocked.
   const isAdmin = person?.isAdmin ?? false
-    // The households tab only appears when there's something to act on. Not admin-gated.
+  // The households tab only appears when there's something to act on. Not admin-gated.
   const showHouseholds = memberships.length > 1 || pendingInvites.length > 0
-    // The self-service Account items appear only for a real personal login.
+  // The self-service Account items appear only for a real personal login.
   const showAccount = !isKioskMode() && !!account?.hasAccount
-  const nav = NAV.filter((n) => (!n.admin || isAdmin) && (n.key !== 'households' || showHouseholds) && ((n.key !== 'profile' && n.key !== 'account') || showAccount))
-    // Fall back to About (which holds sign-out) rather than whatever sorts first.
-  const activeTab = nav.some((n) => n.key === tab) ? tab : (nav.some((n) => n.key === 'about') ? 'about' : nav[0]?.key ?? 'about')
+  const nav = NAV.filter(
+    (n) =>
+      (!n.admin || isAdmin) &&
+      (n.key !== 'households' || showHouseholds) &&
+      ((n.key !== 'profile' && n.key !== 'account') || showAccount),
+  )
+  // Fall back to About (which holds sign-out) rather than whatever sorts first.
+  const activeTab = nav.some((n) => n.key === tab)
+    ? tab
+    : nav.some((n) => n.key === 'about')
+      ? 'about'
+      : (nav[0]?.key ?? 'about')
 
   return (
     <div className="settings-screen">
       <div className="set-mobile-nav">
-        <select className="sel" aria-label="Settings section" value={activeTab} onChange={(e) => setTab(e.target.value)}>
-          {nav.map((n) => <option key={n.key} value={n.key}>{n.icon} {n.label}</option>)}
-        </select>
+        <SelectField
+          className="sel"
+          aria-label="Settings section"
+          value={activeTab}
+          onValueChange={(e) => setTab(e)}
+        >
+          {nav.map((n) => (
+            <option key={n.key} value={n.key}>
+              <DataIcon value={n.icon} kind="general" /> {n.label}
+            </option>
+          ))}
+        </SelectField>
         <SignOutButton className="set-mobile-signout" />
       </div>
       <div className="set-nav">
-        <div className="flabel" style={{ margin: '2px 2px 8px' }}>SETTINGS</div>
+        <div className="flabel" style={{ margin: '2px 2px 8px' }}>
+          SETTINGS
+        </div>
         {nav.map((n, i) => {
-          const header = NAV_GROUP_LABELS[n.group] && n.group !== nav[i - 1]?.group ? NAV_GROUP_LABELS[n.group] : null
+          const header =
+            NAV_GROUP_LABELS[n.group] && n.group !== nav[i - 1]?.group
+              ? NAV_GROUP_LABELS[n.group]
+              : null
           return (
             <Fragment key={n.key}>
               {header && <div className="set-navgroup">{header}</div>}
-              <button type="button" className={`set-navitem ${activeTab === n.key ? 'on' : ''}`} onClick={() => setTab(n.key)}>
-                <span className="set-navic">{n.icon}</span>
+              <Button
+                variant="unstyled"
+                type="button"
+                className={`set-navitem ${activeTab === n.key ? 'on' : ''}`}
+                onClick={() => setTab(n.key)}
+              >
+                <span className="set-navic">
+                  <DataIcon value={n.icon} kind="general" />
+                </span>
                 {n.label}
-              </button>
+              </Button>
             </Fragment>
           )
         })}
@@ -3661,7 +6059,40 @@ export function Settings() {
         </div>
       </div>
       <div className="set-content">
-        {activeTab === 'appearance' ? <AppearancePanel /> : activeTab === 'profile' ? <MyProfilePanel /> : activeTab === 'account' ? <MyAccountPanel /> : activeTab === 'family' ? <FamilyPanel /> : activeTab === 'ai' ? <AiPanel /> : activeTab === 'calendars' ? <><CalendarsPanel /><CountdownsSettings /></> : activeTab === 'meals' ? <MealsPanel /> : activeTab === 'chores' ? <RewardsSettingsPanel /> : activeTab === 'security' ? <SecurityPanel /> : activeTab === 'display' ? <DisplayKioskPanel /> : activeTab === 'health' ? <SystemHealthPanel /> : activeTab === 'modules' ? <ModulesPanel /> : activeTab === 'apikeys' ? <ApiKeysPanel /> : activeTab === 'households' ? <HouseholdsPanel /> : <AboutPanel />}
+        {activeTab === 'appearance' ? (
+          <AppearancePanel />
+        ) : activeTab === 'profile' ? (
+          <MyProfilePanel />
+        ) : activeTab === 'account' ? (
+          <MyAccountPanel />
+        ) : activeTab === 'family' ? (
+          <FamilyPanel />
+        ) : activeTab === 'ai' ? (
+          <AiPanel />
+        ) : activeTab === 'calendars' ? (
+          <>
+            <CalendarsPanel />
+            <CountdownsSettings />
+          </>
+        ) : activeTab === 'meals' ? (
+          <MealsPanel />
+        ) : activeTab === 'chores' ? (
+          <RewardsSettingsPanel />
+        ) : activeTab === 'security' ? (
+          <SecurityPanel />
+        ) : activeTab === 'display' ? (
+          <DisplayKioskPanel />
+        ) : activeTab === 'health' ? (
+          <SystemHealthPanel />
+        ) : activeTab === 'modules' ? (
+          <ModulesPanel />
+        ) : activeTab === 'apikeys' ? (
+          <ApiKeysPanel />
+        ) : activeTab === 'households' ? (
+          <HouseholdsPanel />
+        ) : (
+          <AboutPanel />
+        )}
       </div>
     </div>
   )

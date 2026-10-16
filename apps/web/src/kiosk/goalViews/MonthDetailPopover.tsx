@@ -5,8 +5,24 @@ import type { GoalDetail, GoalParticipant } from '../../lib/api'
 import { AvatarStack, PersonAv } from '../components/Avatar'
 import { fmtGoalNum } from '../../lib/api'
 import type { GoalStats } from '../../lib/goalStats'
+import { Button } from '@/components/ui/button'
+import { DataIcon } from '@/components/ui/data-icon'
+import { Modal } from '@/components/ui/modal'
 
-const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+const MONTH_NAMES = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+]
 
 export function MonthDetailPopover({
   year,
@@ -36,16 +52,29 @@ export function MonthDetailPopover({
   })
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <Modal className="modal-overlay" onClose={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 440 }}>
-        <button type="button" className="modal-close" aria-label="Close" onClick={onClose}>×</button>
-        <div className="card-h" style={{ marginBottom: 4 }}>{MONTH_NAMES[month]} {year}</div>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="modal-close"
+          aria-label="Close"
+          onClick={onClose}
+        >
+          <DataIcon value={'×'} kind="general" />
+        </Button>
+        <div className="card-h" style={{ marginBottom: 4 }}>
+          {MONTH_NAMES[month]} {year}
+        </div>
         <div className="tiny muted" style={{ marginBottom: 14 }}>
-          {fmtGoalNum(total)}{goal.unit ? ` ${goal.unit}` : ''} logged
+          {fmtGoalNum(total)}
+          {goal.unit ? ` ${goal.unit}` : ''} logged
         </div>
 
         {total === 0 && matches.length === 0 && (
-          <div className="tiny muted" style={{ fontWeight: 600, padding: '8px 0' }}>No activity logged this month.</div>
+          <div className="tiny muted" style={{ fontWeight: 600, padding: '8px 0' }}>
+            No activity logged this month.
+          </div>
         )}
 
         {matches.length > 0 &&
@@ -57,7 +86,10 @@ export function MonthDetailPopover({
                 <PersonAv person={{}} />
               )}
               <div className="lwhat">{r.note || 'Logged progress'}</div>
-              <div className="lamt">+{fmtGoalNum(r.amount)}{goal.unit ? ` ${goal.unit}` : ''}</div>
+              <div className="lamt">
+                +{fmtGoalNum(r.amount)}
+                {goal.unit ? ` ${goal.unit}` : ''}
+              </div>
             </div>
           ))}
 
@@ -69,16 +101,20 @@ export function MonthDetailPopover({
                 <div key={pid} className="detail-hours-row">
                   <PersonAv person={p ?? {}} />
                   <div className="detail-hours-name">{p?.name ?? 'Someone'}</div>
-                  <div className="tiny muted detail-hours-val">{fmtGoalNum(perMember[pid])}{goal.unit ? ` ${goal.unit}` : ''}</div>
+                  <div className="tiny muted detail-hours-val">
+                    {fmtGoalNum(perMember[pid])}
+                    {goal.unit ? ` ${goal.unit}` : ''}
+                  </div>
                 </div>
               )
             })}
             <div className="tiny muted" style={{ marginTop: 10 }}>
-              Individual entries aren't kept in the recent log this far back — showing the month's totals only.
+              Individual entries aren't kept in the recent log this far back — showing the month's
+              totals only.
             </div>
           </div>
         )}
       </div>
-    </div>
+    </Modal>
   )
 }

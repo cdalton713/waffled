@@ -11,6 +11,8 @@ import {
 import { EventModal } from '../../components/EventModal'
 import type { PlanningStepModule, StepBodyProps } from '../registry'
 import '../../../styles/planning-connection.css'
+import { Button } from '@/components/ui/button'
+import { DataIcon } from '@/components/ui/data-icon'
 
 // Step 5 · Connection — "Who gets time with whom?"
 //
@@ -78,14 +80,17 @@ function localTime(iso: string): string {
  * EVERY event this week with both of them on it — the candidate list for "Link a time", and
  * precisely `alreadyThisWeek ∪ togetherThisWeek`, hence no new read.
  */
-export const bothOnIt = (p: PlanningConnectionPairing): PlanningConnectionEvent[] =>
-  [...p.alreadyThisWeek, ...p.togetherThisWeek]
+export const bothOnIt = (p: PlanningConnectionPairing): PlanningConnectionEvent[] => [
+  ...p.alreadyThisWeek,
+  ...p.togetherThisWeek,
+]
 
 export function pairingSentence(p: PlanningConnectionPairing, linkedId: string | null): string {
   // A LINKED event answers the pairing whatever else the week says, so it is looked up across
   // both lists rather than assumed to be `alreadyThisWeek[0]`.
   const linked = linkedId ? bothOnIt(p).find((e) => e.id === linkedId) : undefined
-  if (linked) return `Nothing new — ${linked.day}’s ${linked.title} already is it, and you said so out loud.`
+  if (linked)
+    return `Nothing new — ${linked.day}’s ${linked.title} already is it, and you said so out loud.`
   const credit = p.alreadyThisWeek[0]
   if (credit) {
     const len = credit.minutes ? ` for ${durationWords(credit.minutes)}` : ''
@@ -93,8 +98,10 @@ export function pairingSentence(p: PlanningConnectionPairing, linkedId: string |
   }
   const lead = `Nothing on the calendar with just the two of you${p.lastTogetherOn ? ` since ${monthDay(p.lastTogetherOn)}` : ''}.`
   const near = p.togetherThisWeek
-  if (near.length === 1) return `${lead} ${near[0].day}’s ${near[0].title} is you both, but it’s not that.`
-  if (near.length > 1) return `${lead} You’re both at ${near.length} things this week, but none of them is that.`
+  if (near.length === 1)
+    return `${lead} ${near[0].day}’s ${near[0].title} is you both, but it’s not that.`
+  if (near.length > 1)
+    return `${lead} You’re both at ${near.length} things this week, but none of them is that.`
   return lead
 }
 
@@ -113,8 +120,12 @@ const composeFrom = (slot: PlanningConnectionSlot, participantIds: string[]): Co
 // A person's face. Identity, not a control — the same tint the Tasks step's `.wpt-face` paints.
 function Face({ person }: { person: Person }) {
   return (
-    <span className="wpn-face" style={{ background: `${person.colorHex ?? '#A6A29B'}22` }} aria-hidden>
-      {person.avatarEmoji ?? '🙂'}
+    <span
+      className="wpn-face"
+      style={{ background: `${person.colorHex ?? '#A6A29B'}22` }}
+      aria-hidden
+    >
+      <DataIcon value={person.avatarEmoji ?? '🙂'} kind="person" />
     </span>
   )
 }
@@ -140,7 +151,7 @@ function Body({ step, sessionId, weekStart, setDecisionData, refresh, busy }: St
   // WHICH EVENT ANSWERS EACH PAIRING, keyed by the pairing's people → event id. Not local state:
   // it is seeded from the step's record and written back.
   const [links, setLinks] = useState<Record<string, string>>(
-    () => ((step.data as { links?: Record<string, string> } | null)?.links ?? {})
+    () => (step.data as { links?: Record<string, string> } | null)?.links ?? {},
   )
   const [picking, setPicking] = useState<string | null>(null)
   const [compose, setCompose] = useState<Compose | null>(null)
@@ -148,7 +159,10 @@ function Body({ step, sessionId, weekStart, setDecisionData, refresh, busy }: St
   const load = useCallback(() => {
     planningConnectionApi
       .board(weekStart)
-      .then((b) => { setBoard(b); setError(false) })
+      .then((b) => {
+        setBoard(b)
+        setError(false)
+      })
       .catch(() => setError(true))
   }, [weekStart])
   useEffect(load, [load])
@@ -158,7 +172,9 @@ function Body({ step, sessionId, weekStart, setDecisionData, refresh, busy }: St
   const alive = useRef(true)
   useEffect(() => {
     alive.current = true
-    return () => { alive.current = false }
+    return () => {
+      alive.current = false
+    }
   }, [])
 
   // Written through the step's own MID-STEP route, which merges the map and leaves
@@ -171,7 +187,7 @@ function Body({ step, sessionId, weekStart, setDecisionData, refresh, busy }: St
         // The link is already on screen; a failed write costs the memory of it, not the sitting.
         .catch(() => {})
     },
-    [sessionId]
+    [sessionId],
   )
 
   const link = useCallback(
@@ -185,37 +201,40 @@ function Body({ step, sessionId, weekStart, setDecisionData, refresh, busy }: St
       })
       setPicking(null)
     },
-    [remember]
+    [remember],
   )
 
-  const settle = useCallback(async (was: number, autoLink?: { key: string; before: Set<string> }) => {
-    for (let i = 0; i <= CATCHUP_MS.length; i++) {
-      try {
-        const b = await planningConnectionApi.board(weekStart)
-        if (!alive.current) return
-        setBoard(b)
-        setError(false)
-        if (credited(b) > was) {
-          // THE EVENT YOU JUST MADE IS THE ANSWER TO THAT PAIRING, answered by DIFFERENCE: the
-          // shared modal's `onSaved` takes no argument and the write is local-first, so the only
-          // id certainly belonging to the server is the one that appeared since we looked.
-          if (autoLink) {
-            const pair = b.pairings.find((p) => p.personIds.join('-') === autoLink.key)
-            const fresh = pair?.alreadyThisWeek.find((e) => !autoLink.before.has(e.id))
-            if (fresh) link(autoLink.key, fresh.id)
+  const settle = useCallback(
+    async (was: number, autoLink?: { key: string; before: Set<string> }) => {
+      for (let i = 0; i <= CATCHUP_MS.length; i++) {
+        try {
+          const b = await planningConnectionApi.board(weekStart)
+          if (!alive.current) return
+          setBoard(b)
+          setError(false)
+          if (credited(b) > was) {
+            // THE EVENT YOU JUST MADE IS THE ANSWER TO THAT PAIRING, answered by DIFFERENCE: the
+            // shared modal's `onSaved` takes no argument and the write is local-first, so the only
+            // id certainly belonging to the server is the one that appeared since we looked.
+            if (autoLink) {
+              const pair = b.pairings.find((p) => p.personIds.join('-') === autoLink.key)
+              const fresh = pair?.alreadyThisWeek.find((e) => !autoLink.before.has(e.id))
+              if (fresh) link(autoLink.key, fresh.id)
+            }
+            return
           }
+        } catch {
+          if (alive.current) setError(true)
           return
         }
-      } catch {
-        if (alive.current) setError(true)
-        return
+        const wait = CATCHUP_MS[i]
+        if (wait === undefined) return
+        await new Promise((r) => setTimeout(r, wait))
+        if (!alive.current) return
       }
-      const wait = CATCHUP_MS[i]
-      if (wait === undefined) return
-      await new Promise((r) => setTimeout(r, wait))
-      if (!alive.current) return
-    }
-  }, [weekStart, link])
+    },
+    [weekStart, link],
+  )
 
   useEffect(() => {
     if (!board) return
@@ -231,13 +250,19 @@ function Body({ step, sessionId, weekStart, setDecisionData, refresh, busy }: St
   function onSaved() {
     setAdded((n) => n + 1)
     setMadeGen((g) => g + 1)
-    const names = (compose?.participantIds ?? []).map((id) => byId.get(id)?.name).filter((n): n is string => !!n)
-    const who = names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}` : names[0]
+    const names = (compose?.participantIds ?? [])
+      .map((id) => byId.get(id)?.name)
+      .filter((n): n is string => !!n)
+    const who =
+      names.length > 1
+        ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`
+        : names[0]
     setMade(who ? `Added to the calendar — ${who}` : 'Added to the calendar')
     // Read BEFORE the re-read, so the difference afterwards names the event just created.
     const key = compose ? compose.participantIds.join('-') : null
     const row = key ? board?.pairings.find((p) => p.personIds.join('-') === key) : undefined
-    const autoLink = key && row ? { key, before: new Set(row.alreadyThisWeek.map((e) => e.id)) } : undefined
+    const autoLink =
+      key && row ? { key, before: new Set(row.alreadyThisWeek.map((e) => e.id)) } : undefined
     // Re-read, and keep asking until the answer includes the event just written. See `CATCHUP_MS`.
     void settle(credited(board), autoLink)
     refresh()
@@ -246,7 +271,12 @@ function Body({ step, sessionId, weekStart, setDecisionData, refresh, busy }: St
   if (error) return <p className="wpn-empty">Couldn’t read your week just now.</p>
   if (!board) return <p className="wpn-empty">Looking at who’s been where…</p>
   if (!board.pairings.length) {
-    return <p className="wpn-empty">This one needs more than one person in the household — add someone in Settings, and pairings appear here.</p>
+    return (
+      <p className="wpn-empty">
+        This one needs more than one person in the household — add someone in Settings, and pairings
+        appear here.
+      </p>
+    )
   }
 
   return (
@@ -258,12 +288,14 @@ function Body({ step, sessionId, weekStart, setDecisionData, refresh, busy }: St
         const candidates = bothOnIt(p)
         // THE ANSWER and the one-tap offer are two different things, or two chips read as chosen
         // at once. `oneTap` is NOT `alreadyThisWeek[0]`, which is just the first of several.
-        const answer = linkedId ? candidates.find((e) => e.id === linkedId) ?? null : null
+        const answer = linkedId ? (candidates.find((e) => e.id === linkedId) ?? null) : null
         const oneTap = answer ?? (candidates.length === 1 ? candidates[0]! : null)
         return (
           <div className="wpn-row" key={key} data-testid={`wpn-pair-${key}`}>
             <div className="wpn-faces" role="img" aria-label={p.who}>
-              {people.map((person) => <Face key={person.id} person={person} />)}
+              {people.map((person) => (
+                <Face key={person.id} person={person} />
+              ))}
             </div>
 
             <div className="wpn-main">
@@ -275,7 +307,8 @@ function Body({ step, sessionId, weekStart, setDecisionData, refresh, busy }: St
               {/* Time that already exists, first and muted — the only answer that costs nobody an
                   evening. IT NAMES THE EVENT: a day and an hour identify nothing. */}
               {oneTap && (
-                <button
+                <Button
+                  variant="unstyled"
                   type="button"
                   className={`wpn-slot wpn-counts${answer ? ' on' : ''}`}
                   aria-pressed={answer !== null}
@@ -283,15 +316,23 @@ function Body({ step, sessionId, weekStart, setDecisionData, refresh, busy }: St
                   disabled={busy}
                   onClick={() => link(key, oneTap.id)}
                 >
-                  {answer ? '✓ ' : ''}{oneTap.title} · {oneTap.day.slice(0, 3)}
-                </button>
+                  {answer ? (
+                    <>
+                      <DataIcon value={'✓'} kind="general" />{' '}
+                    </>
+                  ) : (
+                    ''
+                  )}
+                  {oneTap.title} · {oneTap.day.slice(0, 3)}
+                </Button>
               )}
 
               {/* An evening where the two are both there ALONGSIDE somebody else was only ever a
                   sentence with no way to point at it. NEVER in the chosen state: exactly one chip
                   per row says "this is the answer". */}
               {candidates.length > (oneTap ? 1 : 0) && (
-                <button
+                <Button
+                  variant="unstyled"
                   type="button"
                   className="wpn-slot wpn-link"
                   aria-expanded={picking === key}
@@ -300,11 +341,12 @@ function Body({ step, sessionId, weekStart, setDecisionData, refresh, busy }: St
                   onClick={() => setPicking((cur) => (cur === key ? null : key))}
                 >
                   {answer ? 'Change' : 'Link a time'}
-                </button>
+                </Button>
               )}
 
               {p.slots.slice(0, SLOTS).map((s) => (
-                <button
+                <Button
+                  variant="unstyled"
                   key={s.date}
                   type="button"
                   className="wpn-slot"
@@ -312,25 +354,35 @@ function Body({ step, sessionId, weekStart, setDecisionData, refresh, busy }: St
                   onClick={() => setCompose(composeFrom(s, p.personIds))}
                 >
                   {s.label}
-                </button>
+                </Button>
               ))}
 
-              <button
+              <Button
+                variant="unstyled"
                 type="button"
                 className="wpn-slot wpn-add"
                 aria-label={`Another time for ${p.who}`}
                 disabled={busy}
                 onClick={() => setCompose({ date: weekStart, participantIds: p.personIds })}
               >
-                <span aria-hidden>＋</span> Another time
-              </button>
+                <span aria-hidden>
+                  <DataIcon value={'＋'} kind="person" />
+                </span>{' '}
+                Another time
+              </Button>
             </div>
 
             {/* Named by WHEN they are. Picking the one already linked unlinks it. */}
             {picking === key && (
-              <div className="wpn-link-list" data-testid={`wpn-link-${key}`} role="group" aria-label={`Time ${p.who} already share`}>
+              <div
+                className="wpn-link-list"
+                data-testid={`wpn-link-${key}`}
+                role="group"
+                aria-label={`Time ${p.who} already share`}
+              >
                 {candidates.map((e) => (
-                  <button
+                  <Button
+                    variant="unstyled"
                     key={e.id}
                     type="button"
                     className={`wpn-link-opt${linkedId === e.id ? ' on' : ''}`}
@@ -340,7 +392,7 @@ function Body({ step, sessionId, weekStart, setDecisionData, refresh, busy }: St
                   >
                     <b>{e.title}</b>
                     <span>{e.when}</span>
-                  </button>
+                  </Button>
                 ))}
               </div>
             )}
@@ -348,22 +400,29 @@ function Body({ step, sessionId, weekStart, setDecisionData, refresh, busy }: St
         )
       })}
 
-      {made && <p className="wpn-made" role="status">{made}</p>}
+      {made && (
+        <p className="wpn-made" role="status">
+          {made}
+        </p>
+      )}
       <MakePairing
         key={madeGen}
         weekStart={weekStart}
         persons={persons}
         busy={busy}
-        onCompose={(c) => { setMade(null); setCompose(c) }}
+        onCompose={(c) => {
+          setMade(null)
+          setCompose(c)
+        }}
         onOpen={() => setMade(null)}
       />
 
       <p className="wpn-note">
         The rows above are just the pairings the app can see — they aren’t the list.{' '}
-        <b>Make a pairing</b> takes any two people and any time, and the slots offered are the gaps the
-        week already left behind. Either way it ends up as a normal calendar event. Add a third person
-        and it still lands on the calendar — it just counts as time together rather than as time with
-        just the two of them.
+        <b>Make a pairing</b> takes any two people and any time, and the slots offered are the gaps
+        the week already left behind. Either way it ends up as a normal calendar event. Add a third
+        person and it still lands on the calendar — it just counts as time together rather than as
+        time with just the two of them.
       </p>
 
       {/* The app's own event modal — NOT a second event form. It carries the people and the gap. */}
@@ -404,31 +463,64 @@ function MakePairing({
   const [who, setWho] = useState('')
 
   // Household order, not tap order — so the same three people always ask the same question.
-  const chosen = useMemo(() => persons.filter((p) => picked.has(p.id)).map((p) => p.id), [persons, picked])
+  const chosen = useMemo(
+    () => persons.filter((p) => picked.has(p.id)).map((p) => p.id),
+    [persons, picked],
+  )
 
   // Keyed on the ids THEMSELVES: a fresh `persons` array would loop /slots forever.
   const key = chosen.join(',')
   useEffect(() => {
     const ids = key ? key.split(',') : []
-    if (ids.length < 2) { setSlots([]); setWho(''); return }
+    if (ids.length < 2) {
+      setSlots([])
+      setWho('')
+      return
+    }
     let live = true
     planningConnectionApi
       .slotsFor(weekStart, ids)
-      .then((r) => { if (live) { setSlots(r.slots); setWho(r.who) } })
-      .catch(() => { if (live) { setSlots([]); setWho('') } })
-    return () => { live = false }
+      .then((r) => {
+        if (live) {
+          setSlots(r.slots)
+          setWho(r.who)
+        }
+      })
+      .catch(() => {
+        if (live) {
+          setSlots([])
+          setWho('')
+        }
+      })
+    return () => {
+      live = false
+    }
   }, [weekStart, key])
 
   if (!open) {
     return (
-      <button type="button" className="wpn-make-open" disabled={busy} onClick={() => { onOpen(); setOpen(true) }}>
+      <Button
+        variant="unstyled"
+        type="button"
+        className="wpn-make-open"
+        disabled={busy}
+        onClick={() => {
+          onOpen()
+          setOpen(true)
+        }}
+      >
         <span className="wpn-make-lead">
-          <span aria-hidden>＋</span> Make a pairing — any two people, any time
+          <span aria-hidden>
+            <DataIcon value={'＋'} kind="general" />
+          </span>{' '}
+          Make a pairing — any two people, any time
         </span>
         <span className="wpn-faces" aria-hidden>
-          {persons.map((p) => <Face key={p.id} person={p} />)}
+          {persons.map((p) => (
+            <Face key={p.id} person={p} />
+          ))}
         </span>
-      </button>
+      </Button>
     )
   }
 
@@ -440,13 +532,19 @@ function MakePairing({
           {persons.map((p) => {
             const on = picked.has(p.id)
             return (
-              <button
+              <Button
+                variant="unstyled"
                 key={p.id}
                 type="button"
                 className={`wpn-face wpn-pick${on ? ' on' : ''}`}
-                style={{ background: `${p.colorHex ?? '#A6A29B'}22`, borderColor: on ? (p.colorHex ?? undefined) : undefined }}
+                style={{
+                  background: `${p.colorHex ?? '#A6A29B'}22`,
+                  borderColor: on ? (p.colorHex ?? undefined) : undefined,
+                }}
                 aria-pressed={on}
-                aria-label={on ? `${p.name} — take out of the pairing` : `${p.name} — add to the pairing`}
+                aria-label={
+                  on ? `${p.name} — take out of the pairing` : `${p.name} — add to the pairing`
+                }
                 disabled={busy}
                 onClick={() =>
                   setPicked((cur) => {
@@ -456,12 +554,14 @@ function MakePairing({
                   })
                 }
               >
-                {p.avatarEmoji ?? '🙂'}
-              </button>
+                <DataIcon value={p.avatarEmoji ?? '🙂'} kind="person" />
+              </Button>
             )
           })}
         </div>
-        <div className="wpn-picked">{who ? `${who} · tap to add anyone else` : 'Tap two people — or three.'}</div>
+        <div className="wpn-picked">
+          {who ? `${who} · tap to add anyone else` : 'Tap two people — or three.'}
+        </div>
       </div>
 
       <div className="wpn-make-row">
@@ -472,7 +572,8 @@ function MakePairing({
           ) : (
             <>
               {slots.slice(0, SLOTS + 1).map((s) => (
-                <button
+                <Button
+                  variant="unstyled"
                   key={s.date}
                   type="button"
                   className="wpn-slot"
@@ -480,17 +581,18 @@ function MakePairing({
                   onClick={() => onCompose(composeFrom(s, chosen))}
                 >
                   {s.label}
-                </button>
+                </Button>
               ))}
               {/* "Any time" has to mean any time — this one opens the modal on its own picker. */}
-              <button
+              <Button
+                variant="unstyled"
                 type="button"
                 className="wpn-slot wpn-add"
                 disabled={busy}
                 onClick={() => onCompose({ date: weekStart, participantIds: chosen })}
               >
                 Pick a date and time
-              </button>
+              </Button>
             </>
           )}
         </div>
@@ -498,9 +600,16 @@ function MakePairing({
 
       <div className="wpn-make-row">
         <div className="wpn-lab" />
-        <button type="button" className="btn btn-ghost" onClick={() => { setOpen(false); setPicked(new Set()) }}>
+        <Button
+          variant="ghost"
+          type="button"
+          onClick={() => {
+            setOpen(false)
+            setPicked(new Set())
+          }}
+        >
           Cancel
-        </button>
+        </Button>
       </div>
     </div>
   )

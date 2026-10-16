@@ -25,3 +25,15 @@ export const SCREENS: Screen[] = [
 ]
 
 export const SETTINGS: Screen = { path: '/settings', label: 'Settings', icon: 'settings' }
+
+// Detail routes that live under a nav screen without sharing its path prefix.
+const PARENT: Record<string, string> = { '/person': '/family' }
+
+/** The nav screen a pathname belongs to (longest path wins). */
+export function activeScreen(pathname: string): Screen | undefined {
+  const prefix = Object.keys(PARENT).find((p) => pathname.startsWith(`${p}/`))
+  const path = prefix ? PARENT[prefix] : pathname
+  return [...SCREENS, SETTINGS]
+    .filter((screen) => (screen.path === '/' ? path === '/' : path.startsWith(screen.path)))
+    .sort((a, b) => b.path.length - a.path.length)[0]
+}

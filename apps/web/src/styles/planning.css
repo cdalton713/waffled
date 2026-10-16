@@ -1,3 +1,5 @@
+@reference './ui.css';
+
 /* Weekly Planning — the session shell (WeeklyPlanning.tsx). Built from the shared
    vocabulary (.btn, .modal-overlay/.modal-card, .wf-serif) plus this module's own chrome.
    Every colour is a var, so dark mode comes for free — never hardcode a hex here.
@@ -5,8 +7,16 @@
    THE POINT OF THE LAYOUT: the step body is the content, and the chrome around it is four
    things — a step counter, a title, the one question, a progress hair. */
 
-.wp-screen { padding: 24px 30px 40px; }
-.wp-empty { color: var(--ink-3); font-weight: 600; padding: 24px 2px; max-width: 62ch; line-height: 1.5; }
+.wp-screen {
+  @apply [padding:24px_30px_40px];
+}
+.wp-empty {
+  @apply [color:var(--ink-3)];
+  @apply font-semibold;
+  @apply [padding:24px_2px];
+  @apply [max-width:62ch];
+  @apply [line-height:1.5];
+}
 
 /* ── In session ───────────────────────────────────────────────────────────────
    The session fills the frame and never scrolls the page, so the primary button is in the
@@ -15,152 +25,401 @@
    viewport-height child overflows by exactly the topbar and pushes the footer off screen.
    `min-height: 0` is what lets the middle row scroll instead of stretching the grid. */
 .wp-in {
-  padding: 0;
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
+  @apply [padding:0];
+  @apply grid;
+  @apply [grid-template-rows:auto_1fr_auto];
+  @apply [flex:1];
+  @apply [min-height:0];
+  @apply overflow-hidden;
 }
 
 .wp-head {
-  display: flex; align-items: center; gap: 18px;
-  padding: 18px 28px 0;
-  position: relative; flex-wrap: wrap;
+  @apply flex;
+  @apply items-center;
+  @apply [gap:18px];
+  @apply [padding:18px_28px_0];
+  @apply relative;
+  @apply flex-wrap;
 }
 .wp-stepchip {
-  display: inline-flex; align-items: center; gap: 7px; flex: none;
-  font: inherit; font-size: 12.5px; font-weight: 750; letter-spacing: -0.01em;
-  color: var(--ink-2); background: var(--panel);
-  border: 0; border-radius: 999px; padding: 6px 13px; cursor: pointer;
+  @apply inline-flex;
+  @apply items-center;
+  @apply [gap:7px];
+  @apply [flex:none];
+  @apply [font:inherit];
+  @apply [font-size:12.5px];
+  @apply [font-weight:750];
+  @apply [letter-spacing:-0.01em];
+  @apply [color:var(--ink-2)];
+  @apply [background:var(--panel)];
+  @apply [border:0];
+  @apply [border-radius:999px];
+  @apply [padding:6px_13px];
+  @apply cursor-pointer;
 }
-.wp-stepchip:hover { color: var(--ink); }
-.wp-stepchip svg { width: 11px; height: 11px; stroke: currentColor; fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.wp-stepchip:hover {
+  @apply [color:var(--ink)];
+}
+.wp-stepchip svg {
+  @apply [width:11px];
+  @apply [height:11px];
+  @apply [stroke:currentColor];
+  @apply [fill:none];
+  @apply [stroke-width:3];
+  @apply [stroke-linecap:round];
+  @apply [stroke-linejoin:round];
+}
 
-.wp-title { font-size: 31px; font-weight: 600; letter-spacing: -0.028em; line-height: 1.1; }
-.wp-ask { font-size: 15px; font-weight: 550; color: var(--ink-2); min-width: 0; }
-.wp-week { margin-left: auto; flex: none; font-size: 12.5px; font-weight: 650; color: var(--ink-2); }
+.wp-title {
+  @apply [font-size:31px];
+  @apply font-semibold;
+  @apply [letter-spacing:-0.028em];
+  @apply [line-height:1.1];
+}
+.wp-ask {
+  @apply [font-size:15px];
+  @apply [font-weight:550];
+  @apply [color:var(--ink-2)];
+  @apply [min-width:0];
+}
+.wp-week {
+  @apply [margin-left:auto];
+  @apply [flex:none];
+  @apply [font-size:12.5px];
+  @apply [font-weight:650];
+  @apply [color:var(--ink-2)];
+}
 /* THE DOOR. Quiet on purpose, but visible without opening anything. */
 .wp-exit {
-  flex: none; font: inherit; font-size: 12.5px; font-weight: 700;
-  color: var(--ink-3); background: none; border: 0; padding: 6px 2px; cursor: pointer;
+  @apply [flex:none];
+  @apply [font:inherit];
+  @apply [font-size:12.5px];
+  @apply font-bold;
+  @apply [color:var(--ink-3)];
+  @apply [background:none];
+  @apply [border:0];
+  @apply [padding:6px_2px];
+  @apply cursor-pointer;
 }
-.wp-exit:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+.wp-exit:hover {
+  @apply [color:var(--ink)];
+  @apply [text-decoration:underline];
+  @apply [text-underline-offset:3px];
+}
 
 .wp-prog {
-  position: absolute; left: 0; right: 0; bottom: -10px;
-  height: 2px; background: var(--hair);
+  @apply absolute;
+  @apply [left:0];
+  @apply [right:0];
+  @apply [bottom:-10px];
+  @apply [height:2px];
+  @apply [background:var(--hair)];
 }
-.wp-prog > div { height: 100%; background: var(--primary); transition: width 0.25s ease; }
+.wp-prog > div {
+  @apply [height:100%];
+  @apply [background:var(--primary)];
+  @apply [transition:width_0.25s_ease];
+}
 
 /* A column so a step body can stretch; the placeholder centres itself via `margin: auto`. */
-.wp-body { padding: 26px 28px 8px; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; }
+.wp-body {
+  @apply [padding:26px_28px_8px];
+  @apply [min-height:0];
+  @apply overflow-y-auto;
+  @apply flex;
+  @apply flex-col;
+}
 
 /* ── The parked-note handoff ──────────────────────────────────────────────────── */
 /* Rendered by the SHELL above whichever step body is up (the banner is identical on all ten
    steps). `flex: none` — every sibling in `.wp-body` that is not the step body has to be,
    or it competes with the body for height. */
 .wp-handoff {
-  flex: none;
-  margin-bottom: 18px;
-  padding: 12px 14px;
-  background: var(--primary-t);
-  border: 1px solid color-mix(in srgb, var(--primary) 26%, transparent);
-  border-radius: var(--r-lg);
+  @apply [flex:none];
+  @apply [margin-bottom:18px];
+  @apply [padding:12px_14px];
+  @apply [background:var(--primary-t)];
+  @apply [border:1px_solid_color-mix(in_srgb,_var(--primary)_26%,_transparent)];
+  @apply [border-radius:var(--r-lg)];
 }
 .wp-handoff-h {
-  display: flex; align-items: center; gap: 7px;
-  font-size: 12px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase;
-  color: var(--primary-d);
+  @apply flex;
+  @apply items-center;
+  @apply [gap:7px];
+  @apply [font-size:12px];
+  @apply font-extrabold;
+  @apply [letter-spacing:0.04em];
+  @apply [text-transform:uppercase];
+  @apply [color:var(--primary-d)];
 }
-.wp-handoff-list { list-style: none; margin: 9px 0 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+.wp-handoff-list {
+  @apply [list-style:none];
+  @apply [margin:9px_0_0];
+  @apply [padding:0];
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:7px];
+}
 .wp-handoff-row {
-  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
-  padding: 9px 11px;
-  background: var(--card); border: 1px solid var(--hair-2); border-radius: var(--r-md);
+  @apply flex;
+  @apply items-center;
+  @apply [gap:12px];
+  @apply flex-wrap;
+  @apply [padding:9px_11px];
+  @apply [background:var(--card)];
+  @apply [border:1px_solid_var(--hair-2)];
+  @apply [border-radius:var(--r-md)];
 }
-.wp-handoff-note { flex: 1; min-width: 0; font-size: 13.5px; font-weight: 650; color: var(--ink); line-height: 1.4; }
-.wp-handoff-note em { display: block; margin-top: 2px; font-size: 11.5px; font-weight: 600; font-style: normal; color: var(--ink-3); }
-.wp-handoff-acts { flex: none; display: flex; gap: 7px; }
-.wp-handoff-act { padding: 7px 13px; font-size: 12.5px; }
-.wp-handoff-act.is-drop { color: var(--ink-3); }
+.wp-handoff-note {
+  @apply [flex:1];
+  @apply [min-width:0];
+  @apply [font-size:13.5px];
+  @apply [font-weight:650];
+  @apply [color:var(--ink)];
+  @apply [line-height:1.4];
+}
+.wp-handoff-note em {
+  @apply block;
+  @apply [margin-top:2px];
+  @apply [font-size:11.5px];
+  @apply font-semibold;
+  @apply [font-style:normal];
+  @apply [color:var(--ink-3)];
+}
+.wp-handoff-acts {
+  @apply [flex:none];
+  @apply flex;
+  @apply [gap:7px];
+}
+.wp-handoff-act {
+  @apply [padding:7px_13px];
+  @apply [font-size:12.5px];
+}
+.wp-handoff-act.is-drop {
+  @apply [color:var(--ink-3)];
+}
 
 @media (max-width: 700px) {
-  .wp-handoff-acts { width: 100%; }
-  .wp-handoff-act { flex: 1; }
+  .wp-handoff-acts {
+    @apply [width:100%];
+  }
+  .wp-handoff-act {
+    @apply [flex:1];
+  }
 }
 
 /* ── Editing a parked note (ParkedNoteEditor) ────────────────────────────────────
    One editor, used by the shell's gold box and by the Horizon board. It replaces the row
    rather than opening a modal: a dialog for one line loses the list you were reading it in.
    Lives here, not planning-horizon.css, because the SHELL loads this file on every step. */
-.wp-pne { display: flex; flex-direction: column; gap: 8px; width: 100%; min-width: 0; }
+.wp-pne {
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:8px];
+  @apply [width:100%];
+  @apply [min-width:0];
+}
 .wp-pne-in {
-  width: 100%; padding: 9px 11px;
-  font: inherit; font-size: 13.5px; font-weight: 600; color: var(--ink);
-  background: var(--card); border: 1px solid var(--hair-2); border-radius: var(--r-md);
+  @apply [width:100%];
+  @apply [padding:9px_11px];
+  @apply [font:inherit];
+  @apply [font-size:13.5px];
+  @apply font-semibold;
+  @apply [color:var(--ink)];
+  @apply [background:var(--card)];
+  @apply [border:1px_solid_var(--hair-2)];
+  @apply [border-radius:var(--r-md)];
 }
-.wp-pne-in:focus { outline: none; border-color: var(--primary); }
-.wp-pne-in:disabled { opacity: 0.6; }
-.wp-pne-tags { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+.wp-pne-in:focus {
+  @apply [outline:none];
+  @apply [border-color:var(--primary)];
+}
+.wp-pne-in:disabled {
+  @apply [opacity:0.6];
+}
+.wp-pne-tags {
+  @apply flex;
+  @apply items-center;
+  @apply [gap:5px];
+  @apply flex-wrap;
+}
 .wp-pne-tag {
-  padding: 5px 10px;
-  font-size: 12px; font-weight: 700; color: var(--ink-2);
-  background: transparent; border: 1px solid var(--hair); border-radius: 999px;
-  cursor: pointer;
+  @apply [padding:5px_10px];
+  @apply [font-size:12px];
+  @apply font-bold;
+  @apply [color:var(--ink-2)];
+  @apply [background:transparent];
+  @apply [border:1px_solid_var(--hair)];
+  @apply [border-radius:999px];
+  @apply cursor-pointer;
 }
-.wp-pne-tag:hover:not(:disabled):not(.on) { color: var(--ink); border-color: var(--ink-3); }
-.wp-pne-tag.on { background: var(--ink); border-color: var(--ink); color: var(--on-inverse); }
-.wp-pne-tag:disabled { cursor: default; opacity: 0.6; }
-.wp-pne-err { margin: 0; font-size: 12px; font-weight: 600; color: var(--danger-tx); }
-.wp-pne-acts { display: flex; gap: 7px; }
-.wp-pne-act { padding: 7px 13px; font-size: 12.5px; }
+.wp-pne-tag:hover:not(:disabled):not(.on) {
+  @apply [color:var(--ink)];
+  @apply [border-color:var(--ink-3)];
+}
+.wp-pne-tag.on {
+  @apply [background:var(--ink)];
+  @apply [border-color:var(--ink)];
+  @apply [color:var(--on-inverse)];
+}
+.wp-pne-tag:disabled {
+  @apply cursor-default;
+  @apply [opacity:0.6];
+}
+.wp-pne-err {
+  @apply [margin:0];
+  @apply [font-size:12px];
+  @apply font-semibold;
+  @apply [color:var(--danger-tx)];
+}
+.wp-pne-acts {
+  @apply flex;
+  @apply [gap:7px];
+}
+.wp-pne-act {
+  @apply [padding:7px_13px];
+  @apply [font-size:12.5px];
+}
 
 /* The footer's "Park a note" composer (ParkNoteComposer). */
-.wp-park { display: flex; flex-direction: column; gap: 10px; width: min(460px, 100%); text-align: left; }
-.wp-park-t { font-size: 20px; font-weight: 700; color: var(--ink); padding-right: 28px; }
-.wp-park-says { margin: 0; font-size: 12.5px; font-weight: 600; color: var(--ink-2); }
-.wp-park-says b { color: var(--ink); font-weight: 800; }
+.wp-park {
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:10px];
+  @apply [width:min(460px,_100%)];
+  @apply text-left;
+}
+.wp-park-t {
+  @apply [font-size:20px];
+  @apply font-bold;
+  @apply [color:var(--ink)];
+  @apply [padding-right:28px];
+}
+.wp-park-says {
+  @apply [margin:0];
+  @apply [font-size:12.5px];
+  @apply font-semibold;
+  @apply [color:var(--ink-2)];
+}
+.wp-park-says b {
+  @apply [color:var(--ink)];
+  @apply font-extrabold;
+}
 
 .wp-foot {
-  display: flex; align-items: center; gap: 12px;
-  padding: 14px 28px; background: var(--card); border-top: 1px solid var(--hair);
+  @apply flex;
+  @apply items-center;
+  @apply [gap:12px];
+  @apply [padding:14px_28px];
+  @apply [background:var(--card)];
+  @apply [border-top:1px_solid_var(--hair)];
 }
-.wp-foot-sp { flex: 1; }
+.wp-foot-sp {
+  @apply [flex:1];
+}
 .wp-skip {
-  background: none; border: 0; padding: 13px 4px; cursor: pointer;
-  font: inherit; font-size: 15px; font-weight: 700; color: var(--ink-2); white-space: nowrap;
+  @apply [background:none];
+  @apply [border:0];
+  @apply [padding:13px_4px];
+  @apply cursor-pointer;
+  @apply [font:inherit];
+  @apply [font-size:15px];
+  @apply font-bold;
+  @apply [color:var(--ink-2)];
+  @apply whitespace-nowrap;
 }
-.wp-skip:hover { color: var(--ink); }
-.wp-skip:disabled, .wp-primary:disabled { opacity: 0.5; cursor: default; }
-.wp-primary { font-size: 16px; padding: 14px 28px; }
-.wp-next { opacity: 0.72; font-weight: 600; margin-left: 6px; }
+.wp-skip:hover {
+  @apply [color:var(--ink)];
+}
+.wp-skip:disabled,
+.wp-primary:disabled {
+  @apply [opacity:0.5];
+  @apply cursor-default;
+}
+.wp-primary {
+  @apply [font-size:16px];
+  @apply [padding:14px_28px];
+}
+.wp-next {
+  @apply [opacity:0.72];
+  @apply font-semibold;
+  @apply [margin-left:6px];
+}
 
 .wp-placeholder {
-  max-width: 620px; margin: auto; text-align: center; flex: none;
-  border: 1.5px dashed var(--hair); border-radius: var(--r-lg);
-  padding: 44px 32px; background: var(--card-2);
+  @apply [max-width:620px];
+  @apply [margin:auto];
+  @apply text-center;
+  @apply [flex:none];
+  @apply [border:1.5px_dashed_var(--hair)];
+  @apply [border-radius:var(--r-lg)];
+  @apply [padding:44px_32px];
+  @apply [background:var(--card-2)];
 }
-.wp-placeholder-t { font-size: 18px; font-weight: 750; color: var(--ink-2); }
-.wp-placeholder-s { margin-top: 8px; font-size: 13.5px; font-weight: 600; color: var(--ink-3); line-height: 1.55; }
+.wp-placeholder-t {
+  @apply [font-size:18px];
+  @apply [font-weight:750];
+  @apply [color:var(--ink-2)];
+}
+.wp-placeholder-s {
+  @apply [margin-top:8px];
+  @apply [font-size:13.5px];
+  @apply font-semibold;
+  @apply [color:var(--ink-3)];
+  @apply [line-height:1.55];
+}
 
 /* ── Lobby ──────────────────────────────────────────────────────────────────── */
 .wp-lobby {
-  max-width: 560px; margin: 8px auto 0;
-  background: var(--card); border-radius: var(--r-xl); box-shadow: var(--sh-2);
-  padding: 30px 32px 28px;
+  @apply [max-width:560px];
+  @apply [margin:8px_auto_0];
+  @apply [background:var(--card)];
+  @apply [border-radius:var(--r-xl)];
+  @apply [box-shadow:var(--sh-2)];
+  @apply [padding:30px_32px_28px];
 }
-.wp-lobby-t { font-size: 27px; font-weight: 600; letter-spacing: -0.022em; }
-.wp-lobby-s { margin-top: 5px; font-size: 13.5px; font-weight: 600; color: var(--ink-2); line-height: 1.5; }
-.wp-lobby-acts { margin: 20px 0 24px; display: flex; flex-direction: column; gap: 12px; }
+.wp-lobby-t {
+  @apply [font-size:27px];
+  @apply font-semibold;
+  @apply [letter-spacing:-0.022em];
+}
+.wp-lobby-s {
+  @apply [margin-top:5px];
+  @apply [font-size:13.5px];
+  @apply font-semibold;
+  @apply [color:var(--ink-2)];
+  @apply [line-height:1.5];
+}
+.wp-lobby-acts {
+  @apply [margin:20px_0_24px];
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:12px];
+}
 .wp-lobby-act-h {
-  font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em;
-  color: var(--gold-d);
+  @apply [font-size:10.5px];
+  @apply font-extrabold;
+  @apply [text-transform:uppercase];
+  @apply [letter-spacing:0.07em];
+  @apply [color:var(--gold-d)];
 }
-.wp-lobby-act-steps { margin-top: 3px; font-size: 14.5px; font-weight: 650; color: var(--ink); line-height: 1.35; }
-.wp-lobby-go { width: 100%; justify-content: center; }
+.wp-lobby-act-steps {
+  @apply [margin-top:3px];
+  @apply [font-size:14.5px];
+  @apply [font-weight:650];
+  @apply [color:var(--ink)];
+  @apply [line-height:1.35];
+}
+.wp-lobby-go {
+  @apply [width:100%];
+  @apply justify-center;
+}
 /* "Park a note" between sessions: under the lobby's primary, beside "Reopen" on the record. */
-.wp-lobby .wp-park-between { width: 100%; justify-content: center; margin-top: 10px; }
+.wp-lobby .wp-park-between {
+  @apply [width:100%];
+  @apply justify-center;
+  @apply [margin-top:10px];
+}
 
 /* ── Agenda sheet ───────────────────────────────────────────────────────────── */
 /* `width: min(520px, …)` against the VIEWPORT, not `max-width: 100%`.
@@ -169,131 +428,371 @@
    column 520px wide, `100%` then resolves to 520px too, and the card sails past a 390px
    phone with its text clipped. Other modals dodge this by never setting `width`.
    The 48px is the overlay's own 24px padding, both sides. */
-.wp-sheet { width: min(520px, calc(100vw - 48px)); max-width: none; padding: 24px 26px 20px; }
-.wp-sheet-t { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 4px; }
-.wp-sheet-s { font-size: 13.5px; font-weight: 600; color: var(--ink-2); margin-bottom: 14px; }
+.wp-sheet {
+  @apply [width:min(520px,_calc(100vw_-_48px))];
+  @apply [max-width:none];
+  @apply [padding:24px_26px_20px];
+}
+.wp-sheet-t {
+  @apply [font-size:24px];
+  @apply font-semibold;
+  @apply [letter-spacing:-0.02em];
+  @apply [margin-bottom:4px];
+}
+.wp-sheet-s {
+  @apply [font-size:13.5px];
+  @apply font-semibold;
+  @apply [color:var(--ink-2)];
+  @apply [margin-bottom:14px];
+}
 .wp-sheet-act {
-  font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em;
-  color: var(--gold-d); padding: 12px 0 4px;
+  @apply [font-size:10.5px];
+  @apply font-extrabold;
+  @apply [text-transform:uppercase];
+  @apply [letter-spacing:0.07em];
+  @apply [color:var(--gold-d)];
+  @apply [padding:12px_0_4px];
 }
 .wp-sheet-step {
-  display: flex; align-items: center; gap: 11px; width: 100%;
-  padding: 9px 0; border: 0; border-bottom: 1px solid var(--hair-2);
-  background: none; font: inherit; font-size: 15px; font-weight: 600;
-  color: var(--ink-2); text-align: left; cursor: pointer;
+  @apply flex;
+  @apply items-center;
+  @apply [gap:11px];
+  @apply [width:100%];
+  @apply [padding:9px_0];
+  @apply [border:0];
+  @apply [border-bottom:1px_solid_var(--hair-2)];
+  @apply [background:none];
+  @apply [font:inherit];
+  @apply [font-size:15px];
+  @apply font-semibold;
+  @apply [color:var(--ink-2)];
+  @apply text-left;
+  @apply cursor-pointer;
 }
-.wp-sheet-step:hover { color: var(--ink); }
+.wp-sheet-step:hover {
+  @apply [color:var(--ink)];
+}
 /* The name takes the slack so a long title ellipsises instead of shoving the "you're here"
    marker off the card's edge. */
-.wp-sheet-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.wp-sheet-n {
-  width: 22px; height: 22px; border-radius: 999px; background: var(--panel);
-  font-size: 11px; font-weight: 800; display: grid; place-items: center;
-  color: var(--ink-2); flex: none;
+.wp-sheet-name {
+  @apply [min-width:0];
+  @apply overflow-hidden;
+  @apply [text-overflow:ellipsis];
+  @apply whitespace-nowrap;
 }
-.wp-sheet-step.done { color: var(--ink-3); }
-.wp-sheet-step.done .wp-sheet-n { background: var(--success); color: var(--on-accent); }
-.wp-sheet-step.on { color: var(--ink); font-weight: 750; }
-.wp-sheet-step.on .wp-sheet-n { background: var(--primary); color: var(--on-accent); }
-.wp-sheet-m { margin-left: auto; font-size: 12px; font-weight: 650; color: var(--ink-2); }
-.wp-sheet-f { display: flex; gap: 10px; margin-top: 16px; }
-.wp-sheet-f .btn { flex: 1; justify-content: center; }
+.wp-sheet-n {
+  @apply [width:22px];
+  @apply [height:22px];
+  @apply [border-radius:999px];
+  @apply [background:var(--panel)];
+  @apply [font-size:11px];
+  @apply font-extrabold;
+  @apply grid;
+  @apply [place-items:center];
+  @apply [color:var(--ink-2)];
+  @apply [flex:none];
+}
+.wp-sheet-step.done {
+  @apply [color:var(--ink-3)];
+}
+.wp-sheet-step.done .wp-sheet-n {
+  @apply [background:var(--success)];
+  @apply [color:var(--on-accent)];
+}
+.wp-sheet-step.on {
+  @apply [color:var(--ink)];
+  @apply [font-weight:750];
+}
+.wp-sheet-step.on .wp-sheet-n {
+  @apply [background:var(--primary)];
+  @apply [color:var(--on-accent)];
+}
+.wp-sheet-m {
+  @apply [margin-left:auto];
+  @apply [font-size:12px];
+  @apply [font-weight:650];
+  @apply [color:var(--ink-2)];
+}
+.wp-sheet-f {
+  @apply flex;
+  @apply [gap:10px];
+  @apply [margin-top:16px];
+}
+.wp-sheet-f .btn {
+  @apply [flex:1];
+  @apply justify-center;
+}
 
-.wp-sheet-danger { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--hair-2); text-align: center; }
+.wp-sheet-danger {
+  @apply [margin-top:12px];
+  @apply [padding-top:12px];
+  @apply [border-top:1px_solid_var(--hair-2)];
+  @apply text-center;
+}
 .wp-sheet-danger-open,
 .wp-sheet-danger-no {
-  background: none; border: 0; padding: 6px 8px; cursor: pointer;
-  font: inherit; font-size: 12.5px; font-weight: 700; color: var(--ink-3);
+  @apply [background:none];
+  @apply [border:0];
+  @apply [padding:6px_8px];
+  @apply cursor-pointer;
+  @apply [font:inherit];
+  @apply [font-size:12.5px];
+  @apply font-bold;
+  @apply [color:var(--ink-3)];
 }
-.wp-sheet-danger-open:hover, .wp-sheet-danger-no:hover { color: var(--ink); }
-.wp-sheet-danger-q { font-size: 12.5px; font-weight: 600; color: var(--ink-2); line-height: 1.5; text-align: left; }
-.wp-sheet-danger-acts { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+.wp-sheet-danger-open:hover,
+.wp-sheet-danger-no:hover {
+  @apply [color:var(--ink)];
+}
+.wp-sheet-danger-q {
+  @apply [font-size:12.5px];
+  @apply font-semibold;
+  @apply [color:var(--ink-2)];
+  @apply [line-height:1.5];
+  @apply text-left;
+}
+.wp-sheet-danger-acts {
+  @apply flex;
+  @apply items-center;
+  @apply justify-end;
+  @apply [gap:8px];
+  @apply [margin-top:8px];
+}
 .wp-sheet-danger-yes {
-  border: 0; border-radius: 999px; padding: 8px 16px; cursor: pointer;
-  font: inherit; font-size: 13px; font-weight: 750;
-  background: var(--danger); color: var(--on-accent);
+  @apply [border:0];
+  @apply [border-radius:999px];
+  @apply [padding:8px_16px];
+  @apply cursor-pointer;
+  @apply [font:inherit];
+  @apply [font-size:13px];
+  @apply [font-weight:750];
+  @apply [background:var(--danger)];
+  @apply [color:var(--on-accent)];
 }
-.wp-sheet-danger-yes:disabled { opacity: 0.5; cursor: default; }
+.wp-sheet-danger-yes:disabled {
+  @apply [opacity:0.5];
+  @apply cursor-default;
+}
 
 /* ── The week stepper ──────────────────────────────────────────────────────────
    Deliberately NOT in the session header: once a session is running the week it plans is
    settled, so switching lives on the entry surfaces where changing your mind is free. */
-.wp-weeknav { display: inline-flex; align-items: center; gap: 4px; }
-.wp-weeknav-l { font-size: 13px; font-weight: 750; color: var(--ink); min-width: 96px; text-align: center; }
-.wp-weekarrow {
-  width: 28px; height: 28px; flex: none; border: 0; border-radius: 999px;
-  background: var(--panel); color: var(--ink-2);
-  font: inherit; font-size: 16px; font-weight: 700; line-height: 1; cursor: pointer;
+.wp-weeknav {
+  @apply inline-flex;
+  @apply items-center;
+  @apply [gap:4px];
 }
-.wp-weekarrow:hover:not(:disabled) { background: var(--hair); color: var(--ink); }
-.wp-weekarrow:disabled { opacity: 0.35; cursor: default; }
-.wp-weeknav-lobby { margin-top: 14px; }
-.wp-weeknav-sheet { margin-top: 10px; }
+.wp-weeknav-l {
+  @apply [font-size:13px];
+  @apply [font-weight:750];
+  @apply [color:var(--ink)];
+  @apply [min-width:96px];
+  @apply text-center;
+}
+.wp-weekarrow {
+  @apply [width:28px];
+  @apply [height:28px];
+  @apply [flex:none];
+  @apply [border:0];
+  @apply [border-radius:999px];
+  @apply [background:var(--panel)];
+  @apply [color:var(--ink-2)];
+  @apply [font:inherit];
+  @apply [font-size:16px];
+  @apply font-bold;
+  @apply [line-height:1];
+  @apply cursor-pointer;
+}
+.wp-weekarrow:hover:not(:disabled) {
+  @apply [background:var(--hair)];
+  @apply [color:var(--ink)];
+}
+.wp-weekarrow:disabled {
+  @apply [opacity:0.35];
+  @apply cursor-default;
+}
+.wp-weeknav-lobby {
+  @apply [margin-top:14px];
+}
+.wp-weeknav-sheet {
+  @apply [margin-top:10px];
+}
 
 /* ── The saved record ───────────────────────────────────────────────────────── */
 .wp-record {
-  max-width: 640px; margin: 8px auto 0;
-  background: var(--card); border-radius: var(--r-xl); box-shadow: var(--sh-2);
-  padding: 28px 32px 24px;
+  @apply [max-width:640px];
+  @apply [margin:8px_auto_0];
+  @apply [background:var(--card)];
+  @apply [border-radius:var(--r-xl)];
+  @apply [box-shadow:var(--sh-2)];
+  @apply [padding:28px_32px_24px];
 }
 /* A record with no panel (the recap step off) keeps the 640px receipt it has always been. */
-.wp-record.is-read { max-width: 1180px; }
+.wp-record.is-read {
+  @apply [max-width:1180px];
+}
 
-.wp-record-read { margin-top: 20px; }
+.wp-record-read {
+  @apply [margin-top:20px];
+}
 
 .wp-record-steps {
-  margin-top: 26px; padding-top: 16px; border-top: 1px solid var(--hair-2);
-  font-size: 11.5px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
-  color: var(--ink-3);
+  @apply [margin-top:26px];
+  @apply [padding-top:16px];
+  @apply [border-top:1px_solid_var(--hair-2)];
+  @apply [font-size:11.5px];
+  @apply font-extrabold;
+  @apply [letter-spacing:0.06em];
+  @apply [text-transform:uppercase];
+  @apply [color:var(--ink-3)];
 }
 
-.wp-record.is-read .wp-record-list { margin-top: 6px; }
+.wp-record.is-read .wp-record-list {
+  @apply [margin-top:6px];
+}
 
 .wp-err {
-  max-width: 620px; width: 100%; margin: 0 auto 4px;
-  border-radius: var(--r-lg); padding: 10px 14px;
-  background: var(--card-2); border: 1px solid var(--danger);
-  font-size: 13px; font-weight: 650; color: var(--ink);
+  @apply [max-width:620px];
+  @apply [width:100%];
+  @apply [margin:0_auto_4px];
+  @apply [border-radius:var(--r-lg)];
+  @apply [padding:10px_14px];
+  @apply [background:var(--card-2)];
+  @apply [border:1px_solid_var(--danger)];
+  @apply [font-size:13px];
+  @apply [font-weight:650];
+  @apply [color:var(--ink)];
 }
 
-.wp-record-t { font-size: 26px; font-weight: 600; letter-spacing: -0.02em; }
-.wp-record-s { margin-top: 4px; font-size: 13.5px; font-weight: 600; color: var(--ink-2); }
-.wp-record-list { margin: 20px 0 4px; }
-.wp-record-row { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--hair-2); }
-.wp-record-row:last-child { border-bottom: 0; }
-.wp-record-n {
-  width: 22px; height: 22px; border-radius: 999px; flex: none;
-  background: var(--success); color: var(--on-accent);
-  font-size: 12px; font-weight: 800; display: grid; place-items: center;
+.wp-record-t {
+  @apply [font-size:26px];
+  @apply font-semibold;
+  @apply [letter-spacing:-0.02em];
 }
-.wp-record-row.skipped .wp-record-n { background: var(--panel); color: var(--ink-2); }
-.wp-record-main { min-width: 0; }
-.wp-record-main b { display: block; font-size: 15.5px; font-weight: 650; }
-.wp-record-main s { display: block; font-size: 12.5px; font-weight: 600; color: var(--ink-2); text-decoration: none; margin-top: 1px; }
-.wp-record-f { display: flex; gap: 10px; margin-top: 18px; }
-.wp-record-f .btn { flex: 1; justify-content: center; }
+.wp-record-s {
+  @apply [margin-top:4px];
+  @apply [font-size:13.5px];
+  @apply font-semibold;
+  @apply [color:var(--ink-2)];
+}
+.wp-record-list {
+  @apply [margin:20px_0_4px];
+}
+.wp-record-row {
+  @apply flex;
+  @apply items-center;
+  @apply [gap:12px];
+  @apply [padding:11px_0];
+  @apply [border-bottom:1px_solid_var(--hair-2)];
+}
+.wp-record-row:last-child {
+  @apply [border-bottom:0];
+}
+.wp-record-n {
+  @apply [width:22px];
+  @apply [height:22px];
+  @apply [border-radius:999px];
+  @apply [flex:none];
+  @apply [background:var(--success)];
+  @apply [color:var(--on-accent)];
+  @apply [font-size:12px];
+  @apply font-extrabold;
+  @apply grid;
+  @apply [place-items:center];
+}
+.wp-record-row.skipped .wp-record-n {
+  @apply [background:var(--panel)];
+  @apply [color:var(--ink-2)];
+}
+.wp-record-main {
+  @apply [min-width:0];
+}
+.wp-record-main b {
+  @apply block;
+  @apply [font-size:15.5px];
+  @apply [font-weight:650];
+}
+.wp-record-main s {
+  @apply block;
+  @apply [font-size:12.5px];
+  @apply font-semibold;
+  @apply [color:var(--ink-2)];
+  @apply [text-decoration:none];
+  @apply [margin-top:1px];
+}
+.wp-record-f {
+  @apply flex;
+  @apply [gap:10px];
+  @apply [margin-top:18px];
+}
+.wp-record-f .btn {
+  @apply [flex:1];
+  @apply justify-center;
+}
 .wp-record-week {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--hair-2);
-  font-size: 13px; font-weight: 650; color: var(--ink-2);
+  @apply flex;
+  @apply items-center;
+  @apply justify-between;
+  @apply [gap:12px];
+  @apply [margin-top:16px];
+  @apply [padding-top:14px];
+  @apply [border-top:1px_solid_var(--hair-2)];
+  @apply [font-size:13px];
+  @apply [font-weight:650];
+  @apply [color:var(--ink-2)];
 }
 
 /* ── Narrow (phone) ────────────────────────────────────────────────────────────
    The design's phone frame is the same screen, not a lesser one: only the type scale and
    the padding come down, and the week label drops out of the header. */
 @media (max-width: 720px) {
-  .wp-screen { padding: 16px 16px 28px; }
-  .wp-head { padding: 12px 18px 0; gap: 10px; }
-  .wp-head > .wp-title { flex-basis: 100%; font-size: 25px; }
-  .wp-ask { flex-basis: 100%; font-size: 13.5px; }
-  .wp-week { display: none; }
-  .wp-body { padding: 18px 18px 6px; }
-  .wp-foot { padding: 12px 18px; gap: 8px; }
+  .wp-screen {
+    @apply [padding:16px_16px_28px];
+  }
+  .wp-head {
+    @apply [padding:12px_18px_0];
+    @apply [gap:10px];
+  }
+  .wp-head > .wp-title {
+    @apply [flex-basis:100%];
+    @apply [font-size:25px];
+  }
+  .wp-ask {
+    @apply [flex-basis:100%];
+    @apply [font-size:13.5px];
+  }
+  .wp-week {
+    @apply hidden;
+  }
+  .wp-body {
+    @apply [padding:18px_18px_6px];
+  }
+  .wp-foot {
+    @apply [padding:12px_18px];
+    @apply [gap:8px];
+  }
   /* nowrap: the affirmative is short but not one word ("Save the week"), and letting it
      wrap turns the primary into a two-line block that dwarfs the footer. */
-  .wp-primary { flex: 1; justify-content: center; font-size: 15px; padding: 13px 18px; white-space: nowrap; }
-  .wp-next { display: none; }
-  .wp-skip { font-size: 14px; padding: 12px 2px; }
-  .wp-placeholder { padding: 32px 20px; }
-  .wp-lobby, .wp-record { padding: 22px 20px 20px; border-radius: var(--r-lg); }
+  .wp-primary {
+    @apply [flex:1];
+    @apply justify-center;
+    @apply [font-size:15px];
+    @apply [padding:13px_18px];
+    @apply whitespace-nowrap;
+  }
+  .wp-next {
+    @apply hidden;
+  }
+  .wp-skip {
+    @apply [font-size:14px];
+    @apply [padding:12px_2px];
+  }
+  .wp-placeholder {
+    @apply [padding:32px_20px];
+  }
+  .wp-lobby,
+  .wp-record {
+    @apply [padding:22px_20px_20px];
+    @apply [border-radius:var(--r-lg)];
+  }
 }

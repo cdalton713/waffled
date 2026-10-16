@@ -5,7 +5,7 @@ description: Run Waffled locally for development.
 
 Waffled is a monorepo, but it is **not** an npm-workspaces monorepo — there is no
 root `package.json`. Each app manages its own dependencies: `apps/api` and
-`apps/web` each have their own `package.json` + `package-lock.json`, and you run
+`apps/web` each have their own `package.json` + `pnpm-lock.yaml`, and you run
 `npm` **inside each directory**. The iOS app lives in `apps/ios` (see
 [iOS development](/developer/ios/)); the Mac menu-bar app and its Go runtime live in
 `apps/mac` and `apps/runtime` (see [below](#working-on-the-mac-app-and-runtime)).
@@ -65,25 +65,33 @@ the host API against it (point `DATABASE_URL` at the Compose Postgres on
 **API** (`cd apps/api`):
 
 ```bash
-npm run dev        # tsx watch src/server.ts — hot reload
-npm run build      # esbuild bundle → dist/
+pnpm run dev        # tsx watch src/server.ts — hot reload
+pnpm run build      # esbuild bundle → dist/
 npm start          # node dist/server.js
-npm run token      # mint a dev JWT from the host
+pnpm run token      # mint a dev JWT from the host
 ```
 
-`npm run dev` needs a Postgres reachable via `DATABASE_URL`. `npm run token`
+`pnpm run dev` needs a Postgres reachable via `DATABASE_URL`. `pnpm run token`
 mints a JWT from the host and requires **local-auth mode** — that is,
 `AUTH0_DOMAIN` unset — with the signing secret matching `LOCAL_JWT_SECRET`.
 
 **Web** (`cd apps/web`):
 
 ```bash
-npm run dev        # vite dev server
-npm run build      # tsc -b && vite build
+pnpm run dev        # vite dev server
+pnpm run build      # tsc -b && vite build
 ```
 
 The **web app and the kiosk are the same build** — the kiosk is a layout / PWA
 mode of the web app, not a separate bundle.
+
+The dev server proxies `/api` to `http://localhost:3000`. To run a second copy beside
+one that already uses those ports, start the api with another `PORT` and point the web
+server at it:
+
+```bash
+WAFFLED_DEV_API_URL=http://localhost:3300 pnpm exec vite --port 5275 --strictPort
+```
 
 ## Pointing the iOS simulator at your local stack
 

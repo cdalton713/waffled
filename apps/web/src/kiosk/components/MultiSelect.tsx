@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { DataIcon } from '@/components/ui/data-icon'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
-// A pill that opens a checkbox popover for selecting multiple values.
 export function MultiSelect({
   label,
   options,
@@ -13,39 +15,50 @@ export function MultiSelect({
   onChange: (next: string[]) => void
 }) {
   const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!open) return
-    function onDoc(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', onDoc)
-    return () => document.removeEventListener('mousedown', onDoc)
-  }, [open])
-
   if (options.length === 0) return null
-  const toggle = (o: string) => onChange(selected.includes(o) ? selected.filter((x) => x !== o) : [...selected, o])
-  const text = selected.length === 0 ? label : `${label} · ${selected.length}`
-
+  const toggle = (option: string) =>
+    onChange(
+      selected.includes(option)
+        ? selected.filter((value) => value !== option)
+        : [...selected, option],
+    )
+  const text = selected.length === 0 ? label : label + ' · ' + selected.length
   return (
-    <div className="ms-wrap" ref={ref}>
-      <button type="button" className={`recipes-filter ${selected.length ? 'on' : ''}`} onClick={() => setOpen((v) => !v)}>
-        {text}
-      </button>
-      {open && (
-        <div className="ms-menu">
-          {options.map((o) => {
-            const on = selected.includes(o)
+    <div className="ms-wrap">
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="unstyled"
+            type="button"
+            className={'recipes-filter ' + (selected.length ? 'on' : '')}
+          >
+            {text}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent
+          className="ms-menu"
+          align="start"
+          aria-label={label}
+          style={{ position: 'relative', left: 'auto', top: 'auto' }}
+        >
+          {options.map((option) => {
+            const on = selected.includes(option)
             return (
-              <button key={o} type="button" className="ms-opt" onClick={() => toggle(o)}>
-                <span className={`ms-ck ${on ? 'on' : ''}`}>{on ? '✓' : ''}</span>
-                <span className="ms-opt-t">{o}</span>
-              </button>
+              <Button
+                variant="unstyled"
+                key={option}
+                type="button"
+                className="ms-opt"
+                aria-pressed={on}
+                onClick={() => toggle(option)}
+              >
+                <span className={'ms-ck ' + (on ? 'on' : '')}>{on && <DataIcon value="✓" />}</span>
+                <span className="ms-opt-t">{option}</span>
+              </Button>
             )
           })}
-        </div>
-      )}
+        </PopoverContent>
+      </Popover>
     </div>
   )
 }

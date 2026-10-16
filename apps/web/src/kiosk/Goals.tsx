@@ -5,12 +5,32 @@ import { useNavigate, useSearchParams } from 'react-router'
 import { Icon } from './icons'
 import { LogModal } from './components/LogModal'
 import { ListModal } from './components/ListModal'
-import { api, useGoalLists, useGoals, useHousehold, can, goalDisplayProgress as dispProgress, goalDisplayTarget as dispTarget, goalWeekTargetLabel, fmtGoalNum, type Goal, type GoalList, type GoalParticipant } from '../lib/api'
+import {
+  api,
+  useGoalLists,
+  useGoals,
+  useHousehold,
+  can,
+  goalDisplayProgress as dispProgress,
+  goalDisplayTarget as dispTarget,
+  goalWeekTargetLabel,
+  fmtGoalNum,
+  type Goal,
+  type GoalList,
+  type GoalParticipant,
+} from '../lib/api'
 import { parseGoalDate } from '../lib/goalStats'
 import { CATEGORIES } from './categories'
 import '../styles/goals.css'
+import { Button } from '@/components/ui/button'
+import { DataIcon } from '@/components/ui/data-icon'
 
-const TYPE_LABEL: Record<string, string> = { count: 'Count', total: 'Total', habit: 'Habit', checklist: 'Checklist' }
+const TYPE_LABEL: Record<string, string> = {
+  count: 'Count',
+  total: 'Total',
+  habit: 'Habit',
+  checklist: 'Checklist',
+}
 
 function frac(progress: number, target: number | null): number {
   return target ? Math.min(progress / target, 1) : 0
@@ -40,7 +60,8 @@ function firstName(name: string): string {
 function descriptor(g: Goal): string {
   const label = TYPE_LABEL[g.goalType] ?? g.goalType
   let q: string
-  if (g.goalType === 'habit') q = `${g.habitTargetPerPeriod ?? ''}× a ${g.habitPeriod ?? 'week'}`.trim()
+  if (g.goalType === 'habit')
+    q = `${g.habitTargetPerPeriod ?? ''}× a ${g.habitPeriod ?? 'week'}`.trim()
   else if (g.goalType === 'checklist') q = `${g.stepTotal} step${g.stepTotal === 1 ? '' : 's'}`
   else if (g.trackingMode === 'each_tracks') q = `each logs ${g.unit ?? 'progress'}`
   else if (g.unit) q = `in ${g.unit}`
@@ -57,16 +78,47 @@ function listSub(list: GoalList): string {
   return `Everyone · ${list.members.length} people`
 }
 
-function Ring({ value, px, stroke, track, children }: { value: number; px: number; stroke: string; track: string; children: ReactNode }) {
+function Ring({
+  value,
+  px,
+  stroke,
+  track,
+  children,
+}: {
+  value: number
+  px: number
+  stroke: string
+  track: string
+  children: ReactNode
+}) {
   const C = 276.5
   const dash = (Math.min(Math.max(value, 0), 1) * C).toFixed(1)
   return (
     <div style={{ position: 'relative', width: px, height: px, flex: 'none' }}>
       <svg viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
         <circle cx="50" cy="50" r="44" fill="none" stroke={track} strokeWidth="9" />
-        <circle cx="50" cy="50" r="44" fill="none" stroke={stroke} strokeWidth="9" strokeLinecap="round" strokeDasharray={`${dash} ${C}`} />
+        <circle
+          cx="50"
+          cy="50"
+          r="44"
+          fill="none"
+          stroke={stroke}
+          strokeWidth="9"
+          strokeLinecap="round"
+          strokeDasharray={`${dash} ${C}`}
+        />
       </svg>
-      <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', textAlign: 'center' }}>{children}</div>
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          display: 'grid',
+          placeItems: 'center',
+          textAlign: 'center',
+        }}
+      >
+        {children}
+      </div>
     </div>
   )
 }
@@ -76,12 +128,15 @@ function ContribRow({ p, max, unit }: { p: GoalParticipant; max: number; unit: s
   return (
     <div className="contrib-row">
       <div className="cn" style={{ color: 'var(--on-accent)' }}>
-        {p.avatarEmoji ?? '🙂'} {firstName(p.name)}
+        <DataIcon value={p.avatarEmoji ?? '🙂'} kind="person" /> {firstName(p.name)}
       </div>
       <div className="cbar">
         <div style={{ width: `${w}%` }} />
       </div>
-      <div className="cv" style={{ whiteSpace: 'nowrap', width: 'auto', minWidth: 56, paddingLeft: 8 }}>
+      <div
+        className="cv"
+        style={{ whiteSpace: 'nowrap', width: 'auto', minWidth: 56, paddingLeft: 8 }}
+      >
         {fmtNum(p.progress)}
         {unit ? ` ${unit}` : ''}
       </div>
@@ -90,24 +145,54 @@ function ContribRow({ p, max, unit }: { p: GoalParticipant; max: number; unit: s
 }
 
 // Featured goal, green pooled hero (shared_total).
-function SharedHero({ goal, onLog, onOpen }: { goal: Goal; onLog: (g: Goal) => void; onOpen: () => void }) {
+function SharedHero({
+  goal,
+  onLog,
+  onOpen,
+}: {
+  goal: Goal
+  onLog: (g: Goal) => void
+  onOpen: () => void
+}) {
   const max = Math.max(1, ...goal.participants.map((p) => p.progress))
   return (
     <div className="challenge goal-hero" onClick={onOpen}>
       <div className="ch-row">
-        <Ring value={frac(dispProgress(goal), dispTarget(goal))} px={130} stroke="#fff" track="rgba(255,255,255,.25)">
+        <Ring
+          value={frac(dispProgress(goal), dispTarget(goal))}
+          px={130}
+          stroke="#fff"
+          track="rgba(255,255,255,.25)"
+        >
           <div>
-            <div className="hero-ring-num" style={{ fontSize: ringNumFont(fmtNum(dispProgress(goal)), 30) }}>{fmtNum(dispProgress(goal))}</div>
+            <div
+              className="hero-ring-num"
+              style={{ fontSize: ringNumFont(fmtNum(dispProgress(goal)), 30) }}
+            >
+              {fmtNum(dispProgress(goal))}
+            </div>
             <div className="hero-ring-sub">
-              {goal.goalType === 'habit' ? `${goal.habitPeriod === 'day' ? 'today' : `this ${goal.habitPeriod ?? 'week'}`}` : `of ${fmtNum(dispTarget(goal))}${goal.unit ? ` ${goal.unit}` : ''}`}
+              {goal.goalType === 'habit'
+                ? `${goal.habitPeriod === 'day' ? 'today' : `this ${goal.habitPeriod ?? 'week'}`}`
+                : `of ${fmtNum(dispTarget(goal))}${goal.unit ? ` ${goal.unit}` : ''}`}
             </div>
           </div>
         </Ring>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <span className="cat-pill hero-pill">🌟 Spotlight · shared total</span>
+          <span className="cat-pill hero-pill">
+            <>
+              <DataIcon value={'🌟'} kind="goal" />
+              {' Spotlight · shared total'}
+            </>
+          </span>
           <div className="wf-serif hero-title">{goal.title}</div>
-          <div className="hero-sub">Everyone contributes to one pool{goal.deadline ? ` · by ${fmtDeadline(goal.deadline)}` : ''}</div>
-          {goalWeekTargetLabel(goal) && <div className="hero-week">{goalWeekTargetLabel(goal)}</div>}
+          <div className="hero-sub">
+            Everyone contributes to one pool
+            {goal.deadline ? ` · by ${fmtDeadline(goal.deadline)}` : ''}
+          </div>
+          {goalWeekTargetLabel(goal) && (
+            <div className="hero-week">{goalWeekTargetLabel(goal)}</div>
+          )}
           {goal.participants.length > 0 && (
             <div className="hero-contribs">
               {goal.participants.map((p) => (
@@ -117,9 +202,17 @@ function SharedHero({ goal, onLog, onOpen }: { goal: Goal; onLog: (g: Goal) => v
           )}
         </div>
         <div className="ch-side">
-          {goal.streakDays > 0 && <span className="streak-pill hero-streak">🔥 {goal.streakDays}-day streak</span>}
-          <button
-            className="btn hero-log"
+          {goal.streakDays > 0 && (
+            <span className="streak-pill hero-streak">
+              <>
+                <DataIcon value={'🔥'} kind="goal" />{' '}
+              </>
+              {goal.streakDays}-day streak
+            </span>
+          )}
+          <Button
+            variant="plain"
+            className="hero-log"
             onClick={(e) => {
               e.stopPropagation()
               onLog(goal)
@@ -127,7 +220,7 @@ function SharedHero({ goal, onLog, onOpen }: { goal: Goal; onLog: (g: Goal) => v
           >
             <Icon name="plus" />
             Log {goal.unit ?? 'progress'}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -136,7 +229,8 @@ function SharedHero({ goal, onLog, onOpen }: { goal: Goal; onLog: (g: Goal) => v
 
 // Featured goal, orange "each tracks their own" hero.
 function EachHero({ goal, onOpen }: { goal: Goal; onOpen: () => void }) {
-  const summedTarget = goal.participants.reduce((s, p) => s + (p.target ?? 0), 0) || goal.target || 0
+  const summedTarget =
+    goal.participants.reduce((s, p) => s + (p.target ?? 0), 0) || goal.target || 0
   const sub = [
     goal.target ? `${fmtNum(goal.target)} ${goal.unit ?? ''} each`.trim() : null,
     goal.deadline ? `by ${fmtDeadline(goal.deadline)}` : null,
@@ -147,26 +241,48 @@ function EachHero({ goal, onOpen }: { goal: Goal; onOpen: () => void }) {
   return (
     <div className="challenge goal-hero hero-each" onClick={onOpen}>
       <div className="ch-row">
-        <div className="hero-emoji">{goal.emoji ?? '🎯'}</div>
+        <div className="hero-emoji">
+          <DataIcon value={goal.emoji ?? '🎯'} kind="goal" />
+        </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <span className="cat-pill hero-pill">🌟 Spotlight · each tracks their own</span>
+          <span className="cat-pill hero-pill">
+            <>
+              <DataIcon value={'🌟'} kind="goal" />
+              {' Spotlight · each tracks their own'}
+            </>
+          </span>
           <div className="wf-serif hero-title">{goal.title}</div>
           <div className="hero-sub">{sub}</div>
-          {goalWeekTargetLabel(goal) && <div className="hero-week">{goalWeekTargetLabel(goal)}</div>}
+          {goalWeekTargetLabel(goal) && (
+            <div className="hero-week">{goalWeekTargetLabel(goal)}</div>
+          )}
         </div>
         <div className="ch-side hero-each-side">
           <div className="hero-together-l">TOGETHER</div>
           <div className="hero-together-n">
             {fmtNum(goal.totalProgress)}/{fmtNum(summedTarget)}
           </div>
-          <div className="hero-open">tap to open ›</div>
+          <div className="hero-open">
+            <>
+              {'tap to open '}
+              <DataIcon value={'›'} kind="goal" />
+            </>
+          </div>
         </div>
       </div>
     </div>
   )
 }
 
-function Hero({ goal, onLog, onOpen }: { goal: Goal; onLog: (g: Goal) => void; onOpen: () => void }) {
+function Hero({
+  goal,
+  onLog,
+  onOpen,
+}: {
+  goal: Goal
+  onLog: (g: Goal) => void
+  onOpen: () => void
+}) {
   if (goal.trackingMode === 'each_tracks') return <EachHero goal={goal} onOpen={onOpen} />
   return <SharedHero goal={goal} onLog={onLog} onOpen={onOpen} />
 }
@@ -175,26 +291,46 @@ function Hero({ goal, onLog, onOpen }: { goal: Goal; onLog: (g: Goal) => void; o
 function PinButton({ goal, onPin }: { goal: Goal; onPin: () => void }) {
   const pinned = goal.isFeatured
   return (
-    <button
+    <Button
+      variant="unstyled"
       type="button"
       className={`goal-pin ${pinned ? 'on' : ''}`}
       title={pinned ? 'Unpin from top' : 'Pin to top'}
       aria-label={pinned ? 'Unpin from top' : 'Pin to top'}
-      onClick={(e) => { e.stopPropagation(); onPin() }}
-    >📌</button>
+      onClick={(e) => {
+        e.stopPropagation()
+        onPin()
+      }}
+    >
+      <DataIcon value={'📌'} kind="goal" />
+    </Button>
   )
 }
 
-function MoreGoalCard({ goal, onClick, onPin, canPin }: { goal: Goal; onClick: () => void; onPin?: () => void; canPin?: boolean }) {
+function MoreGoalCard({
+  goal,
+  onClick,
+  onPin,
+  canPin,
+}: {
+  goal: Goal
+  onClick: () => void
+  onPin?: () => void
+  canPin?: boolean
+}) {
   const c = goal.category ? CATEGORIES[goal.category] : null
   return (
     <div className="goal-card clickable more-goal" onClick={onClick}>
       <div className="gc-top">
-        <div className="goal-emoji">{goal.emoji ?? c?.emoji ?? '🎯'}</div>
+        <div className="goal-emoji">
+          <DataIcon value={goal.emoji ?? c?.emoji ?? '🎯'} kind="goal" />
+        </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div className="gc-t">{goal.title}</div>
           <div className="tiny muted goal-desc">{descriptor(goal)}</div>
-          {goalWeekTargetLabel(goal) && <div className="tiny goal-week">{goalWeekTargetLabel(goal)}</div>}
+          {goalWeekTargetLabel(goal) && (
+            <div className="tiny goal-week">{goalWeekTargetLabel(goal)}</div>
+          )}
         </div>
         <div className="goal-num">
           <span className="num">{fmtNum(dispProgress(goal))}</span>
@@ -203,7 +339,12 @@ function MoreGoalCard({ goal, onClick, onPin, canPin }: { goal: Goal; onClick: (
         {canPin && onPin && <PinButton goal={goal} onPin={onPin} />}
       </div>
       <div className="gc-bar">
-        <div style={{ width: `${(frac(dispProgress(goal), dispTarget(goal)) * 100).toFixed(0)}%`, background: barColor(goal) }} />
+        <div
+          style={{
+            width: `${(frac(dispProgress(goal), dispTarget(goal)) * 100).toFixed(0)}%`,
+            background: barColor(goal),
+          }}
+        />
       </div>
     </div>
   )
@@ -211,16 +352,38 @@ function MoreGoalCard({ goal, onClick, onPin, canPin }: { goal: Goal; onClick: (
 
 // A Pinned card — a touch more prominent than a "More" row, with a Pinned tag. (Internally
 // still the `is_featured` flag; "Pinned" is just the clearer user-facing name.)
-function PinnedCard({ goal, onClick, onPin, canPin }: { goal: Goal; onClick: () => void; onPin?: () => void; canPin?: boolean }) {
+function PinnedCard({
+  goal,
+  onClick,
+  onPin,
+  canPin,
+}: {
+  goal: Goal
+  onClick: () => void
+  onPin?: () => void
+  canPin?: boolean
+}) {
   const c = goal.category ? CATEGORIES[goal.category] : null
   return (
     <div className="goal-card clickable more-goal featured-goal" onClick={onClick}>
       <div className="gc-top">
-        <div className="goal-emoji">{goal.emoji ?? c?.emoji ?? '🎯'}</div>
+        <div className="goal-emoji">
+          <DataIcon value={goal.emoji ?? c?.emoji ?? '🎯'} kind="goal" />
+        </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div className="gc-t">{goal.title} <span className="feat-tag">📌 Pinned</span></div>
+          <div className="gc-t">
+            {goal.title}{' '}
+            <span className="feat-tag">
+              <>
+                <DataIcon value={'📌'} kind="goal" />
+                {' Pinned'}
+              </>
+            </span>
+          </div>
           <div className="tiny muted goal-desc">{descriptor(goal)}</div>
-          {goalWeekTargetLabel(goal) && <div className="tiny goal-week">{goalWeekTargetLabel(goal)}</div>}
+          {goalWeekTargetLabel(goal) && (
+            <div className="tiny goal-week">{goalWeekTargetLabel(goal)}</div>
+          )}
         </div>
         <div className="goal-num">
           <span className="num">{fmtNum(dispProgress(goal))}</span>
@@ -229,7 +392,12 @@ function PinnedCard({ goal, onClick, onPin, canPin }: { goal: Goal; onClick: () 
         {canPin && onPin && <PinButton goal={goal} onPin={onPin} />}
       </div>
       <div className="gc-bar">
-        <div style={{ width: `${(frac(dispProgress(goal), dispTarget(goal)) * 100).toFixed(0)}%`, background: barColor(goal) }} />
+        <div
+          style={{
+            width: `${(frac(dispProgress(goal), dispTarget(goal)) * 100).toFixed(0)}%`,
+            background: barColor(goal),
+          }}
+        />
       </div>
     </div>
   )
@@ -271,17 +439,25 @@ export function Goals() {
   const selected = lists.find((l) => l.id === selectedId) ?? lists[0] ?? null
   const { goals, loading: goalsLoading, refetch } = useGoals(selected?.id ?? null)
 
-
   // Pinning a goal is a lightweight edit — allowed for goal.manage holders, or the owner of
   // a solo goal. Quick toggle of the Pinned tier (isFeatured) straight from the card.
-  const canEditGoal = (g: Goal) => canManageGoals || (g.participants.length === 1 && g.participants[0].personId === person?.id)
+  const canEditGoal = (g: Goal) =>
+    canManageGoals || (g.participants.length === 1 && g.participants[0].personId === person?.id)
   const togglePin = async (g: Goal) => {
-    try { await api.updateGoal(g.id, { isFeatured: !g.isFeatured }); refetch() } catch { /* leave as-is on failure */ }
+    try {
+      await api.updateGoal(g.id, { isFeatured: !g.isFeatured })
+      refetch()
+    } catch {
+      /* leave as-is on failure */
+    }
   }
 
   const isIndividual = (selected?.members.length ?? 0) === 1
   const visible = goals.filter(
-    (g) => isIndividual || filter === 'all' || (filter === 'shared' ? g.trackingMode === 'shared_total' : g.trackingMode === 'each_tracks')
+    (g) =>
+      isIndividual ||
+      filter === 'all' ||
+      (filter === 'shared' ? g.trackingMode === 'shared_total' : g.trackingMode === 'each_tracks'),
   )
   // Three tiers (mirrors the API's derivation): the one Spotlight hero, the Pinned band,
   // then everything else as compact "More" rows. The API already returns goals A–Z, so the
@@ -296,7 +472,11 @@ export function Goals() {
   const maxGoalStreak = isIndividual ? Math.max(0, ...visible.map((g) => g.streakDays)) : 0
 
   if (listsError) {
-    return <div className="muted" style={{ padding: 30 }}>Couldn't load goals — try reloading or signing in again.</div>
+    return (
+      <div className="muted" style={{ padding: 30 }}>
+        Couldn't load goals — try reloading or signing in again.
+      </div>
+    )
   }
 
   return (
@@ -304,7 +484,12 @@ export function Goals() {
       <div className="goal-listrail">
         {shared.length > 0 && <div className="flabel">SHARED LISTS</div>}
         {shared.map((l) => (
-          <GlistItem key={l.id} list={l} on={l.id === selected?.id} onClick={() => selectList(l.id)} />
+          <GlistItem
+            key={l.id}
+            list={l}
+            on={l.id === selected?.id}
+            onClick={() => selectList(l.id)}
+          />
         ))}
         {individual.length > 0 && (
           <>
@@ -313,16 +498,28 @@ export function Goals() {
           </>
         )}
         {individual.map((l) => (
-          <GlistItem key={l.id} list={l} on={l.id === selected?.id} onClick={() => selectList(l.id)} />
+          <GlistItem
+            key={l.id}
+            list={l}
+            on={l.id === selected?.id}
+            onClick={() => selectList(l.id)}
+          />
         ))}
         {!listsLoading && lists.length === 0 && (
-          <div className="tiny muted" style={{ padding: '4px 8px', fontWeight: 600 }}>No goal lists yet.</div>
+          <div className="tiny muted" style={{ padding: '4px 8px', fontWeight: 600 }}>
+            No goal lists yet.
+          </div>
         )}
         <Editable>
-          <button type="button" className="btn btn-ghost rail-new-list" onClick={() => setCreatingList(true)}>
+          <Button
+            variant="ghost"
+            type="button"
+            className="rail-new-list"
+            onClick={() => setCreatingList(true)}
+          >
             <Icon name="plus" />
             New goal list
-          </button>
+          </Button>
         </Editable>
       </div>
 
@@ -332,56 +529,98 @@ export function Goals() {
           <div>
             {isIndividual && selected ? (
               // An individual list IS a person — make the name open their profile.
-              <button
+              <Button
+                variant="unstyled"
                 type="button"
                 className="wf-serif goal-listhead-t goal-listhead-link"
                 onClick={() => navigate(`/person/${selected.members[0].personId}`)}
                 title={`View ${selected.name}'s page`}
               >
                 {selected.name}
-              </button>
+              </Button>
             ) : (
               <div className="wf-serif goal-listhead-t">{selected?.name ?? 'All goals'}</div>
             )}
             <div className="tiny muted" style={{ fontWeight: 600 }}>
-              {selected ? `${selected.goalCount} goals · ${listSub(selected)}` : `${goals.length} goals`}
-              {maxGoalStreak >= 2 && <span title="Longest active goal streak"> · 🔥 {maxGoalStreak}-day goal streak</span>}
+              {selected
+                ? `${selected.goalCount} goals · ${listSub(selected)}`
+                : `${goals.length} goals`}
+              {maxGoalStreak >= 2 && (
+                <span title="Longest active goal streak">
+                  <>
+                    {' · '}
+                    <DataIcon value={'🔥'} kind="goal" />{' '}
+                  </>
+                  {maxGoalStreak}-day goal streak
+                </span>
+              )}
             </div>
           </div>
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 10, alignItems: 'center' }}>
             {/* All/Shared/Each only makes sense for multi-person lists */}
             {(selected?.members.length ?? 0) !== 1 && (
               <div className="seg">
-                <button className={filter === 'all' ? 'on' : ''} onClick={() => setFilter('all')}>All</button>
-                <button className={filter === 'shared' ? 'on' : ''} onClick={() => setFilter('shared')}>Shared</button>
-                <button className={filter === 'each' ? 'on' : ''} onClick={() => setFilter('each')}>Each</button>
+                <Button
+                  variant="unstyled"
+                  className={filter === 'all' ? 'on' : ''}
+                  onClick={() => setFilter('all')}
+                >
+                  All
+                </Button>
+                <Button
+                  variant="unstyled"
+                  className={filter === 'shared' ? 'on' : ''}
+                  onClick={() => setFilter('shared')}
+                >
+                  Shared
+                </Button>
+                <Button
+                  variant="unstyled"
+                  className={filter === 'each' ? 'on' : ''}
+                  onClick={() => setFilter('each')}
+                >
+                  Each
+                </Button>
               </div>
             )}
             {/* "Edit group" only makes sense for multi-person lists — an
                 individual isn't a group. */}
             {selected && !isIndividual && canManageGoals && (
-              <button type="button" className="pill" style={{ cursor: 'pointer' }} title="Edit group" onClick={() => setEditingList(selected)}>
-                ✎ Edit group
-              </button>
+              <Button
+                variant="unstyled"
+                type="button"
+                className="pill btn-primary"
+                style={{ cursor: 'pointer' }}
+                title="Edit group"
+                onClick={() => setEditingList(selected)}
+              >
+                <>
+                  <DataIcon value={'✎'} kind="goal" />
+                  {' Edit group'}
+                </>
+              </Button>
             )}
             {/* Carry the list prefill only when the user can actually target it —
                 goal.manage holders for any list, otherwise just their own self-only
                 list. A kid viewing a shared group lands on a clean (self-pickable)
                 create form instead of one that would 403 on submit. */}
             <Editable>
-            <button
-              type="button"
-              className="pill btn-primary"
-              onClick={() => {
-                const canTarget =
-                  !!selected &&
-                  (canManageGoals || (selected.members.length === 1 && selected.members[0].personId === person?.id))
-                navigate(`/goals/new${canTarget ? `?list=${selected!.id}` : ''}`)
-              }}
-            >
-              <Icon name="plus" />
-              <span>New goal</span>
-            </button>
+              <Button
+                variant="unstyled"
+                type="button"
+                className="pill btn-primary"
+                onClick={() => {
+                  const canTarget =
+                    !!selected &&
+                    (canManageGoals ||
+                      (selected.members.length === 1 &&
+                        selected.members[0].personId === person?.id))
+                  navigate(`/goals/new${canTarget ? `?list=${selected!.id}` : ''}`)
+                }}
+              >
+                <Icon name="plus" />
+                <span>New goal</span>
+              </Button>
             </Editable>
           </div>
         </div>
@@ -389,7 +628,11 @@ export function Goals() {
         {spotlight && (
           <>
             <div className="flabel more-label">SPOTLIGHT</div>
-            <Hero goal={spotlight} onLog={setLogging} onOpen={() => navigate(`/goals/${spotlight.id}`)} />
+            <Hero
+              goal={spotlight}
+              onLog={setLogging}
+              onOpen={() => navigate(`/goals/${spotlight.id}`)}
+            />
           </>
         )}
 
@@ -398,7 +641,13 @@ export function Goals() {
             <div className="flabel more-label">PINNED</div>
             <div className="more-grid">
               {pinned.map((g) => (
-                <PinnedCard key={g.id} goal={g} onClick={() => navigate(`/goals/${g.id}`)} onPin={() => togglePin(g)} canPin={canEditGoal(g)} />
+                <PinnedCard
+                  key={g.id}
+                  goal={g}
+                  onClick={() => navigate(`/goals/${g.id}`)}
+                  onPin={() => togglePin(g)}
+                  canPin={canEditGoal(g)}
+                />
               ))}
             </div>
           </>
@@ -406,10 +655,24 @@ export function Goals() {
 
         {more.length > 0 && (
           <>
-            <div className="flabel more-label">MORE {(selected?.name ?? '').toUpperCase()} GOALS <span className="tiny muted" style={{ fontWeight: 600, textTransform: 'none', letterSpacing: 0 }}>· A–Z</span></div>
+            <div className="flabel more-label">
+              MORE {(selected?.name ?? '').toUpperCase()} GOALS{' '}
+              <span
+                className="tiny muted"
+                style={{ fontWeight: 600, textTransform: 'none', letterSpacing: 0 }}
+              >
+                · A–Z
+              </span>
+            </div>
             <div className="more-grid">
               {more.map((g) => (
-                <MoreGoalCard key={g.id} goal={g} onClick={() => navigate(`/goals/${g.id}`)} onPin={() => togglePin(g)} canPin={canEditGoal(g)} />
+                <MoreGoalCard
+                  key={g.id}
+                  goal={g}
+                  onClick={() => navigate(`/goals/${g.id}`)}
+                  onPin={() => togglePin(g)}
+                  canPin={canEditGoal(g)}
+                />
               ))}
             </div>
           </>
@@ -426,7 +689,10 @@ export function Goals() {
         <LogModal
           goal={logging}
           canLogOthers={canManageGoals}
-          canDelete={canManageGoals || (logging.participants.length === 1 && logging.participants[0].personId === person?.id)}
+          canDelete={
+            canManageGoals ||
+            (logging.participants.length === 1 && logging.participants[0].personId === person?.id)
+          }
           selfPersonId={person?.id ?? null}
           onClose={() => setLogging(null)}
           onSaved={refetch}
@@ -443,11 +709,7 @@ export function Goals() {
         />
       )}
       {editingList && (
-        <ListModal
-          list={editingList}
-          onClose={() => setEditingList(null)}
-          onSaved={refetchLists}
-        />
+        <ListModal list={editingList} onClose={() => setEditingList(null)} onSaved={refetchLists} />
       )}
     </div>
   )

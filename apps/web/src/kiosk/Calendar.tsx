@@ -10,8 +10,25 @@ import { DayView } from './components/DayView'
 import { AgendaView } from './components/AgendaView'
 import { PeopleView } from './components/PeopleView'
 import { useTopbarRight } from './topbar-slot'
-import { useEventsRange, useHousehold, useCountdowns, usePersons, type AgendaEvent, type Countdown } from '../lib/api'
-import { MONTHS, MONTHS_SHORT, DOW_FULL, ymd, addDays, startOfWeek, monthGridStart, eventDetailPath } from './components/cal-utils'
+import {
+  useEventsRange,
+  useHousehold,
+  useCountdowns,
+  usePersons,
+  type AgendaEvent,
+  type Countdown,
+} from '../lib/api'
+import {
+  MONTHS,
+  MONTHS_SHORT,
+  DOW_FULL,
+  ymd,
+  addDays,
+  startOfWeek,
+  monthGridStart,
+  eventDetailPath,
+} from './components/cal-utils'
+import { Button } from '@/components/ui/button'
 
 type View = 'month' | 'week' | 'day' | 'people' | 'agenda'
 
@@ -63,7 +80,10 @@ function periodLabel(view: View, anchor: Date, firstDay: number): string {
   const ws = startOfWeek(anchor, firstDay)
   const we = addDays(ws, 6)
   const start = `${MONTHS_SHORT[ws.getMonth()]} ${ws.getDate()}`
-  const end = ws.getMonth() === we.getMonth() ? `${we.getDate()}` : `${MONTHS_SHORT[we.getMonth()]} ${we.getDate()}`
+  const end =
+    ws.getMonth() === we.getMonth()
+      ? `${we.getDate()}`
+      : `${MONTHS_SHORT[we.getMonth()]} ${we.getDate()}`
   return `${start} – ${end}`
 }
 
@@ -77,13 +97,17 @@ export function Calendar() {
   const paramDate = searchParams.get('date')
   const paramView = searchParams.get('view')
   const [view, setView] = useState<View>(() =>
-    paramView && VIEWS.includes(paramView as View) ? (paramView as View) : lastCalState.view
+    paramView && VIEWS.includes(paramView as View) ? (paramView as View) : lastCalState.view,
   )
   const [anchor, setAnchor] = useState(() =>
-    paramDate && /^\d{4}-\d{2}-\d{2}$/.test(paramDate) ? new Date(`${paramDate}T12:00:00`) : new Date(lastCalState.anchorTime)
+    paramDate && /^\d{4}-\d{2}-\d{2}$/.test(paramDate)
+      ? new Date(`${paramDate}T12:00:00`)
+      : new Date(lastCalState.anchorTime),
   )
   const [selectedDay, setSelectedDay] = useState(() =>
-    paramDate && /^\d{4}-\d{2}-\d{2}$/.test(paramDate) ? paramDate : defaultDayForMonth(new Date(lastCalState.anchorTime))
+    paramDate && /^\d{4}-\d{2}-\d{2}$/.test(paramDate)
+      ? paramDate
+      : defaultDayForMonth(new Date(lastCalState.anchorTime)),
   )
   const [modal, setModal] = useState<{ date?: string; time?: string } | null>(null)
   const [editCountdown, setEditCountdown] = useState<Countdown | null>(null)
@@ -154,7 +178,9 @@ export function Calendar() {
   }
   // Kiosk mode: tapping an empty slot no longer opens the new-event form.
   const viewOnly = useViewOnly()
-  const openCreate = (m: { date: string; time?: string }) => { if (!viewOnly) setModal(m) }
+  const openCreate = (m: { date: string; time?: string }) => {
+    if (!viewOnly) setModal(m)
+  }
   const navLabel = view === 'month' ? 'month' : view === 'day' || view === 'people' ? 'day' : 'week'
 
   // The view toggle + period nav live in the topbar's right slot (replacing the
@@ -164,22 +190,40 @@ export function Calendar() {
       <div className="cal-topbar">
         <div className="seg">
           {VIEWS.map((v) => (
-            <button key={v} type="button" className={view === v ? 'on' : ''} onClick={() => setView(v)}>
+            <Button
+              variant="unstyled"
+              key={v}
+              type="button"
+              className={view === v ? 'on' : ''}
+              onClick={() => setView(v)}
+            >
               {v[0].toUpperCase() + v.slice(1)}
-            </button>
+            </Button>
           ))}
         </div>
         {view !== 'agenda' && (
           <div className="cal-nav">
-            <button type="button" className="icon-btn" aria-label={`Previous ${navLabel}`} onClick={() => shift(-1)}>
+            <Button
+              variant="unstyled"
+              type="button"
+              className="icon-btn"
+              aria-label={`Previous ${navLabel}`}
+              onClick={() => shift(-1)}
+            >
               <Icon name="cl" />
-            </button>
-            <button type="button" className="pill cal-period" onClick={goToday}>
+            </Button>
+            <Button variant="unstyled" type="button" className="pill cal-period" onClick={goToday}>
               {periodLabel(view, anchor, firstDay)}
-            </button>
-            <button type="button" className="icon-btn" aria-label={`Next ${navLabel}`} onClick={() => shift(1)}>
+            </Button>
+            <Button
+              variant="unstyled"
+              type="button"
+              className="icon-btn"
+              aria-label={`Next ${navLabel}`}
+              onClick={() => shift(1)}
+            >
               <Icon name="cr" />
-            </button>
+            </Button>
           </div>
         )}
       </div>
@@ -189,14 +233,15 @@ export function Calendar() {
     // mounts straight into week view whenever you return to it or follow a
     // `?view=week` link. Leave it out and the pill keeps naming the Sunday-cut week
     // while the heading right below it names the Monday-cut one.
-    [view, anchor.getTime(), firstDay]
+    [view, anchor.getTime(), firstDay],
   )
 
   // Is the anchor inside the period the user is actually living in? Drives the
   // "you've paged away" flag on the grid heading below.
   const isCurrentPeriod = useMemo(() => {
     const now = new Date()
-    if (view === 'month') return anchor.getFullYear() === now.getFullYear() && anchor.getMonth() === now.getMonth()
+    if (view === 'month')
+      return anchor.getFullYear() === now.getFullYear() && anchor.getMonth() === now.getMonth()
     if (view === 'day' || view === 'people') return ymd(anchor) === ymd(now)
     return ymd(startOfWeek(anchor, firstDay)) === ymd(startOfWeek(now, firstDay))
   }, [view, anchor, firstDay])
@@ -212,9 +257,14 @@ export function Calendar() {
             {periodLabel(view, anchor, firstDay)}
           </h2>
           {!isCurrentPeriod && (
-            <button type="button" className="pill cal-period-back" onClick={goToday}>
+            <Button
+              variant="unstyled"
+              type="button"
+              className="pill cal-period-back"
+              onClick={goToday}
+            >
               Back to today
-            </button>
+            </Button>
           )}
         </div>
       )}
@@ -273,11 +323,22 @@ export function Calendar() {
         />
       )}
       {view === 'agenda' && (
-        <AgendaView events={events} tz={tz} onOpenEvent={openEvent} onPickDate={jumpToWeek} onCreate={(date) => openCreate({ date })} />
+        <AgendaView
+          events={events}
+          tz={tz}
+          onOpenEvent={openEvent}
+          onPickDate={jumpToWeek}
+          onCreate={(date) => openCreate({ date })}
+        />
       )}
 
       {modal && (
-        <EventModal date={modal.date} time={modal.time} onClose={() => setModal(null)} onSaved={refetch} />
+        <EventModal
+          date={modal.date}
+          time={modal.time}
+          onClose={() => setModal(null)}
+          onSaved={refetch}
+        />
       )}
       {editCountdown && (
         <CountdownEditModal countdown={editCountdown} onClose={() => setEditCountdown(null)} />

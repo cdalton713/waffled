@@ -62,4 +62,4 @@ across.
   downloaded, the recipe is still imported and the command tells you how many photos were
   missing.
 - **Who added what** isn't known to AnyList's export, so imported items show no "added by".
-- In development, run `npm run anylist:import -- --dry-run` from `apps/api` instead.
+- In development, run `pnpm run anylist:import --dry-run` from `apps/api` instead.

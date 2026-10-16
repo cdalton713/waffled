@@ -2,10 +2,12 @@ import { useEffect, useMemo, useRef } from 'react'
 import { Editable } from '../../lib/viewOnly'
 import { type AgendaEvent, type Countdown } from '../../lib/api'
 import { evVars, useEventColor } from '../../lib/event-color'
-import { DOW_FULL, MONTHS, ymd, fmtHour, fmtTime, minutesOfDay, durationMin, packLanes } from './cal-utils'
+import { ymd, fmtHour, fmtTime, minutesOfDay, durationMin, packLanes } from './cal-utils'
 import { CountdownChip } from './CountdownChip'
 import { RhythmMark } from './RhythmMark'
 import { eventCoversDay } from './month-spans'
+import { Button } from '@/components/ui/button'
+import { DataIcon } from '@/components/ui/data-icon'
 
 const DAY_START = 0 // midnight — top of the grid (full day so early events are reachable)
 const DAY_END = 23 // 11 PM — bottom
@@ -32,7 +34,10 @@ export function DayView({
 }) {
   const colorOf = useEventColor()
   const key = ymd(day)
-  const hours = useMemo(() => Array.from({ length: DAY_END - DAY_START + 1 }, (_, i) => DAY_START + i), [])
+  const hours = useMemo(
+    () => Array.from({ length: DAY_END - DAY_START + 1 }, (_, i) => DAY_START + i),
+    [],
+  )
 
   // A multi-day all-day event is on every day it covers; timed events stay on their start day.
   const todays = useMemo(() => events.filter((e) => eventCoversDay(e, key, tz)), [events, tz, key])
@@ -60,15 +65,18 @@ export function DayView({
   return (
     <div className="dv-screen">
       <div className="dv-bar">
-        <div className="dv-heading">
-          <span className="wf-serif dv-dow">{DOW_FULL[day.getDay()]}</span>
-          <span className="muted dv-date">{MONTHS[day.getMonth()]} {day.getDate()}</span>
-        </div>
         <Editable>
-          <button type="button" className="wk-add dv-add" onClick={() => onCreate(key)}>
-            <span className="wk-add-plus">＋</span>
+          <Button
+            variant="unstyled"
+            type="button"
+            className="wk-add dv-add"
+            onClick={() => onCreate(key)}
+          >
+            <span className="wk-add-plus">
+              <DataIcon value={'＋'} kind="general" />
+            </span>
             <span className="wk-add-ph">Add an event…</span>
-          </button>
+          </Button>
         </Editable>
       </div>
 
@@ -79,7 +87,12 @@ export function DayView({
             {allDay.map((e) => {
               const color = colorOf(e)
               return (
-                <div key={e.id} className="dv-allday-ev ev-tint" style={evVars(color)} onClick={() => onOpenEvent(e)}>
+                <div
+                  key={e.id}
+                  className="dv-allday-ev ev-tint"
+                  style={evVars(color)}
+                  onClick={() => onOpenEvent(e)}
+                >
                   <RhythmMark event={e} />
                   {e.title}
                 </div>
@@ -101,7 +114,11 @@ export function DayView({
               </div>
             ))}
           </div>
-          <div className="dv-col" style={{ backgroundSize: `100% ${HOUR_PX}px` }} onClick={() => onCreate(key)}>
+          <div
+            className="dv-col"
+            style={{ backgroundSize: `100% ${HOUR_PX}px` }}
+            onClick={() => onCreate(key)}
+          >
             {showNow && (
               <div className="dv-now" style={{ top: nowTop }}>
                 <span className="dv-now-dot" />
@@ -120,13 +137,40 @@ export function DayView({
                 <div
                   key={e.id}
                   className={`dv-ev ev-tint ${isMeal ? 'ev-meal' : ''}`}
-                  style={{ top, height, left, width, ...evVars(color), borderLeft: `3px solid ${color}` }}
+                  style={{
+                    top,
+                    height,
+                    left,
+                    width,
+                    ...evVars(color),
+                    borderLeft: `3px solid ${color}`,
+                  }}
                   title={isMeal ? 'Planned meal' : undefined}
-                  onClick={(ev) => { ev.stopPropagation(); onOpenEvent(e) }}
+                  onClick={(ev) => {
+                    ev.stopPropagation()
+                    onOpenEvent(e)
+                  }}
                 >
                   <div className="dv-ev-t">{fmtTime(e)}</div>
-                  <div className="dv-ev-title">{e.occurrenceStart && <span className="ev-rep" title="Repeats">↻ </span>}<RhythmMark event={e} />{e.title}</div>
-                  {e.location && <div className="dv-ev-loc">📍 {e.location}</div>}
+                  <div className="dv-ev-title">
+                    {e.occurrenceStart && (
+                      <span className="ev-rep" title="Repeats">
+                        <>
+                          <DataIcon value={'↻'} kind="general" />{' '}
+                        </>
+                      </span>
+                    )}
+                    <RhythmMark event={e} />
+                    {e.title}
+                  </div>
+                  {e.location && (
+                    <div className="dv-ev-loc">
+                      <>
+                        <DataIcon value={'📍'} kind="general" />{' '}
+                      </>
+                      {e.location}
+                    </div>
+                  )}
                 </div>
               )
             })}

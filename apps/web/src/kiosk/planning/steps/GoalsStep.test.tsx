@@ -44,8 +44,13 @@ const goal = (over: Partial<Record<string, unknown>> = {}) => ({
   ...over,
 })
 
-const member = (id: string, name: string, age: number | null = null) =>
-  ({ personId: id, name, avatarEmoji: '🙂', colorHex: '#25A368', age })
+const member = (id: string, name: string, age: number | null = null) => ({
+  personId: id,
+  name,
+  avatarEmoji: '🙂',
+  colorHex: '#25A368',
+  age,
+})
 
 const group = (over: Partial<Record<string, unknown>> = {}) => ({
   listId: 'l-family',
@@ -72,7 +77,19 @@ const VIEW = () => ({
       isPrivate: true,
       sortOrder: 1,
       isEveryone: false,
-      goals: [goal({ id: 'g-date', goalListId: 'l-couple', title: 'Date night', goalType: 'count', unit: 'nights', target: 12, totalProgress: 4, periodDone: 0, pace: { text: '8 hours last week', tone: 'ok' } })],
+      goals: [
+        goal({
+          id: 'g-date',
+          goalListId: 'l-couple',
+          title: 'Date night',
+          goalType: 'count',
+          unit: 'nights',
+          target: 12,
+          totalProgress: 4,
+          periodDone: 0,
+          pace: { text: '8 hours last week', tone: 'ok' },
+        }),
+      ],
     }),
     group({
       listId: 'l-lottie',
@@ -81,7 +98,19 @@ const VIEW = () => ({
       sortOrder: 2,
       isEveryone: false,
       members: [member('p3', 'Lottie', 9)],
-      goals: [goal({ id: 'g-book', goalListId: 'l-lottie', title: 'Finish the dragon book', goalType: 'checklist', stepTotal: 4, stepDone: 1, periodDone: 0, totalProgress: 40, pace: null })],
+      goals: [
+        goal({
+          id: 'g-book',
+          goalListId: 'l-lottie',
+          title: 'Finish the dragon book',
+          goalType: 'checklist',
+          stepTotal: 4,
+          stepDone: 1,
+          periodDone: 0,
+          totalProgress: 40,
+          pace: null,
+        }),
+      ],
     }),
   ],
 })
@@ -107,11 +136,21 @@ function mockApi(view = VIEW()) {
     const body = init?.body ? JSON.parse(String(init.body)) : null
     calls.push({ url: u, method, body })
     if (u.includes('/api/household')) {
-      return { ok: true, json: async () => ({ household: { id: 'h1', name: 'Sites' }, person: { id: 'p1', name: 'Kevin', capabilities: ['goal.manage'] }, memberships: [], pendingInvites: [] }) }
+      return {
+        ok: true,
+        json: async () => ({
+          household: { id: 'h1', name: 'Sites' },
+          person: { id: 'p1', name: 'Kevin', capabilities: ['goal.manage'] },
+          memberships: [],
+          pendingInvites: [],
+        }),
+      }
     }
     if (u.includes('/api/weekly-planning/goals/week-target')) {
       for (const g of state.groups) {
-        const x = g.goals.find((y) => y.id === body.goalId) as (typeof g.goals)[number] & { weekTarget?: number | null }
+        const x = g.goals.find((y) => y.id === body.goalId) as (typeof g.goals)[number] & {
+          weekTarget?: number | null
+        }
         if (x) x.weekTarget = body.target
       }
       return { ok: true, json: async () => JSON.parse(JSON.stringify(state)) }
@@ -132,26 +171,48 @@ function mockApi(view = VIEW()) {
         ok: true,
         json: async () => ({
           lists: state.groups.map((g) => ({
-            id: g.listId, name: g.name, emoji: g.emoji, colorHex: g.colorHex,
-            isPrivate: g.isPrivate, sortOrder: g.sortOrder, goalCount: g.goals.length,
-            members: g.members.map(({ personId, name, avatarEmoji, colorHex }) => ({ personId, name, avatarEmoji, colorHex })),
+            id: g.listId,
+            name: g.name,
+            emoji: g.emoji,
+            colorHex: g.colorHex,
+            isPrivate: g.isPrivate,
+            sortOrder: g.sortOrder,
+            goalCount: g.goals.length,
+            members: g.members.map(({ personId, name, avatarEmoji, colorHex }) => ({
+              personId,
+              name,
+              avatarEmoji,
+              colorHex,
+            })),
           })),
         }),
       }
     }
     if (method === 'POST' && u.endsWith('/api/goals')) {
       const g = state.groups.find((x) => x.listId === body.goalListId)!
-      g.goals.push(goal({
-        id: 'g-new', goalListId: g.listId, title: body.title, emoji: null, goalType: 'total',
-        unit: body.unit, target: body.targetValue, totalProgress: 0, periodDone: 0,
-        isFeatured: !!body.isFeatured, pace: null,
-      }))
+      g.goals.push(
+        goal({
+          id: 'g-new',
+          goalListId: g.listId,
+          title: body.title,
+          emoji: null,
+          goalType: 'total',
+          unit: body.unit,
+          target: body.targetValue,
+          totalProgress: 0,
+          periodDone: 0,
+          isFeatured: !!body.isFeatured,
+          pace: null,
+        }),
+      )
       reFocus()
       return { ok: true, json: async () => ({ goal: { id: 'g-new' } }) }
     }
     if (u.includes('/api/goals')) {
       const listId = new URL(u, 'http://x').searchParams.get('listId')
-      const goals = state.groups.filter((g) => !listId || g.listId === listId).flatMap((g) => g.goals)
+      const goals = state.groups
+        .filter((g) => !listId || g.listId === listId)
+        .flatMap((g) => g.goals)
       return { ok: true, json: async () => ({ goals: JSON.parse(JSON.stringify(goals)) }) }
     }
     return { ok: true, json: async () => JSON.parse(JSON.stringify(state)) }
@@ -159,9 +220,17 @@ function mockApi(view = VIEW()) {
 }
 
 const step = {
-  key: 'goals', number: 6, title: 'Goals', ask: 'What’s each group’s focus this week?',
-  primary: 'Done', act: 'Claim the good', requiresModule: 'goals',
-  available: true, status: 'pending' as const, data: {}, decidedAt: null,
+  key: 'goals',
+  number: 6,
+  title: 'Goals',
+  ask: 'What’s each group’s focus this week?',
+  primary: 'Done',
+  act: 'Claim the good',
+  requiresModule: 'goals',
+  available: true,
+  status: 'pending' as const,
+  data: {},
+  decidedAt: null,
   // The shell renders the parked-note handoff, not the step, and a step test mounts `Body` alone.
   parked: [],
 }
@@ -174,16 +243,29 @@ function Loc() {
 function renderStep(over: Partial<StepBodyProps> = {}) {
   const setDecisionData = vi.fn()
   const props: StepBodyProps = {
-    step, sessionId: 's1', weekStart: '2026-09-06',
-    setDecisionData, refresh: vi.fn(), busy: false, ...over,
+    step,
+    sessionId: 's1',
+    weekStart: '2026-09-06',
+    setDecisionData,
+    refresh: vi.fn(),
+    busy: false,
+    ...over,
   }
   render(
     <MemoryRouter initialEntries={['/planning/goals']}>
       <Routes>
-        <Route path="/planning/goals" element={<><mod.Body {...props} /><Loc /></>} />
+        <Route
+          path="/planning/goals"
+          element={
+            <>
+              <mod.Body {...props} />
+              <Loc />
+            </>
+          }
+        />
         <Route path="/goals/new" element={<Loc />} />
       </Routes>
-    </MemoryRouter>
+    </MemoryRouter>,
   )
   return { setDecisionData }
 }
@@ -195,9 +277,13 @@ beforeEach(() => mockApi())
 describe('GoalsStep · the tabs are the goal lists', () => {
   it('shows one tab per group and only the selected group’s goals', async () => {
     renderStep()
-    await waitFor(() => expect(screen.getAllByRole('tab')).toHaveLength(3))
+    await waitFor(() => expect(screen.getAllByRole('tab', { hidden: true })).toHaveLength(3))
     expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(
-      expect.arrayContaining([expect.stringContaining('Family'), expect.stringContaining('Mom & Dad'), expect.stringContaining('Lottie')])
+      expect.arrayContaining([
+        expect.stringContaining('Family'),
+        expect.stringContaining('Mom & Dad'),
+        expect.stringContaining('Lottie'),
+      ]),
     )
     // One group on screen at a time — that's the whole point of borrowing the picker.
     expect(screen.getByText('Water the garden')).toBeInTheDocument()
@@ -210,7 +296,7 @@ describe('GoalsStep · the tabs are the goal lists', () => {
 
   it('marks the private list’s tab with a lock', async () => {
     renderStep()
-    await waitFor(() => expect(screen.getAllByRole('tab')).toHaveLength(3))
+    await waitFor(() => expect(screen.getAllByRole('tab', { hidden: true })).toHaveLength(3))
     expect(tab('Mom & Dad')).toHaveAttribute('data-private', 'true')
     expect(tab('Family')).not.toHaveAttribute('data-private', 'true')
   })
@@ -220,7 +306,10 @@ describe('GoalsStep · the tabs are the goal lists', () => {
   it('keeps a tab picked the moment the tabs appear', async () => {
     const seen = new MutationObserver(() => {
       const t = screen.queryByRole('tab', { name: /Mom & Dad/ })
-      if (t) { seen.disconnect(); fireEvent.click(t) }
+      if (t) {
+        seen.disconnect()
+        fireEvent.click(t)
+      }
     })
     seen.observe(document.body, { childList: true, subtree: true })
     try {
@@ -246,7 +335,7 @@ describe('GoalsStep · the group card says what the group is', () => {
 
   it('describes a private couple’s list and an individual’s differently', async () => {
     renderStep()
-    await waitFor(() => expect(screen.getAllByRole('tab')).toHaveLength(3))
+    await waitFor(() => expect(screen.getAllByRole('tab', { hidden: true })).toHaveLength(3))
     fireEvent.click(tab('Mom & Dad'))
     // Wait for the tab to actually BE selected before looking at the panel: clicking and going
     // straight to `findByText` races the re-render under parallel load.
@@ -291,7 +380,7 @@ describe('GoalsStep · the pace line', () => {
 
   it('carries the ok tone through untouched', async () => {
     renderStep()
-    await waitFor(() => expect(screen.getAllByRole('tab')).toHaveLength(3))
+    await waitFor(() => expect(screen.getAllByRole('tab', { hidden: true })).toHaveLength(3))
     fireEvent.click(tab('Mom & Dad'))
     const card = await screen.findByRole('radio', { name: /Date night/ })
     expect(within(card).getByText('8 hours last week')).toHaveAttribute('data-tone', 'ok')
@@ -299,7 +388,7 @@ describe('GoalsStep · the pace line', () => {
 
   it('says nothing when the server has nothing honest to say', async () => {
     renderStep()
-    await waitFor(() => expect(screen.getAllByRole('tab')).toHaveLength(3))
+    await waitFor(() => expect(screen.getAllByRole('tab', { hidden: true })).toHaveLength(3))
     fireEvent.click(tab('Lottie'))
     const card = await screen.findByRole('radio', { name: /dragon book/ })
     expect(within(card).getByText('Checklist')).toBeInTheDocument()
@@ -318,7 +407,7 @@ describe('GoalsStep · progress is shown on the goal’s own axis', () => {
 
   it('reads a checklist as its steps', async () => {
     renderStep()
-    await waitFor(() => expect(screen.getAllByRole('tab')).toHaveLength(3))
+    await waitFor(() => expect(screen.getAllByRole('tab', { hidden: true })).toHaveLength(3))
     fireEvent.click(tab('Lottie'))
     const card = await screen.findByRole('radio', { name: /dragon book/ })
     expect(within(card).getByText('1')).toBeInTheDocument()
@@ -330,11 +419,23 @@ describe('GoalsStep · progress is shown on the goal’s own axis', () => {
 describe('GoalsStep · a target for this week', () => {
   const withGuitar = () => {
     const v = VIEW()
-    v.groups[0].goals.push(goal({
-      id: 'g-guitar', title: 'Practice guitar', goalType: 'total', unit: 'hours', target: 750,
-      totalProgress: 120, periodDone: 0, habitPeriod: null, habitTargetPerPeriod: null, pace: null,
-      weekTargetable: true, weekTarget: 10, weekDone: 3,
-    }))
+    v.groups[0].goals.push(
+      goal({
+        id: 'g-guitar',
+        title: 'Practice guitar',
+        goalType: 'total',
+        unit: 'hours',
+        target: 750,
+        totalProgress: 120,
+        periodDone: 0,
+        habitPeriod: null,
+        habitTargetPerPeriod: null,
+        pace: null,
+        weekTargetable: true,
+        weekTarget: 10,
+        weekDone: 3,
+      }),
+    )
     return v
   }
   const writes = () => calls.filter((c) => c.url.includes('/goals/week-target'))
@@ -390,7 +491,11 @@ describe('GoalsStep · picking the week’s focus', () => {
     renderStep()
     fireEvent.click(await screen.findByRole('radio', { name: /Nothing this week/ }))
     await waitFor(() => expect(calls.some((c) => c.method === 'PUT')).toBe(true))
-    expect(calls.find((c) => c.method === 'PUT')!.body).toEqual({ sessionId: 's1', listId: 'l-family', goalId: null })
+    expect(calls.find((c) => c.method === 'PUT')!.body).toEqual({
+      sessionId: 's1',
+      listId: 'l-family',
+      goalId: null,
+    })
     await waitFor(() => expect(tab('Family')).toHaveAttribute('data-settled', 'true'))
     expect(await screen.findByRole('radio', { name: /Nothing this week/ })).toBeChecked()
   })
@@ -399,7 +504,7 @@ describe('GoalsStep · picking the week’s focus', () => {
     const { setDecisionData } = renderStep()
     fireEvent.click(await screen.findByRole('radio', { name: /Water the garden/ }))
     await waitFor(() =>
-      expect(setDecisionData).toHaveBeenCalledWith({ focus: { 'l-family': 'g1' } })
+      expect(setDecisionData).toHaveBeenCalledWith({ focus: { 'l-family': 'g1' } }),
     )
   })
 })
@@ -410,7 +515,7 @@ describe('GoalsStep · picking the week’s focus', () => {
 describe('GoalsStep · making the goal that does not exist yet', () => {
   const openModal = async (group: string) => {
     renderStep()
-    await waitFor(() => expect(screen.getAllByRole('tab')).toHaveLength(3))
+    await waitFor(() => expect(screen.getAllByRole('tab', { hidden: true })).toHaveLength(3))
     fireEvent.click(tab(group))
     fireEvent.click(await screen.findByRole('button', { name: /New goal for this week/ }))
     return await screen.findByTestId('wpg-modal')
@@ -423,18 +528,26 @@ describe('GoalsStep · making the goal that does not exist yet', () => {
     expect(within(modal).queryByRole('button', { name: /＋ New group/ })).not.toBeInTheDocument()
     // The session is still on screen behind it — no navigation happened.
     expect(screen.getByTestId('loc').textContent).toBe('/planning/goals')
-    expect(screen.getAllByRole('tab')).toHaveLength(3)
+    expect(screen.getAllByRole('tab', { hidden: true })).toHaveLength(3)
   })
 
   it('creates the goal featured, closes, and leaves it selected as that group’s focus', async () => {
     const modal = await openModal('Lottie')
-    fireEvent.change(within(modal).getByPlaceholderText('e.g. 750 Hours Outside'), { target: { value: 'Walk after dinner' } })
+    fireEvent.change(within(modal).getByPlaceholderText('e.g. 750 Hours Outside'), {
+      target: { value: 'Walk after dinner' },
+    })
     fireEvent.click(within(modal).getByRole('button', { name: 'Create goal' }))
 
-    await waitFor(() => expect(calls.some((c) => c.method === 'POST' && c.url.endsWith('/api/goals'))).toBe(true))
+    await waitFor(() =>
+      expect(calls.some((c) => c.method === 'POST' && c.url.endsWith('/api/goals'))).toBe(true),
+    )
     const post = calls.find((c) => c.method === 'POST' && c.url.endsWith('/api/goals'))!
     // The group is the one they were on, and the goal is pinned on the way in.
-    expect(post.body).toMatchObject({ title: 'Walk after dinner', goalListId: 'l-lottie', isFeatured: true })
+    expect(post.body).toMatchObject({
+      title: 'Walk after dinner',
+      goalListId: 'l-lottie',
+      isFeatured: true,
+    })
 
     await waitFor(() => expect(screen.queryByTestId('wpg-modal')).not.toBeInTheDocument())
     expect(screen.getByTestId('loc').textContent).toBe('/planning/goals')
@@ -458,34 +571,64 @@ describe('GoalsStep · making the goal that does not exist yet', () => {
     globalThis.fetch = vi.fn(async (url: string) => {
       const u = String(url)
       if (u.includes('/api/household')) {
-        return { ok: true, json: async () => ({ household: { id: 'h1', name: 'Sites' }, person: { id: 'p1', name: 'Kevin', capabilities: [] }, memberships: [], pendingInvites: [] }) }
+        return {
+          ok: true,
+          json: async () => ({
+            household: { id: 'h1', name: 'Sites' },
+            person: { id: 'p1', name: 'Kevin', capabilities: [] },
+            memberships: [],
+            pendingInvites: [],
+          }),
+        }
       }
       return { ok: true, json: async () => VIEW() }
     }) as unknown as typeof fetch
     renderStep()
-    await waitFor(() => expect(screen.getAllByRole('tab')).toHaveLength(3))
-    await waitFor(() => expect(screen.getByRole('button', { name: /New goal for this week/ })).toBeDisabled())
+    await waitFor(() => expect(screen.getAllByRole('tab', { hidden: true })).toHaveLength(3))
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /New goal for this week/ })).toBeDisabled(),
+    )
   })
 })
 
 describe('GoalsStep · a target that did not save', () => {
   it('says so and puts the saved target back, instead of looking saved', async () => {
     const v = VIEW()
-    v.groups[0].goals.push(goal({
-      id: 'g-guitar', title: 'Practice guitar', goalType: 'total', unit: 'hours', target: 750,
-      totalProgress: 120, periodDone: 0, habitPeriod: null, habitTargetPerPeriod: null, pace: null,
-      weekTargetable: true, weekTarget: 10, weekDone: 3,
-    }))
+    v.groups[0].goals.push(
+      goal({
+        id: 'g-guitar',
+        title: 'Practice guitar',
+        goalType: 'total',
+        unit: 'hours',
+        target: 750,
+        totalProgress: 120,
+        periodDone: 0,
+        habitPeriod: null,
+        habitTargetPerPeriod: null,
+        pace: null,
+        weekTargetable: true,
+        weekTarget: 10,
+        weekDone: 3,
+      }),
+    )
     mockApi(v)
     const answer = globalThis.fetch as unknown as (u: string, i?: RequestInit) => Promise<unknown>
     globalThis.fetch = vi.fn(async (url: string, init?: RequestInit) =>
       String(url).includes('/goals/week-target')
-        ? { ok: false, status: 500, headers: new Headers(), json: async () => ({ error: 'Boom' }), text: async () => '' }
-        : answer(url, init)
+        ? {
+            ok: false,
+            status: 500,
+            headers: new Headers(),
+            json: async () => ({ error: 'Boom' }),
+            text: async () => '',
+          }
+        : answer(url, init),
     ) as unknown as typeof fetch
     renderStep()
 
-    const box = (await screen.findByLabelText('This week’s target for Practice guitar')) as HTMLInputElement
+    const box = (await screen.findByLabelText(
+      'This week’s target for Practice guitar',
+    )) as HTMLInputElement
     fireEvent.change(box, { target: { value: '12' } })
     fireEvent.blur(box)
 

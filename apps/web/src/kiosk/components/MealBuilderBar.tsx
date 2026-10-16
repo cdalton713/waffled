@@ -1,4 +1,5 @@
-// The dark stat bar pinned under the Meal Builder: serves stepper · hands-on time · groceries ·
+import { Button } from '@/components/ui/button'
+import { DataIcon } from '@/components/ui/data-icon' // The dark stat bar pinned under the Meal Builder: serves stepper · hands-on time · groceries ·
 // "keep in library" · the two actions. `servings` is stored and displayed only — v1
 // deliberately does not rescale ingredient quantities.
 
@@ -52,15 +53,25 @@ export function MealBuilderBar({
       <div className="mb-bar-stat">
         <span className="mb-bar-l">Serves</span>
         <div className="mb-step">
-          <button type="button" aria-label="Fewer servings" onClick={() => onServings(Math.max(1, servings - 1))}>
+          <Button
+            variant="unstyled"
+            type="button"
+            aria-label="Fewer servings"
+            onClick={() => onServings(Math.max(1, servings - 1))}
+          >
             −
-          </button>
+          </Button>
           <span className="mb-step-v" data-testid="mb-serves">
             {servings}
           </span>
-          <button type="button" aria-label="More servings" onClick={() => onServings(servings + 1)}>
-            ＋
-          </button>
+          <Button
+            variant="unstyled"
+            type="button"
+            aria-label="More servings"
+            onClick={() => onServings(servings + 1)}
+          >
+            <DataIcon value={'＋'} kind="meal" />
+          </Button>
         </div>
       </div>
 
@@ -75,7 +86,8 @@ export function MealBuilderBar({
       </div>
 
       <div className="mb-bar-save">
-        <button
+        <Button
+          variant="unstyled"
           type="button"
           role="switch"
           aria-checked={isSaved}
@@ -86,30 +98,35 @@ export function MealBuilderBar({
         <span className="mb-bar-save-b">
           <span className="mb-bar-save-t">Keep in library</span>
           {/* The toggle applies immediately — a state, not a pending action. */}
-          <span className="mb-bar-save-h">{isSaved ? 'Saved — it’s in your library' : 'One-off — not saved'}</span>
+          <span className="mb-bar-save-h">
+            {isSaved ? 'Saved — it’s in your library' : 'One-off — not saved'}
+          </span>
         </span>
       </div>
 
       <div className="mb-bar-actions">
         {onCook && !empty && (
-          <button type="button" className="btn btn-ghost" disabled={busy} onClick={onCook}>
-            <span aria-hidden>👨‍🍳</span> Cook this meal
-          </button>
+          <Button variant="ghost" type="button" disabled={busy} onClick={onCook}>
+            <span aria-hidden>
+              <DataIcon value={'👨‍🍳'} kind="meal" />
+            </span>{' '}
+            Cook this meal
+          </Button>
         )}
         {onAddToList && (
-          <button type="button" className="btn btn-ghost" disabled={empty || busy} onClick={onAddToList}>
+          <Button variant="ghost" type="button" disabled={empty || busy} onClick={onAddToList}>
             Add plate to list
-          </button>
+          </Button>
         )}
         {onSchedule && (
-          <button type="button" className="btn btn-primary" disabled={empty || busy} onClick={onSchedule}>
+          <Button variant="default" type="button" disabled={empty || busy} onClick={onSchedule}>
             Schedule meal
-          </button>
+          </Button>
         )}
         {onUse && (
-          <button type="button" className="btn btn-primary" disabled={empty || busy} onClick={onUse}>
+          <Button variant="default" type="button" disabled={empty || busy} onClick={onUse}>
             {useLabel ?? 'Use this plate'}
-          </button>
+          </Button>
         )}
       </div>
     </footer>

@@ -26,8 +26,8 @@ apps and tests point at. iOS work also gets its own simulators (see `apps/ios/CL
 
 **Work is not done until it is TDD'd and green.** Follow the TDD flow below (failing test
 first), and before opening a PR **all tests and typechecking must pass** — run the full
-test suite (`npm test`) *and* typecheck/build for every app you touched (web: `npm run
-build` / `tsc`; api: `npm test` + `tsc`; iOS: `xcodegen generate` then a clean
+test suite (`pnpm test`) *and* typecheck/build for every app you touched (web: `pnpm run
+build` / `tsc`; api: `pnpm test` + `tsc`; iOS: `xcodegen generate` then a clean
 `xcodebuild`). A red test or a type error means the work isn't finished — do not open the
 PR.
 
@@ -44,7 +44,7 @@ do it, say so explicitly.
 real HTTP routes against a throwaway Postgres (`@testcontainers/postgresql` + `runMigrations`,
 `app.run(...)`), asserting on responses — the harness in `apps/api/test/*.integration.test.ts`
 (e.g. `goals.integration.test.ts`, `goals-health.integration.test.ts`). Reach for a unit test
-(`*.unit.test.ts`) only when the logic is genuinely isolated (pure helpers). Run with `npm test`
+(`*.unit.test.ts`) only when the logic is genuinely isolated (pure helpers). Run with `pnpm test`
 (vitest) in `apps/api`.
 
 ## Comments & reuse — leaner than we have been (repo-wide)
@@ -127,7 +127,7 @@ be consolidated back into one.)
    hand-edit the changelog heading, and never move a published tag. That one command is the
    source of truth: it reviews the `[Unreleased]` notes (and **requires ≥1 entry**), dates
    them `## [X.Y.Z]` + opens a fresh `[Unreleased]` + adds the compare link, bumps **every**
-   version site (`apps/api` + `apps/web` package.json + lockfiles, `WAFFLED_VERSION` in
+   version site (`apps/api` + `apps/web` package.json, `WAFFLED_VERSION` in
    `infra/compose/.env.example`, iOS `MARKETING_VERSION`), commits `release: vX.Y.Z`, tags,
    and prompts to push. Run it **locally on `main`** — the pushed `v*` tag is what triggers
    the GHCR publish workflow (+ Xcode Cloud). Miss one version site by hand and repo/images/

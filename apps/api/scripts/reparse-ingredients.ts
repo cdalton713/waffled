@@ -9,7 +9,7 @@
 //
 // Usage (dry run prints what would change; add --commit to write):
 //   DATABASE_URL=postgres://user:pass@localhost:5432/db \
-//     npx tsx scripts/reparse-ingredients.ts [--commit]
+//     pnpm exec tsx scripts/reparse-ingredients.ts [--commit]
 //
 // Safe to re-run (idempotent): a row already matching the parser is skipped.
 import { Client } from 'pg'

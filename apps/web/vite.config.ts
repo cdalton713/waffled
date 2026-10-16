@@ -4,6 +4,7 @@ import { resolve, sep } from 'node:path'
 import { defineConfig, type Plugin, type ProxyOptions } from 'vite'
 import { configDefaults } from 'vitest/config'
 import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
 import { buildId, stampServiceWorker } from './sw-stamp'
 
 // Stamp the built sw.js with this build's identity. sw.js lives in public/ and is
@@ -59,7 +60,11 @@ function stampServiceWorkerPlugin(): Plugin {
 // (apps/api/.local/media), which the stack's Caddy never sees. Serve a file from
 // there when it exists; anything else falls through to the /media proxy below.
 const DEV_MEDIA_DIR = resolve(__dirname, process.env.WAFFLED_DEV_MEDIA_DIR ?? '../api/.local/media')
-const MEDIA_TYPES: Record<string, string> = { jpg: 'image/jpeg', png: 'image/png', webp: 'image/webp' }
+const MEDIA_TYPES: Record<string, string> = {
+  jpg: 'image/jpeg',
+  png: 'image/png',
+  webp: 'image/webp',
+}
 function devMediaPlugin(): Plugin {
   return {
     name: 'waffled:dev-media',
@@ -68,8 +73,12 @@ function devMediaPlugin(): Plugin {
       server.middlewares.use('/media', (req, res, next) => {
         const rel = decodeURIComponent((req.url ?? '').split('?')[0])
         const file = resolve(DEV_MEDIA_DIR, `.${rel}`)
-        if (!file.startsWith(DEV_MEDIA_DIR + sep) || !existsSync(file) || !statSync(file).isFile()) return next()
-        res.setHeader('content-type', MEDIA_TYPES[file.split('.').pop() ?? ''] ?? 'application/octet-stream')
+        if (!file.startsWith(DEV_MEDIA_DIR + sep) || !existsSync(file) || !statSync(file).isFile())
+          return next()
+        res.setHeader(
+          'content-type',
+          MEDIA_TYPES[file.split('.').pop() ?? ''] ?? 'application/octet-stream',
+        )
         createReadStream(file).pipe(res)
       })
     },
@@ -78,7 +87,8 @@ function devMediaPlugin(): Plugin {
 
 const apiProxy: Record<string, ProxyOptions> = {
   '/api': {
-    target: 'http://localhost:3000',
+    // Override to run a second dev instance beside one already on :3000.
+    target: process.env.WAFFLED_DEV_API_URL ?? 'http://localhost:3000',
     changeOrigin: false,
     configure: (proxy) => {
       proxy.on('proxyReq', (proxyReq, req) => {
@@ -99,7 +109,8 @@ const apiProxy: Record<string, ProxyOptions> = {
 }
 
 export default defineConfig({
-  plugins: [react(), stampServiceWorkerPlugin(), devMediaPlugin()],
+  plugins: [react(), tailwindcss(), stampServiceWorkerPlugin(), devMediaPlugin()],
+  resolve: { alias: { '@': resolve(__dirname, './src') } },
   // @powersync/web ships its own SQLite WASM + worker; pre-bundling breaks them,
   // so exclude it from Vite's dep optimizer (PowerSync's documented Vite setup).
   optimizeDeps: { exclude: ['@powersync/web'] },
@@ -124,6 +135,17 @@ export default defineConfig({
     // per-screen split also wins least where it matters most: a kiosk runs for weeks
     // and opens every screen eventually, so it fetches all 12 sheets regardless.
     cssCodeSplit: false,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (
+            id.includes('/node_modules/') &&
+            (id.includes('/@radix-ui/') || id.includes('/radix-ui@'))
+          )
+            return 'ui-primitives'
+        },
+      },
+    },
   },
   server: {
     port: 5175,

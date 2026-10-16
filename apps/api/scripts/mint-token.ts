@@ -5,7 +5,7 @@
 // Usage:
 //   tsx scripts/mint-token.ts [--household <uuid>] [--sub <id>] [--ttl <seconds>]
 //   (in the container: node dist/mint-token.js ...)
-// Prints just the token, so:  export TOKEN=$(npm run -s token)
+// Prints just the token, so:  export TOKEN=$(pnpm --silent run token)
 import jwt from 'jsonwebtoken'
 import { config } from '../src/platform/config'
 

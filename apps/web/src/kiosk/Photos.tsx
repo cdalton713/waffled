@@ -1,6 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Editable } from '../lib/viewOnly'
-import { api, kioskApi, usePhotos, useWeather, useHousehold, useGooglePhotosStatus, type DisplayConfig, type Photo } from '../lib/api'
+import {
+  api,
+  kioskApi,
+  usePhotos,
+  useWeather,
+  useHousehold,
+  useGooglePhotosStatus,
+  type DisplayConfig,
+  type Photo,
+} from '../lib/api'
 import { Icon } from './icons'
 import { useTopbarRight } from './topbar-slot'
 import { PhotoAdd } from './components/PhotoAdd'
@@ -10,6 +19,8 @@ import { ConfirmDialog } from './components/ConfirmDialog'
 import { MovePhotosModal } from './components/MovePhotosModal'
 import { GooglePhotosImportModal } from './components/GooglePhotosImportModal'
 import '../styles/photos.css'
+import { Button } from '@/components/ui/button'
+import { DataIcon } from '@/components/ui/data-icon'
 
 // Photos home — the family wall (matches photos.png): a "NEW MEMORY" banner over
 // a masonry wall of tiles, each an <img> or an emoji-on-gradient tile (Waffled has
@@ -43,11 +54,18 @@ function PhotoTile({
       style={{ background: tileBg(photo) }}
       onClick={selectMode ? onToggle : onOpen}
     >
-      {photo.imageUrl ? <img src={photo.imageUrl} alt={photo.caption} /> : photo.emoji ?? '🖼️'}
-      {selectMode ? (
-        <div className="ph-check" aria-hidden>{selected ? '✓' : ''}</div>
+      {photo.imageUrl ? (
+        <img src={photo.imageUrl} alt={photo.caption} />
       ) : (
-        <button
+        <DataIcon value={photo.emoji ?? '🖼️'} kind="photo" />
+      )}
+      {selectMode ? (
+        <div className="ph-check" aria-hidden>
+          {selected ? <DataIcon value={'✓'} kind="photo" /> : ''}
+        </div>
+      ) : (
+        <Button
+          variant="unstyled"
           type="button"
           className="ph-del"
           aria-label={`Delete ${photo.caption}`}
@@ -56,10 +74,10 @@ function PhotoTile({
             onRequestDelete()
           }}
         >
-          ×
-        </button>
+          <DataIcon value={'×'} kind="photo" />
+        </Button>
       )}
-      <div className="heart">{photo.isFavorite ? '❤️' : ''}</div>
+      <div className="heart">{photo.isFavorite ? <DataIcon value={'❤️'} kind="photo" /> : ''}</div>
       {photo.caption && <div className="ph-cap">{photo.caption}</div>}
     </div>
   )
@@ -89,8 +107,13 @@ export function Photos() {
   // transition speed as the idle screensaver (tolerate failure → default 10s).
   useEffect(() => {
     let alive = true
-    kioskApi.displayConfig().then((c) => alive && setDisplayCfg(c)).catch(() => {})
-    return () => { alive = false }
+    kioskApi
+      .displayConfig()
+      .then((c) => alive && setDisplayCfg(c))
+      .catch(() => {})
+    return () => {
+      alive = false
+    }
   }, [])
 
   // Derive the open detail photo live from the list (by id) so an edit + refetch
@@ -102,19 +125,23 @@ export function Photos() {
   const memory = newest?.memory ?? null
   const memoryPhotos = useMemo(
     () => (memory ? photos.filter((p) => p.memory === memory) : []),
-    [photos, memory]
+    [photos, memory],
   )
-  const saverPhotos = saver ? (saver.album ? photos.filter((p) => p.memory === saver.album) : photos) : []
+  const saverPhotos = saver
+    ? saver.album
+      ? photos.filter((p) => p.memory === saver.album)
+      : photos
+    : []
 
   // Distinct album names (a photo's `memory`), for the filter chips + the add/edit datalists.
   const albums = useMemo(
     () => [...new Set(photos.map((p) => p.memory).filter((m): m is string => !!m))],
-    [photos]
+    [photos],
   )
   // The wall, filtered to the chosen album ("All" → everything).
   const visiblePhotos = useMemo(
     () => (albumFilter ? photos.filter((p) => p.memory === albumFilter) : photos),
-    [photos, albumFilter]
+    [photos, albumFilter],
   )
 
   function exitSelect() {
@@ -135,47 +162,95 @@ export function Photos() {
     () =>
       selectMode ? (
         <div className="tb-right">
-          <span className="tiny muted" style={{ fontWeight: 700, marginRight: 4 }}>{selected.size} selected</span>
-          <button type="button" className="pill" disabled={selected.size === 0} onClick={() => setMoveOpen(true)}>
-            Move to album
-          </button>
-          <button
+          <span className="tiny muted" style={{ fontWeight: 700, marginRight: 4 }}>
+            {selected.size} selected
+          </span>
+          <Button
+            variant="unstyled"
             type="button"
-            className="pill"
+            className="pill btn-primary"
+            disabled={selected.size === 0}
+            onClick={() => setMoveOpen(true)}
+          >
+            Move to album
+          </Button>
+          <Button
+            variant="unstyled"
+            type="button"
+            className="pill btn-primary"
             style={{ color: 'var(--danger)', cursor: 'pointer' }}
             disabled={selected.size === 0}
             onClick={() => setConfirmIds([...selected])}
           >
             Delete
-          </button>
-          <button type="button" className="pill" style={{ cursor: 'pointer' }} onClick={exitSelect}>
+          </Button>
+          <Button
+            variant="unstyled"
+            type="button"
+            className="pill btn-primary"
+            style={{ cursor: 'pointer' }}
+            onClick={exitSelect}
+          >
             Cancel
-          </button>
+          </Button>
         </div>
       ) : (
         <div className="tb-right">
           <Editable>
-            <button type="button" className="pill" style={{ cursor: 'pointer' }} onClick={() => setSelectMode(true)} disabled={photos.length === 0}>
+            <Button
+              variant="unstyled"
+              type="button"
+              className="pill btn-primary"
+              style={{ cursor: 'pointer' }}
+              onClick={() => setSelectMode(true)}
+              disabled={photos.length === 0}
+            >
               Select
-            </button>
+            </Button>
           </Editable>
-          <button type="button" className="pill" style={{ cursor: 'pointer' }} onClick={() => setSaver({ album: albumFilter })} disabled={photos.length === 0}>
-            🖼️ Play{albumFilter ? ` “${albumFilter}”` : ''}
-          </button>
+          <Button
+            variant="unstyled"
+            type="button"
+            className="pill btn-primary"
+            style={{ cursor: 'pointer' }}
+            onClick={() => setSaver({ album: albumFilter })}
+            disabled={photos.length === 0}
+          >
+            <>
+              <DataIcon value={'🖼️'} kind="photo" />
+              {' Play'}
+            </>
+            {albumFilter ? ` “${albumFilter}”` : ''}
+          </Button>
           {googleConnected && (
-            <button type="button" className="pill" style={{ cursor: 'pointer' }} onClick={() => setGoogleOpen(true)}>
-              🌈 Google Photos
-            </button>
+            <Button
+              variant="unstyled"
+              type="button"
+              className="pill btn-primary"
+              style={{ cursor: 'pointer' }}
+              onClick={() => setGoogleOpen(true)}
+            >
+              <>
+                <DataIcon value={'🌈'} kind="photo" />
+                {' Google Photos'}
+              </>
+            </Button>
           )}
           <Editable>
-            <button type="button" className="pill btn-primary" style={{ color: 'var(--on-accent)', border: 0, cursor: 'pointer' }} onClick={() => setAdding(true)}>
+            <Button
+              variant="unstyled"
+              type="button"
+              className="pill btn-primary"
+              style={{ color: 'var(--on-accent)', border: 0, cursor: 'pointer' }}
+              onClick={() => setAdding(true)}
+            >
               <Icon name="plus" />
               <span>Add photos</span>
-            </button>
+            </Button>
           </Editable>
         </div>
       ),
-    [newest, selectMode, selected, photos.length, albumFilter, googleConnected]
+    [newest, selectMode, selected, photos.length, albumFilter, googleConnected],
   )
 
   async function doDelete(ids: string[]) {
@@ -205,7 +280,11 @@ export function Photos() {
   async function toggleAlbumScreensaver(album: string) {
     const current = displayCfg?.photoAlbums ?? []
     const patch: Partial<DisplayConfig> = mixingAlbums
-      ? { photoAlbums: albumIsScreensaver ? current.filter((a) => a !== album) : [...current, album] }
+      ? {
+          photoAlbums: albumIsScreensaver
+            ? current.filter((a) => a !== album)
+            : [...current, album],
+        }
       : albumIsScreensaver
         ? { photoSource: 'all', photoAlbum: null }
         : { photoSource: 'album', photoAlbum: album }
@@ -225,10 +304,16 @@ export function Photos() {
       {newest && (
         <div className="ph-banner">
           <div className="ph-banner-tile" style={{ background: tileBg(newest) }}>
-            {newest.imageUrl ? <img src={newest.imageUrl} alt="" /> : newest.emoji ?? '🏖️'}
+            {newest.imageUrl ? (
+              <img src={newest.imageUrl} alt="" />
+            ) : (
+              <DataIcon value={newest.emoji ?? '🏖️'} kind="photo" />
+            )}
           </div>
           <div style={{ flex: 1 }}>
-            <div className="ph-banner-tag" style={{ marginBottom: 4 }}>Recently added</div>
+            <div className="ph-banner-tag" style={{ marginBottom: 4 }}>
+              Recently added
+            </div>
             <div className="ph-banner-title">
               {memory
                 ? `“${memory}” — ${memoryPhotos.length} ${memoryPhotos.length === 1 ? 'photo' : 'photos'}`
@@ -236,42 +321,72 @@ export function Photos() {
             </div>
             <div className="tiny muted">Tap any photo to view, or play them as a slideshow.</div>
           </div>
-          <button type="button" className="btn btn-ghost btn-play" onClick={() => setSaver({ album: memory })}>▶ Play</button>
+          <Button
+            variant="ghost"
+            type="button"
+            className="btn-play"
+            onClick={() => setSaver({ album: memory })}
+          >
+            <>
+              <DataIcon value={'▶'} kind="photo" />
+              {' Play'}
+            </>
+          </Button>
         </div>
       )}
 
       {albums.length > 0 && (
         <div className="ph-filter">
-          <button
+          <Button
+            variant="unstyled"
             type="button"
             className={`pill ph-chip ${albumFilter === null ? 'on' : ''}`}
             onClick={() => setAlbumFilter(null)}
           >
             All
-          </button>
+          </Button>
           {albums.map((a) => (
-            <button
+            <Button
+              variant="unstyled"
               key={a}
               type="button"
               className={`pill ph-chip ${albumFilter === a ? 'on' : ''}`}
               onClick={() => setAlbumFilter(a)}
             >
               {a}
-            </button>
+            </Button>
           ))}
         </div>
       )}
 
       {albumFilter && !selectMode && (
         <div className="ph-album-actions">
-          <span className="tiny muted" style={{ fontWeight: 700 }}>“{albumFilter}” · {visiblePhotos.length} photos</span>
-          <button
+          <span className="tiny muted" style={{ fontWeight: 700 }}>
+            “{albumFilter}” · {visiblePhotos.length} photos
+          </span>
+          <Button
+            variant="unstyled"
             type="button"
             className={`pill ${albumIsScreensaver ? 'on' : ''}`}
             onClick={() => toggleAlbumScreensaver(albumFilter)}
           >
-            {albumIsScreensaver ? '✓ Screensaver album' : mixingAlbums ? '🖼️ Add to screensaver mix' : '🖼️ Set as screensaver'}
-          </button>
+            {albumIsScreensaver ? (
+              <>
+                <DataIcon value={'✓'} kind="photo" />
+                {' Screensaver album'}
+              </>
+            ) : mixingAlbums ? (
+              <>
+                <DataIcon value={'🖼️'} kind="photo" />
+                {' Add to screensaver mix'}
+              </>
+            ) : (
+              <>
+                <DataIcon value={'🖼️'} kind="photo" />
+                {' Set as screensaver'}
+              </>
+            )}
+          </Button>
         </div>
       )}
 
@@ -293,14 +408,22 @@ export function Photos() {
         ) : (
           !loading && (
             <div className="ph-empty">
-              {photos.length === 0 ? 'No photos yet — add some with “Add photos”.' : 'No photos in this album.'}
+              {photos.length === 0
+                ? 'No photos yet — add some with “Add photos”.'
+                : 'No photos in this album.'}
             </div>
           )
         )}
       </div>
 
       {adding && <PhotoAdd onClose={() => setAdding(false)} onAdded={refetch} albums={albums} />}
-      {googleOpen && <GooglePhotosImportModal albums={albums} onClose={() => setGoogleOpen(false)} onImported={() => refetch()} />}
+      {googleOpen && (
+        <GooglePhotosImportModal
+          albums={albums}
+          onClose={() => setGoogleOpen(false)}
+          onImported={() => refetch()}
+        />
+      )}
       {detail && (
         <PhotoDetail
           photo={detail}

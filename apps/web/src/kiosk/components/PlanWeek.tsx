@@ -4,15 +4,32 @@ import { useTopbarFull } from '../topbar-slot'
 import { Icon } from '../icons'
 import { RecipeModal } from './RecipeModal'
 import { RecipeBrowser, type MealType } from './RecipeBrowser'
+import { Button } from '@/components/ui/button'
+import { NativeSelect } from '@/components/ui/native-select'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { DataIcon } from '@/components/ui/data-icon'
+import { Modal } from '@/components/ui/modal'
 
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const MEAL_TYPES = ['breakfast', 'lunch', 'dinner'] as const
-const MEAL_LABEL: Record<string, string> = { breakfast: 'Breakfast', lunch: 'Lunch', dinner: 'Dinner' }
-const VIA_LABEL: Record<string, string> = { anthropic: 'Claude', openai: 'OpenAI', ollama: 'local LLM' }
+const MEAL_LABEL: Record<string, string> = {
+  breakfast: 'Breakfast',
+  lunch: 'Lunch',
+  dinner: 'Dinner',
+}
+const VIA_LABEL: Record<string, string> = {
+  anthropic: 'Claude',
+  openai: 'OpenAI',
+  ollama: 'local LLM',
+}
 
 function friendlyAiError(msg: string): string {
-  if (/no ai provider|not configured/i.test(msg)) return 'Pick an AI provider in Settings → AI & capture first.'
-  if (/abort|timeout|timed out|ETIMEDOUT/i.test(msg)) return 'The model took too long — try fewer days, or switch to a faster provider in Settings.'
+  if (/no ai provider|not configured/i.test(msg))
+    return 'Pick an AI provider in Settings → AI & capture first.'
+  if (/abort|timeout|timed out|ETIMEDOUT/i.test(msg))
+    return 'The model took too long — try fewer days, or switch to a faster provider in Settings.'
   return 'Couldn’t draft the week — please try again.'
 }
 
@@ -27,7 +44,16 @@ function ymd(d: Date): string {
 // is what the Meals screen already had: `mealTypes` (one entry hides the segment), `initialDays`
 // (the planning step passes its EMPTY nights), and `onApply`, which takes over the write — given
 // it, this screen stops calling /api/meals/plan + rebuildGrocery.
-export function PlanWeek({ startStr, days, onClose, onApplied, initialUseUp, mealTypes, initialDays, onApply }: {
+export function PlanWeek({
+  startStr,
+  days,
+  onClose,
+  onApplied,
+  initialUseUp,
+  mealTypes,
+  initialDays,
+  onApply,
+}: {
   startStr: string
   days: Date[]
   onClose: () => void
@@ -42,7 +68,7 @@ export function PlanWeek({ startStr, days, onClose, onApplied, initialUseUp, mea
 
   const types = mealTypes?.length ? mealTypes : MEAL_TYPES
   const [mealType, setMealType] = useState<(typeof MEAL_TYPES)[number]>(() =>
-    types.includes('dinner') ? 'dinner' : types[0]
+    types.includes('dinner') ? 'dinner' : types[0],
   )
   const [selectedDays, setSelectedDays] = useState<Set<string>>(() => {
     if (initialDays) return new Set(initialDays)
@@ -76,16 +102,26 @@ export function PlanWeek({ startStr, days, onClose, onApplied, initialUseUp, mea
   useTopbarFull(
     () => (
       <>
-        <div className="pill" onClick={onClose} style={{ padding: '9px 14px 9px 11px', cursor: 'pointer' }}>
+        <div
+          className="pill"
+          onClick={onClose}
+          style={{ padding: '9px 14px 9px 11px', cursor: 'pointer' }}
+        >
           <Icon name="cl" />
           Meals
         </div>
-        <button type="button" className="pill" style={{ marginLeft: 'auto', cursor: 'pointer' }} onClick={onClose}>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="pill"
+          style={{ marginLeft: 'auto', cursor: 'pointer' }}
+          onClick={onClose}
+        >
           Cancel
-        </button>
+        </Button>
       </>
     ),
-    []
+    [],
   )
 
   async function draft(dates: string[], avoid: string[]) {
@@ -144,9 +180,18 @@ export function PlanWeek({ startStr, days, onClose, onApplied, initialUseUp, mea
     setCards((prev) =>
       prev.map((c) =>
         c.date === date
-          ? { date, mealType, title: r.title, recipeId: r.id, emoji: r.emoji, minutes: r.cookTimeMinutes, servings: c.servings, note: 'Your pick' }
-          : c
-      )
+          ? {
+              date,
+              mealType,
+              title: r.title,
+              recipeId: r.id,
+              emoji: r.emoji,
+              minutes: r.cookTimeMinutes,
+              servings: c.servings,
+              note: 'Your pick',
+            }
+          : c,
+      ),
     )
     setPickForDate(null)
   }
@@ -188,7 +233,11 @@ export function PlanWeek({ startStr, days, onClose, onApplied, initialUseUp, mea
         await onApply(shown)
       } else {
         for (const c of shown) {
-          await api.planSlot(c.recipeId ? { date: c.date, mealType: c.mealType, recipeId: c.recipeId } : { date: c.date, mealType: c.mealType, title: c.title })
+          await api.planSlot(
+            c.recipeId
+              ? { date: c.date, mealType: c.mealType, recipeId: c.recipeId }
+              : { date: c.date, mealType: c.mealType, title: c.title },
+          )
         }
         // "& build list": rebuild the grocery so items are linked to the planned recipes.
         await api.rebuildGrocery(startStr).catch(() => {})
@@ -200,24 +249,39 @@ export function PlanWeek({ startStr, days, onClose, onApplied, initialUseUp, mea
     }
   }
 
-  const shown = cards.filter((c) => selectedDays.has(c.date)).sort((a, b) => (a.date < b.date ? -1 : 1))
+  const shown = cards
+    .filter((c) => selectedDays.has(c.date))
+    .sort((a, b) => (a.date < b.date ? -1 : 1))
   const labelFor = (date: string) => {
     const d = new Date(`${date}T12:00:00`)
-    return { dow: DOW[d.getDay()], dt: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) }
+    return {
+      dow: DOW[d.getDay()],
+      dt: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    }
   }
 
   return (
     <div className="plan-screen">
       <div className="plan-config">
         <div className="plan-title wf-serif">Plan my week</div>
-        <div className="tiny muted plan-sub">Tell Waffled the guardrails — it drafts the meals and the grocery list in one go.</div>
+        <div className="tiny muted plan-sub">
+          Tell Waffled the guardrails — it drafts the meals and the grocery list in one go.
+        </div>
         {/* A single allowed meal is not a choice — the segment goes away entirely. */}
         {types.length > 1 && (
           <>
             <div className="flabel">Plan which meal?</div>
             <div className="seg seg-plantype">
               {types.map((m) => (
-                <button key={m} type="button" className={mealType === m ? 'on' : ''} onClick={() => setMealType(m)}>{MEAL_LABEL[m]}</button>
+                <Button
+                  variant="unstyled"
+                  key={m}
+                  type="button"
+                  className={mealType === m ? 'on' : ''}
+                  onClick={() => setMealType(m)}
+                >
+                  {MEAL_LABEL[m]}
+                </Button>
               ))}
             </div>
           </>
@@ -228,9 +292,16 @@ export function PlanWeek({ startStr, days, onClose, onApplied, initialUseUp, mea
           {days.map((d) => {
             const iso = ymd(d)
             return (
-              <button key={iso} type="button" className={`plan-day-chip ${selectedDays.has(iso) ? 'on' : ''}`} onClick={() => toggleDay(iso)} title={`${DOW[d.getDay()]} ${d.getDate()}`}>
+              <Button
+                variant="unstyled"
+                key={iso}
+                type="button"
+                className={`plan-day-chip ${selectedDays.has(iso) ? 'on' : ''}`}
+                onClick={() => toggleDay(iso)}
+                title={`${DOW[d.getDay()]} ${d.getDate()}`}
+              >
                 {DOW[d.getDay()][0]}
-              </button>
+              </Button>
             )
           })}
         </div>
@@ -238,10 +309,18 @@ export function PlanWeek({ startStr, days, onClose, onApplied, initialUseUp, mea
         <div className="plan-card">
           <div className="constraint">
             <span className="cl">Cooking for</span>
-            <select className="sel" value={cookingFor} onChange={(e) => setCookingFor(Number(e.target.value))}>
+            <NativeSelect
+              className="sel"
+              value={cookingFor}
+              onChange={(e) => setCookingFor(Number(e.target.value))}
+            >
               <option value={0}>{familySize} · whole family</option>
-              {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => <option key={n} value={n}>{n}</option>)}
-            </select>
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+                <option key={n} value={n}>
+                  {n}
+                </option>
+              ))}
+            </NativeSelect>
           </div>
         </div>
 
@@ -249,9 +328,14 @@ export function PlanWeek({ startStr, days, onClose, onApplied, initialUseUp, mea
           <div className="tiny">Use up first</div>
           <div className="use-up-list">
             {useUp.map((u) => (
-              <span key={u} className="use-chip">{u} <b onClick={() => setUseUp((x) => x.filter((y) => y !== u))}>×</b></span>
+              <span key={u} className="use-chip">
+                {u}{' '}
+                <b onClick={() => setUseUp((x) => x.filter((y) => y !== u))}>
+                  <DataIcon value={'×'} kind="general" />
+                </b>
+              </span>
             ))}
-            <input
+            <Input
               className="use-add-input"
               placeholder="+ Add"
               value={useUpInput}
@@ -268,25 +352,61 @@ export function PlanWeek({ startStr, days, onClose, onApplied, initialUseUp, mea
 
         <div className="plan-card">
           <div className="tiny">Keep in mind</div>
-          <textarea className="plan-keep" rows={2} placeholder="e.g. Lottie skips spicy · Tue & Thu are busy — keep under 30 min" value={keepInMind} onChange={(e) => setKeepInMind(e.target.value)} />
+          <Textarea
+            className="plan-keep"
+            rows={2}
+            placeholder="e.g. Lottie skips spicy · Tue & Thu are busy — keep under 30 min"
+            value={keepInMind}
+            onChange={(e) => setKeepInMind(e.target.value)}
+          />
         </div>
 
         <div className="plan-card">
-          <label
-            style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontWeight: 700 }}
-            onClick={(e) => { e.preventDefault(); setTrySomethingNew((v) => !v) }}
+          <Label
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              cursor: 'pointer',
+              fontWeight: 700,
+            }}
+            onClick={(e) => {
+              e.preventDefault()
+              setTrySomethingNew((v) => !v)
+            }}
           >
-            <span className={`toggle ${trySomethingNew ? 'on' : ''}`} role="switch" aria-checked={trySomethingNew} aria-label="Try something new this week" />
-            <span>✨ Try something new this week</span>
-          </label>
-          <div className="tiny muted" style={{ margin: '6px 2px 2px' }}>Adds at least one brand-new dish, even if your library could fill the night.</div>
-          <div className="tiny" style={{ marginTop: 12 }}>Cuisines or dishes to try</div>
-          <div className="tiny muted" style={{ margin: '2px 2px 4px' }}>New ideas for the planner to work in — not from your library.</div>
+            <span
+              className={`toggle ${trySomethingNew ? 'on' : ''}`}
+              role="switch"
+              aria-checked={trySomethingNew}
+              aria-label="Try something new this week"
+            />
+            <span>
+              <>
+                <DataIcon value={'✨'} kind="calendar" />
+                {' Try something new this week'}
+              </>
+            </span>
+          </Label>
+          <div className="tiny muted" style={{ margin: '6px 2px 2px' }}>
+            Adds at least one brand-new dish, even if your library could fill the night.
+          </div>
+          <div className="tiny" style={{ marginTop: 12 }}>
+            Cuisines or dishes to try
+          </div>
+          <div className="tiny muted" style={{ margin: '2px 2px 4px' }}>
+            New ideas for the planner to work in — not from your library.
+          </div>
           <div className="use-up-list">
             {wantToTry.map((u) => (
-              <span key={u} className="use-chip">{u} <b onClick={() => setWantToTry((x) => x.filter((y) => y !== u))}>×</b></span>
+              <span key={u} className="use-chip">
+                {u}{' '}
+                <b onClick={() => setWantToTry((x) => x.filter((y) => y !== u))}>
+                  <DataIcon value={'×'} kind="general" />
+                </b>
+              </span>
             ))}
-            <input
+            <Input
               className="use-add-input wide"
               placeholder="+ e.g. Thai green curry"
               value={wantToTryInput}
@@ -306,42 +426,76 @@ export function PlanWeek({ startStr, days, onClose, onApplied, initialUseUp, mea
         <div className="plan-results-head">
           <div className="card-h wf-serif">Here’s your week</div>
           {cards.length > 0 && (
-            <button type="button" className="pill" onClick={reshuffle} disabled={loading}>
-              {loading ? <><span className="spinner" /> Reshuffling…</> : <><Icon name="spark" /> Reshuffle</>}
-            </button>
+            <Button
+              variant="unstyled"
+              type="button"
+              className="pill"
+              onClick={reshuffle}
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <span className="spinner" /> Reshuffling…
+                </>
+              ) : (
+                <>
+                  <Icon name="spark" /> Reshuffle
+                </>
+              )}
+            </Button>
           )}
         </div>
-        {via && VIA_LABEL[via] && cards.length > 0 && <div className="tiny muted" style={{ margin: '-4px 2px 12px' }}>Drafted via {VIA_LABEL[via]}</div>}
+        {via && VIA_LABEL[via] && cards.length > 0 && (
+          <div className="tiny muted" style={{ margin: '-4px 2px 12px' }}>
+            Drafted via {VIA_LABEL[via]}
+          </div>
+        )}
 
         {!started && (
           <div className="plan-empty">
-            <div className="plan-empty-emoji">🍽️</div>
+            <div className="plan-empty-emoji">
+              <DataIcon value={'🍽️'} kind="general" />
+            </div>
             <div className="set-row2-t">Ready when you are</div>
             <div className="tiny muted" style={{ maxWidth: 340, margin: '4px 0 18px' }}>
-              Set the guardrails on the left, then draft a week of {MEAL_LABEL[mealType].toLowerCase()}s.
+              Set the guardrails on the left, then draft a week of{' '}
+              {MEAL_LABEL[mealType].toLowerCase()}s.
             </div>
-            <button type="button" className="btn btn-primary" onClick={planAll} disabled={selectedDays.size === 0}>
+            <Button
+              variant="default"
+              type="button"
+              onClick={planAll}
+              disabled={selectedDays.size === 0}
+            >
               <Icon name="spark" /> Plan my week
-            </button>
+            </Button>
           </div>
         )}
 
         {loading && cards.length === 0 && (
           <div className="plan-empty">
             <span className="spinner lg" />
-            <div className="tiny muted" style={{ marginTop: 14 }}>Drafting your week…</div>
+            <div className="tiny muted" style={{ marginTop: 14 }}>
+              Drafting your week…
+            </div>
           </div>
         )}
 
         {error && (
           <div className="plan-empty">
-            <div className="muted" style={{ fontWeight: 600, marginBottom: 16, maxWidth: 360 }}>{error}</div>
-            <button type="button" className="btn btn-primary" onClick={planAll}><Icon name="spark" /> Try again</button>
+            <div className="muted" style={{ fontWeight: 600, marginBottom: 16, maxWidth: 360 }}>
+              {error}
+            </div>
+            <Button variant="default" type="button" onClick={planAll}>
+              <Icon name="spark" /> Try again
+            </Button>
           </div>
         )}
 
         {!loading && !error && cards.length > 0 && shown.length === 0 && (
-          <div className="muted" style={{ padding: 16, fontWeight: 600 }}>Pick some days on the left to plan.</div>
+          <div className="muted" style={{ padding: 16, fontWeight: 600 }}>
+            Pick some days on the left to plan.
+          </div>
         )}
 
         <div className="plan-list">
@@ -351,7 +505,9 @@ export function PlanWeek({ startStr, days, onClose, onApplied, initialUseUp, mea
             return (
               <div key={c.date} className={`plan-day ${isLocked ? 'locked' : ''}`}>
                 {draftingDates.has(c.date) && (
-                  <div className="pd-loading"><span className="spinner" /></div>
+                  <div className="pd-loading">
+                    <span className="spinner" />
+                  </div>
                 )}
                 <div className="pd-day">
                   <div className="pd-dow">{lab.dow}</div>
@@ -363,24 +519,58 @@ export function PlanWeek({ startStr, days, onClose, onApplied, initialUseUp, mea
                   role="button"
                   title={c.recipeId ? 'View recipe' : 'New recipe — tap for details'}
                 >
-                  <div className="pd-img">{c.emoji ?? '🍽️'}</div>
+                  <div className="pd-img">
+                    <DataIcon value={c.emoji ?? '🍽️'} kind="meal" />
+                  </div>
                   <div className="pd-b">
                     <div className="pd-t">{c.title}</div>
                     <div className="pd-m">
-                      {[c.minutes ? `${c.minutes} min` : null, `Serves ${c.servings}`].filter(Boolean).join(' · ')}
+                      {[c.minutes ? `${c.minutes} min` : null, `Serves ${c.servings}`]
+                        .filter(Boolean)
+                        .join(' · ')}
                       {c.recipeId ? ' · from your recipes' : ' · new recipe'}
                     </div>
-                    {c.note && <div className="reason"><Icon name="spark" />{c.note}</div>}
+                    {c.note && (
+                      <div className="reason">
+                        <Icon name="spark" />
+                        {c.note}
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="pd-act">
-                  <button type="button" className="pd-icon" title="Swap — let AI pick another" onClick={() => swap(c)} disabled={loading}>⟳</button>
-                  <button type="button" className="pd-icon" title="Choose a recipe yourself" onClick={() => setPickForDate(c.date)}>
+                  <Button
+                    variant="unstyled"
+                    type="button"
+                    className="pd-icon"
+                    title="Swap — let AI pick another"
+                    onClick={() => swap(c)}
+                    disabled={loading}
+                  >
+                    ⟳
+                  </Button>
+                  <Button
+                    variant="unstyled"
+                    type="button"
+                    className="pd-icon"
+                    title="Choose a recipe yourself"
+                    onClick={() => setPickForDate(c.date)}
+                  >
                     <Icon name="recipes" />
-                  </button>
-                  <button type="button" className={`pd-icon ${isLocked ? 'on' : ''}`} title={isLocked ? 'Locked — won’t reshuffle' : 'Lock this night'} onClick={() => toggleLock(c.date)}>
-                    {isLocked ? '🔒' : '🔓'}
-                  </button>
+                  </Button>
+                  <Button
+                    variant="unstyled"
+                    type="button"
+                    className={`pd-icon ${isLocked ? 'on' : ''}`}
+                    title={isLocked ? 'Locked — won’t reshuffle' : 'Lock this night'}
+                    onClick={() => toggleLock(c.date)}
+                  >
+                    {isLocked ? (
+                      <DataIcon value={'🔒'} kind="general" />
+                    ) : (
+                      <DataIcon value={'🔓'} kind="general" />
+                    )}
+                  </Button>
                 </div>
               </div>
             )
@@ -391,27 +581,61 @@ export function PlanWeek({ startStr, days, onClose, onApplied, initialUseUp, mea
           <div className="plan-foot">
             <div>
               <div className="set-row2-t">Looks good?</div>
-              <div className="tiny muted">Adds {shown.length} {MEAL_LABEL[mealType].toLowerCase()}{shown.length === 1 ? '' : 's'} to the calendar &amp; builds your grocery list.</div>
+              <div className="tiny muted">
+                Adds {shown.length} {MEAL_LABEL[mealType].toLowerCase()}
+                {shown.length === 1 ? '' : 's'} to the calendar &amp; builds your grocery list.
+              </div>
             </div>
-            <button type="button" className="btn btn-primary" onClick={applyAll} disabled={applying || loading}>
+            <Button
+              variant="default"
+              type="button"
+              onClick={applyAll}
+              disabled={applying || loading}
+            >
               {applying ? 'Adding…' : 'Add week & build list'}
-            </button>
+            </Button>
           </div>
         )}
       </div>
 
-      {viewRecipeId && <RecipeModal recipeId={viewRecipeId} onClose={() => setViewRecipeId(null)} />}
+      {viewRecipeId && (
+        <RecipeModal recipeId={viewRecipeId} onClose={() => setViewRecipeId(null)} />
+      )}
 
       {/* A suggested dish that isn't in the library has nothing to show, so tapping it explains
           that and offers a web search or a swap to one of your own. */}
       {newInfo && (
-        <div className="modal-overlay" onClick={() => setNewInfo(null)}>
-          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 400, textAlign: 'center', padding: 28 }}>
-            <button type="button" className="modal-close" aria-label="Close" onClick={() => setNewInfo(null)}>×</button>
-            <div style={{ fontSize: 46, lineHeight: 1 }}>{newInfo.emoji ?? '🍽️'}</div>
-            <div className="wf-serif" style={{ fontSize: 22, fontWeight: 600, margin: '10px 0 6px' }}>{newInfo.title}</div>
-            <div className="tiny muted" style={{ margin: '0 auto 20px', maxWidth: 320, lineHeight: 1.5 }}>
-              A brand-new recipe Waffled suggested — it isn’t in your library, so the ingredients and steps aren’t known yet. Add the week and it’s saved as a title you can flesh out anytime.
+        <Modal className="modal-overlay" onClose={() => setNewInfo(null)}>
+          <div
+            className="modal-card"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: 400, textAlign: 'center', padding: 28 }}
+          >
+            <Button
+              variant="unstyled"
+              type="button"
+              className="modal-close"
+              aria-label="Close"
+              onClick={() => setNewInfo(null)}
+            >
+              <DataIcon value={'×'} kind="general" />
+            </Button>
+            <div style={{ fontSize: 46, lineHeight: 1 }}>
+              <DataIcon value={newInfo.emoji ?? '🍽️'} kind="general" />
+            </div>
+            <div
+              className="wf-serif"
+              style={{ fontSize: 22, fontWeight: 600, margin: '10px 0 6px' }}
+            >
+              {newInfo.title}
+            </div>
+            <div
+              className="tiny muted"
+              style={{ margin: '0 auto 20px', maxWidth: 320, lineHeight: 1.5 }}
+            >
+              A brand-new recipe Waffled suggested — it isn’t in your library, so the ingredients
+              and steps aren’t known yet. Add the week and it’s saved as a title you can flesh out
+              anytime.
             </div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
               <a
@@ -421,23 +645,40 @@ export function PlanWeek({ startStr, days, onClose, onApplied, initialUseUp, mea
                 rel="noopener noreferrer"
                 style={{ textDecoration: 'none' }}
               >
-                🔍 Search the web
+                <>
+                  <DataIcon value={'🔍'} kind="meal" />
+                  {' Search the web'}
+                </>
               </a>
-              <button type="button" className="btn btn-primary" onClick={() => { const d = newInfo.date; setNewInfo(null); setPickForDate(d) }}>
+              <Button
+                variant="default"
+                type="button"
+                onClick={() => {
+                  const d = newInfo.date
+                  setNewInfo(null)
+                  setPickForDate(d)
+                }}
+              >
                 Use one of my recipes
-              </button>
+              </Button>
             </div>
           </div>
-        </div>
+        </Modal>
       )}
 
       {/* Manual swap reuses the full recipe browser in an overlay so plan state stays intact. */}
       {pickForDate && (
         <div className="plan-pick-overlay">
           <div className="plan-pick-head">
-            <button type="button" className="pill" onClick={() => setPickForDate(null)} style={{ cursor: 'pointer' }}>
+            <Button
+              variant="unstyled"
+              type="button"
+              className="pill"
+              onClick={() => setPickForDate(null)}
+              style={{ cursor: 'pointer' }}
+            >
               <Icon name="cl" /> Back
-            </button>
+            </Button>
             <div className="wf-serif" style={{ fontSize: 20, fontWeight: 600, marginLeft: 14 }}>
               Choose a recipe · {labelFor(pickForDate).dow} {labelFor(pickForDate).dt}
             </div>

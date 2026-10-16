@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Icon } from '../icons'
 import { MONTHS, addDays, dowFrom, monthGridStart, ymd } from './cal-utils'
 import { dayLabel } from './event-when'
+import { Button } from '@/components/ui/button'
 
 // A month of day buttons with prev/next: the Agenda sidebar's mini month (with event dots) and
 // the event editor's date picker (with the picked day marked). Each day is labelled
@@ -27,7 +28,10 @@ export function DayPicker({
   })
   const todayKey = ymd(new Date())
   const cells = useMemo(
-    () => Array.from({ length: 42 }, (_, i) => addDays(monthGridStart(view.year, view.month, firstDay), i)),
+    () =>
+      Array.from({ length: 42 }, (_, i) =>
+        addDays(monthGridStart(view.year, view.month, firstDay), i),
+      ),
     [view, firstDay],
   )
 
@@ -42,15 +46,27 @@ export function DayPicker({
     <div className={className}>
       <div className="ag-mini-head">
         <div className="wf-serif" style={{ fontSize: 19, fontWeight: 600 }}>
-          {MONTHS[view.month]}{withYear ? ` ${view.year}` : ''}
+          {MONTHS[view.month]}
+          {withYear ? ` ${view.year}` : ''}
         </div>
         <div className="ag-mini-nav">
-          <button type="button" aria-label="Previous month" onClick={() => shift(-1)}><Icon name="cl" /></button>
-          <button type="button" aria-label="Next month" onClick={() => shift(1)}><Icon name="cr" /></button>
+          <Button
+            variant="unstyled"
+            type="button"
+            aria-label="Previous month"
+            onClick={() => shift(-1)}
+          >
+            <Icon name="cl" />
+          </Button>
+          <Button variant="unstyled" type="button" aria-label="Next month" onClick={() => shift(1)}>
+            <Icon name="cr" />
+          </Button>
         </div>
       </div>
       <div className="ag-mini-dow">
-        {dowFrom(['S', 'M', 'T', 'W', 'T', 'F', 'S'], firstDay).map((d, i) => <div key={i}>{d}</div>)}
+        {dowFrom(['S', 'M', 'T', 'W', 'T', 'F', 'S'], firstDay).map((d, i) => (
+          <div key={i}>{d}</div>
+        ))}
       </div>
       <div className="ag-mini-grid">
         {cells.map((d) => {
@@ -58,7 +74,8 @@ export function DayPicker({
           const dim = d.getMonth() !== view.month
           const colors = dotsFor?.(key)
           return (
-            <button
+            <Button
+              variant="unstyled"
               type="button"
               key={key}
               aria-label={dayLabel(key)}
@@ -74,7 +91,7 @@ export function DayPicker({
                   ))}
                 </span>
               )}
-            </button>
+            </Button>
           )
         })}
       </div>

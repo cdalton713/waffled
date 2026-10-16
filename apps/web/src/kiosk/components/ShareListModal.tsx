@@ -8,6 +8,9 @@ import {
   qrBitmapPx,
   qrIsScannable,
 } from './share-qr'
+import { Button } from '@/components/ui/button'
+import { DataIcon } from '@/components/ui/data-icon'
+import { Modal } from '@/components/ui/modal'
 
 // "Share list" — the grocery handoff. Shows the board's unchecked items as a
 // clean aisle-grouped text list with copy, navigator.share, and a QR code that
@@ -20,9 +23,16 @@ import {
 // share-qr.ts. Copy and the share sheet have no length limit, so the handoff
 // never depends on the code.
 
-const canShare = (): boolean => typeof navigator !== 'undefined' && typeof navigator.share === 'function'
+const canShare = (): boolean =>
+  typeof navigator !== 'undefined' && typeof navigator.share === 'function'
 
-export function ShareListModal({ items, onClose }: { items: ShareListItem[]; onClose: () => void }) {
+export function ShareListModal({
+  items,
+  onClose,
+}: {
+  items: ShareListItem[]
+  onClose: () => void
+}) {
   const text = formatShareList(items)
   const count = items.filter((i) => !i.checked).length
   const [qr, setQr] = useState<string | null>(null)
@@ -34,7 +44,9 @@ export function ShareListModal({ items, onClose }: { items: ShareListItem[]; onC
   const scannable = useMemo(() => {
     if (!text) return false
     try {
-      return qrIsScannable(QRCode.create(text, { errorCorrectionLevel: QR_ERROR_CORRECTION }).modules.size)
+      return qrIsScannable(
+        QRCode.create(text, { errorCorrectionLevel: QR_ERROR_CORRECTION }).modules.size,
+      )
     } catch {
       return false // payload beyond QR's capacity entirely
     }
@@ -76,20 +88,43 @@ export function ShareListModal({ items, onClose }: { items: ShareListItem[]; onC
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <Modal className="modal-overlay" onClose={onClose}>
       <div
         className="modal-card"
         style={{ maxWidth: 560, maxHeight: '86vh', overflowY: 'auto' }}
         onClick={(e) => e.stopPropagation()}
       >
-        <button type="button" className="modal-close" aria-label="Close" onClick={onClose}>×</button>
-        <div className="card-h wf-serif" style={{ fontSize: 22, marginBottom: 4 }}>Share list</div>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="modal-close"
+          aria-label="Close"
+          onClick={onClose}
+        >
+          <DataIcon value={'×'} kind="list" />
+        </Button>
+        <div className="card-h wf-serif" style={{ fontSize: 22, marginBottom: 4 }}>
+          Share list
+        </div>
 
         {!text ? (
-          <div className="muted" style={{ padding: '12px 0' }}>Nothing to share — everything’s checked off. 🎉</div>
+          <div className="muted" style={{ padding: '12px 0' }}>
+            <>
+              {'Nothing to share — everything’s checked off. '}
+              <DataIcon value={'🎉'} kind="list" />
+            </>
+          </div>
         ) : (
           <>
-            <div style={{ display: 'flex', gap: 18, alignItems: 'center', flexWrap: 'wrap', padding: '10px 0' }}>
+            <div
+              style={{
+                display: 'flex',
+                gap: 18,
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                padding: '10px 0',
+              }}
+            >
               {qr && (
                 <img
                   src={qr}
@@ -100,24 +135,45 @@ export function ShareListModal({ items, onClose }: { items: ShareListItem[]; onC
                 />
               )}
               <div style={{ flex: 1, minWidth: 200 }}>
-                <div style={{ fontWeight: 800, marginBottom: 6 }}>{count} item{count === 1 ? '' : 's'} to get</div>
+                <div style={{ fontWeight: 800, marginBottom: 6 }}>
+                  {count} item{count === 1 ? '' : 's'} to get
+                </div>
                 <div className="tiny muted" style={{ marginBottom: 10 }}>
                   {scannable
                     ? 'Scan with a phone camera to grab the list — no app or account needed. Or copy it and text it over.'
                     : 'This list is too long to scan as a QR code — the squares would be too small for a camera to read. Copy it or send it through the share sheet instead.'}
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  {canShare() && <button type="button" className="btn btn-primary" onClick={share}>Share…</button>}
-                  <button
+                  {canShare() && (
+                    <Button variant="default" type="button" onClick={share}>
+                      Share…
+                    </Button>
+                  )}
+                  <Button
+                    variant="unstyled"
                     type="button"
                     className={`btn ${canShare() ? 'btn-ghost' : 'btn-primary'}`}
                     onClick={() => copy('text')}
                   >
-                    {copied === 'text' ? 'Copied ✓' : 'Copy list'}
-                  </button>
-                  <button type="button" className="btn btn-ghost" onClick={() => copy('md')}>
-                    {copied === 'md' ? 'Copied ✓' : 'Copy as Markdown'}
-                  </button>
+                    {copied === 'text' ? (
+                      <>
+                        {'Copied '}
+                        <DataIcon value={'✓'} kind="list" />
+                      </>
+                    ) : (
+                      'Copy list'
+                    )}
+                  </Button>
+                  <Button variant="ghost" type="button" onClick={() => copy('md')}>
+                    {copied === 'md' ? (
+                      <>
+                        {'Copied '}
+                        <DataIcon value={'✓'} kind="list" />
+                      </>
+                    ) : (
+                      'Copy as Markdown'
+                    )}
+                  </Button>
                 </div>
               </div>
             </div>
@@ -138,6 +194,6 @@ export function ShareListModal({ items, onClose }: { items: ShareListItem[]; onC
           </>
         )}
       </div>
-    </div>
+    </Modal>
   )
 }

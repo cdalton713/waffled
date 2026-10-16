@@ -1,505 +1,639 @@
+@reference './ui.css';
 /* ===== Cook mode (full-screen step-by-step) ===== */
 .cookmode {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  padding: 0 40px 28px;
+  @apply [flex:1];
+  @apply flex;
+  @apply flex-col;
+  @apply [min-height:0];
+  @apply [padding:0_40px_28px];
 }
 .cm-top-title {
-  font-size: 18px;
-  font-weight: 600;
-  max-width: 50%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  @apply [font-size:18px];
+  @apply font-semibold;
+  @apply [max-width:50%];
+  @apply overflow-hidden;
+  @apply [text-overflow:ellipsis];
+  @apply whitespace-nowrap;
 }
 
 /* progress bar across the top of the stage */
 .cm-progress {
-  height: 6px;
-  border-radius: 999px;
-  background: var(--panel);
-  overflow: hidden;
-  margin: 6px 0 22px;
+  @apply [height:6px];
+  @apply [border-radius:999px];
+  @apply [background:var(--panel)];
+  @apply overflow-hidden;
+  @apply [margin:6px_0_22px];
 }
 .cm-progress span {
-  display: block;
-  height: 100%;
-  background: var(--person-3);
-  border-radius: 999px;
-  transition: width 0.25s ease;
+  @apply block;
+  @apply [height:100%];
+  @apply [background:var(--person-3)];
+  @apply [border-radius:999px];
+  @apply [transition:width_0.25s_ease];
 }
 
 .cm-stage {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 22px;
-  max-width: 900px;
-  margin: 0 auto;
-  width: 100%;
+  @apply [flex:1];
+  @apply flex;
+  @apply flex-col;
+  @apply justify-center;
+  @apply items-start;
+  @apply [gap:22px];
+  @apply [max-width:900px];
+  @apply [margin:0_auto];
+  @apply [width:100%];
 }
 .cm-step-n {
-  font-size: 15px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--person-3-tx);
+  @apply [font-size:15px];
+  @apply font-extrabold;
+  @apply [letter-spacing:0.06em];
+  @apply [text-transform:uppercase];
+  @apply [color:var(--person-3-tx)];
 }
 .cm-instruction {
-  font-size: 40px;
-  line-height: 1.28;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  color: var(--ink);
+  @apply [font-size:40px];
+  @apply [line-height:1.28];
+  @apply font-semibold;
+  @apply [letter-spacing:-0.01em];
+  @apply [color:var(--ink)];
 }
 
 /* The stage and, when the step names any, its ingredients in a fixed LEFT column — the iPad's
    layout (CookModeView.ingredientsSidebar). */
-.cm-body { flex: 1; display: flex; gap: 32px; }
-.cm-body > .cm-stage { min-width: 0; }
+.cm-body {
+  @apply [flex:1];
+  @apply flex;
+  @apply [gap:32px];
+}
+.cm-body > .cm-stage {
+  @apply [min-width:0];
+}
 .cm-side {
-  flex: none; width: 300px; align-self: stretch; overflow-y: auto;
-  display: flex; flex-direction: column; gap: 10px;
-  background: var(--panel); border-radius: var(--r-lg); padding: 24px 20px;
+  @apply [flex:none];
+  @apply [width:300px];
+  @apply [align-self:stretch];
+  @apply overflow-y-auto;
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:10px];
+  @apply [background:var(--panel)];
+  @apply [border-radius:var(--r-lg)];
+  @apply [padding:24px_20px];
 }
 .cm-side-label {
-  font-size: 13px; font-weight: 800; letter-spacing: 0.09em; text-transform: uppercase;
-  color: var(--ink-3); margin-bottom: 4px;
+  @apply [font-size:13px];
+  @apply font-extrabold;
+  @apply [letter-spacing:0.09em];
+  @apply [text-transform:uppercase];
+  @apply [color:var(--ink-3)];
+  @apply [margin-bottom:4px];
 }
 /* Tick an ingredient off as it goes in. Same check-off vocabulary as the grocery board (a box
    that fills on the person-3 green), sized for a row you tap from across the kitchen. */
 .cm-side-row {
-  font: inherit; font-size: 17px; font-weight: 600; line-height: 1.35; text-align: left;
-  width: 100%; padding: 9px 12px; border: 0; border-radius: var(--r-sm); cursor: pointer;
-  background: var(--person-3-t); color: var(--ink);
-  display: flex; align-items: flex-start; gap: 10px;
+  @apply [font:inherit];
+  @apply [font-size:17px];
+  @apply font-semibold;
+  @apply [line-height:1.35];
+  @apply text-left;
+  @apply [width:100%];
+  @apply [padding:9px_12px];
+  @apply [border:0];
+  @apply [border-radius:var(--r-sm)];
+  @apply cursor-pointer;
+  @apply [background:var(--person-3-t)];
+  @apply [color:var(--ink)];
+  @apply flex;
+  @apply items-start;
+  @apply [gap:10px];
 }
-.cm-side-row .cm-ing-box { margin-top: 1px; }
-.cm-side-nm { min-width: 0; overflow-wrap: anywhere; }
+.cm-side-row .cm-ing-box {
+  @apply [margin-top:1px];
+}
+.cm-side-nm {
+  @apply [min-width:0];
+  @apply [overflow-wrap:anywhere];
+}
 .cm-ing-box {
-  width: 20px;
-  height: 20px;
-  flex: none;
-  border-radius: 7px;
-  border: 2px solid var(--success);
-  display: grid;
-  place-items: center;
+  @apply [width:20px];
+  @apply [height:20px];
+  @apply [flex:none];
+  @apply [border-radius:7px];
+  @apply [border:2px_solid_var(--success)];
+  @apply grid;
+  @apply [place-items:center];
 }
 .cm-side-row.on .cm-ing-box {
-  background: var(--success);
-  border-color: var(--success);
+  @apply [background:var(--success)];
+  @apply [border-color:var(--success)];
 }
-.cm-side-row.on { opacity: 0.62; color: var(--ink-3); text-decoration: line-through; }
+.cm-side-row.on {
+  @apply [opacity:0.62];
+  @apply [color:var(--ink-3)];
+  @apply [text-decoration:line-through];
+}
 /* A phone has no room beside the step: the column stacks under it, as the iPhone keeps them inline. */
 @media (max-width: 760px) {
-  .cm-body { flex-direction: column; gap: 18px; }
-  .cm-side { order: 1; width: auto; padding: 16px; }
+  .cm-body {
+    @apply flex-col;
+    @apply [gap:18px];
+  }
+  .cm-side {
+    @apply [order:1];
+    @apply [width:auto];
+    @apply [padding:16px];
+  }
 }
 .cm-note {
-  font-size: 17px;
-  font-weight: 600;
-  color: var(--success-tx);
-  background: var(--person-3-t);
-  padding: 12px 16px;
-  border-radius: var(--r-lg);
-  line-height: 1.45;
+  @apply [font-size:17px];
+  @apply font-semibold;
+  @apply [color:var(--success-tx)];
+  @apply [background:var(--person-3-t)];
+  @apply [padding:12px_16px];
+  @apply [border-radius:var(--r-lg)];
+  @apply [line-height:1.45];
 }
 
 /* big touch controls along the bottom */
 .cm-controls {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  max-width: 900px;
-  margin: 18px auto 0;
-  width: 100%;
+  @apply flex;
+  @apply items-center;
+  @apply [gap:14px];
+  @apply [max-width:900px];
+  @apply [margin:18px_auto_0];
+  @apply [width:100%];
 }
 .cm-nav {
-  font: inherit;
-  font-size: 19px;
-  font-weight: 700;
-  padding: 18px 30px;
-  border-radius: var(--r-lg);
-  border: 1px solid var(--hair);
-  background: var(--card);
-  color: var(--ink);
-  cursor: pointer;
-  box-shadow: var(--sh-1);
+  @apply [font:inherit];
+  @apply [font-size:19px];
+  @apply font-bold;
+  @apply [padding:18px_30px];
+  @apply [border-radius:var(--r-lg)];
+  @apply [border:1px_solid_var(--hair)];
+  @apply [background:var(--card)];
+  @apply [color:var(--ink)];
+  @apply cursor-pointer;
+  @apply [box-shadow:var(--sh-1)];
 }
 .cm-nav:disabled {
-  opacity: 0.4;
-  cursor: default;
+  @apply [opacity:0.4];
+  @apply cursor-default;
 }
-.cm-next, .cm-finish {
-  margin-left: auto;
-  border: 0;
-  background: var(--person-3);
-  color: var(--on-accent);
+.cm-next,
+.cm-finish {
+  @apply [margin-left:auto];
+  @apply [border:0];
+  @apply [background:var(--person-3)];
+  @apply [color:var(--on-accent)];
 }
 .cm-finish {
-  background: var(--person-3);
+  @apply [background:var(--person-3)];
 }
 .cm-allbtn {
-  font: inherit;
-  font-size: 15px;
-  font-weight: 700;
-  padding: 14px 20px;
-  border-radius: var(--r-lg);
-  border: 1px solid var(--hair);
-  background: var(--card-2);
-  color: var(--ink-2);
-  cursor: pointer;
+  @apply [font:inherit];
+  @apply [font-size:15px];
+  @apply font-bold;
+  @apply [padding:14px_20px];
+  @apply [border-radius:var(--r-lg)];
+  @apply [border:1px_solid_var(--hair)];
+  @apply [background:var(--card-2)];
+  @apply [color:var(--ink-2)];
+  @apply cursor-pointer;
 }
 
 .cm-all-list {
-  display: flex;
-  flex-direction: column;
+  @apply flex;
+  @apply flex-col;
 }
 .cm-all-head {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  margin-bottom: 12px;
+  @apply flex;
+  @apply items-baseline;
+  @apply [gap:12px];
+  @apply [margin-bottom:12px];
   /* the modal's × is absolutely positioned in this corner — keep the count clear of it */
-  padding-right: 34px;
+  @apply [padding-right:34px];
 }
 .cm-all-count {
-  margin-left: auto;
-  font-weight: 700;
-  white-space: nowrap;
+  @apply [margin-left:auto];
+  @apply font-bold;
+  @apply whitespace-nowrap;
 }
 .cm-all-row {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 11px 0;
-  border-bottom: 1px solid var(--hair-2);
-  font-size: 15.5px;
+  @apply flex;
+  @apply items-center;
+  @apply [gap:14px];
+  @apply [padding:11px_0];
+  @apply [border-bottom:1px_solid_var(--hair-2)];
+  @apply [font-size:15.5px];
   /* a whole-row tick target, not a link-looking button */
-  font-family: inherit;
-  width: 100%;
-  background: none;
-  border-left: 0;
-  border-right: 0;
-  border-top: 0;
-  text-align: left;
-  color: inherit;
-  cursor: pointer;
+  @apply [font-family:inherit];
+  @apply [width:100%];
+  @apply [background:none];
+  @apply [border-left:0];
+  @apply [border-right:0];
+  @apply [border-top:0];
+  @apply text-left;
+  @apply [color:inherit];
+  @apply cursor-pointer;
 }
 .cm-all-row:last-child {
-  border-bottom: 0;
+  @apply [border-bottom:0];
 }
 .cm-all-box {
-  width: 20px;
-  height: 20px;
-  flex: none;
-  border-radius: 7px;
-  border: 2px solid var(--hair);
-  background: var(--card);
-  display: grid;
-  place-items: center;
+  @apply [width:20px];
+  @apply [height:20px];
+  @apply [flex:none];
+  @apply [border-radius:7px];
+  @apply [border:2px_solid_var(--hair)];
+  @apply [background:var(--card)];
+  @apply grid;
+  @apply [place-items:center];
 }
 .cm-all-row.done .cm-all-box {
-  background: var(--person-3);
-  border-color: var(--person-3);
+  @apply [background:var(--person-3)];
+  @apply [border-color:var(--person-3)];
 }
 .cm-all-row.done .cm-all-amt,
 .cm-all-row.done .cm-all-nm {
-  text-decoration: line-through;
-  color: var(--ink-3);
+  @apply [text-decoration:line-through];
+  @apply [color:var(--ink-3)];
 }
 .cm-all-amt {
-  width: 96px;
-  flex: none;
-  font-weight: 700;
+  @apply [width:96px];
+  @apply [flex:none];
+  @apply font-bold;
 }
 .cm-all-nm {
-  min-width: 0;
+  @apply [min-width:0];
 }
 
 /* finish screen */
 .cm-done {
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  gap: 10px;
+  @apply items-center;
+  @apply justify-center;
+  @apply text-center;
+  @apply [gap:10px];
 }
 .cm-done-emoji {
-  font-size: 72px;
+  @apply [font-size:72px];
 }
 .cm-done-h {
-  font-size: 34px;
-  font-weight: 600;
+  @apply [font-size:34px];
+  @apply font-semibold;
 }
 .cm-done-sub {
-  font-size: 16px;
-  font-weight: 600;
+  @apply [font-size:16px];
+  @apply font-semibold;
 }
 .cm-done-actions {
-  display: flex;
-  gap: 12px;
-  margin-top: 22px;
+  @apply flex;
+  @apply [gap:12px];
+  @apply [margin-top:22px];
 }
 
 /* ===== Per-step timers ===== */
 /* "Start mm:ss" button on a timed step */
 .cm-timer-start {
-  font: inherit;
-  font-size: 19px;
-  font-weight: 700;
-  padding: 14px 26px;
-  border-radius: var(--r-lg);
-  border: 0;
-  background: var(--primary);
-  color: var(--on-accent);
-  cursor: pointer;
-  box-shadow: var(--sh-1);
+  @apply [font:inherit];
+  @apply [font-size:19px];
+  @apply font-bold;
+  @apply [padding:14px_26px];
+  @apply [border-radius:var(--r-lg)];
+  @apply [border:0];
+  @apply [background:var(--primary)];
+  @apply [color:var(--on-accent)];
+  @apply cursor-pointer;
+  @apply [box-shadow:var(--sh-1)];
 }
 .cm-timer-start:hover {
-  filter: brightness(0.96);
+  @apply [filter:brightness(0.96)];
 }
 
 /* floating dock — stacks active timers above every step + the done screen */
 .cm-timers {
-  position: fixed;
-  right: 24px;
-  bottom: 24px;
-  z-index: 60;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  max-width: 280px;
+  @apply fixed;
+  @apply [right:24px];
+  @apply [bottom:24px];
+  @apply [z-index:60];
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:12px];
+  @apply [max-width:280px];
 }
 .cm-timer {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
-  border-radius: var(--r-lg);
-  border: 1px solid var(--hair);
-  background: var(--card);
-  box-shadow: var(--sh-2);
+  @apply flex;
+  @apply items-center;
+  @apply [gap:12px];
+  @apply [padding:14px_16px];
+  @apply [border-radius:var(--r-lg)];
+  @apply [border:1px_solid_var(--hair)];
+  @apply [background:var(--card)];
+  @apply [box-shadow:var(--sh-2)];
 }
 .cm-timer-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin-right: auto;
-  min-width: 0;
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:2px];
+  @apply [margin-right:auto];
+  @apply [min-width:0];
   /* tap the label/time to jump back to the step that started this timer */
-  cursor: pointer;
+  @apply cursor-pointer;
 }
 .cm-timer-info:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
-  border-radius: 6px;
+  @apply [outline:2px_solid_var(--primary)];
+  @apply [outline-offset:2px];
+  @apply [border-radius:6px];
 }
 /* on-the-spot add-timer: nudge the shared .re-timer-edit row into the larger
    cook-mode layout so the ⏱ min/sec ✓ × controls read at kitchen distance */
 .cm-timer-add-edit {
-  font-size: 16px;
-  padding: 8px 12px;
+  @apply [font-size:16px];
+  @apply [padding:8px_12px];
 }
 .cm-timer-add-edit .re-timer-num {
-  width: 58px;
-  font-size: 16px;
+  @apply [width:58px];
+  @apply [font-size:16px];
 }
 /* which dish this timer belongs to — plate cook mode only, where the dock is a
    cross-dish view and "Step 3" on its own tells you nothing */
 .cm-timer-dish {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--ink);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  @apply [font-size:14px];
+  @apply font-bold;
+  @apply [color:var(--ink)];
+  @apply whitespace-nowrap;
+  @apply overflow-hidden;
+  @apply [text-overflow:ellipsis];
 }
 .cm-timer-label {
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--ink-3);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  @apply [font-size:12px];
+  @apply font-extrabold;
+  @apply [letter-spacing:0.04em];
+  @apply [text-transform:uppercase];
+  @apply [color:var(--ink-3)];
+  @apply whitespace-nowrap;
+  @apply overflow-hidden;
+  @apply [text-overflow:ellipsis];
 }
 .cm-timer-time {
-  font-size: 26px;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  color: var(--ink);
-  line-height: 1;
+  @apply [font-size:26px];
+  @apply font-extrabold;
+  @apply [font-variant-numeric:tabular-nums];
+  @apply [color:var(--ink)];
+  @apply [line-height:1];
 }
 .cm-timer-btn {
-  flex: none;
-  width: 38px;
-  height: 38px;
-  border-radius: 999px;
-  border: 1px solid var(--hair);
-  background: var(--card-2);
-  color: var(--ink-2);
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
+  @apply [flex:none];
+  @apply [width:38px];
+  @apply [height:38px];
+  @apply [border-radius:999px];
+  @apply [border:1px_solid_var(--hair)];
+  @apply [background:var(--card-2)];
+  @apply [color:var(--ink-2)];
+  @apply [font-size:15px];
+  @apply font-bold;
+  @apply cursor-pointer;
 }
 .cm-timer-btn:hover {
-  background: var(--panel);
+  @apply [background:var(--panel)];
 }
 .cm-timer-x {
-  font-size: 18px;
+  @apply [font-size:18px];
 }
 /* a fired timer flashes (and chimes — handled in JS) until dismissed */
 .cm-timer-firing {
-  border-color: var(--primary);
-  animation: cm-timer-flash 0.8s steps(1, end) infinite;
+  @apply [border-color:var(--primary)];
+  @apply [animation:cm-timer-flash_0.8s_steps(1,_end)_infinite];
 }
 .cm-timer-firing .cm-timer-time {
-  color: var(--primary-d);
+  @apply [color:var(--primary-d)];
 }
 @keyframes cm-timer-flash {
-  0% { background: var(--card); }
-  50% { background: var(--person-3-t); }
-  100% { background: var(--card); }
+  0% {
+    background: var(--card);
+  }
+  50% {
+    background: var(--person-3-t);
+  }
+  100% {
+    background: var(--card);
+  }
 }
 
 /* ── Timer alarm takeover ── full-screen when a timer hits 0 */
 .cm-alarm {
-  position: fixed;
-  inset: 0;
-  z-index: 4000;
-  display: grid;
-  place-items: center;
-  padding: 24px;
+  @apply fixed;
+  @apply [inset:0];
+  @apply [z-index:4000];
+  @apply grid;
+  @apply [place-items:center];
+  @apply [padding:24px];
   /* A solid, opaque background that hard-switches between two attention colors
      (warm primary ↔ blue) — a steady siren, not a flash against the step. */
-  animation: cm-alarm-bg 1.2s steps(1, end) infinite;
+  @apply [animation:cm-alarm-bg_1.2s_steps(1,_end)_infinite];
 }
 @keyframes cm-alarm-bg {
-  0% { background: var(--primary); }
-  50% { background: var(--person-1); }
-  100% { background: var(--primary); }
+  0% {
+    background: var(--primary);
+  }
+  50% {
+    background: var(--person-1);
+  }
+  100% {
+    background: var(--primary);
+  }
 }
 .cm-alarm-card {
-  width: 100%;
-  max-width: 460px;
-  background: var(--card);
-  border-radius: 22px;
-  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.4);
-  padding: 30px 26px 24px;
-  text-align: center;
-  animation: cm-alarm-pop 0.4s ease-out both, cm-alarm-pulse 0.9s ease-in-out infinite;
+  @apply [width:100%];
+  @apply [max-width:460px];
+  @apply [background:var(--card)];
+  @apply [border-radius:22px];
+  @apply [box-shadow:0_30px_90px_rgba(0,_0,_0,_0.4)];
+  @apply [padding:30px_26px_24px];
+  @apply text-center;
+  @apply [animation:cm-alarm-pop_0.4s_ease-out_both,_cm-alarm-pulse_0.9s_ease-in-out_infinite];
 }
-@keyframes cm-alarm-pop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-@keyframes cm-alarm-pulse { 0%,100% { box-shadow: 0 30px 90px rgba(0,0,0,0.4), 0 0 0 0 var(--person-3-t); } 50% { box-shadow: 0 30px 90px rgba(0,0,0,0.4), 0 0 0 14px transparent; } }
-.cm-alarm-ic { font-size: 52px; line-height: 1; }
-.cm-alarm-h { font-size: 30px; font-weight: 600; margin-top: 8px; color: var(--ink); }
-.cm-alarm-list { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
+@keyframes cm-alarm-pop {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes cm-alarm-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 30px 90px rgba(0, 0, 0, 0.4),
+      0 0 0 0 var(--person-3-t);
+  }
+  50% {
+    box-shadow:
+      0 30px 90px rgba(0, 0, 0, 0.4),
+      0 0 0 14px transparent;
+  }
+}
+.cm-alarm-ic {
+  @apply [font-size:52px];
+  @apply [line-height:1];
+}
+.cm-alarm-h {
+  @apply [font-size:30px];
+  @apply font-semibold;
+  @apply [margin-top:8px];
+  @apply [color:var(--ink)];
+}
+.cm-alarm-list {
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:12px];
+  @apply [margin-top:20px];
+}
 .cm-alarm-row {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding: 12px 14px; border-radius: 14px; background: var(--card-2); border: 1px solid var(--hair);
+  @apply flex;
+  @apply items-center;
+  @apply justify-between;
+  @apply [gap:12px];
+  @apply [padding:12px_14px];
+  @apply [border-radius:14px];
+  @apply [background:var(--card-2)];
+  @apply [border:1px_solid_var(--hair)];
 }
-.cm-alarm-label { font-weight: 800; font-size: 16px; color: var(--ink); text-align: left; }
+.cm-alarm-label {
+  @apply font-extrabold;
+  @apply [font-size:16px];
+  @apply [color:var(--ink)];
+  @apply text-left;
+}
 /* the ringing dish, above the step — an alarm you can't attribute is useless */
-.cm-alarm-dish { display: block; font-size: 18px; color: var(--primary-d); }
-.cm-alarm-actions { display: flex; gap: 8px; flex: none; }
-.cm-alarm-jump, .cm-alarm-snooze, .cm-alarm-dismiss {
-  font: inherit; font-size: 14px; font-weight: 800; padding: 10px 16px; border-radius: 999px; cursor: pointer;
+.cm-alarm-dish {
+  @apply block;
+  @apply [font-size:18px];
+  @apply [color:var(--primary-d)];
 }
-.cm-alarm-jump { border: 1px solid var(--primary); background: var(--card); color: var(--primary-d); }
-.cm-alarm-jump:hover { background: var(--person-3-t); }
-.cm-alarm-snooze { border: 1px solid var(--hair); background: var(--card); color: var(--ink); }
-.cm-alarm-snooze:hover { border-color: var(--primary); }
-.cm-alarm-dismiss { border: 0; background: var(--primary); color: var(--on-accent); }
+.cm-alarm-actions {
+  @apply flex;
+  @apply [gap:8px];
+  @apply [flex:none];
+}
+.cm-alarm-jump,
+.cm-alarm-snooze,
+.cm-alarm-dismiss {
+  @apply [font:inherit];
+  @apply [font-size:14px];
+  @apply font-extrabold;
+  @apply [padding:10px_16px];
+  @apply [border-radius:999px];
+  @apply cursor-pointer;
+}
+.cm-alarm-jump {
+  @apply [border:1px_solid_var(--primary)];
+  @apply [background:var(--card)];
+  @apply [color:var(--primary-d)];
+}
+.cm-alarm-jump:hover {
+  @apply [background:var(--person-3-t)];
+}
+.cm-alarm-snooze {
+  @apply [border:1px_solid_var(--hair)];
+  @apply [background:var(--card)];
+  @apply [color:var(--ink)];
+}
+.cm-alarm-snooze:hover {
+  @apply [border-color:var(--primary)];
+}
+.cm-alarm-dismiss {
+  @apply [border:0];
+  @apply [background:var(--primary)];
+  @apply [color:var(--on-accent)];
+}
 
 /* ===== Plate tabs ===== */
 /* Cooking a whole Meal Builder plate: one tab per dish across the top, each with
    its own step progress. Scrolls horizontally on a narrow kiosk rather than
    wrapping into a second row that would eat the step stage. */
 .cm-tabs {
-  display: flex;
-  gap: 10px;
-  align-items: stretch;
-  margin: 10px 0 4px;
-  padding-bottom: 4px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  width: 100%;
-  flex: none;
+  @apply flex;
+  @apply [gap:10px];
+  @apply items-stretch;
+  @apply [margin:10px_0_4px];
+  @apply [padding-bottom:4px];
+  @apply overflow-x-auto;
+  @apply [scrollbar-width:none];
+  @apply [width:100%];
+  @apply [flex:none];
 }
 .cm-tabs::-webkit-scrollbar {
-  display: none;
+  @apply hidden;
 }
 .cm-tab {
-  font: inherit;
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  flex: none;
-  padding: 11px 18px 11px 14px;
-  border-radius: var(--r-lg);
-  border: 1px solid var(--hair);
-  background: var(--card);
-  color: var(--ink-2);
-  cursor: pointer;
-  text-align: left;
-  box-shadow: var(--sh-1);
-  transition: border-color 0.15s ease, background 0.15s ease;
+  @apply [font:inherit];
+  @apply flex;
+  @apply items-center;
+  @apply [gap:11px];
+  @apply [flex:none];
+  @apply [padding:11px_18px_11px_14px];
+  @apply [border-radius:var(--r-lg)];
+  @apply [border:1px_solid_var(--hair)];
+  @apply [background:var(--card)];
+  @apply [color:var(--ink-2)];
+  @apply cursor-pointer;
+  @apply text-left;
+  @apply [box-shadow:var(--sh-1)];
+  @apply [transition:border-color_0.15s_ease,_background_0.15s_ease];
 }
 .cm-tab:hover {
-  border-color: var(--person-3);
+  @apply [border-color:var(--person-3)];
 }
 .cm-tab-emoji {
-  font-size: 24px;
-  line-height: 1;
+  @apply [font-size:24px];
+  @apply [line-height:1];
 }
 .cm-tab-text {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  min-width: 0;
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:3px];
+  @apply [min-width:0];
 }
 .cm-tab-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--ink);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 220px;
+  @apply [font-size:16px];
+  @apply font-bold;
+  @apply [color:var(--ink)];
+  @apply whitespace-nowrap;
+  @apply overflow-hidden;
+  @apply [text-overflow:ellipsis];
+  @apply [max-width:220px];
 }
 .cm-tab-prog {
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--ink-3);
-  white-space: nowrap;
+  @apply [font-size:12px];
+  @apply font-extrabold;
+  @apply [letter-spacing:0.04em];
+  @apply [text-transform:uppercase];
+  @apply [color:var(--ink-3)];
+  @apply whitespace-nowrap;
 }
 /* the dish you're cooking right now */
 .cm-tab-on {
-  border-color: transparent;
-  background: var(--person-3);
+  @apply [border-color:transparent];
+  @apply [background:var(--person-3)];
 }
 .cm-tab-on .cm-tab-title,
 .cm-tab-on .cm-tab-prog {
-  color: var(--on-accent);
+  @apply [color:var(--on-accent)];
 }
 .cm-tab-on:hover {
-  border-color: transparent;
+  @apply [border-color:transparent];
 }
 /* a dish that's been finished and marked cooked */
 .cm-tab-done:not(.cm-tab-on) {
-  background: var(--person-3-t);
+  @apply [background:var(--person-3-t)];
 }
 .cm-tab-done:not(.cm-tab-on) .cm-tab-prog {
-  color: var(--success-tx);
+  @apply [color:var(--success-tx)];
 }
 /* the done screen centers everything — keep the tab strip full-width up top */
 .cm-done .cm-tabs {
-  justify-content: center;
+  @apply justify-center;
 }

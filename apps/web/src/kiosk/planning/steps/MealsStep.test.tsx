@@ -31,15 +31,55 @@ const dinner = (over: Record<string, unknown> = {}) => ({
 const baseView = (): PlanningMealsView => ({
   weekStart: WEEK,
   nights: [
-    { date: day(0), events: [], dinner: dinner({ entryId: 'e-0', title: 'Pasta bake', recipeId: 'r-1', cookName: 'Kevin', cookAvatar: '🐻' }) },
+    {
+      date: day(0),
+      events: [],
+      dinner: dinner({
+        entryId: 'e-0',
+        title: 'Pasta bake',
+        recipeId: 'r-1',
+        cookName: 'Kevin',
+        cookAvatar: '🐻',
+      }),
+    },
     {
       date: day(1),
-      events: [{ id: 'ev-1', title: 'Soccer practice', startsAt: `${day(1)}T22:30:00.000Z`, allDay: false, personName: 'Ada', personColor: '#7c5cff' }],
+      events: [
+        {
+          id: 'ev-1',
+          title: 'Soccer practice',
+          startsAt: `${day(1)}T22:30:00.000Z`,
+          allDay: false,
+          personName: 'Ada',
+          personColor: '#7c5cff',
+        },
+      ],
       dinner: dinner({ entryId: 'e-1', title: 'Fish tacos', emoji: '🌮', recipeId: 'r-2' }),
     },
-    { date: day(2), events: [], dinner: dinner({ entryId: 'e-2', title: 'Leftovers', emoji: null, recipeId: null }) },
-    { date: day(3), events: [{ id: 'ev-2', title: 'Parent night', startsAt: `${day(3)}T00:00:00.000Z`, allDay: true, personName: null, personColor: null }], dinner: null },
-    { date: day(4), events: [], dinner: dinner({ entryId: 'e-4', title: 'Eating out', emoji: null, recipeId: null }) },
+    {
+      date: day(2),
+      events: [],
+      dinner: dinner({ entryId: 'e-2', title: 'Leftovers', emoji: null, recipeId: null }),
+    },
+    {
+      date: day(3),
+      events: [
+        {
+          id: 'ev-2',
+          title: 'Parent night',
+          startsAt: `${day(3)}T00:00:00.000Z`,
+          allDay: true,
+          personName: null,
+          personColor: null,
+        },
+      ],
+      dinner: null,
+    },
+    {
+      date: day(4),
+      events: [],
+      dinner: dinner({ entryId: 'e-4', title: 'Eating out', emoji: null, recipeId: null }),
+    },
     { date: day(5), events: [], dinner: null },
     { date: day(6), events: [], dinner: null },
   ],
@@ -63,9 +103,23 @@ const trip = (over: Partial<PlanningShoppingTrip> = {}): PlanningShoppingTrip =>
 
 const filledView = () => {
   const v = baseView()
-  const picks: Record<string, string> = { [day(3)]: 'Chili', [day(5)]: 'Stir fry', [day(6)]: 'Soup' }
+  const picks: Record<string, string> = {
+    [day(3)]: 'Chili',
+    [day(5)]: 'Stir fry',
+    [day(6)]: 'Soup',
+  }
   v.nights = v.nights.map((n) =>
-    picks[n.date] ? { ...n, dinner: dinner({ entryId: `auto-${n.date}`, title: picks[n.date], emoji: '🥘', recipeId: `rr-${n.date}` }) } : n
+    picks[n.date]
+      ? {
+          ...n,
+          dinner: dinner({
+            entryId: `auto-${n.date}`,
+            title: picks[n.date],
+            emoji: '🥘',
+            recipeId: `rr-${n.date}`,
+          }),
+        }
+      : n,
   )
   v.emptyDates = []
   v.groceries = { items: 31, checked: 3 }
@@ -74,11 +128,28 @@ const filledView = () => {
 
 // The receipt exactly as the server hands it back — it must round-trip untouched, since
 // it is the proof the undo checks.
-const FILLED = [day(3), day(5), day(6)].map((d) => ({ date: d, entryId: `auto-${d}`, recipeId: `rr-${d}`, mealId: null, title: null }))
+const FILLED = [day(3), day(5), day(6)].map((d) => ({
+  date: d,
+  entryId: `auto-${d}`,
+  recipeId: `rr-${d}`,
+  mealId: null,
+  title: null,
+}))
 
 const plate = (id: string, name: string) => ({
-  id, name, servings: 6, isSaved: true, createdBy: null, createdAt: '2026-07-01T00:00:00.000Z',
-  recipeCount: 2, emojis: ['🍗', '🥔'], totalMinutes: 70, onHand: null, toBuy: 0, toBuyNames: [], recipes: [],
+  id,
+  name,
+  servings: 6,
+  isSaved: true,
+  createdBy: null,
+  createdAt: '2026-07-01T00:00:00.000Z',
+  recipeCount: 2,
+  emojis: ['🍗', '🥔'],
+  totalMinutes: 70,
+  onHand: null,
+  toBuy: 0,
+  toBuyNames: [],
+  recipes: [],
 })
 
 const calls: { url: string; method: string; body: Record<string, unknown> | null }[] = []
@@ -88,17 +159,26 @@ const calls: { url: string; method: string; body: Record<string, unknown> | null
 const titleOnly = (id: string, title: string) => ({ id, title })
 
 const groceryRow = (id: string, name: string, checked: boolean) => ({
-  id, name, quantity: null, checked, checkedAt: null, aisle: 'Dairy & Chilled', source: 'manual',
-  sourceRecipeIds: [], weekStart: WEEK,
+  id,
+  name,
+  quantity: null,
+  checked,
+  checkedAt: null,
+  aisle: 'Dairy & Chilled',
+  source: 'manual',
+  sourceRecipeIds: [],
+  weekStart: WEEK,
 })
 
 const PICKS: Record<string, string> = { [day(3)]: 'Chili', [day(5)]: 'Stir fry', [day(6)]: 'Soup' }
 
-function mockApi(opts: {
-  view?: PlanningMealsView
-  recipes?: { id: string; title: string }[] | (() => { id: string; title: string }[])
-  meals?: ReturnType<typeof plate>[]
-} = {}) {
+function mockApi(
+  opts: {
+    view?: PlanningMealsView
+    recipes?: { id: string; title: string }[] | (() => { id: string; title: string }[])
+    meals?: ReturnType<typeof plate>[]
+  } = {},
+) {
   calls.length = 0
   let view = opts.view ?? baseView()
   globalThis.fetch = vi.fn(async (url: string, init?: RequestInit) => {
@@ -116,8 +196,14 @@ function mockApi(opts: {
           mealType: 'dinner',
           via: 'test',
           suggestions: dates.map((d) => ({
-            date: d, mealType: 'dinner', title: PICKS[d] ?? 'Something', recipeId: `rr-${d}`,
-            emoji: '🥘', minutes: 30, servings: 4, note: null,
+            date: d,
+            mealType: 'dinner',
+            title: PICKS[d] ?? 'Something',
+            recipeId: `rr-${d}`,
+            emoji: '🥘',
+            minutes: 30,
+            servings: 4,
+            note: null,
           })),
         }),
       }
@@ -128,16 +214,39 @@ function mockApi(opts: {
     }
     // Its OWN endpoint, not the slot write: this is where copy-on-schedule lives.
     if (/\/api\/meals\/[^/]+\/schedule$/.test(u)) {
-      return { ok: true, json: async () => ({ entry: { id: 'e-plate', date: day(5), mealType: 'dinner', mealId: 'm-copy' }, meal: opts.meals?.[0] ?? plate('m-1', 'BBQ Sunday') }) }
+      return {
+        ok: true,
+        json: async () => ({
+          entry: { id: 'e-plate', date: day(5), mealType: 'dinner', mealId: 'm-copy' },
+          meal: opts.meals?.[0] ?? plate('m-1', 'BBQ Sunday'),
+        }),
+      }
     }
     if (/\/api\/meals(\?|$)/.test(u)) {
       return { ok: true, json: async () => ({ meals: opts.meals ?? [plate('m-1', 'BBQ Sunday')] }) }
     }
     if (u.includes('/api/persons')) {
-      return { ok: true, json: async () => ({ persons: [{ id: 'p-kelly', name: 'Kelly', avatarEmoji: '🦊' }, { id: 'p-kevin', name: 'Kevin', avatarEmoji: '🐻' }] }) }
+      return {
+        ok: true,
+        json: async () => ({
+          persons: [
+            { id: 'p-kelly', name: 'Kelly', avatarEmoji: '🦊' },
+            { id: 'p-kevin', name: 'Kevin', avatarEmoji: '🐻' },
+          ],
+        }),
+      }
     }
     if (u.includes('/api/weekly-planning/meals/shopper')) {
-      view = { ...view, shopping: body?.dueOn ? trip({ dueOn: body.dueOn as string, personId: (body.personId as string) ?? null, personName: body.personId ? 'Kelly' : null }) : null }
+      view = {
+        ...view,
+        shopping: body?.dueOn
+          ? trip({
+              dueOn: body.dueOn as string,
+              personId: (body.personId as string) ?? null,
+              personName: body.personId ? 'Kelly' : null,
+            })
+          : null,
+      }
       return { ok: true, json: async () => ({ weekStart: WEEK, shopping: view.shopping, view }) }
     }
     if (u.includes('/api/weekly-planning/meals/fill')) {
@@ -146,14 +255,27 @@ function mockApi(opts: {
     }
     if (u.includes('/api/weekly-planning/meals/undo')) {
       view = baseView()
-      return { ok: true, json: async () => ({ weekStart: WEEK, cleared: [day(3), day(5), day(6)], kept: [], view }) }
+      return {
+        ok: true,
+        json: async () => ({ weekStart: WEEK, cleared: [day(3), day(5), day(6)], kept: [], view }),
+      }
     }
     if (u.includes('/api/lists/grocery/board')) {
       return {
         ok: true,
         json: async () => ({
-          list: { id: 'gl', name: 'Grocery', emoji: null, listType: 'grocery', isAutoBuilt: true, sortMode: 'aisle', itemCount: 2 },
-          weekStart: WEEK, meals: [], staples: [],
+          list: {
+            id: 'gl',
+            name: 'Grocery',
+            emoji: null,
+            listType: 'grocery',
+            isAutoBuilt: true,
+            sortMode: 'aisle',
+            itemCount: 2,
+          },
+          weekStart: WEEK,
+          meals: [],
+          staples: [],
           items: [groceryRow('i-1', 'Milk', false), groceryRow('i-2', 'Eggs', true)],
         }),
       }
@@ -169,9 +291,18 @@ const setDecisionData = vi.fn()
 function props(over: Partial<StepBodyProps> = {}): StepBodyProps {
   return {
     step: {
-      key: 'meals', number: 7, title: 'Meals', ask: 'What’s planned, and what’s still open?',
-      primary: 'Done', act: 'Run the household', requiresModule: 'meals',
-      available: true, status: 'pending', data: {}, decidedAt: null, parked: [],
+      key: 'meals',
+      number: 7,
+      title: 'Meals',
+      ask: 'What’s planned, and what’s still open?',
+      primary: 'Done',
+      act: 'Run the household',
+      requiresModule: 'meals',
+      available: true,
+      status: 'pending',
+      data: {},
+      decidedAt: null,
+      parked: [],
     },
     // A fresh session per test: the step's state is keyed by session+week.
     sessionId: `s-${++seq}`,
@@ -187,18 +318,23 @@ function draw(p: StepBodyProps = props()) {
   const { Body, FooterExtra } = mealsStep
   return render(
     <div>
-      <div data-testid="body"><Body {...p} /></div>
+      <div data-testid="body">
+        <Body {...p} />
+      </div>
       <div data-testid="foot">{FooterExtra ? <FooterExtra {...p} /> : null}</div>
-    </div>
+    </div>,
   )
 }
 
-const sent = (m: string, frag: string) => calls.filter((c) => c.method === m && c.url.includes(frag))
+const sent = (m: string, frag: string) =>
+  calls.filter((c) => c.method === m && c.url.includes(frag))
 const nights = () => Array.from(document.querySelectorAll('.wpm-night'))
 
 // The fill opens the SHARED week planner (kiosk/components/PlanWeek.tsx): draft, approve.
 const openPlanner = async () => {
-  fireEvent.click(within(screen.getByTestId('foot')).getByRole('button', { name: /plan the rest for me/i }))
+  fireEvent.click(
+    within(screen.getByTestId('foot')).getByRole('button', { name: /plan the rest for me/i }),
+  )
   return (await screen.findByRole('dialog', { name: /plan the rest of the week/i })) as HTMLElement
 }
 async function planAndApply() {
@@ -245,7 +381,9 @@ describe('meals step · the week as it stands', () => {
     await screen.findByText('Pasta bake')
     const line = document.querySelectorAll('.wpm-gro')
     expect(line).toHaveLength(1)
-    expect(line[0].querySelector('.wpm-gro-s')!.textContent).toMatch(/planned so far.*staples skipped/)
+    expect(line[0].querySelector('.wpm-gro-s')!.textContent).toMatch(
+      /planned so far.*staples skipped/,
+    )
     // 24 on the list, 3 already ticked: the pill counts what is left to buy.
     expect(line[0].querySelector('.wpm-gro-pill')!.textContent).toContain('21 to buy')
     expect(line[0].querySelector('.wpm-gro-pill')!.textContent).toContain('3 done')
@@ -258,11 +396,15 @@ describe('meals step · the week as it stands', () => {
     draw()
     await screen.findByText('Pasta bake')
     const reads = sent('GET', '/api/weekly-planning/meals').length
-    fireEvent.change(screen.getByLabelText('Add to groceries'), { target: { value: '  Paper towels ' } })
+    fireEvent.change(screen.getByLabelText('Add to groceries'), {
+      target: { value: '  Paper towels ' },
+    })
     fireEvent.click(screen.getByRole('button', { name: 'Add item' }))
     await waitFor(() => expect(sent('POST', '/api/lists/grocery/items')).toHaveLength(1))
     expect(sent('POST', '/api/lists/grocery/items')[0].body).toEqual({ name: 'Paper towels' })
-    await waitFor(() => expect(sent('GET', '/api/weekly-planning/meals').length).toBeGreaterThan(reads))
+    await waitFor(() =>
+      expect(sent('GET', '/api/weekly-planning/meals').length).toBeGreaterThan(reads),
+    )
     expect((screen.getByLabelText('Add to groceries') as HTMLInputElement).value).toBe('')
   })
 
@@ -298,7 +440,9 @@ describe('meals step · the week as it stands', () => {
     expect(sent('PATCH', '/api/list-items/i-1')[0].body).toEqual({ checked: true })
     expect(within(list).getByRole('button', { name: 'Put Milk back' })).toBeInTheDocument()
     // The count on the step is what's left to buy, so it re-reads.
-    await waitFor(() => expect(sent('GET', '/api/weekly-planning/meals').length).toBeGreaterThan(reads))
+    await waitFor(() =>
+      expect(sent('GET', '/api/weekly-planning/meals').length).toBeGreaterThan(reads),
+    )
 
     fireEvent.click(within(list).getByRole('button', { name: 'Close' }))
     expect(screen.queryByRole('dialog', { name: 'This week’s groceries' })).toBeNull()
@@ -308,7 +452,8 @@ describe('meals step · the week as it stands', () => {
     mockApi()
     draw()
     await screen.findByText('Pasta bake')
-    expect(nights()[0].querySelector('.wpm-dish-c')!.textContent).toMatch(/🐻\s*Kevin/)
+    expect(nights()[0].querySelector('.wpm-dish-c')).toHaveTextContent('Kevin')
+    expect(nights()[0].querySelector('.wpm-dish-c svg')).toBeInTheDocument()
     expect(nights()[1].querySelector('.wpm-dish-c')!.textContent).toContain('35 min')
   })
 
@@ -316,8 +461,10 @@ describe('meals step · the week as it stands', () => {
     mockApi()
     draw()
     await screen.findByText('Pasta bake')
-    expect(nights()[0].querySelector('.wpm-dish')!.className).toBe('wpm-dish')
-    expect(nights()[2].querySelector('.wpm-dish')!.className).toBe('wpm-dish')
+    expect(nights()[0].querySelector('.wpm-dish')!).toHaveClass('wpm-dish')
+    expect(nights()[0].querySelector('.wpm-dish')!).not.toHaveClass('empty', 'out')
+    expect(nights()[2].querySelector('.wpm-dish')!).toHaveClass('wpm-dish')
+    expect(nights()[2].querySelector('.wpm-dish')!).not.toHaveClass('empty', 'out')
     expect(nights()[3].querySelector('.wpm-dish.empty')).toBeTruthy()
     expect(nights()[3].querySelector('.wpm-dish-plus')).toBeTruthy()
     // Classified by the SAME helper the Meals screen uses, so no night reads two ways.
@@ -340,8 +487,19 @@ describe('meals step · a night that is a plate', () => {
     const v = baseView()
     v.nights = v.nights.map((n) =>
       n.date === day(5)
-        ? { ...n, dinner: { ...dinner(), entryId: 'e-plate', title, emoji: null, recipeId: null, mealId: 'm-copy', minutes: null } }
-        : n
+        ? {
+            ...n,
+            dinner: {
+              ...dinner(),
+              entryId: 'e-plate',
+              title,
+              emoji: null,
+              recipeId: null,
+              mealId: 'm-copy',
+              minutes: null,
+            },
+          }
+        : n,
     )
     v.emptyDates = [day(3), day(6)]
     return v
@@ -362,7 +520,8 @@ describe('meals step · a night that is a plate', () => {
     draw()
     await screen.findByText('Takeout Tuesday')
     const tile = nights()[5].querySelector('.wpm-dish')!
-    expect(tile.className).toBe('wpm-dish')
+    expect(tile).toHaveClass('wpm-dish')
+    expect(tile).not.toHaveClass('empty', 'out')
     expect(tile.querySelector('.wpm-dish-c')!.textContent).not.toMatch(/no cooking/i)
     expect(tile.querySelector('.wpm-dish-c')!.textContent).toMatch(/a whole plate/i)
   })
@@ -383,12 +542,22 @@ describe('meals step · who is shopping', () => {
     fireEvent.click(within(card).getByRole('button', { name: /add it to tasks/i }))
 
     await waitFor(() => expect(sent('PUT', '/meals/shopper')).toHaveLength(1))
-    expect(sent('PUT', '/meals/shopper')[0].body).toMatchObject({ weekStart: WEEK, personId: 'p-kelly', dueOn: day(6), choreId: null })
+    expect(sent('PUT', '/meals/shopper')[0].body).toMatchObject({
+      weekStart: WEEK,
+      personId: 'p-kelly',
+      dueOn: day(6),
+      choreId: null,
+    })
     expect(await screen.findByRole('button', { name: /Kelly shops/ })).toBeTruthy()
   })
 
   it('says so when the trip is planned but up for grabs', async () => {
-    mockApi({ view: { ...baseView(), shopping: trip({ personId: null, personName: null, personAvatar: null }) } })
+    mockApi({
+      view: {
+        ...baseView(),
+        shopping: trip({ personId: null, personName: null, personAvatar: null }),
+      },
+    })
     draw()
     await screen.findByText('Pasta bake')
     expect(screen.getByRole('button', { name: /up for grabs/i })).toBeTruthy()
@@ -414,7 +583,9 @@ describe('meals step · who is shopping', () => {
     fireEvent.click(await within(card).findByRole('button', { name: /no trip this week/i }))
     await waitFor(() => expect(sent('PUT', '/meals/shopper')).toHaveLength(1))
     expect(sent('PUT', '/meals/shopper')[0].body).toMatchObject({ dueOn: null, personId: null })
-    await waitFor(() => expect(screen.getByRole('button', { name: /who's shopping/i })).toBeTruthy())
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /who's shopping/i })).toBeTruthy(),
+    )
   })
 
   it('drops the control entirely when the chores module is off', async () => {
@@ -458,7 +629,9 @@ describe('meals step · plan the rest for me', () => {
     fireEvent.click(within(planner).getByRole('button', { name: /^plan my week$/i }))
     await waitFor(() => expect(sent('POST', '/api/meals/plan-week')).toHaveLength(1))
     expect(sent('POST', '/api/meals/plan-week')[0].body).toMatchObject({
-      start: WEEK, mealType: 'dinner', dates: [day(3), day(5), day(6)],
+      start: WEEK,
+      mealType: 'dinner',
+      dates: [day(3), day(5), day(6)],
     })
   })
 
@@ -471,17 +644,23 @@ describe('meals step · plan the rest for me', () => {
     // NOT through POST /api/meals/plan: only the step's fill refuses a decided night AND
     // hands back the receipt the undo checks.
     await waitFor(() => expect(sent('POST', '/meals/fill')).toHaveLength(1))
-    expect(calls.filter((c) => c.method === 'POST' && /\/api\/meals\/plan$/.test(c.url))).toHaveLength(0)
+    expect(
+      calls.filter((c) => c.method === 'POST' && /\/api\/meals\/plan$/.test(c.url)),
+    ).toHaveLength(0)
     const body = sent('POST', '/meals/fill')[0].body!
     expect(body.weekStart).toBe(WEEK)
     expect((body.cards as { date: string }[]).map((c) => c.date)).toEqual([day(3), day(5), day(6)])
 
-    await waitFor(() => expect(screen.queryByRole('dialog', { name: /plan the rest of the week/i })).toBeNull())
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: /plan the rest of the week/i })).toBeNull(),
+    )
     await screen.findByText('Chili')
     expect(document.querySelectorAll('.wpm-dish.auto')).toHaveLength(3)
     expect(screen.getByText('Pasta bake')).toBeTruthy()
     expect(screen.getByText('Leftovers')).toBeTruthy()
-    await waitFor(() => expect(document.querySelector('.wpm-gro-s')!.textContent).toContain('7 items added'))
+    await waitFor(() =>
+      expect(document.querySelector('.wpm-gro-s')!.textContent).toContain('7 items added'),
+    )
     expect(document.querySelector('.wpm-gro-pill')!.textContent).toContain('28 to buy')
   })
 
@@ -491,15 +670,21 @@ describe('meals step · plan the rest for me', () => {
     await screen.findByText('Pasta bake')
     await planAndApply()
 
-    const undo = await within(screen.getByTestId('foot')).findByRole('button', { name: /undo the three/i })
-    expect(within(screen.getByTestId('foot')).queryByRole('button', { name: /plan the rest for me/i })).toBeNull()
+    const undo = await within(screen.getByTestId('foot')).findByRole('button', {
+      name: /undo the three/i,
+    })
+    expect(
+      within(screen.getByTestId('foot')).queryByRole('button', { name: /plan the rest for me/i }),
+    ).toBeNull()
 
     fireEvent.click(undo)
     await waitFor(() => expect(sent('POST', '/meals/undo')).toHaveLength(1))
     expect(sent('POST', '/meals/undo')[0].body).toEqual({ weekStart: WEEK, filled: FILLED })
 
     await waitFor(() => expect(document.querySelectorAll('.wpm-dish.empty')).toHaveLength(3))
-    expect(within(screen.getByTestId('foot')).getByRole('button', { name: /plan the rest for me/i })).toBeTruthy()
+    expect(
+      within(screen.getByTestId('foot')).getByRole('button', { name: /plan the rest for me/i }),
+    ).toBeTruthy()
   })
 
   it('records the crumb the session should keep — the dates, never the meals', async () => {
@@ -508,8 +693,12 @@ describe('meals step · plan the rest for me', () => {
     await screen.findByText('Pasta bake')
     await planAndApply()
 
-    await waitFor(() => expect(setDecisionData).toHaveBeenCalledWith({ autoFilled: [day(3), day(5), day(6)] }))
-    fireEvent.click(await within(screen.getByTestId('foot')).findByRole('button', { name: /undo the three/i }))
+    await waitFor(() =>
+      expect(setDecisionData).toHaveBeenCalledWith({ autoFilled: [day(3), day(5), day(6)] }),
+    )
+    fireEvent.click(
+      await within(screen.getByTestId('foot')).findByRole('button', { name: /undo the three/i }),
+    )
     await waitFor(() => expect(setDecisionData).toHaveBeenLastCalledWith(null))
   })
 
@@ -517,42 +706,59 @@ describe('meals step · plan the rest for me', () => {
     mockApi({ view: filledView() })
     draw()
     await screen.findByText('Chili')
-    const fill = within(screen.getByTestId('foot')).getByRole('button', { name: /plan the rest for me/i })
+    const fill = within(screen.getByTestId('foot')).getByRole('button', {
+      name: /plan the rest for me/i,
+    })
     expect((fill as HTMLButtonElement).disabled).toBe(true)
   })
 
   it('restores the MARKS from the session crumb on a revisit — but not the undo', async () => {
     mockApi({ view: filledView() })
-    draw(props({ step: { ...props().step, status: 'done', data: { autoFilled: [day(3), day(5), day(6)] } } }))
+    draw(
+      props({
+        step: { ...props().step, status: 'done', data: { autoFilled: [day(3), day(5), day(6)] } },
+      }),
+    )
     await screen.findByText('Chili')
     expect(document.querySelectorAll('.wpm-dish.auto')).toHaveLength(3)
 
     // The crumb is DATES, so it cannot prove what the fill wrote: no batch undo on a revisit.
     const foot = within(screen.getByTestId('foot'))
     expect(foot.queryByRole('button', { name: /undo the/i })).toBeNull()
-    expect((foot.getByRole('button', { name: /plan the rest for me/i }) as HTMLButtonElement).disabled).toBe(true)
+    expect(
+      (foot.getByRole('button', { name: /plan the rest for me/i }) as HTMLButtonElement).disabled,
+    ).toBe(true)
   })
 })
 
 // Tapping a night opens the app's OWN `RecipeBrowser` — the same one behind the Meals screen
 // — and every way out of it writes through the same meal-plan endpoint.
 describe('meals step · picking a dish for one night', () => {
-  const library = () => [titleOnly('r-9', 'Chili'), titleOnly('r-8', 'Fish tacos'), titleOnly('r-7', 'Soup')]
+  const library = () => [
+    titleOnly('r-9', 'Chili'),
+    titleOnly('r-8', 'Fish tacos'),
+    titleOnly('r-7', 'Soup'),
+  ]
 
   const openNight = (i: number): HTMLElement => {
     fireEvent.click(nights()[i].querySelector('.wpm-dish')!)
     return document.querySelector('.wpm-picker') as HTMLElement
   }
-  const cards = (picker: HTMLElement) => Array.from(picker.querySelectorAll('.mp-card')) as HTMLElement[]
-  const titles = (picker: HTMLElement) => cards(picker).map((c) => c.querySelector('.rc-t')?.textContent ?? '')
+  const cards = (picker: HTMLElement) =>
+    Array.from(picker.querySelectorAll('.mp-card')) as HTMLElement[]
+  const titles = (picker: HTMLElement) =>
+    cards(picker).map((c) => c.querySelector('.rc-t')?.textContent ?? '')
   const cardNamed = (picker: HTMLElement, title: string): HTMLElement => {
-    const found = cards(picker).find((c) => (c.querySelector('.rc-t')?.textContent ?? '').includes(title))
+    const found = cards(picker).find((c) =>
+      (c.querySelector('.rc-t')?.textContent ?? '').includes(title),
+    )
     if (!found) throw new Error(`no card titled ${title} — saw ${JSON.stringify(titles(picker))}`)
     return found
   }
   const selectCard = (picker: HTMLElement, title: string) =>
     fireEvent.click(cardNamed(picker, title).querySelector('.mp-select')!)
-  const search = (picker: HTMLElement) => picker.querySelector('.picker-search input') as HTMLInputElement
+  const search = (picker: HTMLElement) =>
+    picker.querySelector('.picker-search input') as HTMLInputElement
   const planned = () => sent('POST', '/api/meals/plan').filter((c) => !c.url.includes('plan-week'))
 
   it("opens the app's recipe browser, not a list of chips", async () => {
@@ -574,7 +780,9 @@ describe('meals step · picking a dish for one night', () => {
     draw()
     await screen.findByText('Pasta bake')
     const picker = openNight(5)
-    await waitFor(() => expect(titles(picker)).toEqual(expect.arrayContaining(['Chili', 'Fish tacos', 'Soup'])))
+    await waitFor(() =>
+      expect(titles(picker)).toEqual(expect.arrayContaining(['Chili', 'Fish tacos', 'Soup'])),
+    )
 
     fireEvent.change(search(picker), { target: { value: 'chi' } })
     const shown = titles(picker)
@@ -612,7 +820,12 @@ describe('meals step · picking a dish for one night', () => {
 
     selectCard(picker, card)
     await waitFor(() => expect(planned()).toHaveLength(1))
-    expect(planned()[0].body).toMatchObject({ date: day(5), mealType: 'dinner', title, recipeId: null })
+    expect(planned()[0].body).toMatchObject({
+      date: day(5),
+      mealType: 'dinner',
+      title,
+      recipeId: null,
+    })
   })
 
   it('still plans a one-off dish that is in neither the library nor the cards', async () => {
@@ -629,7 +842,11 @@ describe('meals step · picking a dish for one night', () => {
 
     selectCard(picker, "Grandma's lasagne")
     await waitFor(() => expect(planned()).toHaveLength(1))
-    expect(planned()[0].body).toMatchObject({ date: day(5), title: "Grandma's lasagne", recipeId: null })
+    expect(planned()[0].body).toMatchObject({
+      date: day(5),
+      title: "Grandma's lasagne",
+      recipeId: null,
+    })
   })
 
   it('picks up a recipe added since the step was first opened', async () => {
@@ -651,7 +868,7 @@ describe('meals step · picking a dish for one night', () => {
 
   // PLATE PARITY: the browser lists plates only for a caller that can say WHERE one goes,
   // since the date lives in the caller's closure. `onPickMeal` is all of it.
-  it('offers the household\'s saved plates beside its recipes', async () => {
+  it("offers the household's saved plates beside its recipes", async () => {
     mockApi({ recipes: library(), meals: [plate('m-1', 'BBQ Sunday')] })
     draw()
     await screen.findByText('Pasta bake')
@@ -673,7 +890,10 @@ describe('meals step · picking a dish for one night', () => {
     // Its OWN endpoint: copy-on-schedule lives there, so editing the library plate later
     // can't rewrite a night that already happened.
     await waitFor(() => expect(sent('POST', '/api/meals/m-1/schedule')).toHaveLength(1))
-    expect(sent('POST', '/api/meals/m-1/schedule')[0].body).toMatchObject({ date: day(5), mealType: 'dinner' })
+    expect(sent('POST', '/api/meals/m-1/schedule')[0].body).toMatchObject({
+      date: day(5),
+      mealType: 'dinner',
+    })
     expect(planned()).toHaveLength(0)
     await waitFor(() => expect(document.querySelector('.wpm-picker')).toBeNull())
   })
@@ -684,7 +904,9 @@ describe('meals step · picking a dish for one night', () => {
     await screen.findByText('Pasta bake')
     const picker = openNight(5)
 
-    await waitFor(() => expect(picker.querySelector('.picker-empty')!.textContent).toMatch(/no dinner recipes yet/i))
+    await waitFor(() =>
+      expect(picker.querySelector('.picker-empty')!.textContent).toMatch(/no dinner recipes yet/i),
+    )
     expect(cardNamed(picker, 'Eating out')).toBeTruthy()
     expect(within(picker).getByRole('button', { name: /new recipe/i })).toBeTruthy()
   })
@@ -697,8 +919,9 @@ describe('meals step · overwriting a set night', () => {
   }
   const planned = () => sent('POST', '/api/meals/plan').filter((c) => !c.url.includes('plan-week'))
   const selectCard = (picker: HTMLElement, title: string) => {
-    const found = (Array.from(picker.querySelectorAll('.mp-card')) as HTMLElement[])
-      .find((c) => (c.querySelector('.rc-t')?.textContent ?? '').includes(title))!
+    const found = (Array.from(picker.querySelectorAll('.mp-card')) as HTMLElement[]).find((c) =>
+      (c.querySelector('.rc-t')?.textContent ?? '').includes(title),
+    )!
     fireEvent.click(found.querySelector('.mp-select')!)
   }
 
@@ -740,8 +963,12 @@ describe('meals step · overwriting a set night', () => {
     await waitFor(() => expect(picker.textContent).toContain('Chili'))
     selectCard(picker, 'Chili')
 
-    await waitFor(() => expect(setDecisionData).toHaveBeenLastCalledWith({ autoFilled: [day(3), day(6)] }))
-    expect(await within(screen.getByTestId('foot')).findByRole('button', { name: /undo the two/i })).toBeTruthy()
+    await waitFor(() =>
+      expect(setDecisionData).toHaveBeenLastCalledWith({ autoFilled: [day(3), day(6)] }),
+    )
+    expect(
+      await within(screen.getByTestId('foot')).findByRole('button', { name: /undo the two/i }),
+    ).toBeTruthy()
   })
 
   it('opening the week planner wins over an open night picker', async () => {
@@ -753,7 +980,9 @@ describe('meals step · overwriting a set night', () => {
 
     // jsdom has no layout and the two flags live in different places (one in Body, one in
     // the store), so the guard in Body is what makes "only one" structural.
-    fireEvent.click(within(screen.getByTestId('foot')).getByRole('button', { name: /plan the rest for me/i }))
+    fireEvent.click(
+      within(screen.getByTestId('foot')).getByRole('button', { name: /plan the rest for me/i }),
+    )
     await screen.findByRole('dialog', { name: /plan the rest of the week/i })
     expect(document.querySelector('.wpm-picker')).toBeNull()
   })

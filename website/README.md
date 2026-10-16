@@ -18,8 +18,8 @@ here.
 Each project is standalone — `cd` in first:
 
 ```bash
-cd website/home && npm install && npm run dev   # → localhost:4321
-cd website/docs && npm install && npm run dev   # → localhost:4321
+cd website/home && pnpm install && pnpm run dev   # → localhost:4321
+cd website/docs && pnpm install && pnpm run dev   # → localhost:4321
 ```
 
 ## Hosting — two Cloudflare projects, one repo
@@ -39,11 +39,11 @@ For **each** project:
 
 1. **Connect it to this repo** — Workers: *Create → Workers → Import a repository*;
    Pages: *Create → Pages → Connect to Git*. Production branch `main`.
-2. **Build the subfolder** — run `npm run build` in the site's folder, serving its
+2. **Build the subfolder** — run `pnpm run build` in the site's folder, serving its
    `dist/`. On **Pages**: set **Root directory** = `website/docs` (or `website/home`),
    framework **Astro**, output `dist`. On **Workers**: each site ships a committed
    **`wrangler.jsonc`** (`home/wrangler.jsonc`, `docs/wrangler.jsonc`) pointing
-   `assets.directory` at `./dist` — this is what makes `npx wrangler deploy` find the
+   `assets.directory` at `./dist` — this is what makes `pnpm dlx wrangler deploy` find the
    built files. **Set each file's `name` to match its Worker's name in the dashboard.**
    The file holds **no secrets** (secrets, if ever needed, live in the dashboard /
    `wrangler secret`, never in the file).

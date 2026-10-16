@@ -1,12 +1,29 @@
-import { useCallback, useEffect, useId, useRef, useState, type InputHTMLAttributes, type Ref } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type InputHTMLAttributes,
+  type Ref,
+} from 'react'
 import { groceryApi } from '../../lib/api'
+import { Input } from '@/components/ui/input'
 
 const DEBOUNCE_MS = 150
 
 // An add-bar input with a suggestion dropdown (ARIA combobox). Picking a suggestion —
 // tap, or arrows + Enter — calls onPick; Enter with nothing highlighted still submits
 // the surrounding form, so free text keeps working. Without `suggest` it's a plain input.
-export function ItemAutocomplete({ value, onChange, onPick, suggest, className, ref, ...inputProps }: {
+export function ItemAutocomplete({
+  value,
+  onChange,
+  onPick,
+  suggest,
+  className,
+  ref,
+  ...inputProps
+}: {
   ref?: Ref<HTMLInputElement>
   value: string
   onChange: (value: string) => void
@@ -22,11 +39,21 @@ export function ItemAutocomplete({ value, onChange, onPick, suggest, className, 
   useEffect(() => {
     const q = value.trim()
     const req = ++latest.current
-    if (!suggest || !q) { setResults([]); return }
+    if (!suggest || !q) {
+      setResults([])
+      return
+    }
     const timer = setTimeout(() => {
       suggest(q)
-        .then((names) => { if (req === latest.current) { setResults(names); setActive(-1) } })
-        .catch(() => { if (req === latest.current) setResults([]) })
+        .then((names) => {
+          if (req === latest.current) {
+            setResults(names)
+            setActive(-1)
+          }
+        })
+        .catch(() => {
+          if (req === latest.current) setResults([])
+        })
     }, DEBOUNCE_MS)
     return () => clearTimeout(timer)
   }, [value, suggest])
@@ -42,7 +69,7 @@ export function ItemAutocomplete({ value, onChange, onPick, suggest, className, 
 
   return (
     <span className={`item-ac ${className ?? ''}`}>
-      <input
+      <Input
         {...inputProps}
         ref={ref}
         value={value}
@@ -52,9 +79,18 @@ export function ItemAutocomplete({ value, onChange, onPick, suggest, className, 
         aria-controls={listId}
         aria-activedescendant={shown && active >= 0 ? `${listId}-${active}` : undefined}
         autoComplete="off"
-        onChange={(e) => { onChange(e.target.value); setOpen(true) }}
-        onFocus={(e) => { setOpen(true); inputProps.onFocus?.(e) }}
-        onBlur={(e) => { setOpen(false); inputProps.onBlur?.(e) }}
+        onChange={(e) => {
+          onChange(e.target.value)
+          setOpen(true)
+        }}
+        onFocus={(e) => {
+          setOpen(true)
+          inputProps.onFocus?.(e)
+        }}
+        onBlur={(e) => {
+          setOpen(false)
+          inputProps.onBlur?.(e)
+        }}
         onKeyDown={(e) => {
           inputProps.onKeyDown?.(e)
           if (e.key === 'ArrowDown' && results.length) {
@@ -84,7 +120,10 @@ export function ItemAutocomplete({ value, onChange, onPick, suggest, className, 
               aria-selected={i === active}
               className={i === active ? 'on' : ''}
               // mousedown, not click: it fires before the input's blur closes the menu.
-              onMouseDown={(e) => { e.preventDefault(); pick(name) }}
+              onMouseDown={(e) => {
+                e.preventDefault()
+                pick(name)
+              }}
               onMouseEnter={() => setActive(i)}
             >
               {name}
@@ -97,9 +136,12 @@ export function ItemAutocomplete({ value, onChange, onPick, suggest, className, 
 }
 
 // Names the household has used before, then a common-grocery catalog, for one list.
-export function useItemSuggest(listId: string | null | undefined): ((query: string) => Promise<string[]>) | undefined {
+export function useItemSuggest(
+  listId: string | null | undefined,
+): ((query: string) => Promise<string[]>) | undefined {
   const suggest = useCallback(
-    (q: string) => groceryApi.suggestions(q, listId ?? null).then((list) => list.map((s) => s.name)),
+    (q: string) =>
+      groceryApi.suggestions(q, listId ?? null).then((list) => list.map((s) => s.name)),
     [listId],
   )
   return listId ? suggest : undefined

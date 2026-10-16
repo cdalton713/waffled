@@ -5,12 +5,18 @@
 import { useEffect, useState } from 'react'
 import type { Photo, Weather, AgendaEvent } from '../../lib/api'
 import '../../styles/photos.css'
+import { DataIcon } from '@/components/ui/data-icon'
 
 // Pick + order the photos a screensaver should play, given the household display
 // config. Pure: never mutates the input list.
 export function screensaverPhotos(
   photos: Photo[],
-  cfg: { photoSource?: string; photoAlbum?: string | null; photoAlbums?: string[]; photoShuffle?: boolean },
+  cfg: {
+    photoSource?: string
+    photoAlbum?: string | null
+    photoAlbums?: string[]
+    photoShuffle?: boolean
+  },
 ): Photo[] {
   let out: Photo[]
   const albums = new Set(cfg.photoAlbums ?? [])
@@ -95,30 +101,70 @@ export function Screensaver({
   const photo = photoMode ? photos[idx % photos.length] : null
   const prevPhoto = photoMode ? photos[prevIdx % photos.length] : null
   const showChrome = !bare
-  const time = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: timezone || undefined }).replace(/\s?[AP]M$/i, '')
-  const date = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: timezone || undefined })
-  const wx = weather?.configured && weather.tempF != null ? `${weather.emoji ?? ''} ${weather.tempF}°${weather.label ? ` · ${weather.label}` : ''}`.trim() : null
-  const evTime = nextEvent && !nextEvent.allDay
-    ? new Date(nextEvent.startsAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: timezone || undefined }).replace(/\s?[AP]M$/i, '')
-    : null
+  const time = now
+    .toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      timeZone: timezone || undefined,
+    })
+    .replace(/\s?[AP]M$/i, '')
+  const date = now.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    timeZone: timezone || undefined,
+  })
+  const wx =
+    weather?.configured && weather.tempF != null ? (
+      <>
+        <DataIcon value={weather.emoji} kind="weather" /> {weather.tempF}°
+        {weather.label ? ` · ${weather.label}` : ''}
+      </>
+    ) : null
+  const evTime =
+    nextEvent && !nextEvent.allDay
+      ? new Date(nextEvent.startsAt)
+          .toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            timeZone: timezone || undefined,
+          })
+          .replace(/\s?[AP]M$/i, '')
+      : null
   const bg = photo ? tileBg(photo) : 'linear-gradient(135deg, #2b2b2b, #161616)'
 
   return (
-    <div className="ph-saver" style={{ background: bg }} onClick={onWake} role="button" aria-label="Wake screensaver">
+    <div
+      className="ph-saver"
+      style={{ background: bg }}
+      onClick={onWake}
+      role="button"
+      aria-label="Wake screensaver"
+    >
       {/* base layer = the photo we're leaving; top layer fades in over it */}
       {prevPhoto?.imageUrl && <img className="ph-saver-img" src={prevPhoto.imageUrl} alt="" />}
-      {photo?.imageUrl && <img key={idx} className="ph-saver-img ph-saver-img-top" src={photo.imageUrl} alt="" />}
+      {photo?.imageUrl && (
+        <img key={idx} className="ph-saver-img ph-saver-img-top" src={photo.imageUrl} alt="" />
+      )}
       {showChrome && <div className="ph-saver-scrim" />}
       {showChrome && (
         <div className="ph-saver-clock">
           <div className="wf-serif ph-saver-time">{time}</div>
-          <div className="ph-saver-date">{date}{wx ? ` · ${wx}` : ''}</div>
+          <div className="ph-saver-date">
+            {date}
+            {wx && <> · {wx}</>}
+          </div>
         </div>
       )}
-      {photo && !photo.imageUrl && <div key={idx} className="ph-saver-hero ph-saver-img-top">{photo.emoji ?? '🖼️'}</div>}
+      {photo && !photo.imageUrl && (
+        <div key={idx} className="ph-saver-hero ph-saver-img-top">
+          <DataIcon value={photo.emoji ?? '🖼️'} kind="photo" />
+        </div>
+      )}
       {showChrome && nextEvent && (
         <div className="ph-saver-next">
-          Next: {nextEvent.title}{evTime ? ` · ${evTime}` : ''}
+          Next: {nextEvent.title}
+          {evTime ? ` · ${evTime}` : ''}
         </div>
       )}
       {showChrome && photo && (photo.memory || photo.caption) && (

@@ -9,6 +9,13 @@
 // .modal-card / .modal-close) + .field / .field-row + btn btn-primary/ghost.
 import { useState } from 'react'
 import { rewardsApi, type Currency } from '../../lib/api'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { DataIcon } from '@/components/ui/data-icon'
+import { Modal } from '@/components/ui/modal'
+import { IconValue } from '@/components/ui/icon-value'
+import { SelectField } from '@/components/ui/select-field'
 
 export interface SpotAwardPerson {
   id: string
@@ -45,7 +52,9 @@ export function SpotAwardModal({
   const cur = options.find((c) => c.key === currency)
   const selected = people.find((p) => p.id === selectedId) ?? null
   // With a preset we always have a person; otherwise one must be picked.
-  const person = presetPersonId ? people.find((p) => p.id === presetPersonId) ?? selected : selected
+  const person = presetPersonId
+    ? (people.find((p) => p.id === presetPersonId) ?? selected)
+    : selected
   const canAward = !!selectedId && amount > 0 && !saving
 
   async function submit() {
@@ -63,10 +72,20 @@ export function SpotAwardModal({
   const title = person ? `Award stars to ${person.name}` : 'Award stars'
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <Modal className="modal-overlay" onClose={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 420 }}>
-        <button type="button" className="modal-close" aria-label="Close" onClick={onClose}>×</button>
-        <div className="wf-serif" style={{ fontSize: 22, fontWeight: 600, marginBottom: 14 }}>{title}</div>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="modal-close"
+          aria-label="Close"
+          onClick={onClose}
+        >
+          <DataIcon value={'×'} kind="reward" />
+        </Button>
+        <div className="wf-serif" style={{ fontSize: 22, fontWeight: 600, marginBottom: 14 }}>
+          {title}
+        </div>
 
         {/* Family-member picker — only when there's no preset person. */}
         {!presetPersonId && (
@@ -77,7 +96,8 @@ export function SpotAwardModal({
                 const on = p.id === selectedId
                 const color = p.colorHex ?? 'var(--ink-2)'
                 return (
-                  <button
+                  <Button
+                    variant="unstyled"
                     key={p.id}
                     type="button"
                     role="radio"
@@ -90,10 +110,10 @@ export function SpotAwardModal({
                       className="sa-person-av"
                       style={{ background: p.colorHex ? `${p.colorHex}22` : 'var(--panel)' }}
                     >
-                      {p.avatarEmoji ?? '🙂'}
+                      <DataIcon value={p.avatarEmoji ?? '🙂'} kind="person" />
                     </span>
                     <span className="sa-person-name">{p.name.split(' ')[0]}</span>
-                  </button>
+                  </Button>
                 )
               })}
             </div>
@@ -101,43 +121,68 @@ export function SpotAwardModal({
         )}
 
         <div className="field-row">
-          <label className="field" style={{ flex: 1 }}>
+          <Label className="field" style={{ flex: 1 }}>
             <span>Amount</span>
-            <input
-              type="number" min={1} value={amount} aria-label="Amount"
+            <Input
+              type="number"
+              min={1}
+              value={amount}
+              aria-label="Amount"
               onChange={(e) => setAmount(Math.max(0, Math.round(Number(e.target.value) || 0)))}
             />
-          </label>
+          </Label>
           {options.length > 1 ? (
-            <label className="field" style={{ flex: 1 }}>
+            <Label className="field" style={{ flex: 1 }}>
               <span>Currency</span>
-              <select aria-label="Currency" value={currency} onChange={(e) => setCurrency(e.target.value)}>
-                {options.map((c) => <option key={c.key} value={c.key}>{c.symbol} {c.label}</option>)}
-              </select>
-            </label>
+              <SelectField
+                aria-label="Currency"
+                value={currency}
+                onValueChange={(e) => setCurrency(e)}
+              >
+                {options.map((c) => (
+                  <option key={c.key} value={c.key}>
+                    <IconValue value={c.symbol} /> {c.label}
+                  </option>
+                ))}
+              </SelectField>
+            </Label>
           ) : (
-            <label className="field" style={{ flex: 1 }}>
+            <Label className="field" style={{ flex: 1 }}>
               <span>Currency</span>
-              <span className="pill" style={{ alignSelf: 'flex-start', marginTop: 2 }}>{cur?.symbol ?? '⭐'} {cur?.label ?? 'Stars'}</span>
-            </label>
+              <span className="pill" style={{ alignSelf: 'flex-start', marginTop: 2 }}>
+                <IconValue value={cur?.symbol ?? '⭐'} /> {cur?.label ?? 'Stars'}
+              </span>
+            </Label>
           )}
         </div>
 
-        <label className="field">
+        <Label className="field">
           <span>Note (optional)</span>
-          <input
-            type="text" value={note} aria-label="Note" placeholder="e.g. so helpful today"
+          <Input
+            type="text"
+            value={note}
+            aria-label="Note"
+            placeholder="e.g. so helpful today"
             onChange={(e) => setNote(e.target.value)}
           />
-        </label>
+        </Label>
 
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 6 }}>
-          <button type="button" className="btn btn-ghost" onClick={onClose}>Cancel</button>
-          <button type="button" className="btn btn-primary" disabled={!canAward} onClick={submit}>
-            {saving ? 'Awarding…' : `Award ${amount} ${cur?.symbol ?? '⭐'}`}
-          </button>
+          <Button variant="ghost" type="button" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button variant="default" type="button" disabled={!canAward} onClick={submit}>
+            {saving ? (
+              'Awarding…'
+            ) : (
+              <>
+                {'Award '}
+                {amount} {<IconValue value={cur?.symbol ?? '⭐'} />}
+              </>
+            )}
+          </Button>
         </div>
       </div>
-    </div>
+    </Modal>
   )
 }

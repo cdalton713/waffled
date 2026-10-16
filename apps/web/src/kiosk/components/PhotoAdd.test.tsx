@@ -1,3 +1,4 @@
+import { selectOption } from '../../test/select-option'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { PhotoAdd } from './PhotoAdd'
 
@@ -7,7 +8,11 @@ const created: Record<string, unknown>[] = []
 let uploadN = 0
 const uploadImage = vi.fn(async () => {
   uploadN += 1
-  return { key: `media/up${uploadN}.jpg`, url: `/media/up${uploadN}.jpg`, contentType: 'image/jpeg' }
+  return {
+    key: `media/up${uploadN}.jpg`,
+    url: `/media/up${uploadN}.jpg`,
+    contentType: 'image/jpeg',
+  }
 })
 
 vi.mock('../../lib/api', () => ({
@@ -59,7 +64,11 @@ describe('PhotoAdd — upload', () => {
     // topbar button pluralizes
     fireEvent.click(screen.getByRole('button', { name: /Add 3 photos/i }))
     await waitFor(() => expect(created.length).toBe(3))
-    expect(created.map((c) => c.storageKey)).toEqual(['media/up1.jpg', 'media/up2.jpg', 'media/up3.jpg'])
+    expect(created.map((c) => c.storageKey)).toEqual([
+      'media/up1.jpg',
+      'media/up2.jpg',
+      'media/up3.jpg',
+    ])
     expect(onAdded).toHaveBeenCalled()
   })
 
@@ -71,8 +80,10 @@ describe('PhotoAdd — upload', () => {
 
     // The shared picker: choose "＋ New album…" then type a name.
     const shared = document.getElementById('ap-shared-album') as HTMLSelectElement
-    fireEvent.change(shared, { target: { value: '__new__' } })
-    fireEvent.change(screen.getByPlaceholderText('New album name'), { target: { value: 'Beach Trip' } })
+    await selectOption(shared, 'New album…')
+    fireEvent.change(screen.getByPlaceholderText('New album name'), {
+      target: { value: 'Beach Trip' },
+    })
 
     fireEvent.click(screen.getByRole('button', { name: /Add 2 photos/i }))
     await waitFor(() => expect(created.length).toBe(2))
@@ -86,11 +97,11 @@ describe('PhotoAdd — upload', () => {
     await waitFor(() => expect(screen.getAllByPlaceholderText('Add a caption…').length).toBe(2))
 
     // Batch → Lake Day (propagates to both rows)
-    fireEvent.change(document.getElementById('ap-shared-album') as HTMLSelectElement, { target: { value: 'Lake Day' } })
+    await selectOption(document.getElementById('ap-shared-album')!, 'Lake Day')
 
     // Per-row pickers are the comboboxes after the shared one; override the 2nd row → Birthday
     const rowSelects = screen.getAllByRole('combobox').filter((el) => el.id !== 'ap-shared-album')
-    fireEvent.change(rowSelects[1], { target: { value: 'Birthday' } })
+    await selectOption(rowSelects[1], 'Birthday')
 
     fireEvent.click(screen.getByRole('button', { name: /Add 2 photos/i }))
     await waitFor(() => expect(created.length).toBe(2))

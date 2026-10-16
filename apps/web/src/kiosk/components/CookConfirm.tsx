@@ -1,5 +1,8 @@
 import { useState } from 'react'
 import { pantryApi, type RecipeMatch, type ConsumeMode } from '../../lib/api'
+import { Button } from '@/components/ui/button'
+import { DataIcon } from '@/components/ui/data-icon'
+import { Modal } from '@/components/ui/modal'
 
 // "Used from your pantry" — shown after marking a recipe cooked. Lists the on-hand
 // items that recipe likely used, each pre-set to a sensible action (staples default to
@@ -13,32 +16,52 @@ const MODES: { key: ConsumeMode; label: string }[] = [
   { key: 'skip', label: "Didn't use" },
 ]
 
-export function CookConfirm({ title, matches, onClose, onApplied }: {
+export function CookConfirm({
+  title,
+  matches,
+  onClose,
+  onApplied,
+}: {
   title: string
   matches: RecipeMatch[]
   onClose: () => void
   onApplied?: (count: number) => void
 }) {
-  const [choice, setChoice] = useState<Record<string, ConsumeMode>>(
-    () => Object.fromEntries(matches.map((m) => [m.id, m.suggested]))
+  const [choice, setChoice] = useState<Record<string, ConsumeMode>>(() =>
+    Object.fromEntries(matches.map((m) => [m.id, m.suggested])),
   )
   const [busy, setBusy] = useState(false)
 
   async function confirm() {
     const items = matches
       .map((m) => ({ id: m.id, mode: choice[m.id] }))
-      .filter((x): x is { id: string; mode: 'used_up' | 'decrement' } => x.mode === 'used_up' || x.mode === 'decrement')
+      .filter(
+        (x): x is { id: string; mode: 'used_up' | 'decrement' } =>
+          x.mode === 'used_up' || x.mode === 'decrement',
+      )
     setBusy(true)
-    try { if (items.length) await pantryApi.consume(items) } catch { /* non-fatal */ }
+    try {
+      if (items.length) await pantryApi.consume(items)
+    } catch {
+      /* non-fatal */
+    }
     setBusy(false)
     onApplied?.(items.length)
     onClose()
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <Modal className="modal-overlay" onClose={onClose}>
       <div className="modal-card cc-modal" onClick={(e) => e.stopPropagation()}>
-        <button type="button" className="modal-close" aria-label="Close" onClick={onClose}>×</button>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="modal-close"
+          aria-label="Close"
+          onClick={onClose}
+        >
+          <DataIcon value={'×'} kind="meal" />
+        </Button>
         <div className="cc-head">
           <h2 className="cc-title">Used from your pantry</h2>
           <p className="cc-sub">Update your pantry after cooking {title}.</p>
@@ -53,28 +76,43 @@ export function CookConfirm({ title, matches, onClose, onApplied }: {
                   {m.isStaple && <span className="cc-staple"> · staple</span>}
                 </span>
               </div>
-              <div className="cc-seg" role="radiogroup" aria-label={`How much ${m.name} did you use?`}>
+              <div
+                className="cc-seg"
+                role="radiogroup"
+                aria-label={`How much ${m.name} did you use?`}
+              >
                 {MODES.map((opt) => (
-                  <button
+                  <Button
+                    variant="unstyled"
                     key={opt.key}
                     type="button"
                     role="radio"
                     aria-checked={choice[m.id] === opt.key}
                     className={`cc-seg-btn${choice[m.id] === opt.key ? ' on' : ''}`}
                     onClick={() => setChoice((c) => ({ ...c, [m.id]: opt.key }))}
-                  >{opt.label}</button>
+                  >
+                    {opt.label}
+                  </Button>
                 ))}
               </div>
             </div>
           ))}
         </div>
         <div className="cc-foot">
-          <button type="button" className="pill" onClick={onClose}>Not now</button>
-          <button type="button" className="pill primary" onClick={confirm} disabled={busy}>
+          <Button variant="unstyled" type="button" className="pill" onClick={onClose}>
+            Not now
+          </Button>
+          <Button
+            variant="unstyled"
+            type="button"
+            className="pill primary"
+            onClick={confirm}
+            disabled={busy}
+          >
             {busy ? 'Updating…' : 'Update pantry'}
-          </button>
+          </Button>
         </div>
       </div>
-    </div>
+    </Modal>
   )
 }

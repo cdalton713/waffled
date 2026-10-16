@@ -3,6 +3,10 @@ import { useViewOnly } from '../../lib/viewOnly'
 import { Link } from 'react-router'
 import { useChoresToday, useCurrencies, useHousehold, can, type PersonChores } from '../../lib/api'
 import { SpotAwardModal } from './SpotAwardModal'
+import { Button } from '@/components/ui/button'
+import { DataIcon } from '@/components/ui/data-icon'
+import { IconValue } from '@/components/ui/icon-value'
+import { Card } from '@/components/ui/card'
 
 // Per-person progress ring, colored by the member's own color. `sym` is the
 // household default currency symbol (renders ⭐ / 💵 / etc. from the catalog).
@@ -15,7 +19,13 @@ function Ring({ person, sym }: { person: PersonChores; sym: string }) {
     <Link
       to="/tasks"
       className="chores-card-row"
-      style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none', color: 'inherit' }}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        textDecoration: 'none',
+        color: 'inherit',
+      }}
     >
       <div style={{ position: 'relative', width: 42, height: 42, flex: 'none' }}>
         <svg viewBox="0 0 42 42" style={{ transform: 'rotate(-90deg)' }}>
@@ -31,8 +41,16 @@ function Ring({ person, sym }: { person: PersonChores; sym: string }) {
             strokeDasharray={`${(pct * 113).toFixed(0)} 113`}
           />
         </svg>
-        <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', fontSize: 15 }}>
-          {person.avatarEmoji ?? '🙂'}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'grid',
+            placeItems: 'center',
+            fontSize: 15,
+          }}
+        >
+          <DataIcon value={person.avatarEmoji ?? '🙂'} kind="person" />
         </div>
       </div>
       <div style={{ flex: 1 }}>
@@ -41,8 +59,19 @@ function Ring({ person, sym }: { person: PersonChores; sym: string }) {
           {person.done} of {person.total} done
         </div>
       </div>
-      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 13, fontWeight: 700, color: 'var(--gold)' }}>
-        <span style={{ fontSize: 14 }}>{sym}</span>
+      <div
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 4,
+          fontSize: 13,
+          fontWeight: 700,
+          color: 'var(--gold)',
+        }}
+      >
+        <span style={{ fontSize: 14 }}>
+          <IconValue value={sym} />
+        </span>
         {person.stars}
       </div>
     </Link>
@@ -54,7 +83,13 @@ function UpForGrabsRow({ count }: { count: number }) {
     <Link
       to="/tasks"
       className="chores-card-row"
-      style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none', color: 'inherit' }}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        textDecoration: 'none',
+        color: 'inherit',
+      }}
     >
       <div
         aria-hidden="true"
@@ -69,7 +104,7 @@ function UpForGrabsRow({ count }: { count: number }) {
           fontSize: 20,
         }}
       >
-        🙌
+        <DataIcon value={'🙌'} kind="chore" />
       </div>
       <div style={{ flex: 1 }}>
         <div style={{ fontSize: 15, fontWeight: 700 }}>Up for grabs</div>
@@ -93,48 +128,83 @@ export function ChoresCard() {
   const viewOnly = useViewOnly()
   const [awarding, setAwarding] = useState(false)
   return (
-    <div className="card" style={{ padding: '18px 20px' }}>
+    <Card className="card" style={{ padding: '18px 20px' }}>
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
         <div className="card-h" style={{ fontSize: 17 }}>
           Family Chores
         </div>
-        <Link to="/tasks" className="tiny muted" style={{ marginLeft: 'auto', textDecoration: 'none', color: 'var(--ink-2)' }}>
-          Today ›
+        <Link
+          to="/tasks"
+          className="tiny muted"
+          style={{ marginLeft: 'auto', textDecoration: 'none', color: 'var(--ink-2)' }}
+        >
+          <>
+            {'Today '}
+            <DataIcon value={'›'} kind="chore" />
+          </>
         </Link>
       </div>
-      {loading && <div className="tiny muted" style={{ padding: '8px 0' }}>Loading…</div>}
+      {loading && (
+        <div className="tiny muted" style={{ padding: '8px 0' }}>
+          Loading…
+        </div>
+      )}
       {error && (
-        <div className="tiny muted" style={{ padding: '8px 0' }}>Couldn't load chores — reload or sign in.</div>
+        <div className="tiny muted" style={{ padding: '8px 0' }}>
+          Couldn't load chores — reload or sign in.
+        </div>
       )}
       {!loading && !error && withChores.length === 0 && upForGrabs === 0 && (
-        <div className="tiny muted" style={{ padding: '8px 0' }}>No chores yet.</div>
+        <div className="tiny muted" style={{ padding: '8px 0' }}>
+          No chores yet.
+        </div>
       )}
       {upForGrabs > 0 && <UpForGrabsRow count={upForGrabs} />}
       {withChores.map((p) => (
         <Ring key={p.id} person={p} sym={sym} />
       ))}
       {canAward && !viewOnly && (
-        <button
+        <Button
+          variant="unstyled"
           type="button"
           className="chores-card-row"
           onClick={() => setAwarding(true)}
           style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            width: '100%', marginTop: 8, padding: '10px 12px', border: 0,
-            background: 'var(--card-2)', borderRadius: 12, cursor: 'pointer',
-            font: 'inherit', fontSize: 14, fontWeight: 700, color: 'var(--ink-2)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            width: '100%',
+            marginTop: 8,
+            padding: '10px 12px',
+            border: 0,
+            background: 'var(--card-2)',
+            borderRadius: 12,
+            cursor: 'pointer',
+            font: 'inherit',
+            fontSize: 14,
+            fontWeight: 700,
+            color: 'var(--ink-2)',
           }}
         >
-          ＋ Spot award
-        </button>
+          <>
+            <DataIcon value={'＋'} kind="chore" />
+            {' Spot award'}
+          </>
+        </Button>
       )}
       {awarding && (
         <SpotAwardModal
-          people={people.map((p) => ({ id: p.id, name: p.name, avatarEmoji: p.avatarEmoji, colorHex: p.colorHex }))}
+          people={people.map((p) => ({
+            id: p.id,
+            name: p.name,
+            avatarEmoji: p.avatarEmoji,
+            colorHex: p.colorHex,
+          }))}
           currencies={currencies}
           onClose={() => setAwarding(false)}
         />
       )}
-    </div>
+    </Card>
   )
 }

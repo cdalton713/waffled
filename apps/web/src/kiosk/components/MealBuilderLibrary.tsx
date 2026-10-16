@@ -4,6 +4,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useRecipes, useSavedMeals, type Meal, type Recipe } from '../../lib/api'
 import { roleLabel, type DragPayload, type PlateRole } from './MealBuilderPlate'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { DataIcon } from '@/components/ui/data-icon'
 
 const SEGMENTS = [
   { key: 'side', label: 'Sides' },
@@ -24,12 +27,17 @@ type Segment = (typeof SEGMENTS)[number]['key']
 const SIDE_TYPES = new Set(['side', 'salad', 'appetizer', 'bread', 'soup'])
 
 function isDessert(r: Recipe): boolean {
-  return (r.category ?? '').toLowerCase() === 'dessert' || (r.mealType ?? '').toLowerCase() === 'dessert'
+  return (
+    (r.category ?? '').toLowerCase() === 'dessert' || (r.mealType ?? '').toLowerCase() === 'dessert'
+  )
 }
 
 function isSide(r: Recipe): boolean {
   if (isDessert(r)) return false
-  return SIDE_TYPES.has((r.category ?? '').toLowerCase()) || SIDE_TYPES.has((r.mealType ?? '').toLowerCase())
+  return (
+    SIDE_TYPES.has((r.category ?? '').toLowerCase()) ||
+    SIDE_TYPES.has((r.mealType ?? '').toLowerCase())
+  )
 }
 
 // Title + the metadata people actually search by (same spirit as RecipesLibrary).
@@ -77,15 +85,24 @@ function Row({
         onDragStart()
       }}
     >
-      <span className="mb-thumb">{emoji}</span>
+      <span className="mb-thumb">
+        <DataIcon value={emoji} kind="meal" />
+      </span>
       <span className="mb-lib-b">
         <span className="mb-lib-t">{name}</span>
         <span className="mb-lib-m">{meta}</span>
       </span>
       {badge ? <span className="mb-lib-badge">{badge}</span> : null}
-      <button type="button" className="mb-lib-add" aria-label={`Add ${name}`} disabled={onPlate} onClick={onAdd}>
-        ＋
-      </button>
+      <Button
+        variant="unstyled"
+        type="button"
+        className="mb-lib-add"
+        aria-label={`Add ${name}`}
+        disabled={onPlate}
+        onClick={onAdd}
+      >
+        <DataIcon value={'＋'} kind="meal" />
+      </Button>
     </div>
   )
 }
@@ -172,21 +189,33 @@ export function MealBuilderLibrary({
       {addingRole ? (
         <div className="mb-adding">
           <span>Adding to {roleLabel(addingRole)} — pick any recipe</span>
-          <button type="button" className="mb-adding-x" aria-label="Stop adding" onClick={onCancelAdding}>
-            ✕
-          </button>
+          <Button
+            variant="unstyled"
+            type="button"
+            className="mb-adding-x"
+            aria-label="Stop adding"
+            onClick={onCancelAdding}
+          >
+            <DataIcon value={'✕'} kind="meal" />
+          </Button>
         </div>
       ) : null}
 
       <div className="seg mb-lib-seg">
         {SEGMENTS.map((s) => (
-          <button key={s.key} type="button" className={segment === s.key ? 'on' : ''} onClick={() => setSegment(s.key)}>
+          <Button
+            variant="unstyled"
+            key={s.key}
+            type="button"
+            className={segment === s.key ? 'on' : ''}
+            onClick={() => setSegment(s.key)}
+          >
             {s.label}
-          </button>
+          </Button>
         ))}
       </div>
 
-      <input
+      <Input
         className="mb-search"
         aria-label="Search recipes and meals"
         placeholder="Search recipes & meals…"
@@ -200,10 +229,7 @@ export function MealBuilderLibrary({
             key={`meal-${m.id}`}
             name={m.name}
             emoji={m.emojis[0] ?? '🍽️'}
-            meta={[
-              m.totalMinutes ? `${m.totalMinutes} min` : null,
-              `${m.toBuy} to buy`,
-            ]
+            meta={[m.totalMinutes ? `${m.totalMinutes} min` : null, `${m.toBuy} to buy`]
               .filter(Boolean)
               .join(' · ')}
             badge={`Meal · ${m.recipeCount}`}
@@ -214,7 +240,13 @@ export function MealBuilderLibrary({
         ))}
         {shownRecipes.map((r) => {
           const mins = minutesOf(r)
-          const kind = isDessert(r) ? 'Dessert' : isSide(r) ? 'Side' : r.category ? cap(r.category) : 'Recipe'
+          const kind = isDessert(r)
+            ? 'Dessert'
+            : isSide(r)
+              ? 'Side'
+              : r.category
+                ? cap(r.category)
+                : 'Recipe'
           return (
             <Row
               key={r.id}
@@ -231,9 +263,23 @@ export function MealBuilderLibrary({
       </div>
 
       <div className="mb-lib-foot tiny muted">
-        {fixedRole
-          ? `Drag a row onto a slot, or tap ＋ to add it to ${roleLabel(fixedRole)}.`
-          : 'Drag a row onto a slot, or tap ＋ and we’ll file it for you.'}
+        {fixedRole ? (
+          <>
+            <>
+              {'Drag a row onto a slot, or tap '}
+              <DataIcon value={'＋'} kind="meal" />
+              {' to add it to '}
+            </>
+            {roleLabel(fixedRole)}
+            {'.'}
+          </>
+        ) : (
+          <>
+            {'Drag a row onto a slot, or tap '}
+            <DataIcon value={'＋'} kind="meal" />
+            {' and we’ll file it for you.'}
+          </>
+        )}
       </div>
     </aside>
   )

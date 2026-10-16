@@ -1,5 +1,8 @@
 import { useState, type FormEvent } from 'react'
 import { AlbumPicker } from './AlbumPicker'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import { Modal } from '@/components/ui/modal'
 
 // Bulk "move to album" dialog for the Photos select mode. Picks an existing album or
 // a new one (empty = remove from any album) and reports it to onMove. Matches the app
@@ -31,20 +34,29 @@ export function MovePhotosModal({
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <form className="modal-card" onClick={(e) => e.stopPropagation()} onSubmit={submit} style={{ maxWidth: 400 }}>
+    <Modal className="modal-overlay" onClose={onClose}>
+      <form
+        className="modal-card"
+        onClick={(e) => e.stopPropagation()}
+        onSubmit={submit}
+        style={{ maxWidth: 400 }}
+      >
         <div className="wf-serif" style={{ fontSize: 19, fontWeight: 600, marginBottom: 12 }}>
           Move {count === 1 ? 'photo' : `${count} photos`} to…
         </div>
-        <label className="ap-field-label" style={{ marginBottom: 18 }}>
+        <Label className="ap-field-label" style={{ marginBottom: 18 }}>
           Album
           <AlbumPicker value={album} onChange={setAlbum} albums={albums} />
-        </label>
+        </Label>
         <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-          <button type="button" className="btn btn-ghost" onClick={onClose} disabled={busy}>Cancel</button>
-          <button type="submit" className="btn btn-primary" disabled={busy}>{busy ? 'Moving…' : 'Move'}</button>
+          <Button variant="ghost" type="button" onClick={onClose} disabled={busy}>
+            Cancel
+          </Button>
+          <Button variant="default" type="submit" disabled={busy}>
+            {busy ? 'Moving…' : 'Move'}
+          </Button>
         </div>
       </form>
-    </div>
+    </Modal>
   )
 }

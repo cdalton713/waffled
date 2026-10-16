@@ -1,5 +1,11 @@
 import { useState, type FormEvent } from 'react'
 import { groceryApi, listWrites, useTemplates } from '../../lib/api'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { DataIcon } from '@/components/ui/data-icon'
+import { IconPicker } from '@/components/ui/icon-picker'
+import { Modal } from '@/components/ui/modal'
 
 // Create OR rename a named list (name + emoji). Pass `list` to edit; pass
 // `fromTemplate` to open the create form pre-pointed at a template (the user
@@ -51,7 +57,10 @@ export function ListsModal({
         const created = await groceryApi.applyTemplate(fromTemplate.id, name.trim())
         onCreated?.(created.id)
       } else {
-        const created = await listWrites.createList({ name: name.trim(), emoji: emoji.trim() || null })
+        const created = await listWrites.createList({
+          name: name.trim(),
+          emoji: emoji.trim() || null,
+        })
         onCreated?.(created.id)
       }
       onClose()
@@ -61,44 +70,76 @@ export function ListsModal({
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <Modal className="modal-overlay" onClose={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 440 }}>
-        <button type="button" className="modal-close" aria-label="Close" onClick={onClose}>×</button>
-        <div className="wf-serif" style={{ fontSize: 20, fontWeight: 600, marginBottom: fromTemplate ? 6 : 14 }}>{editing ? 'Rename list' : fromTemplate ? 'New list from template' : 'New list'}</div>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="modal-close"
+          aria-label="Close"
+          onClick={onClose}
+        >
+          <DataIcon value={'×'} kind="list" />
+        </Button>
+        <div
+          className="wf-serif"
+          style={{ fontSize: 20, fontWeight: 600, marginBottom: fromTemplate ? 6 : 14 }}
+        >
+          {editing ? 'Rename list' : fromTemplate ? 'New list from template' : 'New list'}
+        </div>
         {fromTemplate && (
           <div className="tiny muted" style={{ marginBottom: 14 }}>
-            From <strong>{fromTemplate.emoji ?? '📑'} {fromTemplate.name}</strong> — name your new list.
+            From{' '}
+            <strong>
+              <DataIcon value={fromTemplate.emoji ?? '📑'} kind="list" /> {fromTemplate.name}
+            </strong>{' '}
+            — name your new list.
           </div>
         )}
         <form onSubmit={submit}>
           <div className="field-row">
-            <label className="field" style={{ flex: 3 }}>
+            <Label className="field" style={{ flex: 3 }}>
               <span>List name</span>
-              <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Lake trip packing" autoFocus />
-            </label>
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Lake trip packing"
+                autoFocus
+              />
+            </Label>
             {!fromTemplate && (
-              <label className="field" style={{ flex: 1 }}>
-                <span>Emoji</span>
-                <input value={emoji} onChange={(e) => setEmoji(e.target.value)} placeholder="🧳" maxLength={4} />
-              </label>
+              <Label className="field" style={{ flex: 1 }}>
+                <span>Icon</span>
+                <IconPicker kind="list" value={emoji} onValueChange={(e) => setEmoji(e)} />
+              </Label>
             )}
           </div>
-          <button
+          <Button
+            variant="default"
             type="submit"
-            className="btn btn-primary"
+
             disabled={!name.trim() || saving}
             style={{ width: '100%', justifyContent: 'center', marginTop: 6 }}
           >
-            {saving ? 'Saving…' : editing ? 'Save changes' : fromTemplate ? 'Create from template' : 'Create list'}
-          </button>
+            {saving
+              ? 'Saving…'
+              : editing
+                ? 'Save changes'
+                : fromTemplate
+                  ? 'Create from template'
+                  : 'Create list'}
+          </Button>
         </form>
 
         {!editing && !fromTemplate && templates.length > 0 && (
           <div style={{ marginTop: 16 }}>
-            <div className="tiny muted" style={{ fontWeight: 600, marginBottom: 8 }}>Or apply a template</div>
+            <div className="tiny muted" style={{ fontWeight: 600, marginBottom: 8 }}>
+              Or apply a template
+            </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
               {templates.map((t) => (
-                <button
+                <Button
+                  variant="unstyled"
                   key={t.id}
                   type="button"
                   className="pill"
@@ -106,13 +147,16 @@ export function ListsModal({
                   disabled={saving}
                   onClick={() => applyTemplate(t.id)}
                 >
-                  <span>{t.emoji ?? '📑'}</span> {t.name}
-                </button>
+                  <span>
+                    <DataIcon value={t.emoji ?? '📑'} kind="list" />
+                  </span>{' '}
+                  {t.name}
+                </Button>
               ))}
             </div>
           </div>
         )}
       </div>
-    </div>
+    </Modal>
   )
 }

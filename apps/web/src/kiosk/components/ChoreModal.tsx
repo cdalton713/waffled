@@ -1,5 +1,13 @@
 import { useState, type FormEvent } from 'react'
 import { api, usePersons, useCurrencies, localToday } from '../../lib/api'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { DataIcon } from '@/components/ui/data-icon'
+import { IconPicker } from '@/components/ui/icon-picker'
+import { SelectField } from '@/components/ui/select-field'
+import { Modal } from '@/components/ui/modal'
+import { IconValue } from '@/components/ui/icon-value'
 
 export interface ChoreDraft {
   id: string
@@ -18,7 +26,13 @@ export interface ChoreDraft {
 }
 
 const DAYS: Array<[string, string]> = [
-  ['MO', 'Mon'], ['TU', 'Tue'], ['WE', 'Wed'], ['TH', 'Thu'], ['FR', 'Fri'], ['SA', 'Sat'], ['SU', 'Sun'],
+  ['MO', 'Mon'],
+  ['TU', 'Tue'],
+  ['WE', 'Wed'],
+  ['TH', 'Thu'],
+  ['FR', 'Fri'],
+  ['SA', 'Sat'],
+  ['SU', 'Sun'],
 ]
 
 type Freq = 'once' | 'daily' | 'weekly'
@@ -30,7 +44,7 @@ type ScopeAction =
 function parseRrule(
   rrule: string | null | undefined,
   editing: boolean,
-  defaultFreq: Freq = 'daily'
+  defaultFreq: Freq = 'daily',
 ): { freq: Freq; days: string[] } {
   if (rrule && /FREQ=WEEKLY/i.test(rrule)) {
     const m = rrule.match(/BYDAY=([A-Z,]+)/i)
@@ -59,12 +73,12 @@ function initialForm(
   selfPersonId?: string | null,
   defaultFreq?: Freq,
   defaultDueOn?: string,
-  defaultTitle?: string
+  defaultTitle?: string,
 ) {
   const sched = parseRrule(chore?.rrule, !!chore, defaultFreq)
   // Restricted users (no chore.manage) can only target themselves or up-for-grabs; default
   // them to self rather than the full-list default.
-  const prefill = chore?.personId ?? personId ?? (canAssignOthers ? '' : selfPersonId ?? '')
+  const prefill = chore?.personId ?? personId ?? (canAssignOthers ? '' : (selfPersonId ?? ''))
   return {
     title: chore?.title ?? defaultTitle ?? '',
     emoji: chore?.emoji ?? '',
@@ -120,7 +134,16 @@ export function ChoreModal({
   const { persons } = usePersons()
   const { currencies, defaultCurrency } = useCurrencies()
   const [form, setForm] = useState(() =>
-    initialForm(chore, personId, canAssignOthers, selfPersonId, defaultFreq, defaultDueOn, defaultTitle))
+    initialForm(
+      chore,
+      personId,
+      canAssignOthers,
+      selfPersonId,
+      defaultFreq,
+      defaultDueOn,
+      defaultTitle,
+    ),
+  )
   const pickable = canAssignOthers ? persons : persons.filter((p) => p.id === selfPersonId)
   // A parent doesn't need another parent's OK: hide the approval toggle when the chore is
   // assigned to an adult/admin. Still shown for kids, teens and "up for grabs".
@@ -133,7 +156,8 @@ export function ChoreModal({
   const [scopeAction, setScopeAction] = useState<ScopeAction | null>(null)
   const [saveError, setSaveError] = useState<string | null>(null)
   const selectedOccurrenceIsPending = chore?.status === 'pending'
-  const set = <K extends keyof typeof form>(k: K, v: (typeof form)[K]) => setForm((f) => ({ ...f, [k]: v }))
+  const set = <K extends keyof typeof form>(k: K, v: (typeof form)[K]) =>
+    setForm((f) => ({ ...f, [k]: v }))
 
   async function submit(e: FormEvent) {
     e.preventDefault()
@@ -155,7 +179,11 @@ export function ChoreModal({
     try {
       if (editing && chore?.rrule && chore.instanceId) {
         setSaving(false)
-        setScopeAction({ kind: 'save', payload, repeatChanged: buildRrule(form.freq, form.days) !== chore.rrule })
+        setScopeAction({
+          kind: 'save',
+          payload,
+          repeatChanged: buildRrule(form.freq, form.days) !== chore.rrule,
+        })
         return
       }
       // A ONE-OFF CARRIES ITS DAY EITHER WAY: on create it is where the single instance lands,
@@ -167,7 +195,7 @@ export function ChoreModal({
       onSaved()
       onClose()
     } catch {
-      setSaveError('Couldn\'t save this chore. Check your connection and try again.')
+      setSaveError("Couldn't save this chore. Check your connection and try again.")
       setSaving(false)
     }
   }
@@ -190,7 +218,7 @@ export function ChoreModal({
       onSaved()
       onClose()
     } catch {
-      setSaveError('Couldn\'t delete this chore. Check your connection and try again.')
+      setSaveError("Couldn't delete this chore. Check your connection and try again.")
       setSaving(false)
     }
   }
@@ -208,59 +236,103 @@ export function ChoreModal({
     } catch {
       setSaveError(
         scopeAction.kind === 'save'
-          ? 'Couldn\'t save this chore. Check your connection and try again.'
-          : 'Couldn\'t delete this chore. Check your connection and try again.'
+          ? "Couldn't save this chore. Check your connection and try again."
+          : "Couldn't delete this chore. Check your connection and try again.",
       )
       setSaving(false)
     }
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <Modal className="modal-overlay" onClose={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 420 }}>
-        <button type="button" className="modal-close" aria-label="Close" onClick={onClose}>
-          ×
-        </button>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="modal-close"
+          aria-label="Close"
+          onClick={onClose}
+        >
+          <DataIcon value={'×'} kind="chore" />
+        </Button>
         <div className="wf-serif" style={{ fontSize: 22, fontWeight: 600, marginBottom: 14 }}>
           {editing ? 'Edit chore' : 'New chore'}
         </div>
 
         {saveError && (
-          <div role="alert" className="tiny" style={{ color: 'var(--primary)', fontWeight: 700, marginBottom: 12 }}>
+          <div
+            role="alert"
+            className="tiny"
+            style={{ color: 'var(--primary)', fontWeight: 700, marginBottom: 12 }}
+          >
             {saveError}
           </div>
         )}
 
         <form onSubmit={submit}>
           <div className="field-row">
-            <label className="field" style={{ flex: 3 }}>
+            <Label className="field" style={{ flex: 3 }}>
               <span>Title</span>
-              <input value={form.title} onChange={(e) => set('title', e.target.value)} placeholder="Feed the dog" autoFocus />
-            </label>
-            <label className="field" style={{ flex: 1 }}>
-              <span>Emoji</span>
-              <input value={form.emoji} onChange={(e) => set('emoji', e.target.value)} placeholder="🐶" maxLength={4} />
-            </label>
+              <Input
+                value={form.title}
+                onChange={(e) => set('title', e.target.value)}
+                placeholder="Feed the dog"
+                autoFocus
+              />
+            </Label>
+            <Label className="field" style={{ flex: 1 }}>
+              <span>Icon</span>
+              <IconPicker kind="chore" value={form.emoji} onValueChange={(e) => set('emoji', e)} />
+            </Label>
           </div>
 
           <div className="field" style={{ marginBottom: 10 }}>
             <span>Repeats</span>
             <div className="seg" style={{ width: 'fit-content' }}>
-              <button type="button" className={form.freq === 'once' ? 'on' : ''} onClick={() => set('freq', 'once')}>Just once</button>
-              <button type="button" className={form.freq === 'daily' ? 'on' : ''} onClick={() => set('freq', 'daily')}>Every day</button>
-              <button type="button" className={form.freq === 'weekly' ? 'on' : ''} onClick={() => set('freq', 'weekly')}>Certain days</button>
+              <Button
+                variant="unstyled"
+                type="button"
+                className={form.freq === 'once' ? 'on' : ''}
+                onClick={() => set('freq', 'once')}
+              >
+                Just once
+              </Button>
+              <Button
+                variant="unstyled"
+                type="button"
+                className={form.freq === 'daily' ? 'on' : ''}
+                onClick={() => set('freq', 'daily')}
+              >
+                Every day
+              </Button>
+              <Button
+                variant="unstyled"
+                type="button"
+                className={form.freq === 'weekly' ? 'on' : ''}
+                onClick={() => set('freq', 'weekly')}
+              >
+                Certain days
+              </Button>
             </div>
             {form.freq === 'weekly' && (
               <div className="chore-days">
                 {DAYS.map(([code, label]) => (
-                  <button
+                  <Button
+                    variant="unstyled"
                     key={code}
                     type="button"
                     className={`chore-day ${form.days.includes(code) ? 'on' : ''}`}
-                    onClick={() => set('days', form.days.includes(code) ? form.days.filter((d) => d !== code) : [...form.days, code])}
+                    onClick={() =>
+                      set(
+                        'days',
+                        form.days.includes(code)
+                          ? form.days.filter((d) => d !== code)
+                          : [...form.days, code],
+                      )
+                    }
                   >
                     {label}
-                  </button>
+                  </Button>
                 ))}
               </div>
             )}
@@ -270,40 +342,54 @@ export function ChoreModal({
                 Save lives inside a <form>, so flooring the input at today would let the browser
                 refuse the submit and make Save look dead on those very cards. */}
             {form.freq === 'once' && (
-              <label className="field" style={{ marginTop: 8 }}>
+              <Label className="field" style={{ marginTop: 8 }}>
                 <span>On</span>
-                <input type="date" {...(editing ? {} : { min: localToday() })} value={form.dueOn} onChange={(e) => set('dueOn', e.target.value || localToday())} />
-              </label>
+                <Input
+                  type="date"
+                  {...(editing ? {} : { min: localToday() })}
+                  value={form.dueOn}
+                  onChange={(e) => set('dueOn', e.target.value || localToday())}
+                />
+              </Label>
             )}
           </div>
 
-          <label className="field" style={{ marginBottom: 10 }}>
-            <span>Due time <span className="tiny muted" style={{ fontWeight: 400 }}>· optional</span></span>
-            <input type="time" value={form.dueTime} onChange={(e) => set('dueTime', e.target.value)} />
-          </label>
+          <Label className="field" style={{ marginBottom: 10 }}>
+            <span>
+              Due time{' '}
+              <span className="tiny muted" style={{ fontWeight: 400 }}>
+                · optional
+              </span>
+            </span>
+            <Input
+              type="time"
+              value={form.dueTime}
+              onChange={(e) => set('dueTime', e.target.value)}
+            />
+          </Label>
 
           <div className="field-row">
-            <label className="field">
+            <Label className="field">
               <span>Who</span>
-              <select value={form.personId} onChange={(e) => set('personId', e.target.value)}>
+              <SelectField value={form.personId} onValueChange={(e) => set('personId', e)}>
                 <option value="">— up for grabs —</option>
                 {pickable.map((p) => (
                   <option key={p.id} value={p.id}>
-                    {p.avatarEmoji ? `${p.avatarEmoji} ` : ''}
+                    {p.avatarEmoji ? <>{<DataIcon value={p.avatarEmoji} kind="person" />} </> : ''}
                     {p.name}
                   </option>
                 ))}
-              </select>
-            </label>
-            <label className="field">
+              </SelectField>
+            </Label>
+            <Label className="field">
               <span>{selectedCur?.label ?? 'Stars'}</span>
-              <input
+              <Input
                 type="number"
                 min={0}
                 value={form.rewardAmount}
                 onChange={(e) => set('rewardAmount', Number(e.target.value))}
               />
-            </label>
+            </Label>
           </div>
 
           {/* currency picker — only when the family runs more than one currency */}
@@ -312,50 +398,72 @@ export function ChoreModal({
               <span>Currency</span>
               <div className="rw-cur-pick">
                 {currencies.map((c) => (
-                  <button
+                  <Button
+                    variant="unstyled"
                     key={c.key}
                     type="button"
                     className={`rw-cur-chip ${c.key === curKey ? 'on' : ''}`}
-                    style={c.key === curKey && c.color ? { borderColor: c.color, color: c.color, background: `${c.color}18` } : undefined}
+                    style={
+                      c.key === curKey && c.color
+                        ? { borderColor: c.color, color: c.color, background: `${c.color}18` }
+                        : undefined
+                    }
                     onClick={() => set('rewardCurrency', c.key)}
                   >
-                    {c.symbol ?? '⭐'} {c.label}
-                  </button>
+                    <IconValue value={c.symbol ?? '⭐'} /> {c.label}
+                  </Button>
                 ))}
               </div>
             </div>
           )}
 
           {!assigneeIsAdult && (
-            <button
+            <Button
+              variant="unstyled"
               type="button"
               className={`chore-approval ${form.requiresApproval ? 'on' : ''}`}
               onClick={() => set('requiresApproval', !form.requiresApproval)}
             >
-              <span className="chore-approval-check" aria-hidden>{form.requiresApproval ? '✓' : ''}</span>
+              <span className="chore-approval-check" aria-hidden>
+                {form.requiresApproval ? <DataIcon value={'✓'} kind="chore" /> : ''}
+              </span>
               <span>
                 <span className="chore-approval-t">Needs a parent’s OK</span>
-                <span className="chore-approval-s">Stars are awarded only after a parent approves.</span>
+                <span className="chore-approval-s">
+                  Stars are awarded only after a parent approves.
+                </span>
               </span>
-            </button>
+            </Button>
           )}
 
-          <button
+          <Button
+            variant="unstyled"
             type="button"
             className={`chore-approval ${form.requiresPhoto ? 'on' : ''}`}
             onClick={() => set('requiresPhoto', !form.requiresPhoto)}
           >
-            <span className="chore-approval-check" aria-hidden>{form.requiresPhoto ? '✓' : ''}</span>
+            <span className="chore-approval-check" aria-hidden>
+              {form.requiresPhoto ? <DataIcon value={'✓'} kind="chore" /> : ''}
+            </span>
             <span>
               <span className="chore-approval-t">Requires a photo</span>
-              <span className="chore-approval-s">A snapshot of the finished job is needed to complete it.</span>
+              <span className="chore-approval-s">
+                A snapshot of the finished job is needed to complete it.
+              </span>
             </span>
-          </button>
+          </Button>
 
           {scopeAction && (
-            <div role="dialog" aria-label="Choose recurring chore scope" className="wf-field" style={{ marginTop: 12, padding: 13 }}>
+            <div
+              role="dialog"
+              aria-label="Choose recurring chore scope"
+              className="wf-field"
+              style={{ marginTop: 12, padding: 13 }}
+            >
               <div style={{ fontWeight: 800, marginBottom: 4 }}>
-                {scopeAction.kind === 'save' ? 'Which chores should change?' : 'Which chores should be deleted?'}
+                {scopeAction.kind === 'save'
+                  ? 'Which chores should change?'
+                  : 'Which chores should be deleted?'}
               </div>
               <div className="tiny muted" style={{ marginBottom: 10 }}>
                 {selectedOccurrenceIsPending
@@ -364,19 +472,42 @@ export function ChoreModal({
               </div>
               <div style={{ display: 'grid', gap: 7 }}>
                 {!scopeAction.repeatChanged && selectedOccurrenceIsPending && (
-                  <button type="button" className="btn" disabled={saving} onClick={() => applyScope('this')}>
+                  <Button
+                    variant="plain"
+                    type="button"
+                    disabled={saving}
+                    onClick={() => applyScope('this')}
+                  >
                     This chore only
-                  </button>
+                  </Button>
                 )}
-                <button type="button" className="btn" disabled={saving} onClick={() => applyScope('following')}>
+                <Button
+                  variant="plain"
+                  type="button"
+                  disabled={saving}
+                  onClick={() => applyScope('following')}
+                >
                   This and future chores
-                </button>
-                <button type="button" className="btn" disabled={saving} onClick={() => applyScope('all')}>
+                </Button>
+                <Button
+                  variant="plain"
+                  type="button"
+                  disabled={saving}
+                  onClick={() => applyScope('all')}
+                >
                   Entire active series
-                </button>
-                <button type="button" className="btn btn-ghost" disabled={saving} onClick={() => { setScopeAction(null); setSaveError(null) }}>
+                </Button>
+                <Button
+                  variant="ghost"
+                  type="button"
+                  disabled={saving}
+                  onClick={() => {
+                    setScopeAction(null)
+                    setSaveError(null)
+                  }}
+                >
                   Cancel
-                </button>
+                </Button>
               </div>
               {scopeAction.repeatChanged && (
                 <div className="tiny muted" style={{ marginTop: 8 }}>
@@ -388,26 +519,39 @@ export function ChoreModal({
 
           <div style={{ display: 'flex', gap: 9, marginTop: 6, alignItems: 'center' }}>
             {editing && canDelete && (
-              <button
+              <Button
+                variant="unstyled"
                 type="button"
                 onClick={del}
                 disabled={saving}
-                style={{ border: 0, background: 'none', font: 'inherit', fontWeight: 700, fontSize: 14, color: 'var(--primary)', cursor: 'pointer', padding: '10px 4px' }}
+                style={{
+                  border: 0,
+                  background: 'none',
+                  font: 'inherit',
+                  fontWeight: 700,
+                  fontSize: 14,
+                  color: 'var(--primary)',
+                  cursor: 'pointer',
+                  padding: '10px 4px',
+                }}
               >
                 {confirmDelete ? 'Tap again to delete' : 'Delete'}
-              </button>
+              </Button>
             )}
-            <button
+            <Button
+              variant="default"
               type="submit"
-              className="btn btn-primary"
-              disabled={!form.title.trim() || saving || (form.freq === 'weekly' && form.days.length === 0)}
+
+              disabled={
+                !form.title.trim() || saving || (form.freq === 'weekly' && form.days.length === 0)
+              }
               style={{ flex: 1, justifyContent: 'center' }}
             >
               {saving ? 'Saving…' : editing ? 'Save' : 'Add chore'}
-            </button>
+            </Button>
           </div>
         </form>
       </div>
-    </div>
+    </Modal>
   )
 }

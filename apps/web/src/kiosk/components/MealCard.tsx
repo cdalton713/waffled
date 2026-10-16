@@ -1,4 +1,6 @@
 import type { Meal } from '../../lib/api'
+import { Button } from '@/components/ui/button'
+import { DataIcon } from '@/components/ui/data-icon'
 
 // A saved meal ("plate") rendered as a card, so it can sit in the recipe library and
 // in the slot picker next to real recipes without ever being mistaken for one
@@ -24,13 +26,25 @@ export function MealCardEmojis({ meal }: { meal: Meal }) {
   return (
     <span
       className="mc-emojis"
-      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, flexWrap: 'wrap', fontSize: 32, lineHeight: 1 }}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 6,
+        flexWrap: 'wrap',
+        fontSize: 32,
+        lineHeight: 1,
+      }}
     >
       {shown.map((e, i) => (
-        <span key={`${e}-${i}`}>{e}</span>
+        <span key={`${e}-${i}`}>
+          <DataIcon value={e} kind="meal" />
+        </span>
       ))}
       {all.length > MAX_EMOJIS && (
-        <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--ink-2)' }}>+{all.length - MAX_EMOJIS}</span>
+        <span style={{ fontSize: 14, fontWeight: 800, color: 'var(--ink-2)' }}>
+          +{all.length - MAX_EMOJIS}
+        </span>
       )}
     </span>
   )
@@ -66,15 +80,31 @@ export function MealCard({
         <MealCardEmojis meal={meal} />
       </div>
       <div className="rc-b" style={{ padding: '12px 14px 14px' }}>
-        <div className="rc-t" style={{ fontSize: 16 }}>{meal.name}</div>
+        <div className="rc-t" style={{ fontSize: 16 }}>
+          {meal.name}
+        </div>
         <div className="rc-m" style={{ alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
           <MealCardBadge meal={meal} />
-          <span>🍽️ Serves {meal.servings}</span>
-          {meal.totalMinutes != null && meal.totalMinutes > 0 && <span>🕐 {meal.totalMinutes}m</span>}
+          <span>
+            <>
+              <DataIcon value={'🍽️'} kind="meal" />
+              {' Serves '}
+            </>
+            {meal.servings}
+          </span>
+          {meal.totalMinutes != null && meal.totalMinutes > 0 && (
+            <span>
+              <>
+                <DataIcon value={'🕐'} kind="meal" />{' '}
+              </>
+              {meal.totalMinutes}m
+            </span>
+          )}
         </div>
         {onSelect && (
           <div className="mp-actions">
-            <button
+            <Button
+              variant="unstyled"
               type="button"
               className="pill btn-primary mp-select"
               onClick={(e) => {
@@ -83,7 +113,7 @@ export function MealCard({
               }}
             >
               {selectLabel ?? 'Select'}
-            </button>
+            </Button>
           </div>
         )}
       </div>

@@ -46,10 +46,27 @@ function mockBoard() {
     const u = String(url)
     if (u.includes('/api/lists/grocery/board')) {
       return ok({
-        list: { id: 'g', name: 'Grocery', emoji: '🛒', listType: 'grocery', isAutoBuilt: true, sortMode: 'manual', itemCount: 2 },
+        list: {
+          id: 'g',
+          name: 'Grocery',
+          emoji: '🛒',
+          listType: 'grocery',
+          isAutoBuilt: true,
+          sortMode: 'manual',
+          itemCount: 2,
+        },
         weekStart: '2026-06-07',
         // a planned dinner so the auto item gets a meal dot color
-        meals: [{ date: '2026-06-08', mealType: 'dinner', recipeId: 'r1', title: 'Pasta', emoji: '🍝', color: '#1f5fd0' }],
+        meals: [
+          {
+            date: '2026-06-08',
+            mealType: 'dinner',
+            recipeId: 'r1',
+            title: 'Pasta',
+            emoji: '🍝',
+            color: '#1f5fd0',
+          },
+        ],
         items: [manualItem, autoItem],
         staples: [],
       })
@@ -65,7 +82,7 @@ function renderBoard() {
         <TopbarProbe />
         <GroceryBoard onBack={() => {}} />
       </TopbarSlotProvider>
-    </MemoryRouter>
+    </MemoryRouter>,
   )
 }
 
@@ -126,10 +143,29 @@ function mockBoardWithUnscheduled(extra: { items?: unknown[]; unscheduled?: unkn
     const u = String(url)
     if (u.includes('/api/lists/grocery/board')) {
       return ok({
-        list: { id: 'g', name: 'Grocery', emoji: '🛒', listType: 'grocery', isAutoBuilt: true, sortMode: 'manual', itemCount: 3 },
+        list: {
+          id: 'g',
+          name: 'Grocery',
+          emoji: '🛒',
+          listType: 'grocery',
+          isAutoBuilt: true,
+          sortMode: 'manual',
+          itemCount: 3,
+        },
         weekStart: '2026-06-07',
-        meals: [{ date: '2026-06-08', mealType: 'dinner', recipeId: 'r1', title: 'Pasta', emoji: '🍝', color: '#1f5fd0' }],
-        unscheduled: extra.unscheduled ?? [{ recipeId: 'r2', title: 'Guacamole', emoji: '🥑', color: '#8B5CF6' }],
+        meals: [
+          {
+            date: '2026-06-08',
+            mealType: 'dinner',
+            recipeId: 'r1',
+            title: 'Pasta',
+            emoji: '🍝',
+            color: '#1f5fd0',
+          },
+        ],
+        unscheduled: extra.unscheduled ?? [
+          { recipeId: 'r2', title: 'Guacamole', emoji: '🥑', color: '#8B5CF6' },
+        ],
         items: extra.items ?? [manualItem, autoItem, offPlanItem],
         staples: [],
       })
@@ -150,7 +186,10 @@ describe('GroceryBoard unscheduled recipes (By meal view)', () => {
     expect(rail.textContent).toContain('Guacamole')
 
     // the off-plan recipe gets its own section, tagged as unscheduled
-    const header = screen.getAllByText('Guacamole').map((el) => el.closest('.grocery-section-h')).find(Boolean) as HTMLElement
+    const header = screen
+      .getAllByText('Guacamole')
+      .map((el) => el.closest('.grocery-section-h'))
+      .find(Boolean) as HTMLElement
     expect(header).toBeInTheDocument()
     expect(header.textContent).toMatch(/unscheduled/i)
     const section = header.closest('.grocery-section') as HTMLElement
@@ -173,9 +212,15 @@ describe('GroceryBoard unscheduled recipes (By meal view)', () => {
 
     expect(screen.getAllByText('Limes')).toHaveLength(1)
     // 'Pasta' also appears in the week rail — take its *section* occurrence
-    const pasta = screen.getAllByText('Pasta').map((el) => el.closest('.grocery-section')).find(Boolean) as HTMLElement
+    const pasta = screen
+      .getAllByText('Pasta')
+      .map((el) => el.closest('.grocery-section'))
+      .find(Boolean) as HTMLElement
     expect(pasta.textContent).toContain('Limes')
-    const guac = screen.getAllByText('Guacamole').map((el) => el.closest('.grocery-section')).find(Boolean) as HTMLElement
+    const guac = screen
+      .getAllByText('Guacamole')
+      .map((el) => el.closest('.grocery-section'))
+      .find(Boolean) as HTMLElement
     expect(guac.textContent).not.toContain('Limes')
     expect(guac.textContent).toContain('Avocados')
   })
@@ -187,9 +232,26 @@ describe('GroceryBoard unscheduled recipes (By meal view)', () => {
       sent.push({ method: init?.method ?? 'GET', url: u })
       if (u.includes('/api/lists/grocery/board')) {
         return ok({
-          list: { id: 'g', name: 'Grocery', emoji: '🛒', listType: 'grocery', isAutoBuilt: true, sortMode: 'manual', itemCount: 1 },
+          list: {
+            id: 'g',
+            name: 'Grocery',
+            emoji: '🛒',
+            listType: 'grocery',
+            isAutoBuilt: true,
+            sortMode: 'manual',
+            itemCount: 1,
+          },
           weekStart: '2026-06-07',
-          meals: [{ date: '2026-06-08', mealType: 'dinner', recipeId: 'r1', title: 'Pasta', emoji: '🍝', color: '#1f5fd0' }],
+          meals: [
+            {
+              date: '2026-06-08',
+              mealType: 'dinner',
+              recipeId: 'r1',
+              title: 'Pasta',
+              emoji: '🍝',
+              color: '#1f5fd0',
+            },
+          ],
           unscheduled: [{ recipeId: 'r2', title: 'Guacamole', emoji: '🥑', color: '#8B5CF6' }],
           items: [offPlanItem],
           staples: [],
@@ -202,11 +264,20 @@ describe('GroceryBoard unscheduled recipes (By meal view)', () => {
     await screen.findByText('Avocados')
     fireEvent.click(screen.getByRole('button', { name: 'By meal' }))
 
-    const header = screen.getAllByText('Guacamole').map((el) => el.closest('.grocery-section-h')).find(Boolean) as HTMLElement
+    const header = screen
+      .getAllByText('Guacamole')
+      .map((el) => el.closest('.grocery-section-h'))
+      .find(Boolean) as HTMLElement
     fireEvent.click(within(header).getByRole('button', { name: /Remove/i }))
 
     await waitFor(() =>
-      expect(sent.some((s) => s.method === 'DELETE' && /\/api\/lists\/grocery\/from-recipe\/r2\?weekStart=2026-06-07$/.test(s.url))).toBe(true)
+      expect(
+        sent.some(
+          (s) =>
+            s.method === 'DELETE' &&
+            /\/api\/lists\/grocery\/from-recipe\/r2\?weekStart=2026-06-07$/.test(s.url),
+        ),
+      ).toBe(true),
     )
   })
 })
@@ -222,7 +293,7 @@ describe('GroceryBoard rail navigation', () => {
             <Route path="/meals/recipe/:id" element={<div>recipe-page</div>} />
           </Routes>
         </TopbarSlotProvider>
-      </MemoryRouter>
+      </MemoryRouter>,
     )
   }
 
@@ -244,16 +315,33 @@ describe('GroceryBoard rail navigation', () => {
     expect(await screen.findByText('recipe-page')).toBeInTheDocument()
   })
 
-  it('removes an off-plan recipe from the rail\'s Unscheduled row without navigating', async () => {
+  it("removes an off-plan recipe from the rail's Unscheduled row without navigating", async () => {
     const sent: { method: string; url: string }[] = []
     globalThis.fetch = vi.fn(async (url: string, init?: { method?: string }) => {
       const u = String(url)
       sent.push({ method: init?.method ?? 'GET', url: u })
       if (u.includes('/api/lists/grocery/board')) {
         return ok({
-          list: { id: 'g', name: 'Grocery', emoji: '🛒', listType: 'grocery', isAutoBuilt: true, sortMode: 'manual', itemCount: 1 },
+          list: {
+            id: 'g',
+            name: 'Grocery',
+            emoji: '🛒',
+            listType: 'grocery',
+            isAutoBuilt: true,
+            sortMode: 'manual',
+            itemCount: 1,
+          },
           weekStart: '2026-06-07',
-          meals: [{ date: '2026-06-08', mealType: 'dinner', recipeId: 'r1', title: 'Pasta', emoji: '🍝', color: '#1f5fd0' }],
+          meals: [
+            {
+              date: '2026-06-08',
+              mealType: 'dinner',
+              recipeId: 'r1',
+              title: 'Pasta',
+              emoji: '🍝',
+              color: '#1f5fd0',
+            },
+          ],
           unscheduled: [{ recipeId: 'r2', title: 'Guacamole', emoji: '🥑', color: '#8B5CF6' }],
           items: [offPlanItem],
           staples: [],
@@ -269,7 +357,13 @@ describe('GroceryBoard rail navigation', () => {
 
     // fires the delete for that recipe
     await waitFor(() =>
-      expect(sent.some((s) => s.method === 'DELETE' && /\/api\/lists\/grocery\/from-recipe\/r2\?weekStart=2026-06-07$/.test(s.url))).toBe(true)
+      expect(
+        sent.some(
+          (s) =>
+            s.method === 'DELETE' &&
+            /\/api\/lists\/grocery\/from-recipe\/r2\?weekStart=2026-06-07$/.test(s.url),
+        ),
+      ).toBe(true),
     )
     // and does NOT drill into the recipe (stopPropagation on the × button)
     expect(screen.queryByText('recipe-page')).not.toBeInTheDocument()
@@ -309,18 +403,46 @@ const tacoNight = {
   recipes: [{ recipeId: 'd4', title: 'Carnitas', emoji: '🌮', role: 'main' }],
 }
 
-function mockBoardWithPlate(extra: { items?: unknown[]; unscheduled?: unknown[]; unscheduledMeals?: unknown[] } = {}) {
+function mockBoardWithPlate(
+  extra: { items?: unknown[]; unscheduled?: unknown[]; unscheduledMeals?: unknown[] } = {},
+) {
   globalThis.fetch = vi.fn(async (url: string) => {
     const u = String(url)
     if (u.includes('/api/lists/grocery/board')) {
       return ok({
-        list: { id: 'g', name: 'Grocery', emoji: '🛒', listType: 'grocery', isAutoBuilt: true, sortMode: 'manual', itemCount: 2 },
+        list: {
+          id: 'g',
+          name: 'Grocery',
+          emoji: '🛒',
+          listType: 'grocery',
+          isAutoBuilt: true,
+          sortMode: 'manual',
+          itemCount: 2,
+        },
         weekStart: '2026-06-07',
         meals: [
           // a plain single-recipe slot — mealId null, no dishes
-          { date: '2026-06-08', mealType: 'dinner', recipeId: 'r1', mealId: null, title: 'Pasta', emoji: '🍝', color: '#1f5fd0', recipes: [] },
+          {
+            date: '2026-06-08',
+            mealType: 'dinner',
+            recipeId: 'r1',
+            mealId: null,
+            title: 'Pasta',
+            emoji: '🍝',
+            color: '#1f5fd0',
+            recipes: [],
+          },
           // …and a plate in Sunday's dinner slot
-          { date: '2026-06-09', mealType: 'dinner', recipeId: null, mealId: 'M1', title: 'BBQ Sunday', emoji: null, color: '#E8A33D', recipes: plateDishes },
+          {
+            date: '2026-06-09',
+            mealType: 'dinner',
+            recipeId: null,
+            mealId: 'M1',
+            title: 'BBQ Sunday',
+            emoji: null,
+            color: '#E8A33D',
+            recipes: plateDishes,
+          },
         ],
         unscheduled: extra.unscheduled ?? [],
         unscheduledMeals: extra.unscheduledMeals ?? [],
@@ -349,8 +471,8 @@ describe('GroceryBoard meal plates (week rail)', () => {
     // the dishes stay tucked away until it's expanded…
     expect(within(rail).queryByText('Potato Salad')).not.toBeInTheDocument()
     expect(rail.querySelectorAll('.gdish')).toHaveLength(0)
-    // …but the parent previews them as emoji
-    expect(parent.querySelector('.gplate-strip')?.textContent).toContain('🍗')
+    // The parent previews each dish with a Lucide symbol.
+    expect(parent.querySelector('.gplate-strip')?.querySelectorAll('svg')).toHaveLength(3)
   })
 
   it('expands a plate into one child row per dish, and collapses again', async () => {
@@ -381,7 +503,7 @@ describe('GroceryBoard meal plates (week rail)', () => {
             <Route path="/meals/recipe/:id" element={<div>recipe-page</div>} />
           </Routes>
         </TopbarSlotProvider>
-      </MemoryRouter>
+      </MemoryRouter>,
     )
     await screen.findByText('BBQ sauce')
     const rail = railCard()
@@ -431,7 +553,10 @@ describe('GroceryBoard meal plates (week rail)', () => {
     await screen.findByText('BBQ sauce')
 
     const rail = railCard()
-    expect([...rail.querySelectorAll('.grocery-rail-sub')].map((e) => e.textContent)).toEqual(['Scheduled', 'Unscheduled'])
+    expect([...rail.querySelectorAll('.grocery-rail-sub')].map((e) => e.textContent)).toEqual([
+      'Scheduled',
+      'Unscheduled',
+    ])
 
     const taco = within(rail).getByText('Taco Night').closest('.gdinner') as HTMLElement
     expect(taco).toHaveClass('gdinner-plate')
@@ -470,7 +595,15 @@ describe('GroceryBoard — taking an unscheduled plate back off the list', () =>
       sent.push({ method: init?.method ?? 'GET', url: u })
       if (u.includes('/api/lists/grocery/board')) {
         return ok({
-          list: { id: 'g', name: 'Grocery', emoji: '🛒', listType: 'grocery', isAutoBuilt: true, sortMode: 'manual', itemCount: 1 },
+          list: {
+            id: 'g',
+            name: 'Grocery',
+            emoji: '🛒',
+            listType: 'grocery',
+            isAutoBuilt: true,
+            sortMode: 'manual',
+            itemCount: 1,
+          },
           weekStart: '2026-06-07',
           meals: [],
           unscheduled: [],
@@ -489,7 +622,11 @@ describe('GroceryBoard — taking an unscheduled plate back off the list', () =>
 
     await waitFor(() =>
       expect(
-        sent.some((s) => s.method === 'DELETE' && /\/api\/meals\/M2\/add-to-list\?weekStart=2026-06-07$/.test(s.url)),
+        sent.some(
+          (s) =>
+            s.method === 'DELETE' &&
+            /\/api\/meals\/M2\/add-to-list\?weekStart=2026-06-07$/.test(s.url),
+        ),
       ).toBe(true),
     )
     // the plate row itself must not have opened while we were aiming at its ×
@@ -501,7 +638,9 @@ describe('GroceryBoard — taking an unscheduled plate back off the list', () =>
     renderBoard()
     await screen.findByText('BBQ sauce')
     const rail = railCard()
-    expect(within(rail).queryByRole('button', { name: /Remove BBQ Sunday/i })).not.toBeInTheDocument()
+    expect(
+      within(rail).queryByRole('button', { name: /Remove BBQ Sunday/i }),
+    ).not.toBeInTheDocument()
   })
 })
 
@@ -531,7 +670,14 @@ describe('GroceryBoard per-meal provenance dots', () => {
   })
 
   it('colours an unscheduled plate’s item from its sourceMealIds', async () => {
-    const tacoItem = { ...plateItem, id: 'ti1', name: 'Tortillas', source: 'recipe', sourceRecipeIds: ['d4'], sourceMealIds: ['M2'] }
+    const tacoItem = {
+      ...plateItem,
+      id: 'ti1',
+      name: 'Tortillas',
+      source: 'recipe',
+      sourceRecipeIds: ['d4'],
+      sourceMealIds: ['M2'],
+    }
     mockBoardWithPlate({ unscheduledMeals: [tacoNight], items: [autoItem, tacoItem] })
     renderBoard()
     await screen.findByText('Tortillas')
@@ -539,7 +685,10 @@ describe('GroceryBoard per-meal provenance dots', () => {
     const row = screen.getByText('Tortillas').closest('.gitem') as HTMLElement
     const dots = row.querySelectorAll('.gdot')
     expect(dots).toHaveLength(1)
-    const tacoDot = within(railCard()).getByText('Taco Night').closest('.gdinner')!.querySelector('.gdinner-c') as HTMLElement
+    const tacoDot = within(railCard())
+      .getByText('Taco Night')
+      .closest('.gdinner')!
+      .querySelector('.gdinner-c') as HTMLElement
     expect((dots[0] as HTMLElement).style.background).toBe(tacoDot.style.background)
   })
 })
@@ -578,7 +727,12 @@ describe('GroceryBoard By-meal grouping with plates', () => {
     mockBoardWithPlate({
       items: [offPlate],
       unscheduledMeals: [
-        { mealId: 'M2', name: 'Cobbler Night', color: '#7A5AF8', recipes: [{ recipeId: 'd9', title: 'Peach Cobbler', emoji: '🥧', role: 'dessert' }] },
+        {
+          mealId: 'M2',
+          name: 'Cobbler Night',
+          color: '#7A5AF8',
+          recipes: [{ recipeId: 'd9', title: 'Peach Cobbler', emoji: '🥧', role: 'dessert' }],
+        },
       ],
     })
     renderBoard()
@@ -600,12 +754,23 @@ describe('GroceryBoard By-meal grouping with plates', () => {
   // entirely made the plate look like it had never been added, even though the
   // rail still listed it and the item dots still carried its colour.
   it('still shows a plate whose items were all claimed by an earlier meal, and says where they went', async () => {
-    const shared = { ...plateItem, id: 'pi3', name: 'BBQ sauce', sourceRecipeIds: ['d1'], sourceMealIds: ['M2'] }
+    const shared = {
+      ...plateItem,
+      id: 'pi3',
+      name: 'BBQ sauce',
+      sourceRecipeIds: ['d1'],
+      sourceMealIds: ['M2'],
+    }
     mockBoardWithPlate({
       items: [shared],
       // M2's only dish is d1 — which is also on the SCHEDULED plate M1 (BBQ Sunday).
       unscheduledMeals: [
-        { mealId: 'M2', name: 'Overlap Night', color: '#7A5AF8', recipes: [{ recipeId: 'd1', title: 'BBQ Chicken', emoji: '🍗', role: 'main' }] },
+        {
+          mealId: 'M2',
+          name: 'Overlap Night',
+          color: '#7A5AF8',
+          recipes: [{ recipeId: 'd1', title: 'BBQ Chicken', emoji: '🍗', role: 'main' }],
+        },
       ],
     })
     renderBoard()
@@ -623,11 +788,22 @@ describe('GroceryBoard By-meal grouping with plates', () => {
   })
 
   it('lets you take an unscheduled plate off the list from its section header', async () => {
-    const offPlate = { ...plateItem, id: 'pi4', name: 'Peaches', sourceRecipeIds: ['d9'], sourceMealIds: ['M2'] }
+    const offPlate = {
+      ...plateItem,
+      id: 'pi4',
+      name: 'Peaches',
+      sourceRecipeIds: ['d9'],
+      sourceMealIds: ['M2'],
+    }
     mockBoardWithPlate({
       items: [offPlate],
       unscheduledMeals: [
-        { mealId: 'M2', name: 'Cobbler Night', color: '#7A5AF8', recipes: [{ recipeId: 'd9', title: 'Peach Cobbler', emoji: '🥧', role: 'dessert' }] },
+        {
+          mealId: 'M2',
+          name: 'Cobbler Night',
+          color: '#7A5AF8',
+          recipes: [{ recipeId: 'd9', title: 'Peach Cobbler', emoji: '🥧', role: 'dessert' }],
+        },
       ],
     })
     renderBoard()
@@ -651,7 +827,15 @@ describe('GroceryBoard By-store view', () => {
       if (u.includes('/api/lists/stores')) return ok({ stores: ['Costco'] })
       if (u.includes('/api/lists/grocery/board')) {
         return ok({
-          list: { id: 'g', name: 'Grocery', emoji: '🛒', listType: 'grocery', isAutoBuilt: true, sortMode: 'manual', itemCount: 3 },
+          list: {
+            id: 'g',
+            name: 'Grocery',
+            emoji: '🛒',
+            listType: 'grocery',
+            isAutoBuilt: true,
+            sortMode: 'manual',
+            itemCount: 3,
+          },
           weekStart: '2026-06-07',
           meals: [],
           items: [
@@ -667,7 +851,9 @@ describe('GroceryBoard By-store view', () => {
   }
 
   const storeHeaders = () =>
-    [...document.querySelectorAll('.grocery-section-h')].map((el) => (el.textContent ?? '').replace(/[›\s]+/g, ' ').trim())
+    [...document.querySelectorAll('.grocery-section-h')].map((el) =>
+      (el.textContent ?? '').replace(/[›\s]+/g, ' ').trim(),
+    )
 
   it('folds differently-cased spellings of one store into a single section', async () => {
     mockStoreBoard()
@@ -698,9 +884,26 @@ describe('GroceryBoard share-list handoff', () => {
       const u = String(url)
       if (u.includes('/api/lists/grocery/board')) {
         return ok({
-          list: { id: 'g', name: 'Grocery', emoji: '🛒', listType: 'grocery', isAutoBuilt: true, sortMode: 'manual', itemCount: 3 },
+          list: {
+            id: 'g',
+            name: 'Grocery',
+            emoji: '🛒',
+            listType: 'grocery',
+            isAutoBuilt: true,
+            sortMode: 'manual',
+            itemCount: 3,
+          },
           weekStart: '2026-06-07',
-          meals: [{ date: '2026-06-08', mealType: 'dinner', recipeId: 'r1', title: 'Pasta', emoji: '🍝', color: '#1f5fd0' }],
+          meals: [
+            {
+              date: '2026-06-08',
+              mealType: 'dinner',
+              recipeId: 'r1',
+              title: 'Pasta',
+              emoji: '🍝',
+              color: '#1f5fd0',
+            },
+          ],
           items: [
             { ...autoItem, id: 'p1', name: 'Asparagus', quantity: '2 bunch', aisle: 'Produce' },
             { ...autoItem, id: 'p2', name: 'Tomatoes', quantity: '2', aisle: 'Produce' },
@@ -723,7 +926,7 @@ describe('GroceryBoard share-list handoff', () => {
     expect(screen.getByText('Share list', { selector: '.modal-card *' })).toBeInTheDocument()
     const block = document.querySelector('.share-list-text') as HTMLElement
     expect(block.textContent).toBe(
-      ['PRODUCE', '- Asparagus (2 bunch)', '- Tomatoes (2)', '', 'OTHER', '- Cookies'].join('\n')
+      ['PRODUCE', '- Asparagus (2 bunch)', '- Tomatoes (2)', '', 'OTHER', '- Cookies'].join('\n'),
     )
   })
 })
@@ -733,14 +936,30 @@ describe('GroceryBoard item notes', () => {
     const sent: Array<{ method: string; url: string; body: any }> = []
     globalThis.fetch = vi.fn(async (url: string, init?: { method?: string; body?: string }) => {
       const u = String(url)
-      sent.push({ method: init?.method ?? 'GET', url: u, body: init?.body ? JSON.parse(init.body) : undefined })
+      sent.push({
+        method: init?.method ?? 'GET',
+        url: u,
+        body: init?.body ? JSON.parse(init.body) : undefined,
+      })
       if (u.includes('/api/lists/grocery/board')) {
         return ok({
-          list: { id: 'g', name: 'Grocery', emoji: '🛒', listType: 'grocery', isAutoBuilt: true, sortMode: 'manual', itemCount: 1 },
-          weekStart: '2026-06-07', meals: [], items: [{ ...manualItem, note: 'chocolate chip' }], staples: [],
+          list: {
+            id: 'g',
+            name: 'Grocery',
+            emoji: '🛒',
+            listType: 'grocery',
+            isAutoBuilt: true,
+            sortMode: 'manual',
+            itemCount: 1,
+          },
+          weekStart: '2026-06-07',
+          meals: [],
+          items: [{ ...manualItem, note: 'chocolate chip' }],
+          staples: [],
         })
       }
-      if (u.includes('/api/list-items/') && init?.method === 'PATCH') return ok({ item: { ...manualItem } })
+      if (u.includes('/api/list-items/') && init?.method === 'PATCH')
+        return ok({ item: { ...manualItem } })
       return ok({ stores: [] })
     }) as unknown as typeof fetch
     renderBoard()
@@ -760,10 +979,26 @@ describe('GroceryBoard add-bar suggestions', () => {
       const u = String(url)
       const method = init?.method ?? 'GET'
       sent.push({ method, url: u, body: init?.body ? JSON.parse(init.body) : undefined })
-      if (u.includes('/api/lists/suggestions?q=ban')) return ok({ suggestions: [{ name: 'Bananas', source: 'catalog' }] })
-      if (u.endsWith('/api/lists/grocery/items') && method === 'POST') return ok({ item: { ...manualItem, id: 'n1', name: 'Bananas' } })
+      if (u.includes('/api/lists/suggestions?q=ban'))
+        return ok({ suggestions: [{ name: 'Bananas', source: 'catalog' }] })
+      if (u.endsWith('/api/lists/grocery/items') && method === 'POST')
+        return ok({ item: { ...manualItem, id: 'n1', name: 'Bananas' } })
       if (u.includes('/api/lists/grocery/board')) {
-        return ok({ list: { id: 'g', name: 'Grocery', emoji: '🛒', listType: 'grocery', isAutoBuilt: true, sortMode: 'manual', itemCount: 0 }, weekStart: '2026-06-07', meals: [], items: [manualItem], staples: [] })
+        return ok({
+          list: {
+            id: 'g',
+            name: 'Grocery',
+            emoji: '🛒',
+            listType: 'grocery',
+            isAutoBuilt: true,
+            sortMode: 'manual',
+            itemCount: 0,
+          },
+          weekStart: '2026-06-07',
+          meals: [],
+          items: [manualItem],
+          staples: [],
+        })
       }
       return ok({ suggestions: [], stores: [] })
     }) as unknown as typeof fetch
@@ -772,7 +1007,9 @@ describe('GroceryBoard add-bar suggestions', () => {
     fireEvent.focus(input)
     fireEvent.change(input, { target: { value: 'ban' } })
     fireEvent.mouseDown(await screen.findByRole('option', { name: 'Bananas' }))
-    await waitFor(() => expect(sent.find((s) => s.method === 'POST')?.body).toEqual({ name: 'Bananas' }))
+    await waitFor(() =>
+      expect(sent.find((s) => s.method === 'POST')?.body).toEqual({ name: 'Bananas' }),
+    )
     expect(sent.find((s) => s.url.includes('suggestions?q=ban'))?.url).toContain('listId=g')
   })
 })
@@ -784,15 +1021,33 @@ describe('GroceryBoard recently crossed off', () => {
       const u = String(url)
       sent.push({ method: init?.method ?? 'GET', url: u })
       if (u.includes('/api/lists/grocery/board')) {
-        return ok({ list: { id: 'g', name: 'Grocery', emoji: '🛒', listType: 'grocery', isAutoBuilt: true, sortMode: 'manual', itemCount: 1 }, weekStart: '2026-06-07', meals: [], items: [manualItem], staples: [] })
+        return ok({
+          list: {
+            id: 'g',
+            name: 'Grocery',
+            emoji: '🛒',
+            listType: 'grocery',
+            isAutoBuilt: true,
+            sortMode: 'manual',
+            itemCount: 1,
+          },
+          weekStart: '2026-06-07',
+          meals: [],
+          items: [manualItem],
+          staples: [],
+        })
       }
-      if (u.endsWith('/api/lists/g/recent')) return ok({ items: [{ ...manualItem, id: 'old', name: 'Oat milk', checked: true }] })
-      if (u.endsWith('/api/list-items/old/readd')) return ok({ item: { ...manualItem, id: 'old', name: 'Oat milk' } })
+      if (u.endsWith('/api/lists/g/recent'))
+        return ok({ items: [{ ...manualItem, id: 'old', name: 'Oat milk', checked: true }] })
+      if (u.endsWith('/api/list-items/old/readd'))
+        return ok({ item: { ...manualItem, id: 'old', name: 'Oat milk' } })
       return ok({ suggestions: [], stores: [] })
     }) as unknown as typeof fetch
     renderBoard()
     fireEvent.click(await screen.findByRole('button', { name: /Recent/ }))
     fireEvent.click(await screen.findByRole('button', { name: 'Add Oat milk back' }))
-    await waitFor(() => expect(sent.some((s) => s.method === 'POST' && s.url.endsWith('/readd'))).toBe(true))
+    await waitFor(() =>
+      expect(sent.some((s) => s.method === 'POST' && s.url.endsWith('/readd'))).toBe(true),
+    )
   })
 })

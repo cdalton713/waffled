@@ -6,9 +6,10 @@ import { Icon } from '../icons'
 import { RhythmMark } from './RhythmMark'
 import { DayPicker } from './DayPicker'
 import { eventDayKeys } from './month-spans'
-import {
-  ymd, addDays, startOfWeek, fmtTime, eventPeople,
-} from './cal-utils'
+import { ymd, addDays, startOfWeek, fmtTime, eventPeople } from './cal-utils'
+import { Button } from '@/components/ui/button'
+import { DataIcon } from '@/components/ui/data-icon'
+import { Card } from '@/components/ui/card'
 
 // A day's worth of upcoming events, with a friendly header.
 function dayLabel(d: Date, today: Date): string {
@@ -29,7 +30,17 @@ export function isPastEvent(e: AgendaEvent, now: Date): boolean {
 
 // `color` comes from useEventColor (family-aware) where the caller has it; the
 // plain owner color is the fallback for callers that don't.
-export function AgendaRow({ event, past = false, color: colorProp, onClick }: { event: AgendaEvent; past?: boolean; color?: string; onClick: () => void }) {
+export function AgendaRow({
+  event,
+  past = false,
+  color: colorProp,
+  onClick,
+}: {
+  event: AgendaEvent
+  past?: boolean
+  color?: string
+  onClick: () => void
+}) {
   const color = colorProp ?? event.personColor ?? '#A6A29B'
   const people = eventPeople(event)
   const lead = people[0]
@@ -38,11 +49,23 @@ export function AgendaRow({ event, past = false, color: colorProp, onClick }: { 
       <div className="ag-time">{event.allDay ? 'all day' : fmtTime(event)}</div>
       <div className="ag-bar" style={{ background: color }} />
       <div className="ag-main">
-        <div className="ag-title"><RhythmMark event={event} />{event.title}</div>
-        {event.location && <div className="tiny muted">📍 {event.location}</div>}
+        <div className="ag-title">
+          <RhythmMark event={event} />
+          {event.title}
+        </div>
+        {event.location && (
+          <div className="tiny muted">
+            <>
+              <DataIcon value={'📍'} kind="general" />{' '}
+            </>
+            {event.location}
+          </div>
+        )}
       </div>
       {lead && (
-        <div className="av sm" style={{ background: `${lead.colorHex ?? '#A6A29B'}22` }}>{lead.avatarEmoji ?? '🙂'}</div>
+        <div className="av sm" style={{ background: `${lead.colorHex ?? '#A6A29B'}22` }}>
+          <DataIcon value={lead.avatarEmoji ?? '🙂'} kind="person" />
+        </div>
       )}
     </div>
   )
@@ -50,7 +73,19 @@ export function AgendaRow({ event, past = false, color: colorProp, onClick }: { 
 
 // Small month grid in the sidebar with per-day event dots; clicking a day jumps
 // the calendar to that week.
-function MiniMonth({ events, tz, colorOf, onPickDate, firstDay }: { events: AgendaEvent[]; tz: string; colorOf: (e: AgendaEvent) => string; onPickDate: (d: Date) => void; firstDay: number }) {
+function MiniMonth({
+  events,
+  tz,
+  colorOf,
+  onPickDate,
+  firstDay,
+}: {
+  events: AgendaEvent[]
+  tz: string
+  colorOf: (e: AgendaEvent) => string
+  onPickDate: (d: Date) => void
+  firstDay: number
+}) {
   const dots = useMemo(() => {
     const map: Record<string, Set<string>> = {}
     for (const e of events) {
@@ -82,12 +117,16 @@ function HeadsUpCard({ refreshKey, firstDay }: { refreshKey: number; firstDay: n
       .headsUp(ymd(ws), ymd(addDays(ws, 6)))
       .then((d) => alive && setCard({ headline: d.headline, body: d.body }))
       .catch(() => {})
-    return () => { alive = false }
+    return () => {
+      alive = false
+    }
   }, [refreshKey, firstDay])
 
   return (
     <div className="ag-ai">
-      <div className={`ag-ai-icon ${card ? '' : 'thinking'}`}><Icon name="spark" /></div>
+      <div className={`ag-ai-icon ${card ? '' : 'thinking'}`}>
+        <Icon name="spark" />
+      </div>
       <div className="ed-ai-main">
         <div className="ag-ai-h">{card?.headline ?? 'Heads up this week'}</div>
         {card ? (
@@ -156,7 +195,8 @@ export function AgendaView({
     const counts = new Map<string, number>()
     for (const e of events) {
       if (!eventDayKeys(e, tz).some((k) => k >= weStart && k <= weEnd)) continue
-      for (const p of eventPeople(e)) if (p.id !== '_') counts.set(p.id, (counts.get(p.id) ?? 0) + 1)
+      for (const p of eventPeople(e))
+        if (p.id !== '_') counts.set(p.id, (counts.get(p.id) ?? 0) + 1)
     }
     const rows = persons
       .map((p) => ({ person: p, count: counts.get(p.id) ?? 0 }))
@@ -172,51 +212,96 @@ export function AgendaView({
         <div className="wf-serif ag-h">What's coming up</div>
         {/* Quick-add, matching the Day/Week bar — defaults to today. */}
         <Editable>
-          <button type="button" className="wk-add ag-add" onClick={() => onCreate(todayKey)}>
-            <span className="wk-add-plus">＋</span>
+          <Button
+            variant="unstyled"
+            type="button"
+            className="wk-add ag-add"
+            onClick={() => onCreate(todayKey)}
+          >
+            <span className="wk-add-plus">
+              <DataIcon value={'＋'} kind="general" />
+            </span>
             <span className="wk-add-ph">Add an event…</span>
-          </button>
+          </Button>
         </Editable>
-        {groups.length === 0 && <div className="muted" style={{ padding: '14px 4px' }}>Nothing upcoming.</div>}
+        {groups.length === 0 && (
+          <div className="muted" style={{ padding: '14px 4px' }}>
+            Nothing upcoming.
+          </div>
+        )}
         {groups.map((g) => (
           <div key={g.key} className="ag-group">
             <div className="ag-group-h">
               <span className="wf-serif">{dayLabel(g.date, todayMid)}</span>
-              <span className="muted">{g.date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
+              <span className="muted">
+                {g.date.toLocaleDateString('en-US', {
+                  weekday: 'short',
+                  month: 'short',
+                  day: 'numeric',
+                })}
+              </span>
               {/* Add on this specific day — parity with tapping a day elsewhere. */}
               <Editable>
-                <button type="button" className="ag-group-add" title={`Add an event on ${g.date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}`} aria-label="Add an event on this day" onClick={() => onCreate(g.key)}><Icon name="plus" /></button>
+                <Button
+                  variant="unstyled"
+                  type="button"
+                  className="ag-group-add"
+                  title={`Add an event on ${g.date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}`}
+                  aria-label="Add an event on this day"
+                  onClick={() => onCreate(g.key)}
+                >
+                  <Icon name="plus" />
+                </Button>
               </Editable>
             </div>
             {g.events.map((e) => (
-              <AgendaRow key={e.id} event={e} past={isPastEvent(e, today)} color={colorOf(e)} onClick={() => onOpenEvent(e)} />
+              <AgendaRow
+                key={e.id}
+                event={e}
+                past={isPastEvent(e, today)}
+                color={colorOf(e)}
+                onClick={() => onOpenEvent(e)}
+              />
             ))}
           </div>
         ))}
       </div>
 
       <div className="ag-side">
-        <MiniMonth events={events} tz={tz} colorOf={colorOf} onPickDate={onPickDate} firstDay={firstDay} />
+        <MiniMonth
+          events={events}
+          tz={tz}
+          colorOf={colorOf}
+          onPickDate={onPickDate}
+          firstDay={firstDay}
+        />
 
         <HeadsUpCard refreshKey={events.length} firstDay={firstDay} />
 
         {busy.rows.length > 0 && (
-          <div className="card ag-busy">
-            <div className="card-h" style={{ marginBottom: 12 }}>Whose week is busy?</div>
+          <Card className="card ag-busy">
+            <div className="card-h" style={{ marginBottom: 12 }}>
+              Whose week is busy?
+            </div>
             {busy.rows.map(({ person, count }) => {
               const color = person.colorHex ?? '#A6A29B'
               return (
                 <div key={person.id} className="ag-busy-row">
-                  <span className="av sm" style={{ background: `${color}22` }}>{person.avatarEmoji ?? '🙂'}</span>
+                  <span className="av sm" style={{ background: `${color}22` }}>
+                    <DataIcon value={person.avatarEmoji ?? '🙂'} kind="person" />
+                  </span>
                   <span className="ag-busy-name">{person.name}</span>
                   <span className="ag-busy-track">
-                    <span className="ag-busy-fill" style={{ width: `${(count / busy.max) * 100}%`, background: color }} />
+                    <span
+                      className="ag-busy-fill"
+                      style={{ width: `${(count / busy.max) * 100}%`, background: color }}
+                    />
                   </span>
                   <span className="ag-busy-n">{count}</span>
                 </div>
               )
             })}
-          </div>
+          </Card>
         )}
       </div>
     </div>

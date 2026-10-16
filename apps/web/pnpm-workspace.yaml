@@ -1,0 +1,6 @@
+packages:
+  - .
+onlyBuiltDependencies:
+  - '@journeyapps/wa-sqlite'
+  - esbuild
+  - fsevents

@@ -3,6 +3,9 @@
 // ahead (decision 7). Confirm stays disabled until a day is picked.
 import { useState } from 'react'
 import { mealBuilderApi, useHousehold, type Meal } from '../../lib/api'
+import { Button } from '@/components/ui/button'
+import { DataIcon } from '@/components/ui/data-icon'
+import { Modal } from '@/components/ui/modal'
 
 const SLOTS = [
   { key: 'breakfast', label: 'Breakfast' },
@@ -58,7 +61,10 @@ export function MealBuilderScheduleModal({
     try {
       const r = await mealBuilderApi.schedule(meal.id, { date: picked, mealType })
       const day = days.find((d) => ymd(d) === picked)!
-      onScheduled({ meal: r.meal, dayLabel: `${day.toLocaleDateString('en-US', { weekday: 'long' })} ${mealType}` })
+      onScheduled({
+        meal: r.meal,
+        dayLabel: `${day.toLocaleDateString('en-US', { weekday: 'long' })} ${mealType}`,
+      })
       onClose()
     } catch {
       setSaving(false)
@@ -66,63 +72,104 @@ export function MealBuilderScheduleModal({
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-card mb-sched" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 470 }}>
-        <button type="button" className="modal-close" aria-label="Close" onClick={onClose}>
-          ×
-        </button>
+    <Modal className="modal-overlay" onClose={onClose}>
+      <div
+        className="modal-card mb-sched"
+        onClick={(e) => e.stopPropagation()}
+        style={{ maxWidth: 470 }}
+      >
+        <Button
+          variant="unstyled"
+          type="button"
+          className="modal-close"
+          aria-label="Close"
+          onClick={onClose}
+        >
+          <DataIcon value={'×'} kind="meal" />
+        </Button>
 
-        <div className="mb-sched-strip">{meal.emojis.slice(0, 6).join(' ') || '🍽️'}</div>
+        <div className="mb-sched-strip">
+          {meal.emojis.length ? (
+            meal.emojis
+              .slice(0, 6)
+              .map((value, index) => <DataIcon key={index} value={value} kind="meal" />)
+          ) : (
+            <DataIcon value="🍽️" kind="meal" />
+          )}
+        </div>
         <div className="wf-serif mb-sched-name">{meal.name}</div>
         <div className="tiny muted mb-sched-sub">
-          Meal · {meal.recipeCount} {meal.recipeCount === 1 ? 'recipe' : 'recipes'} · Serves {meal.servings}
+          Meal · {meal.recipeCount} {meal.recipeCount === 1 ? 'recipe' : 'recipes'} · Serves{' '}
+          {meal.servings}
         </div>
 
         <div className="field">
           <span>Meal</span>
           <div className="seg mb-sched-seg" style={{ width: 'fit-content' }}>
             {SLOTS.map((s) => (
-              <button key={s.key} type="button" className={mealType === s.key ? 'on' : ''} onClick={() => setMealType(s.key)}>
+              <Button
+                variant="unstyled"
+                key={s.key}
+                type="button"
+                className={mealType === s.key ? 'on' : ''}
+                onClick={() => setMealType(s.key)}
+              >
                 {s.label}
-              </button>
+              </Button>
             ))}
           </div>
         </div>
 
         <div className="mb-sched-week">
-          <button type="button" className="pill" aria-label="Previous week" onClick={() => setWeekOffset((w) => Math.max(0, w - 1))}>
-            ‹
-          </button>
+          <Button
+            variant="unstyled"
+            type="button"
+            className="pill"
+            aria-label="Previous week"
+            onClick={() => setWeekOffset((w) => Math.max(0, w - 1))}
+          >
+            <DataIcon value={'‹'} kind="meal" />
+          </Button>
           <div className="mb-sched-weekl">{weekLabel}</div>
-          <button type="button" className="pill" aria-label="Next week" onClick={() => setWeekOffset((w) => w + 1)}>
-            ›
-          </button>
+          <Button
+            variant="unstyled"
+            type="button"
+            className="pill"
+            aria-label="Next week"
+            onClick={() => setWeekOffset((w) => w + 1)}
+          >
+            <DataIcon value={'›'} kind="meal" />
+          </Button>
         </div>
 
         <div className="mb-sched-days">
           {days.map((d) => (
-            <button
+            <Button
+              variant="unstyled"
               key={ymd(d)}
               type="button"
               data-testid={`mb-day-${ymd(d)}`}
               className={`mb-sched-day${picked === ymd(d) ? ' is-picked' : ''}`}
               onClick={() => setPicked(ymd(d))}
             >
-              <span className="tiny mb-sched-dow">{d.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 2)}</span>
+              <span className="tiny mb-sched-dow">
+                {d.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 2)}
+              </span>
               <span className="mb-sched-dom">{d.getDate()}</span>
-            </button>
+            </Button>
           ))}
         </div>
 
-        <button
+        <Button
+          variant="default"
           type="button"
-          className="btn btn-primary mb-sched-go"
+          className="mb-sched-go"
           disabled={!picked || saving}
           onClick={confirm}
         >
           {saving ? 'Scheduling…' : 'Confirm'}
-        </button>
+        </Button>
       </div>
-    </div>
+    </Modal>
   )
 }

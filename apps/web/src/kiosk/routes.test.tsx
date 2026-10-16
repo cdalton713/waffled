@@ -6,7 +6,7 @@ function renderAt(path = '/') {
   return render(
     <MemoryRouter initialEntries={[path]}>
       <KioskRoutes />
-    </MemoryRouter>
+    </MemoryRouter>,
   )
 }
 
@@ -15,8 +15,10 @@ function rail() {
 }
 
 describe('kiosk navigation', () => {
-  it('opens and closes the compact primary navigation', () => {
-    renderAt('/')
+  it('opens and closes the compact primary navigation', async () => {
+    const width = window.innerWidth
+    window.innerWidth = 390
+    const view = renderAt('/')
     const trigger = screen.getByRole('button', { name: 'Open navigation' })
 
     expect(trigger).toHaveAttribute('aria-expanded', 'false')
@@ -26,7 +28,10 @@ describe('kiosk navigation', () => {
 
     fireEvent.click(within(rail()).getByText('Calendar'))
     expect(trigger).toHaveAttribute('aria-expanded', 'false')
-    expect(rail()).not.toHaveClass('mobile-open')
+    expect(screen.queryByRole('dialog', { name: 'Navigation' })).not.toBeInTheDocument()
+    await screen.findByRole('button', { name: 'Open navigation' })
+    view.unmount()
+    window.innerWidth = width
   })
 
   it('renders the Today dashboard at /', async () => {
@@ -57,7 +62,15 @@ describe('kiosk navigation', () => {
   })
 
   it('every rail destination resolves to a screen (no dead routes)', async () => {
-    for (const path of ['/tasks', '/calendar', '/goals', '/meals', '/lists', '/photos', '/settings']) {
+    for (const path of [
+      '/tasks',
+      '/calendar',
+      '/goals',
+      '/meals',
+      '/lists',
+      '/photos',
+      '/settings',
+    ]) {
       const { unmount } = renderAt(path)
       // the layout + a main region always render; no thrown route
       expect(document.querySelector('.kiosk-main, .wf-kiosk')).toBeTruthy()

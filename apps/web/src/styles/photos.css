@@ -1,176 +1,664 @@
+@reference './ui.css';
+
 /* Photos screen — co-located styles. The wall tiles (.ph-wall/.ph-tile/.ph-cap/
    .heart) live in the shared waffled.css; this file adds the "New memory" banner,
    the add-photos picker, the photo detail and the full-screen screensaver. */
 
 /* layout: banner above the scrolling wall */
-.photos-home { display: flex; flex-direction: column; min-width: 0; flex: 1; min-height: 0; }
-.photos-wall-scroll { flex: 1; overflow: auto; padding: 0 30px 24px; }
+.photos-home {
+  @apply flex;
+  @apply flex-col;
+  @apply [min-width:0];
+  @apply [flex:1];
+  @apply [min-height:0];
+}
+.photos-wall-scroll {
+  @apply [flex:1];
+  @apply overflow-auto;
+  @apply [padding:0_30px_24px];
+}
 
 /* "NEW MEMORY — N photos" banner */
-.ph-banner { margin: 0 30px 16px; display: flex; align-items: center; gap: 14px;
-  padding: 16px 20px; border-radius: var(--r-lg); background: linear-gradient(120deg,var(--ai-t),var(--ai-t)); }
-.ph-banner-tile { width: 56px; height: 56px; border-radius: 14px; display: grid;
-  place-items: center; font-size: 28px; flex: none; overflow: hidden; }
-.ph-banner-tile img { width: 100%; height: 100%; object-fit: cover; }
-.ph-banner-title { font-size: 17px; font-weight: 700; }
-.ph-banner-tag { display: inline-flex; font-size: 11px; font-weight: 700; color: var(--ink-3);
-  text-transform: uppercase; letter-spacing: .04em; }
-.ph-banner .btn-play { font-size: 14px; }
+.ph-banner {
+  @apply [margin:0_30px_16px];
+  @apply flex;
+  @apply items-center;
+  @apply [gap:14px];
+  @apply [padding:16px_20px];
+  @apply [border-radius:var(--r-lg)];
+  @apply [background:linear-gradient(120deg,var(--ai-t),var(--ai-t))];
+}
+.ph-banner-tile {
+  @apply [width:56px];
+  @apply [height:56px];
+  @apply [border-radius:14px];
+  @apply grid;
+  @apply [place-items:center];
+  @apply [font-size:28px];
+  @apply [flex:none];
+  @apply overflow-hidden;
+}
+.ph-banner-tile img {
+  @apply [width:100%];
+  @apply [height:100%];
+  @apply [object-fit:cover];
+}
+.ph-banner-title {
+  @apply [font-size:17px];
+  @apply font-bold;
+}
+.ph-banner-tag {
+  @apply inline-flex;
+  @apply [font-size:11px];
+  @apply font-bold;
+  @apply [color:var(--ink-3)];
+  @apply [text-transform:uppercase];
+  @apply [letter-spacing:.04em];
+}
+.ph-banner .btn-play {
+  @apply [font-size:14px];
+}
 
 /* aspect-preserving CSS-columns masonry: each photo keeps its real shape (no crop).
    The wall flows top-to-bottom within columns; .ph-tile heights follow their images. */
-.ph-wall { display: block; grid-template-columns: none; grid-auto-rows: auto;
-  column-count: 3; column-gap: 12px; }
-@media (max-width: 1100px) { .ph-wall { column-count: 2; } }
-@media (max-width: 680px) { .ph-wall { column-count: 1; } }
+.ph-wall {
+  @apply block;
+  @apply [grid-template-columns:none];
+  @apply [grid-auto-rows:auto];
+  @apply [column-count:3];
+  @apply [column-gap:12px];
+}
+@media (max-width: 1100px) {
+  .ph-wall {
+    @apply [column-count:2];
+  }
+}
+@media (max-width: 680px) {
+  .ph-wall {
+    @apply [column-count:1];
+  }
+}
 
-.ph-tile { cursor: pointer; position: relative; display: block; break-inside: avoid;
-  margin-bottom: 12px; overflow: hidden; }
+.ph-tile {
+  @apply cursor-pointer;
+  @apply relative;
+  @apply block;
+  @apply [break-inside:avoid];
+  @apply [margin-bottom:12px];
+  @apply overflow-hidden;
+}
 /* span classes are no-ops now that the wall is aspect-preserving masonry */
-.ph-tile.wide, .ph-tile.tall { grid-column: auto; grid-row: auto; }
+.ph-tile.wide,
+.ph-tile.tall {
+  @apply [grid-column:auto];
+  @apply [grid-row:auto];
+}
 /* an <img> photo flows in the tile, preserving aspect (emoji tiles use the gradient bg) */
-.ph-tile img { position: static; width: 100%; height: auto; display: block; border-radius: inherit; }
+.ph-tile img {
+  @apply [position:static];
+  @apply [width:100%];
+  @apply [height:auto];
+  @apply block;
+  @apply [border-radius:inherit];
+}
 /* emoji-only tiles have no <img>, so give them a sensible default box + centered emoji */
-.ph-tile.no-img { aspect-ratio: 4 / 3; display: grid; place-items: center; font-size: 56px; }
-.ph-tile.clickable:hover { box-shadow: var(--sh-2); }
+.ph-tile.no-img {
+  @apply [aspect-ratio:4_/_3];
+  @apply grid;
+  @apply [place-items:center];
+  @apply [font-size:56px];
+}
+.ph-tile.clickable:hover {
+  @apply [box-shadow:var(--sh-2)];
+}
 
 /* tile delete affordance on the wall — always visible so it works on touch
    (was hover-only); a tap opens a confirm dialog rather than deleting outright. */
-.ph-del { position: absolute; top: 9px; left: 10px; width: 30px; height: 30px; border: 0;
-  border-radius: 999px; background: rgba(0, 0, 0, .58); color: var(--on-media); font-size: 18px; line-height: 1;
-  display: grid; place-items: center; cursor: pointer; backdrop-filter: blur(4px);
-  opacity: .85; transition: opacity .12s, background .12s; }
-.ph-tile:hover .ph-del { opacity: 1; }
-.ph-del:hover { background: rgba(192,57,43,.92); }
+.ph-del {
+  @apply absolute;
+  @apply [top:9px];
+  @apply [left:10px];
+  @apply [width:30px];
+  @apply [height:30px];
+  @apply [border:0];
+  @apply [border-radius:999px];
+  @apply [background:rgba(0,_0,_0,_.58)];
+  @apply [color:var(--on-media)];
+  @apply [font-size:18px];
+  @apply [line-height:1];
+  @apply grid;
+  @apply [place-items:center];
+  @apply cursor-pointer;
+  @apply [backdrop-filter:blur(4px)];
+  @apply [opacity:.85];
+  @apply [transition:opacity_.12s,_background_.12s];
+}
+.ph-tile:hover .ph-del {
+  @apply [opacity:1];
+}
+.ph-del:hover {
+  @apply [background:rgba(192,57,43,.92)];
+}
 
 /* multi-select on the wall: a check badge per tile + a ring on selected tiles */
-.ph-tile.selecting { cursor: pointer; }
-.ph-tile.selected { box-shadow: 0 0 0 3px var(--primary); }
-.ph-check { position: absolute; top: 9px; left: 10px; width: 28px; height: 28px; border-radius: 999px;
-  border: 2px solid #fff; background: rgba(0, 0, 0, .58); color: var(--on-media); display: grid; place-items: center;
-  font-size: 16px; font-weight: 800; line-height: 1; box-shadow: 0 1px 5px rgba(0,0,0,.35); }
-.ph-tile.selected .ph-check { background: var(--primary); }
+.ph-tile.selecting {
+  @apply cursor-pointer;
+}
+.ph-tile.selected {
+  @apply [box-shadow:0_0_0_3px_var(--primary)];
+}
+.ph-check {
+  @apply absolute;
+  @apply [top:9px];
+  @apply [left:10px];
+  @apply [width:28px];
+  @apply [height:28px];
+  @apply [border-radius:999px];
+  @apply [border:2px_solid_#fff];
+  @apply [background:rgba(0,_0,_0,_.58)];
+  @apply [color:var(--on-media)];
+  @apply grid;
+  @apply [place-items:center];
+  @apply [font-size:16px];
+  @apply font-extrabold;
+  @apply [line-height:1];
+  @apply [box-shadow:0_1px_5px_rgba(0,0,0,.35)];
+}
+.ph-tile.selected .ph-check {
+  @apply [background:var(--primary)];
+}
 
 /* ---- album filter chips (above the wall) ---------------------- */
-.ph-filter { display: flex; gap: 8px; flex-wrap: wrap; padding: 0 30px 14px; }
-.ph-chip { font-size: 14px; padding: 8px 14px; cursor: pointer; }
-.ph-chip.on { background: var(--ink); color: var(--on-inverse); border-color: var(--ink); }
+.ph-filter {
+  @apply flex;
+  @apply [gap:8px];
+  @apply flex-wrap;
+  @apply [padding:0_30px_14px];
+}
+.ph-chip {
+  @apply [font-size:14px];
+  @apply [padding:8px_14px];
+  @apply cursor-pointer;
+}
+.ph-chip.on {
+  @apply [background:var(--ink)];
+  @apply [color:var(--on-inverse)];
+  @apply [border-color:var(--ink)];
+}
 
 /* per-album action bar (shown under the chips when an album is selected) */
-.ph-album-actions { display: flex; align-items: center; gap: 12px; padding: 0 30px 14px; }
-.ph-album-actions .pill { font-size: 13.5px; padding: 8px 14px; cursor: pointer; }
-.ph-album-actions .pill.on { background: var(--primary); color: var(--on-accent); border-color: var(--primary); }
+.ph-album-actions {
+  @apply flex;
+  @apply items-center;
+  @apply [gap:12px];
+  @apply [padding:0_30px_14px];
+}
+.ph-album-actions .pill {
+  @apply [font-size:13.5px];
+  @apply [padding:8px_14px];
+  @apply cursor-pointer;
+}
+.ph-album-actions .pill.on {
+  @apply [background:var(--primary)];
+  @apply [color:var(--on-accent)];
+  @apply [border-color:var(--primary)];
+}
 
 /* ---- add-photos overlay --------------------------------------- */
 /* The stage centers everything; the dropzone is the hero, the staged card
    replaces it once a photo is chosen. */
-.ap-stage { flex: 1; overflow: auto; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; padding: 24px 30px 40px; }
+.ap-stage {
+  @apply [flex:1];
+  @apply overflow-auto;
+  @apply flex;
+  @apply flex-col;
+  @apply items-center;
+  @apply justify-center;
+  @apply [padding:24px_30px_40px];
+}
 /* once photos are staged, pin to the top so the list grows downward (don't center) */
-.ap-stage.staged { justify-content: flex-start; }
+.ap-stage.staged {
+  @apply justify-start;
+}
 
 /* empty state: big drag-and-drop / click-to-browse zone + a coming-soon note */
-.ap-pick { display: flex; flex-direction: column; align-items: center; gap: 18px; width: 100%; }
-.ap-drop { width: min(640px, 100%); min-height: 340px; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 6px; text-align: center;
-  background: color-mix(in srgb, var(--card) 50%, transparent); border: 2px dashed var(--line);
-  border-radius: var(--r-xl); padding: 40px; cursor: pointer; color: var(--ink);
-  transition: border-color .15s, background .15s, transform .15s; }
-.ap-drop:hover { border-color: var(--primary); background: color-mix(in srgb, var(--card) 72%, transparent); }
-.ap-drop.over { border-color: var(--primary); border-style: solid; background: rgba(208,107,79,.08);
-  transform: scale(1.01); }
-.ap-drop.busy { cursor: default; }
-.ap-drop-icon { font-size: 56px; line-height: 1; margin-bottom: 10px; }
-.ap-drop-title { font-size: 21px; font-weight: 700; }
-.ap-drop-sub { font-size: 15px; color: var(--ink-3); }
-.ap-drop-link { color: var(--primary-d); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
-.ap-drop-meta { margin-top: 14px; }
-.ap-err { color: var(--danger-tx); font-weight: 700; }
+.ap-pick {
+  @apply flex;
+  @apply flex-col;
+  @apply items-center;
+  @apply [gap:18px];
+  @apply [width:100%];
+}
+.ap-drop {
+  @apply [width:min(640px,_100%)];
+  @apply [min-height:340px];
+  @apply flex;
+  @apply flex-col;
+  @apply items-center;
+  @apply justify-center;
+  @apply [gap:6px];
+  @apply text-center;
+  @apply [background:color-mix(in_srgb,_var(--card)_50%,_transparent)];
+  @apply [border:2px_dashed_var(--line)];
+  @apply [border-radius:var(--r-xl)];
+  @apply [padding:40px];
+  @apply cursor-pointer;
+  @apply [color:var(--ink)];
+  @apply [transition:border-color_.15s,_background_.15s,_transform_.15s];
+}
+.ap-drop:hover {
+  @apply [border-color:var(--primary)];
+  @apply [background:color-mix(in_srgb,_var(--card)_72%,_transparent)];
+}
+.ap-drop.over {
+  @apply [border-color:var(--primary)];
+  @apply [border-style:solid];
+  @apply [background:rgba(208,107,79,.08)];
+  @apply [transform:scale(1.01)];
+}
+.ap-drop.busy {
+  @apply cursor-default;
+}
+.ap-drop-icon {
+  @apply [font-size:56px];
+  @apply [line-height:1];
+  @apply [margin-bottom:10px];
+}
+.ap-drop-title {
+  @apply [font-size:21px];
+  @apply font-bold;
+}
+.ap-drop-sub {
+  @apply [font-size:15px];
+  @apply [color:var(--ink-3)];
+}
+.ap-drop-link {
+  @apply [color:var(--primary-d)];
+  @apply font-bold;
+  @apply [text-decoration:underline];
+  @apply [text-underline-offset:3px];
+}
+.ap-drop-meta {
+  @apply [margin-top:14px];
+}
+.ap-err {
+  @apply [color:var(--danger-tx)];
+  @apply font-bold;
+}
 
 /* staged state: a "Album for all" bar over a list of per-photo rows */
-.ap-batch { width: min(720px, 100%); display: flex; flex-direction: column; gap: 14px; }
-.ap-batch-bar { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px;
-  flex-wrap: wrap; }
-.ap-batch-album { min-width: 240px; }
-.ap-batch-actions { display: flex; align-items: center; gap: 12px; padding-bottom: 2px; }
-.ap-batch-actions .pill { cursor: pointer; }
-.ap-uploading { font-weight: 700; }
+.ap-batch {
+  @apply [width:min(720px,_100%)];
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:14px];
+}
+.ap-batch-bar {
+  @apply flex;
+  @apply items-end;
+  @apply justify-between;
+  @apply [gap:16px];
+  @apply flex-wrap;
+}
+.ap-batch-album {
+  @apply [min-width:240px];
+}
+.ap-batch-actions {
+  @apply flex;
+  @apply items-center;
+  @apply [gap:12px];
+  @apply [padding-bottom:2px];
+}
+.ap-batch-actions .pill {
+  @apply cursor-pointer;
+}
+.ap-uploading {
+  @apply font-bold;
+}
 
-.ap-list { display: flex; flex-direction: column; gap: 12px; }
-.ap-row { display: flex; gap: 14px; align-items: flex-start; background: var(--card);
-  border-radius: var(--r-md); box-shadow: var(--sh-1); padding: 12px; }
-.ap-row-thumb { flex: none; width: 104px; height: 104px; border-radius: var(--r-sm);
-  overflow: hidden; background: var(--overlay-hover); }
-.ap-row-thumb img { width: 100%; height: 100%; object-fit: contain; display: block; }
-.ap-row-fields { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
-.ap-row-meta { display: flex; gap: 10px; align-items: center; }
-.ap-row-album { flex: 1; min-width: 0; }
-.ap-row-del { flex: none; width: 34px; height: 34px; border-radius: 999px; border: 0;
-  background: var(--overlay-hover); color: var(--ink-2); font-size: 22px; line-height: 1; cursor: pointer; }
-.ap-row-del:hover { background: rgba(192,57,43,.12); color: var(--danger-tx); }
+.ap-list {
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:12px];
+}
+.ap-row {
+  @apply flex;
+  @apply [gap:14px];
+  @apply items-start;
+  @apply [background:var(--card)];
+  @apply [border-radius:var(--r-md)];
+  @apply [box-shadow:var(--sh-1)];
+  @apply [padding:12px];
+}
+.ap-row-thumb {
+  @apply [flex:none];
+  @apply [width:104px];
+  @apply [height:104px];
+  @apply [border-radius:var(--r-sm)];
+  @apply overflow-hidden;
+  @apply [background:var(--overlay-hover)];
+}
+.ap-row-thumb img {
+  @apply [width:100%];
+  @apply [height:100%];
+  @apply [object-fit:contain];
+  @apply block;
+}
+.ap-row-fields {
+  @apply [flex:1];
+  @apply [min-width:0];
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:10px];
+}
+.ap-row-meta {
+  @apply flex;
+  @apply [gap:10px];
+  @apply items-center;
+}
+.ap-row-album {
+  @apply [flex:1];
+  @apply [min-width:0];
+}
+.ap-row-del {
+  @apply [flex:none];
+  @apply [width:34px];
+  @apply [height:34px];
+  @apply [border-radius:999px];
+  @apply [border:0];
+  @apply [background:var(--overlay-hover)];
+  @apply [color:var(--ink-2)];
+  @apply [font-size:22px];
+  @apply [line-height:1];
+  @apply cursor-pointer;
+}
+.ap-row-del:hover {
+  @apply [background:rgba(192,57,43,.12)];
+  @apply [color:var(--danger-tx)];
+}
 
-.ap-field-label { display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; font-weight: 700;
-  color: var(--ink-3); letter-spacing: .02em; }
-.ap-field-label .field { font-weight: 500; color: var(--ink); }
+.ap-field-label {
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:5px];
+  @apply [font-size:12.5px];
+  @apply font-bold;
+  @apply [color:var(--ink-3)];
+  @apply [letter-spacing:.02em];
+}
+.ap-field-label .field {
+  @apply font-medium;
+  @apply [color:var(--ink)];
+}
 /* album dropdown + "new album" text input (PhotoAdd / PhotoDetail edit) */
-.album-picker { display: flex; flex-direction: column; gap: 8px; }
-.album-picker .field { font-weight: 500; color: var(--ink); }
-.ap-form-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-.ap-fav { cursor: pointer; }
-.ap-fav.on { box-shadow: 0 0 0 2px var(--primary); }
+.album-picker {
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:8px];
+}
+.album-picker .field {
+  @apply font-medium;
+  @apply [color:var(--ink)];
+}
+.ap-form-row {
+  @apply flex;
+  @apply [gap:10px];
+  @apply items-center;
+  @apply flex-wrap;
+}
+.ap-fav {
+  @apply cursor-pointer;
+}
+.ap-fav.on {
+  @apply [box-shadow:0_0_0_2px_var(--primary)];
+}
 
 /* ---- photo detail --------------------------------------------- */
-.photo-detail { flex: 1; display: grid; grid-template-columns: 1.7fr 1fr; gap: 22px;
-  padding: 2px 30px 26px; min-height: 0; }
-.pd-stage { border-radius: var(--r-xl); display: grid; place-items: center; font-size: 170px;
-  box-shadow: var(--sh-2); position: relative; overflow: hidden; }
-.pd-stage img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
-.pd-stage-cap { position: absolute; left: 24px; bottom: 22px; color: var(--on-media); text-shadow: 0 2px 12px rgba(0,0,0,.4); }
-.pd-stage-cap .wf-serif { font-size: 30px; font-weight: 600; }
-.pd-stage-sub { font-size: 14px; font-weight: 600; opacity: .92; }
-.pd-side { display: flex; flex-direction: column; gap: 14px; min-height: 0; }
-.pd-edit { display: flex; flex-direction: column; gap: 12px; }
-.pd-edit-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 4px; }
+.photo-detail {
+  @apply [flex:1];
+  @apply grid;
+  @apply [grid-template-columns:1.7fr_1fr];
+  @apply [gap:22px];
+  @apply [padding:2px_30px_26px];
+  @apply [min-height:0];
+}
+.pd-stage {
+  @apply [border-radius:var(--r-xl)];
+  @apply grid;
+  @apply [place-items:center];
+  @apply [font-size:170px];
+  @apply [box-shadow:var(--sh-2)];
+  @apply relative;
+  @apply overflow-hidden;
+}
+.pd-stage img {
+  @apply absolute;
+  @apply [inset:0];
+  @apply [width:100%];
+  @apply [height:100%];
+  @apply [object-fit:contain];
+}
+.pd-stage-cap {
+  @apply absolute;
+  @apply [left:24px];
+  @apply [bottom:22px];
+  @apply [color:var(--on-media)];
+  @apply [text-shadow:0_2px_12px_rgba(0,0,0,.4)];
+}
+.pd-stage-cap .wf-serif {
+  @apply [font-size:30px];
+  @apply font-semibold;
+}
+.pd-stage-sub {
+  @apply [font-size:14px];
+  @apply font-semibold;
+  @apply [opacity:.92];
+}
+.pd-side {
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:14px];
+  @apply [min-height:0];
+}
+.pd-edit {
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:12px];
+}
+.pd-edit-actions {
+  @apply flex;
+  @apply [gap:10px];
+  @apply justify-end;
+  @apply [margin-top:4px];
+}
 /* Album value rendered as a link in the Details card → opens the album view */
-.pd-album-link { margin-left: auto; border: 0; background: none; cursor: pointer;
-  font-size: 13px; font-weight: 700; color: var(--primary-d); display: inline-flex; align-items: center; gap: 4px; }
-.pd-album-link:hover { text-decoration: underline; }
+.pd-album-link {
+  @apply [margin-left:auto];
+  @apply [border:0];
+  @apply [background:none];
+  @apply cursor-pointer;
+  @apply [font-size:13px];
+  @apply font-bold;
+  @apply [color:var(--primary-d)];
+  @apply inline-flex;
+  @apply items-center;
+  @apply [gap:4px];
+}
+.pd-album-link:hover {
+  @apply [text-decoration:underline];
+}
 /* compact "view the rest of this album" CTA (content-sized, not full width/height) */
-.pd-album-cta { align-self: flex-start; display: inline-flex; align-items: center; gap: 8px;
-  padding: 11px 16px; border: 0; border-radius: var(--r-md); cursor: pointer;
-  background: var(--panel); color: var(--ink); font-size: 13.5px; font-weight: 700; }
-.pd-album-cta:hover { background: var(--overlay-hover); }
-.pd-album-cta span[aria-hidden] { color: var(--ink-3); font-size: 16px; }
+.pd-album-cta {
+  @apply [align-self:flex-start];
+  @apply inline-flex;
+  @apply items-center;
+  @apply [gap:8px];
+  @apply [padding:11px_16px];
+  @apply [border:0];
+  @apply [border-radius:var(--r-md)];
+  @apply cursor-pointer;
+  @apply [background:var(--panel)];
+  @apply [color:var(--ink)];
+  @apply [font-size:13.5px];
+  @apply font-bold;
+}
+.pd-album-cta:hover {
+  @apply [background:var(--overlay-hover)];
+}
+.pd-album-cta span[aria-hidden] {
+  @apply [color:var(--ink-3)];
+  @apply [font-size:16px];
+}
 
 /* ---- screensaver (full-screen takeover) ----------------------- */
-.ph-saver { position: fixed; inset: 0; z-index: 1000; overflow: hidden; cursor: pointer;
-  display: grid; place-items: center; color: var(--on-media); }
-.ph-saver-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.ph-saver {
+  @apply fixed;
+  @apply [inset:0];
+  @apply [z-index:1000];
+  @apply overflow-hidden;
+  @apply cursor-pointer;
+  @apply grid;
+  @apply [place-items:center];
+  @apply [color:var(--on-media)];
+}
+.ph-saver-img {
+  @apply absolute;
+  @apply [inset:0];
+  @apply [width:100%];
+  @apply [height:100%];
+  @apply [object-fit:cover];
+}
 /* the incoming photo fades in over the outgoing one (crossfade, no hard cut) */
-.ph-saver-img-top { animation: ph-saver-fade 1100ms ease both; }
-@keyframes ph-saver-fade { from { opacity: 0; } to { opacity: 1; } }
-@media (prefers-reduced-motion: reduce) { .ph-saver-img-top { animation-duration: 1ms; } }
-.ph-saver-scrim { position: absolute; inset: 0;
-  background: radial-gradient(120% 120% at 70% 20%, rgba(0,0,0,0), var(--scrim)); }
-.ph-saver-clock { position: absolute; top: 46px; left: 54px; text-shadow: 0 2px 16px rgba(0,0,0,.35); }
-.ph-saver-time { font-size: 120px; font-weight: 600; line-height: .9; }
-.ph-saver-date { font-size: 26px; font-weight: 600; margin-top: 6px; opacity: .95; }
-.ph-saver-weather { position: absolute; right: 54px; top: 46px; text-align: right;
-  text-shadow: 0 2px 16px rgba(0,0,0,.35); font-size: 64px; }
-.ph-saver-hero { font-size: 220px; filter: drop-shadow(0 12px 40px rgba(0,0,0,.35)); z-index: 1; }
-.ph-saver-meta { position: absolute; left: 54px; bottom: 90px; text-shadow: 0 2px 14px rgba(0,0,0,.4); }
-.ph-saver-meta .wf-serif { font-size: 34px; font-weight: 600; }
-.ph-saver-meta-sub { font-size: 16px; font-weight: 600; opacity: .9; }
-.ph-saver-next { position: absolute; right: 54px; bottom: 84px; font-size: 20px; font-weight: 700;
-  color: var(--on-media); opacity: .95; text-shadow: 0 2px 14px rgba(0,0,0,.4); }
-.ph-saver-thumbs { position: absolute; left: 50%; bottom: 36px; transform: translateX(-50%);
-  display: flex; gap: 12px; align-items: center; }
-.ph-saver-thumb { width: 54px; height: 54px; border-radius: 12px; display: grid; place-items: center;
-  font-size: 24px; box-shadow: var(--sh-2); overflow: hidden; }
-.ph-saver-thumb img { width: 100%; height: 100%; object-fit: cover; }
-.ph-saver-thumb.on { outline: 3px solid #fff; }
-.ph-saver-wake { position: absolute; right: 54px; bottom: 40px; font-size: 15px; font-weight: 700;
-  opacity: .9; display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,.22);
-  backdrop-filter: blur(8px); padding: 10px 16px; border-radius: 999px; }
+.ph-saver-img-top {
+  @apply [animation:ph-saver-fade_1100ms_ease_both];
+}
+@keyframes ph-saver-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ph-saver-img-top {
+    @apply [animation-duration:1ms];
+  }
+}
+.ph-saver-scrim {
+  @apply absolute;
+  @apply [inset:0];
+  @apply [background:radial-gradient(120%_120%_at_70%_20%,_rgba(0,0,0,0),_var(--scrim))];
+}
+.ph-saver-clock {
+  @apply absolute;
+  @apply [top:46px];
+  @apply [left:54px];
+  @apply [text-shadow:0_2px_16px_rgba(0,0,0,.35)];
+}
+.ph-saver-time {
+  @apply [font-size:120px];
+  @apply font-semibold;
+  @apply [line-height:.9];
+}
+.ph-saver-date {
+  @apply [font-size:26px];
+  @apply font-semibold;
+  @apply [margin-top:6px];
+  @apply [opacity:.95];
+}
+.ph-saver-weather {
+  @apply absolute;
+  @apply [right:54px];
+  @apply [top:46px];
+  @apply text-right;
+  @apply [text-shadow:0_2px_16px_rgba(0,0,0,.35)];
+  @apply [font-size:64px];
+}
+.ph-saver-hero {
+  @apply [font-size:220px];
+  @apply [filter:drop-shadow(0_12px_40px_rgba(0,0,0,.35))];
+  @apply [z-index:1];
+}
+.ph-saver-meta {
+  @apply absolute;
+  @apply [left:54px];
+  @apply [bottom:90px];
+  @apply [text-shadow:0_2px_14px_rgba(0,0,0,.4)];
+}
+.ph-saver-meta .wf-serif {
+  @apply [font-size:34px];
+  @apply font-semibold;
+}
+.ph-saver-meta-sub {
+  @apply [font-size:16px];
+  @apply font-semibold;
+  @apply [opacity:.9];
+}
+.ph-saver-next {
+  @apply absolute;
+  @apply [right:54px];
+  @apply [bottom:84px];
+  @apply [font-size:20px];
+  @apply font-bold;
+  @apply [color:var(--on-media)];
+  @apply [opacity:.95];
+  @apply [text-shadow:0_2px_14px_rgba(0,0,0,.4)];
+}
+.ph-saver-thumbs {
+  @apply absolute;
+  @apply [left:50%];
+  @apply [bottom:36px];
+  @apply [transform:translateX(-50%)];
+  @apply flex;
+  @apply [gap:12px];
+  @apply items-center;
+}
+.ph-saver-thumb {
+  @apply [width:54px];
+  @apply [height:54px];
+  @apply [border-radius:12px];
+  @apply grid;
+  @apply [place-items:center];
+  @apply [font-size:24px];
+  @apply [box-shadow:var(--sh-2)];
+  @apply overflow-hidden;
+}
+.ph-saver-thumb img {
+  @apply [width:100%];
+  @apply [height:100%];
+  @apply [object-fit:cover];
+}
+.ph-saver-thumb.on {
+  @apply [outline:3px_solid_#fff];
+}
+.ph-saver-wake {
+  @apply absolute;
+  @apply [right:54px];
+  @apply [bottom:40px];
+  @apply [font-size:15px];
+  @apply font-bold;
+  @apply [opacity:.9];
+  @apply flex;
+  @apply items-center;
+  @apply [gap:8px];
+  @apply [background:rgba(0,0,0,.22)];
+  @apply [backdrop-filter:blur(8px)];
+  @apply [padding:10px_16px];
+  @apply [border-radius:999px];
+}
 
-.ph-empty { padding: 40px 30px; color: var(--ink-2); font-weight: 600; }
+.ph-empty {
+  @apply [padding:40px_30px];
+  @apply [color:var(--ink-2)];
+  @apply font-semibold;
+}
+
+@media (max-width: 720px) {
+  .photos-wall-scroll {
+    @apply [padding:0_16px_20px];
+  }
+  .ph-empty {
+    @apply [padding:32px_0];
+  }
+}

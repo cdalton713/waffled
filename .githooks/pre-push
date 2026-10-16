@@ -22,7 +22,7 @@ fail=0
 # Skip cleanly (with a hint) if deps aren't installed — a fresh clone shouldn't
 # be blocked from pushing before it's ever been set up.
 if [ ! -d apps/web/node_modules ] || [ ! -d apps/api/node_modules ]; then
-  echo "${c_dim}pre-push: node_modules missing — skipping checks (run npm ci in apps/web + apps/api to enable).${c_reset}"
+  echo "${c_dim}pre-push: node_modules missing — skipping checks (run pnpm install --frozen-lockfile in apps/web + apps/api to enable).${c_reset}"
   exit 0
 fi
 
@@ -35,9 +35,11 @@ run() { # <label> <dir> <cmd...>
   fi
 }
 
-run "typecheck (web)" apps/web npm run --silent typecheck
-run "typecheck (api)" apps/api npm run --silent typecheck
-run "web tests"       apps/web npm test --silent
+run "typecheck (web)" apps/web pnpm --silent run typecheck
+run "typecheck (api)" apps/api pnpm --silent run typecheck
+run "lint (web)"      apps/web pnpm --silent run lint
+run "lint (api)"      apps/api pnpm --silent run lint
+run "web tests"       apps/web pnpm --silent test
 
 if [ "$fail" -ne 0 ]; then
   echo

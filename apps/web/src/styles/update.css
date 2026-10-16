@@ -1,29 +1,99 @@
+@reference './ui.css';
 /* In-app "update available" modal (admin-only). Reuses the shared
    .modal-overlay / .modal-card / .modal-close pattern from kiosk.css. */
-.upd-card { max-width: 420px; text-align: center; padding: 32px 30px 24px; }
+.upd-card {
+  @apply [max-width:420px];
+  @apply text-center;
+  @apply [padding:32px_30px_24px];
+}
 .upd-badge {
-  width: 60px; height: 60px; margin: 2px auto 0; border-radius: 18px;
-  background: linear-gradient(150deg, #f2a93c, var(--primary));
-  display: grid; place-items: center; font-size: 30px; box-shadow: var(--sh-1);
+  @apply [width:60px];
+  @apply [height:60px];
+  @apply [margin:2px_auto_0];
+  @apply [border-radius:18px];
+  @apply [background:linear-gradient(150deg,_#f2a93c,_var(--primary))];
+  @apply grid;
+  @apply [place-items:center];
+  @apply [font-size:30px];
+  @apply [box-shadow:var(--sh-1)];
 }
-.upd-eyebrow { margin-top: 16px; font-size: 12px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: var(--primary-d); }
-.upd-title { font-size: 26px; font-weight: 600; margin: 6px 0 0; color: var(--ink); text-wrap: balance; }
-.upd-ver { margin-top: 4px; font-size: 13.5px; color: var(--ink-3); font-weight: 600; }
+.upd-eyebrow {
+  @apply [margin-top:16px];
+  @apply [font-size:12px];
+  @apply font-extrabold;
+  @apply [letter-spacing:.09em];
+  @apply [text-transform:uppercase];
+  @apply [color:var(--primary-d)];
+}
+.upd-title {
+  @apply [font-size:26px];
+  @apply font-semibold;
+  @apply [margin:6px_0_0];
+  @apply [color:var(--ink)];
+  @apply [text-wrap:balance];
+}
+.upd-ver {
+  @apply [margin-top:4px];
+  @apply [font-size:13.5px];
+  @apply [color:var(--ink-3)];
+  @apply font-semibold;
+}
 
-.upd-cmd { margin: 20px 0 4px; background: var(--panel); border-radius: 14px; padding: 14px 16px; text-align: left; }
-.upd-cmd-l { font-size: 12px; color: var(--ink-2); font-weight: 600; margin-bottom: 8px; }
+.upd-cmd {
+  @apply [margin:20px_0_4px];
+  @apply [background:var(--panel)];
+  @apply [border-radius:14px];
+  @apply [padding:14px_16px];
+  @apply text-left;
+}
+.upd-cmd-l {
+  @apply [font-size:12px];
+  @apply [color:var(--ink-2)];
+  @apply font-semibold;
+  @apply [margin-bottom:8px];
+}
 .upd-cmd code {
-  display: block; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 14px; font-weight: 600; color: var(--ink);
-  background: var(--card); border: 1px solid var(--hair); border-radius: 9px; padding: 9px 12px;
+  @apply block;
+  @apply [font-family:ui-monospace,_SFMono-Regular,_Menlo,_Consolas,_monospace];
+  @apply [font-size:14px];
+  @apply font-semibold;
+  @apply [color:var(--ink)];
+  @apply [background:var(--card)];
+  @apply [border:1px_solid_var(--hair)];
+  @apply [border-radius:9px];
+  @apply [padding:9px_12px];
 }
 
-.upd-actions { display: flex; gap: 10px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
-.upd-actions .btn { text-decoration: none; padding: 11px 18px; }
-.upd-later { margin-top: 12px; border: 0; background: transparent; color: var(--ink-3); font: inherit; font-weight: 650; font-size: 13.5px; cursor: pointer; }
-.upd-later:hover { color: var(--ink-2); }
+.upd-actions {
+  @apply flex;
+  @apply [gap:10px];
+  @apply justify-center;
+  @apply [margin-top:20px];
+  @apply flex-wrap;
+}
+.upd-actions .btn {
+  @apply [text-decoration:none];
+  @apply [padding:11px_18px];
+}
+.upd-later {
+  @apply [margin-top:12px];
+  @apply [border:0];
+  @apply [background:transparent];
+  @apply [color:var(--ink-3)];
+  @apply [font:inherit];
+  @apply [font-weight:650];
+  @apply [font-size:13.5px];
+  @apply cursor-pointer;
+}
+.upd-later:hover {
+  @apply [color:var(--ink-2)];
+}
 
 @media (max-width: 480px) {
-  .upd-actions { flex-direction: column; }
-  .upd-actions .btn { justify-content: center; }
+  .upd-actions {
+    @apply flex-col;
+  }
+  .upd-actions .btn {
+    @apply justify-center;
+  }
 }

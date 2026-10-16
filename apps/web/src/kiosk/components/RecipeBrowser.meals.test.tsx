@@ -90,7 +90,7 @@ describe('RecipeBrowser — saved meals in the slot picker', () => {
     renderBrowser({ onPick: () => {}, onPickMeal: () => {} })
     const card = (await screen.findByText('BBQ Sunday')).closest('.mp-card') as HTMLElement
     expect(within(card).getByText('Meal · 4')).toBeInTheDocument()
-    expect(within(card).getByText('🍗')).toBeInTheDocument()
+    expect(card.querySelectorAll('.mc-emojis svg')).toHaveLength(4)
   })
 
   it('hands the whole plate back to the caller when a meal is selected', async () => {
@@ -113,7 +113,13 @@ describe('RecipeBrowser — saved meals in the slot picker', () => {
 
   it('leaves the leftovers / eating-out / try-something-new placeholders exactly as they were', async () => {
     const onLeftovers = vi.fn()
-    renderBrowser({ onPick: () => {}, onPickMeal: () => {}, onEatingOut: () => {}, onLeftovers, onTrySomething: () => {} })
+    renderBrowser({
+      onPick: () => {},
+      onPickMeal: () => {},
+      onEatingOut: () => {},
+      onLeftovers,
+      onTrySomething: () => {},
+    })
     expect(await screen.findByText('BBQ Sunday')).toBeInTheDocument()
     expect(screen.getByText('Eating out')).toBeInTheDocument()
     expect(screen.getByText('Try something new')).toBeInTheDocument()
@@ -125,7 +131,9 @@ describe('RecipeBrowser — saved meals in the slot picker', () => {
   it('asks the server to search meals rather than re-filtering the plate name locally', async () => {
     renderBrowser({ onPick: () => {}, onPickMeal: () => {} })
     await screen.findByText('BBQ Sunday')
-    fireEvent.change(screen.getByPlaceholderText(/Search recipes/i), { target: { value: 'chicken' } })
+    fireEvent.change(screen.getByPlaceholderText(/Search recipes/i), {
+      target: { value: 'chicken' },
+    })
     // "chicken" matches a dish title on BBQ Sunday server-side; the card must stay.
     await waitFor(() => expect(listMock).toHaveBeenCalledWith('chicken'))
     expect(await screen.findByText('BBQ Sunday')).toBeInTheDocument()
@@ -137,7 +145,8 @@ describe('RecipeBrowser — saved meals in the slot picker', () => {
 // must plan a dish nobody saved can do it through THIS box instead of a second text
 // field beside it.
 describe('RecipeBrowser — planning what was typed', () => {
-  const type = (v: string) => fireEvent.change(document.querySelector('.picker-search input')!, { target: { value: v } })
+  const type = (v: string) =>
+    fireEvent.change(document.querySelector('.picker-search input')!, { target: { value: v } })
 
   it('offers no such card to a caller that did not ask for one', () => {
     renderBrowser({ onPick: () => {} })

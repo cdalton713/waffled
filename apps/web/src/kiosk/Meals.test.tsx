@@ -41,8 +41,21 @@ const ravioli = {
   isFavorite: false,
   cookedCount: 0,
 }
-const tacos = { ...ravioli, id: 'r2', title: 'Chorizo Street Tacos', emoji: '🌮', cookTimeMinutes: 25 }
-const pancakes = { ...ravioli, id: 'r3', title: 'German Pancakes', emoji: '🥞', category: 'breakfast', cookTimeMinutes: 20 }
+const tacos = {
+  ...ravioli,
+  id: 'r2',
+  title: 'Chorizo Street Tacos',
+  emoji: '🌮',
+  cookTimeMinutes: 25,
+}
+const pancakes = {
+  ...ravioli,
+  id: 'r3',
+  title: 'German Pancakes',
+  emoji: '🥞',
+  category: 'breakfast',
+  cookTimeMinutes: 20,
+}
 
 function entry(date: Date, mealType: string, recipe: typeof ravioli, cook?: unknown) {
   return {
@@ -88,7 +101,7 @@ function renderMeals() {
         <TopbarProbe />
         <Meals />
       </TopbarSlotProvider>
-    </MemoryRouter>
+    </MemoryRouter>,
   )
 }
 
@@ -103,13 +116,20 @@ describe('Meals weekly planner', () => {
       expect(screen.queryAllByRole('button', { name: /^Add /i })).toHaveLength(0)
       expect(screen.queryByRole('button', { name: /^Remove / })).toBeNull()
       expect(screen.getByText('Explore recipes')).toBeInTheDocument()
-    } finally { setViewOnly(false) }
+    } finally {
+      setViewOnly(false)
+    }
   })
 
   it('renders the day header, meal rows, planned cells and empty +', async () => {
     mockApi({
       entries: [
-        entry(wed, 'dinner', ravioli, { personId: 'p1', name: 'Kelly', avatarEmoji: '🦊', colorHex: '#E0548B' }),
+        entry(wed, 'dinner', ravioli, {
+          personId: 'p1',
+          name: 'Kelly',
+          avatarEmoji: '🦊',
+          colorHex: '#E0548B',
+        }),
         entry(sun, 'breakfast', pancakes),
       ],
       recipes: [ravioli, tacos, pancakes],
@@ -127,7 +147,7 @@ describe('Meals weekly planner', () => {
     expect(screen.getByText('Snack')).toBeInTheDocument()
 
     // cook avatar shown on the planned dinner
-    expect(screen.getByText('🦊')).toBeInTheDocument()
+    expect(screen.getByTitle('Cooking: Kelly').querySelector('svg')).toBeInTheDocument()
 
     // empty slots render as add buttons (7 days × 4 meals − 2 planned = 26)
     expect(screen.getAllByRole('button', { name: /^Add /i })).toHaveLength(26)
@@ -196,7 +216,7 @@ describe('Meals weekly planner', () => {
             <Route path="/meals/recipe/:id" element={<div>RECIPE DETAIL PAGE</div>} />
           </Routes>
         </TopbarSlotProvider>
-      </MemoryRouter>
+      </MemoryRouter>,
     )
     fireEvent.click(await screen.findByText('Ravioli & Sausage Bake'))
     expect(await screen.findByText('RECIPE DETAIL PAGE')).toBeInTheDocument()
@@ -206,15 +226,15 @@ describe('Meals weekly planner', () => {
     mockApi({ entries: [], recipes: [] })
     renderMeals()
     await screen.findByText('Dinner')
-    const calls0 = (globalThis.fetch as unknown as { mock: { calls: unknown[][] } }).mock.calls.filter((c) =>
-      String(c[0]).includes('/api/meals/week')
-    ).length
+    const calls0 = (
+      globalThis.fetch as unknown as { mock: { calls: unknown[][] } }
+    ).mock.calls.filter((c) => String(c[0]).includes('/api/meals/week')).length
 
     fireEvent.click(screen.getByRole('button', { name: /Next week/i }))
     await waitFor(() => {
-      const calls1 = (globalThis.fetch as unknown as { mock: { calls: unknown[][] } }).mock.calls.filter((c) =>
-        String(c[0]).includes('/api/meals/week')
-      ).length
+      const calls1 = (
+        globalThis.fetch as unknown as { mock: { calls: unknown[][] } }
+      ).mock.calls.filter((c) => String(c[0]).includes('/api/meals/week')).length
       expect(calls1).toBeGreaterThan(calls0)
     })
   })

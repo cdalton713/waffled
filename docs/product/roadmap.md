@@ -17,6 +17,11 @@ Legend: ✅ done · 🟡 partial / in progress · 🚧 planned · ⛔ dropped (s
 
 ## Done ✅
 
+- **Shared web controls and Lucide icons.** The web and kiosk use shadcn controls with
+  the existing layouts, palettes and five typefaces. Saved icons use Lucide symbols and
+  the editors share an icon picker. Currency fields keep text symbols. Dialogs and phone
+  navigation support Escape and return focus to the opener.
+
 - **Google Photos albums on the screensaver** — connect Google Photos (Picker API, since
   Google no longer lets apps read albums), import a pick into a Waffled album, and set the
   screensaver to mix several albums at random. Web, kiosk, iPhone and iPad. Design notes:
@@ -80,6 +85,8 @@ Legend: ✅ done · 🟡 partial / in progress · 🚧 planned · ⛔ dropped (s
 - **Kitchen theme + Kiosk mode (web/kiosk)** — a wall-tablet palette (Kitchen / Kitchen night,
   a `data-palette` axis beside light/dark) and a per-device view-only switch that hides creation
   and edit controls while keeping check-offs, timers, approvals and cook mode.
+- **Night Pantry theme (web/kiosk)** — a third palette (dark-first, with a day variant): deep
+  green-black and butter yellow, dark text on every accent fill, 44px phone targets.
 - **Typeface picker (web/kiosk)** — a per-device choice of five legibility-first typefaces
   (Classic, Clear, Hyperlegible, Friendly, Early reader) in Settings → Appearance and Display &
   Kiosk, drawn as live specimens; a `data-typeface` axis beside palette and light/dark.

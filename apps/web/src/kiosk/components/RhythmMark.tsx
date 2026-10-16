@@ -1,4 +1,5 @@
 import type { AgendaEvent } from '../../lib/api'
+import { DataIcon } from '@/components/ui/data-icon'
 
 // A scheduling-shape rhythm books an ordinary calendar event and points it back at
 // itself (events.rhythm_id), so there is no rhythm entity to draw — only a marker
@@ -12,7 +13,7 @@ export function RhythmMark({ event }: { event: AgendaEvent }) {
   if (!event.rhythmId) return null
   return (
     <span className="ev-rhythm" title="Part of a rhythm">
-      🔁{' '}
+      <DataIcon value={'🔁'} kind="rhythm" />{' '}
     </span>
   )
 }

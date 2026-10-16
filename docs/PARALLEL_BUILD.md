@@ -67,10 +67,10 @@ If you genuinely need a shared file, note it in your summary for the merge step.
 
 ## Validation (all isolated — no shared running stack needed)
 Run from your worktree before reporting done:
-- API: `cd apps/api && npx tsc --noEmit && npx vitest run test/<domain>.integration.test.ts`
+- API: `cd apps/api && pnpm exec tsc --noEmit && pnpm exec vitest run test/<domain>.integration.test.ts`
   (integration tests spin their own ephemeral Postgres via Testcontainers — fully
   parallel-safe, no port coordination)
-- Web: `cd apps/web && npx tsc --noEmit && npx vitest run && npx vite build`
+- Web: `cd apps/web && pnpm exec tsc --noEmit && pnpm exec vitest run && pnpm exec vite build`
 
 Live Playwright verification against the running stack is done by the
 orchestrator after merge (serialized).

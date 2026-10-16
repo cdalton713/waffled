@@ -3,8 +3,16 @@
 // Navigable back/forth — clamped so you can't page past the current week.
 import { useState } from 'react'
 import { fmtGoalNum } from '../../lib/api'
-import { addDaysKey, heat, HEAT_DARK_THRESHOLD, parseLocalDateKey, startOfWeekKey } from '../../lib/goalStats'
+import {
+  addDaysKey,
+  heat,
+  HEAT_DARK_THRESHOLD,
+  parseLocalDateKey,
+  startOfWeekKey,
+} from '../../lib/goalStats'
 import type { DataViewProps } from './types'
+import { Button } from '@/components/ui/button'
+import { DataIcon } from '@/components/ui/data-icon'
 
 const WEEKDAY = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -12,7 +20,14 @@ function fmtMonthDay(dateKey: string): string {
   return parseLocalDateKey(dateKey).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-export function WeekHeatmap({ goal, stats, personMap, onDayClick, headerRight, firstDay }: DataViewProps) {
+export function WeekHeatmap({
+  goal,
+  stats,
+  personMap,
+  onDayClick,
+  headerRight,
+  firstDay,
+}: DataViewProps) {
   const [weekOffset, setWeekOffset] = useState(0)
   const today = stats.today
   // Anchor to the fixed calendar week that contains today (± weekOffset weeks), cut
@@ -32,12 +47,31 @@ export function WeekHeatmap({ goal, stats, personMap, onDayClick, headerRight, f
     <div>
       <div className="gdv-head">
         <div className="gdv-month-nav">
-          <button type="button" className="gdv-month-navbtn" aria-label="Previous week" onClick={() => setWeekOffset((o) => o - 1)}>‹</button>
+          <Button
+            variant="unstyled"
+            type="button"
+            className="gdv-month-navbtn"
+            aria-label="Previous week"
+            onClick={() => setWeekOffset((o) => o - 1)}
+          >
+            <DataIcon value={'‹'} kind="general" />
+          </Button>
           <div>
             <div className="gdv-head-t">{weekOffset === 0 ? 'This week' : 'That week'}</div>
-            <div className="gdv-head-sub">{fmtMonthDay(weekKeys[0])} – {fmtMonthDay(weekEnd)} · the rhythm of your week</div>
+            <div className="gdv-head-sub">
+              {fmtMonthDay(weekKeys[0])} – {fmtMonthDay(weekEnd)} · the rhythm of your week
+            </div>
           </div>
-          <button type="button" className="gdv-month-navbtn" aria-label="Next week" disabled={!canGoForward} onClick={() => setWeekOffset((o) => Math.min(0, o + 1))}>›</button>
+          <Button
+            variant="unstyled"
+            type="button"
+            className="gdv-month-navbtn"
+            aria-label="Next week"
+            disabled={!canGoForward}
+            onClick={() => setWeekOffset((o) => Math.min(0, o + 1))}
+          >
+            <DataIcon value={'›'} kind="general" />
+          </Button>
         </div>
         {headerRight && <div className="gdv-head-grow">{headerRight}</div>}
       </div>
@@ -50,9 +84,21 @@ export function WeekHeatmap({ goal, stats, personMap, onDayClick, headerRight, f
           const dow = new Date(dateKey + 'T00:00:00').getDay()
           const memberIds = Object.keys(entry.perMember)
           return (
-            <button key={dateKey} type="button" className="gdv-week-cell-btn" onClick={() => onDayClick(dateKey)}>
-              <div className="gdv-week-cell" style={{ background: entry.total > 0 ? heat(intensity) : 'var(--panel)' }}>
-                <span className="wf-serif gdv-week-num" style={{ color: dark ? '#fff' : entry.total > 0 ? 'var(--ink)' : 'var(--ink-3)' }}>
+            <Button
+              variant="unstyled"
+              key={dateKey}
+              type="button"
+              className="gdv-week-cell-btn"
+              onClick={() => onDayClick(dateKey)}
+            >
+              <div
+                className="gdv-week-cell"
+                style={{ background: entry.total > 0 ? heat(intensity) : 'var(--panel)' }}
+              >
+                <span
+                  className="wf-serif gdv-week-num"
+                  style={{ color: dark ? '#fff' : entry.total > 0 ? 'var(--ink)' : 'var(--ink-3)' }}
+                >
                   {entry.total > 0 ? fmtGoalNum(entry.total) : '·'}
                 </span>
                 {memberIds.length > 0 && (
@@ -61,16 +107,23 @@ export function WeekHeatmap({ goal, stats, personMap, onDayClick, headerRight, f
                       <span
                         key={pid}
                         className="gdv-dot"
-                        style={{ background: dark ? 'rgba(255,255,255,.9)' : personMap.get(pid)?.colorHex ?? 'var(--ink-3)' }}
+                        style={{
+                          background: dark
+                            ? 'rgba(255,255,255,.9)'
+                            : (personMap.get(pid)?.colorHex ?? 'var(--ink-3)'),
+                        }}
                       />
                     ))}
                   </div>
                 )}
               </div>
-              <span className="gdv-week-lbl" style={{ color: isToday ? 'var(--primary)' : 'var(--ink-3)' }}>
+              <span
+                className="gdv-week-lbl"
+                style={{ color: isToday ? 'var(--primary)' : 'var(--ink-3)' }}
+              >
                 {WEEKDAY[dow]} {parseLocalDateKey(dateKey).getDate()}
               </span>
-            </button>
+            </Button>
           )
         })}
       </div>
@@ -81,7 +134,12 @@ export function WeekHeatmap({ goal, stats, personMap, onDayClick, headerRight, f
           {prevWeekTotal > 0 || weekTotal > 0 ? (
             <>
               {' '}
-              · <b style={{ color: delta >= 0 ? 'var(--success)' : 'var(--danger)' }}>{delta >= 0 ? '+' : ''}{fmtGoalNum(delta)}</b> vs last
+              ·{' '}
+              <b style={{ color: delta >= 0 ? 'var(--success)' : 'var(--danger)' }}>
+                {delta >= 0 ? '+' : ''}
+                {fmtGoalNum(delta)}
+              </b>{' '}
+              vs last
             </>
           ) : null}
         </span>

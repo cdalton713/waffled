@@ -1,11 +1,19 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
 import {
-  rhythmsApi, useRhythmAttention, useRhythms, cadenceLabel, dueLabel, periodLabel,
+  rhythmsApi,
+  useRhythmAttention,
+  useRhythms,
+  cadenceLabel,
+  dueLabel,
+  periodLabel,
   type AttentionItem,
 } from '../../lib/api'
 import { BookRhythmModal } from './BookRhythmModal'
 import '../../styles/rhythms.css'
+import { Button } from '@/components/ui/button'
+import { DataIcon } from '@/components/ui/data-icon'
+import { Card } from '@/components/ui/card'
 
 // The Today card for rhythms — the things that should keep happening. It shows only
 // what needs attention today and renders NOTHING otherwise (like Tonight with no
@@ -26,7 +34,8 @@ import '../../styles/rhythms.css'
 function sortItems(items: AttentionItem[]): AttentionItem[] {
   // Overdue first — it's the only thing here that's already slipped.
   return [...items].sort((a, b) => {
-    const rank = (i: AttentionItem) => (i.kind === 'due' && i.overdue ? 0 : i.kind === 'due' ? 1 : 2)
+    const rank = (i: AttentionItem) =>
+      i.kind === 'due' && i.overdue ? 0 : i.kind === 'due' ? 1 : 2
     const d = rank(a) - rank(b)
     if (d !== 0) return d
     return a.rhythm.title.localeCompare(b.rhythm.title)
@@ -46,7 +55,13 @@ function daysLeft(periodEnd: string): number {
 // of them mean anything. The emphasis is kept for late, or genuinely out of time.
 const verbClass = (urgent: boolean) => `btn ${urgent ? 'btn-primary' : 'btn-ghost'} rhy-act`
 
-function DueRow({ item, onChanged }: { item: Extract<AttentionItem, { kind: 'due' }>; onChanged: () => void }) {
+function DueRow({
+  item,
+  onChanged,
+}: {
+  item: Extract<AttentionItem, { kind: 'due' }>
+  onChanged: () => void
+}) {
   const [busy, setBusy] = useState(false)
   const [failed, setFailed] = useState(false)
   async function markDone() {
@@ -66,18 +81,26 @@ function DueRow({ item, onChanged }: { item: Extract<AttentionItem, { kind: 'due
   }
   return (
     <div className={`rhy-row${item.overdue ? ' overdue' : ''}`}>
-      <span className="rhy-emoji" aria-hidden>{item.rhythm.emoji ?? '🔁'}</span>
+      <span className="rhy-emoji" aria-hidden>
+        <DataIcon value={item.rhythm.emoji ?? '🔁'} kind="rhythm" />
+      </span>
       <div className="rhy-main">
         <div className="rhy-title">{item.rhythm.title}</div>
         <div className="rhy-sub tiny muted">
-          <span className={item.overdue ? 'rhy-late' : ''}>{dueLabel(item.dueAt, item.overdue)}</span>
-          {' · '}{cadenceLabel(item.rhythm.every)}
+          <span className={item.overdue ? 'rhy-late' : ''}>
+            {dueLabel(item.dueAt, item.overdue)}
+          </span>
+          {' · '}
+          {cadenceLabel(item.rhythm.every)}
         </div>
         {failed && (
-          <div className="rhy-failed" role="status">That didn't go through — try again.</div>
+          <div className="rhy-failed" role="status">
+            That didn't go through — try again.
+          </div>
         )}
       </div>
-      <button
+      <Button
+        variant="unstyled"
         type="button"
         className={verbClass(item.overdue)}
         aria-label={`I did it for ${item.rhythm.title}`}
@@ -85,7 +108,7 @@ function DueRow({ item, onChanged }: { item: Extract<AttentionItem, { kind: 'due
         onClick={markDone}
       >
         {busy ? '…' : 'I did it'}
-      </button>
+      </Button>
     </div>
   )
 }
@@ -129,7 +152,9 @@ function UnscheduledRow({
 
   return (
     <div className="rhy-row">
-      <span className="rhy-emoji" aria-hidden>{item.rhythm.emoji ?? '🗓️'}</span>
+      <span className="rhy-emoji" aria-hidden>
+        <DataIcon value={item.rhythm.emoji ?? '🗓️'} kind="rhythm" />
+      </span>
       <div className="rhy-main">
         <div className="rhy-title">{item.rhythm.title}</div>
         {/* "Not on the calendar yet" was true of every row on this card, so it
@@ -140,18 +165,21 @@ function UnscheduledRow({
           {series ? ' · the series needs putting back' : ''}
         </div>
         {failed && (
-          <div className="rhy-failed" role="status">That didn't go through — try again.</div>
+          <div className="rhy-failed" role="status">
+            That didn't go through — try again.
+          </div>
         )}
       </div>
       <div className="rhy-acts">
-        <button
+        <Button
+          variant="unstyled"
           type="button"
           className={verbClass(left <= 1)}
           aria-label={`${series ? 'Put the series back on the calendar' : 'Book a time'} for ${item.rhythm.title}`}
           onClick={onBook}
         >
           {series ? 'Put it back' : 'Book'}
-        </button>
+        </Button>
         {/* Not in the redesign's sketch of this card, and kept anyway: settling a period
             without booking is the one thing here you can't otherwise do without leaving
             Today.
@@ -162,7 +190,8 @@ function UnscheduledRow({
             just not as a calendar entry). Deliberately vague about whether the thing
             happened: a scheduling rhythm never asks that, and a word like "Done" would
             claim an answer we don't have. */}
-        <button
+        <Button
+          variant="unstyled"
           type="button"
           className="rhy-skip"
           aria-label={`Mark this period handled for ${item.rhythm.title}`}
@@ -171,7 +200,7 @@ function UnscheduledRow({
           onClick={skip}
         >
           Handled
-        </button>
+        </Button>
       </div>
     </div>
   )
@@ -183,15 +212,27 @@ function UnscheduledRow({
  * conditional, so the only way to skip that request is to not mount the component
  * that makes it, and a quarterly register is quiet most mornings.
  */
-function RhythmsBlock({ items, refetch, stale }: { items: AttentionItem[]; refetch: () => void; stale?: boolean }) {
+function RhythmsBlock({
+  items,
+  refetch,
+  stale,
+}: {
+  items: AttentionItem[]
+  refetch: () => void
+  stale?: boolean
+}) {
   const { rhythms } = useRhythms()
-  const [booking, setBooking] = useState<Extract<AttentionItem, { kind: 'unscheduled' }> | null>(null)
+  const [booking, setBooking] = useState<Extract<AttentionItem, { kind: 'unscheduled' }> | null>(
+    null,
+  )
   const total = rhythms.length
 
   return (
-    <div className="card rhy-card">
+    <Card className="card rhy-card">
       <div className="rhy-head">
-        <Link to="/rhythms" className="card-h rhy-h">Rhythms</Link>
+        <Link to="/rhythms" className="card-h rhy-h">
+          Rhythms
+        </Link>
         <span className="tiny muted rhy-n">
           {/* Said plainly rather than shown as an error: the rows below are real, they
               are just from a moment ago. Hiding them would be the bigger lie. */}
@@ -202,7 +243,11 @@ function RhythmsBlock({ items, refetch, stale }: { items: AttentionItem[]; refet
         {/* The reassuring half of the header: the other seven are handled. Held back
             until the count has actually arrived rather than flashing "All 0". */}
         <Link to="/rhythms" className="tiny muted rhy-all">
-          {total ? `All ${total}` : 'All'} →
+          {total ? `All ${total}` : 'All'}
+          <>
+            {' '}
+            <DataIcon value={'→'} kind="rhythm" />
+          </>
         </Link>
       </div>
 
@@ -211,13 +256,20 @@ function RhythmsBlock({ items, refetch, stale }: { items: AttentionItem[]; refet
           item.kind === 'due' ? (
             <DueRow key={item.rhythm.id} item={item} onChanged={refetch} />
           ) : (
-            <UnscheduledRow key={item.rhythm.id} item={item} onBook={() => setBooking(item)} onChanged={refetch} />
-          )
+            <UnscheduledRow
+              key={item.rhythm.id}
+              item={item}
+              onBook={() => setBooking(item)}
+              onChanged={refetch}
+            />
+          ),
         )}
       </div>
 
-      {booking && <BookRhythmModal item={booking} onClose={() => setBooking(null)} onBooked={refetch} />}
-    </div>
+      {booking && (
+        <BookRhythmModal item={booking} onClose={() => setBooking(null)} onBooked={refetch} />
+      )}
+    </Card>
   )
 }
 

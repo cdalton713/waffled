@@ -1,5 +1,13 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
-import { mealBuilderApi, mealsApi, personsApi, planningMealsApi, useRecipes, type Meal, type Person } from '../../../lib/api'
+import {
+  mealBuilderApi,
+  mealsApi,
+  personsApi,
+  planningMealsApi,
+  useRecipes,
+  type Meal,
+  type Person,
+} from '../../../lib/api'
 import { groceryApi, useGroceryBoard, type GroceryBoardItem } from '../../../lib/api/grocery'
 import { isEatingOut } from '../../components/MealsColumn'
 import { PlanWeek } from '../../components/PlanWeek'
@@ -18,6 +26,11 @@ import type {
 import type { PlanningStepModule, StepBodyProps } from '../registry'
 import '../../../styles/grocery.css'
 import '../../../styles/planning-meals.css'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { DataIcon } from '@/components/ui/data-icon'
+import { Modal } from '@/components/ui/modal'
 
 // Step 7 · Meals — the same seven columns as Calendar, each night showing its events above the
 // dish. The plan already in the app is shown as-is; "Plan the rest for me" fills only the
@@ -55,11 +68,28 @@ interface StepState {
   planner: boolean
 }
 
-const EMPTY: StepState = { key: '', view: null, loading: true, error: null, busy: false, filled: [], autoMarks: [], kept: [], groceryAdded: null, people: null, planner: false }
+const EMPTY: StepState = {
+  key: '',
+  view: null,
+  loading: true,
+  error: null,
+  busy: false,
+  filled: [],
+  autoMarks: [],
+  kept: [],
+  groceryAdded: null,
+  people: null,
+  planner: false,
+}
 
 let state: StepState = EMPTY
 const listeners = new Set<() => void>()
-const subscribe = (l: () => void) => { listeners.add(l); return () => { listeners.delete(l) } }
+const subscribe = (l: () => void) => {
+  listeners.add(l)
+  return () => {
+    listeners.delete(l)
+  }
+}
 const snapshot = () => state
 function set(patch: Partial<StepState>) {
   state = { ...state, ...patch }
@@ -134,7 +164,7 @@ function GroceryAdd({ weekStart, disabled }: { weekStart: string; disabled: bool
         })
       }}
     >
-      <input
+      <Input
         ref={inputRef}
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
@@ -142,7 +172,9 @@ function GroceryAdd({ weekStart, disabled }: { weekStart: string; disabled: bool
         aria-label="Add to groceries"
         disabled={disabled}
       />
-      <button type="submit" className="btn btn-primary" disabled={disabled || !draft.trim()}>Add item</button>
+      <Button variant="default" type="submit" disabled={disabled || !draft.trim()}>
+        Add item
+      </Button>
     </form>
   )
 }
@@ -190,23 +222,41 @@ function GroceryListModal({ weekStart, onClose }: { weekStart: string; onClose: 
   }
 
   const row = (item: GroceryBoardItem) => (
-    <button
+    <Button
+      variant="unstyled"
       key={item.id}
       type="button"
       className={`gitem wpm-gitem${item.checked ? ' done' : ''}`}
       aria-label={item.checked ? `Put ${item.name} back` : `Check off ${item.name}`}
       onClick={() => void toggle(item)}
     >
-      <span className="gck" aria-hidden>{item.checked ? CHECK : null}</span>
-      <span className="gitem-body"><span className="gnm">{item.name}</span></span>
+      <span className="gck" aria-hidden>
+        {item.checked ? CHECK : null}
+      </span>
+      <span className="gitem-body">
+        <span className="gnm">{item.name}</span>
+      </span>
       {item.quantity && <span className="gqty">{item.quantity}</span>}
-    </button>
+    </Button>
   )
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-card wpm-modal" role="dialog" aria-label="This week’s groceries" onClick={(e) => e.stopPropagation()}>
-        <button type="button" className="modal-close" onClick={onClose} aria-label="Close">×</button>
+    <Modal className="modal-overlay" onClose={onClose}>
+      <div
+        className="modal-card wpm-modal"
+        role="dialog"
+        aria-label="This week’s groceries"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <Button
+          variant="unstyled"
+          type="button"
+          className="modal-close"
+          onClick={onClose}
+          aria-label="Close"
+        >
+          <DataIcon value={'×'} kind="meal" />
+        </Button>
         <div className="wpm-modal-t wf-serif">This week’s groceries</div>
         <div className="wpm-modal-s">
           {loading && !board
@@ -215,22 +265,33 @@ function GroceryListModal({ weekStart, onClose }: { weekStart: string; onClose: 
               ? "Couldn't read the list — try again."
               : `${toBuy.length} to buy · aisle order${inCart.length ? ` · ${inCart.length} in the cart` : ''}`}
         </div>
-        {failed && <p className="wpm-gro-err" role="alert">{failed}</p>}
+        {failed && (
+          <p className="wpm-gro-err" role="alert">
+            {failed}
+          </p>
+        )}
         <div className="wpm-gro-rows">
           {toBuy.map(row)}
           {inCart.length > 0 && <div className="wpm-modal-h wpm-gro-cart">In the cart</div>}
           {inCart.map(row)}
         </div>
       </div>
-    </div>
+    </Modal>
   )
 }
 
-async function setShopper(weekStart: string, t: { dueOn: string | null; personId: string | null; dueTime: string | null }, refresh: () => void) {
+async function setShopper(
+  weekStart: string,
+  t: { dueOn: string | null; personId: string | null; dueTime: string | null },
+  refresh: () => void,
+) {
   if (state.busy) return
   set({ busy: true, error: null })
   try {
-    const r = await planningMealsApi.setShopper(weekStart, { ...t, choreId: state.view?.shopping?.choreId ?? null })
+    const r = await planningMealsApi.setShopper(weekStart, {
+      ...t,
+      choreId: state.view?.shopping?.choreId ?? null,
+    })
     set({ view: r.view, busy: false })
   } catch {
     set({ busy: false, error: "That didn't take — try again." })
@@ -250,7 +311,10 @@ function useMealsStep(p: StepBodyProps, primary = false): StepState {
   const seed = useMemo(() => crumbDates(p.step.data), [p.step.data])
   useEffect(() => {
     if (state.key !== key) void load(key, p.weekStart, seed)
-    else if (primary && !state.loading) void reread(p.weekStart).catch(() => { /* the columns simply stay as they were */ })
+    else if (primary && !state.loading)
+      void reread(p.weekStart).catch(() => {
+        /* the columns simply stay as they were */
+      })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key])
   return useSyncExternalStore(subscribe, snapshot)
@@ -278,7 +342,9 @@ async function applyPlan(weekStart: string, cards: PlanCard[], refresh: () => vo
     set({
       view: r.view,
       busy: false,
-      filled: [...state.filled.filter((f) => !fresh.has(f.date)), ...r.filled].sort((a, b) => a.date.localeCompare(b.date)),
+      filled: [...state.filled.filter((f) => !fresh.has(f.date)), ...r.filled].sort((a, b) =>
+        a.date.localeCompare(b.date),
+      ),
       autoMarks: state.autoMarks.filter((d) => !fresh.has(d)),
       groceryAdded: r.filled.length && added !== null && added > 0 ? added : null,
     })
@@ -309,7 +375,12 @@ async function runUndo(weekStart: string, refresh: () => void) {
 
 // ── A night, decided by hand ─────────────────────────────────────────────────────
 
-async function planNight(weekStart: string, date: string, slot: { recipeId?: string | null; title?: string | null }, refresh: () => void) {
+async function planNight(
+  weekStart: string,
+  date: string,
+  slot: { recipeId?: string | null; title?: string | null },
+  refresh: () => void,
+) {
   if (state.busy) {
     set({ error: "Something else was still saving — that night wasn't planned. Try again." })
     return
@@ -370,15 +441,21 @@ async function clearNight(weekStart: string, date: string, refresh: () => void) 
 // west of Greenwich. Matches PlanWeek.tsx.
 const at = (date: string) => new Date(`${date}T12:00:00`)
 const dow = (date: string) => at(date).toLocaleDateString(undefined, { weekday: 'short' })
-const dayNum = (date: string) => at(date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+const dayNum = (date: string) =>
+  at(date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
 const clock = (e: PlanningNightEvent) =>
-  e.allDay ? 'All day' : new Date(e.startsAt).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
+  e.allDay
+    ? 'All day'
+    : new Date(e.startsAt).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
 
 function attribution(d: PlanningNightDinner, auto: boolean, out: boolean): ReactNode {
   if (d.cookName) {
     return (
       <>
-        <span aria-hidden>{d.cookAvatar ?? '👤'}</span> {d.cookName}
+        <span aria-hidden>
+          <DataIcon value={d.cookAvatar ?? '👤'} kind="person" />
+        </span>{' '}
+        {d.cookName}
       </>
     )
   }
@@ -409,7 +486,7 @@ function Body(p: StepBodyProps) {
   const [groceryList, setGroceryList] = useState(false)
   const autoDates = useMemo(
     () => new Set([...s.filled.map((f) => f.date), ...s.autoMarks]),
-    [s.filled, s.autoMarks]
+    [s.filled, s.autoMarks],
   )
 
   useEffect(() => {
@@ -418,7 +495,12 @@ function Body(p: StepBodyProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoDates])
 
-  useEffect(() => { setEditing(null); setShopping(false); setGroceryList(false); if (state.planner) set({ planner: false }) }, [s.key])
+  useEffect(() => {
+    setEditing(null)
+    setShopping(false)
+    setGroceryList(false)
+    if (state.planner) set({ planner: false })
+  }, [s.key])
 
   // The nights the planner may touch. Noon-local, like every date on this screen: a bare
   // YYYY-MM-DD parses as UTC and PlanWeek reads the day back with local getters.
@@ -427,19 +509,27 @@ function Body(p: StepBodyProps) {
   if (s.loading) return <div className="wpm-msg">Reading the week…</div>
   if (!s.view) return <div className="wpm-msg">{s.error ?? "Couldn't read this week's meals."}</div>
 
-  const night = editing ? s.view.nights.find((n) => n.date === editing) ?? null : null
+  const night = editing ? (s.view.nights.find((n) => n.date === editing) ?? null) : null
 
   return (
     <div className="wpm">
       <div className="wpm-week">
         {s.view.nights.map((n) => (
-          <NightColumn key={n.date} night={n} auto={autoDates.has(n.date)} disabled={p.busy || s.busy} onOpen={() => setEditing(n.date)} />
+          <NightColumn
+            key={n.date}
+            night={n}
+            auto={autoDates.has(n.date)}
+            disabled={p.busy || s.busy}
+            onOpen={() => setEditing(n.date)}
+          />
         ))}
       </div>
 
       {s.view.groceries && (
         <div className="wpm-gro">
-          <span className="wpm-gro-i" aria-hidden>🛒</span>
+          <span className="wpm-gro-i" aria-hidden>
+            <DataIcon value={'🛒'} kind="meal" />
+          </span>
           <div className="wpm-gro-m">
             <b>Groceries</b>
             <span className="wpm-gro-s">
@@ -448,21 +538,27 @@ function Body(p: StepBodyProps) {
                 : "built from what's planned so far · staples skipped"}
             </span>
           </div>
-          <button type="button" className="wpm-gro-pill wpm-gro-open" onClick={() => setGroceryList(true)}>
+          <Button
+            variant="unstyled"
+            type="button"
+            className="wpm-gro-pill wpm-gro-open"
+            onClick={() => setGroceryList(true)}
+          >
             {s.view.groceries.items - s.view.groceries.checked} to buy · aisle order
             {s.view.groceries.checked > 0 ? ` · ${s.view.groceries.checked} done` : ''}
-          </button>
+          </Button>
           {/* The trip is a REAL one-off chore on the Tasks board; with the chores module off
               there is nowhere for it to live, so the control goes away rather than sit dead. */}
           {s.view.choresOn && (
-            <button
+            <Button
+              variant="unstyled"
               type="button"
               className={`wpm-gro-pill wpm-shop${s.view.shopping ? '' : ' open'}`}
               disabled={p.busy || s.busy}
               onClick={() => setShopping(true)}
             >
               {tripLabel(s.view.shopping)}
-            </button>
+            </Button>
           )}
         </div>
       )}
@@ -476,16 +572,21 @@ function Body(p: StepBodyProps) {
           people={s.people}
           busy={s.busy}
           onClose={() => setShopping(false)}
-          onSave={(t) => { setShopping(false); void setShopper(p.weekStart, t, p.refresh) }}
+          onSave={(t) => {
+            setShopping(false)
+            void setShopper(p.weekStart, t, p.refresh)
+          }}
         />
       )}
 
-      {groceryList && <GroceryListModal weekStart={p.weekStart} onClose={() => setGroceryList(false)} />}
+      {groceryList && (
+        <GroceryListModal weekStart={p.weekStart} onClose={() => setGroceryList(false)} />
+      )}
 
       {s.kept.length > 0 && (
         <div className="wpm-note">
-          {countWord(s.kept.length)} {s.kept.length === 1 ? 'night was' : 'nights were'} left alone — {s.kept.map(dow).join(', ')}{' '}
-          {s.kept.length === 1 ? 'has' : 'have'} been decided since.
+          {countWord(s.kept.length)} {s.kept.length === 1 ? 'night was' : 'nights were'} left alone
+          — {s.kept.map(dow).join(', ')} {s.kept.length === 1 ? 'has' : 'have'} been decided since.
         </div>
       )}
       {s.error && <div className="wpm-note wpm-note-bad">{s.error}</div>}
@@ -493,11 +594,20 @@ function Body(p: StepBodyProps) {
       {s.planner && (
         <div className="wpm-planner" role="dialog" aria-label="Plan the rest of the week">
           <div className="wpm-planner-head">
-            <button type="button" className="pill wpm-planner-back" onClick={() => set({ planner: false })}>
-              ‹ Back to the week
-            </button>
+            <Button
+              variant="unstyled"
+              type="button"
+              className="pill wpm-planner-back"
+              onClick={() => set({ planner: false })}
+            >
+              <>
+                <DataIcon value={'‹'} kind="meal" />
+                {' Back to the week'}
+              </>
+            </Button>
             <span className="wpm-planner-n">
-              Planning the {countWord(emptyDays.length)} empty {emptyDays.length === 1 ? 'night' : 'nights'} — the rest stay as they are
+              Planning the {countWord(emptyDays.length)} empty{' '}
+              {emptyDays.length === 1 ? 'night' : 'nights'} — the rest stay as they are
             </span>
           </div>
           <PlanWeek
@@ -521,9 +631,18 @@ function Body(p: StepBodyProps) {
           onClose={() => setEditing(null)}
           // Close FIRST, write second: `planNight` refuses to run while another write is in
           // flight, and a picker still on screen invites exactly that second tap.
-          onPick={(slot) => { setEditing(null); void planNight(p.weekStart, night.date, slot, p.refresh) }}
-          onPickMeal={(meal) => { setEditing(null); void planPlate(p.weekStart, night.date, meal.id, p.refresh) }}
-          onClear={() => { setEditing(null); void clearNight(p.weekStart, night.date, p.refresh) }}
+          onPick={(slot) => {
+            setEditing(null)
+            void planNight(p.weekStart, night.date, slot, p.refresh)
+          }}
+          onPickMeal={(meal) => {
+            setEditing(null)
+            void planPlate(p.weekStart, night.date, meal.id, p.refresh)
+          }}
+          onClear={() => {
+            setEditing(null)
+            void clearNight(p.weekStart, night.date, p.refresh)
+          }}
         />
       )}
     </div>
@@ -533,7 +652,12 @@ function Body(p: StepBodyProps) {
 // Four states, each legible at a glance across seven columns: planned, empty, auto-filled,
 // eating out. `isEatingOut` is the classifier the Meals screen already uses on recipe-less
 // placeholder rows — the same night must not read differently on the two screens.
-function NightColumn({ night, auto, disabled, onOpen }: {
+function NightColumn({
+  night,
+  auto,
+  disabled,
+  onOpen,
+}: {
   night: PlanningMealsNight
   auto: boolean
   disabled: boolean
@@ -556,7 +680,11 @@ function NightColumn({ night, auto, disabled, onOpen }: {
       <ul className="wpm-events">
         {night.events.map((e) => (
           <li key={e.id} className="wpm-ev">
-            <i className="wpm-ev-dot" style={e.personColor ? { background: e.personColor } : undefined} aria-hidden />
+            <i
+              className="wpm-ev-dot"
+              style={e.personColor ? { background: e.personColor } : undefined}
+              aria-hidden
+            />
             <span className="wpm-ev-t">{e.title}</span>
             <span className="wpm-ev-c">{clock(e)}</span>
           </li>
@@ -564,7 +692,8 @@ function NightColumn({ night, auto, disabled, onOpen }: {
         {!night.events.length && <li className="wpm-ev wpm-ev-none">Nothing on</li>}
       </ul>
 
-      <button
+      <Button
+        variant="unstyled"
         type="button"
         className={`wpm-dish${cls}`}
         disabled={disabled}
@@ -573,18 +702,29 @@ function NightColumn({ night, auto, disabled, onOpen }: {
       >
         {d ? (
           <>
-            <span className="wpm-dish-e" aria-hidden>{d.emoji ?? (out ? '🥡' : '🍽️')}</span>
+            <span className="wpm-dish-e" aria-hidden>
+              <DataIcon value={d.emoji ?? (out ? '🥡' : '🍽️')} kind="meal" />
+            </span>
             <span className="wpm-dish-t">{d.title}</span>
             {attrib && <span className="wpm-dish-c">{attrib}</span>}
-            {auto && <span className="wpm-auto">✨ auto</span>}
+            {auto && (
+              <span className="wpm-auto">
+                <>
+                  <DataIcon value={'✨'} kind="meal" />
+                  {' auto'}
+                </>
+              </span>
+            )}
           </>
         ) : (
           <>
-            <span className="wpm-dish-plus" aria-hidden>+</span>
+            <span className="wpm-dish-plus" aria-hidden>
+              +
+            </span>
             <span className="wpm-dish-t">Nothing planned</span>
           </>
         )}
-      </button>
+      </Button>
     </div>
   )
 }
@@ -593,7 +733,13 @@ function NightColumn({ night, auto, disabled, onOpen }: {
 // module state behind `if (recipes) return`: an EMPTY library is a truthy `[]`, so a household
 // that opened the picker before adding its first recipe would be told "no recipes yet" for the
 // rest of the page's life.
-function NightPicker({ night, onClose, onPick, onPickMeal, onClear }: {
+function NightPicker({
+  night,
+  onClose,
+  onPick,
+  onPickMeal,
+  onClear,
+}: {
   night: PlanningMealsNight
   onClose: () => void
   onPick: (slot: { recipeId?: string | null; title?: string | null }) => void
@@ -605,8 +751,20 @@ function NightPicker({ night, onClose, onPick, onPickMeal, onClear }: {
   return (
     <div className="wpm-picker" role="dialog" aria-label={`Plan ${dow(night.date)} dinner`}>
       <div className="wpm-picker-head">
-        <button type="button" className="pill wpm-planner-back" onClick={onClose}>‹ Back to the week</button>
-        <span className="wpm-picker-t wf-serif">{dow(night.date)} dinner · {dayNum(night.date)}</span>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="pill wpm-planner-back"
+          onClick={onClose}
+        >
+          <>
+            <DataIcon value={'‹'} kind="meal" />
+            {' Back to the week'}
+          </>
+        </Button>
+        <span className="wpm-picker-t wf-serif">
+          {dow(night.date)} dinner · {dayNum(night.date)}
+        </span>
         <span className="wpm-picker-n">
           {error
             ? "Couldn't read your recipes — reload and try again."
@@ -615,7 +773,9 @@ function NightPicker({ night, onClose, onPick, onPickMeal, onClear }: {
               : 'Nothing planned yet'}
         </span>
         {night.dinner && (
-          <button type="button" className="btn btn-ghost wpm-picker-clear" onClick={onClear}>Clear this night</button>
+          <Button variant="ghost" type="button" className="wpm-picker-clear" onClick={onClear}>
+            Clear this night
+          </Button>
         )}
       </div>
       <RecipeBrowser
@@ -639,7 +799,15 @@ function NightPicker({ night, onClose, onPick, onPickMeal, onClear }: {
   )
 }
 
-function ShopperModal({ weekStart, nights, trip, people, busy, onClose, onSave }: {
+function ShopperModal({
+  weekStart,
+  nights,
+  trip,
+  people,
+  busy,
+  onClose,
+  onSave,
+}: {
   weekStart: string
   nights: PlanningMealsNight[]
   trip: PlanningShoppingTrip | null
@@ -649,83 +817,118 @@ function ShopperModal({ weekStart, nights, trip, people, busy, onClose, onSave }
   onSave: (t: { dueOn: string | null; personId: string | null; dueTime: string | null }) => void
 }) {
   const [personId, setPersonId] = useState<string | null>(trip?.personId ?? null)
-  const [dueOn, setDueOn] = useState<string>(trip?.dueOn ?? nights[nights.length - 1]?.date ?? weekStart)
+  const [dueOn, setDueOn] = useState<string>(
+    trip?.dueOn ?? nights[nights.length - 1]?.date ?? weekStart,
+  )
   const [dueTime, setDueTime] = useState<string>(trip?.dueTime ?? '')
 
   useEffect(() => {
     if (people) return
     let alive = true
-    personsApi.persons().then((r) => { if (alive) set({ people: r.persons }) }).catch(() => { if (alive) set({ people: [] }) })
-    return () => { alive = false }
+    personsApi
+      .persons()
+      .then((r) => {
+        if (alive) set({ people: r.persons })
+      })
+      .catch(() => {
+        if (alive) set({ people: [] })
+      })
+    return () => {
+      alive = false
+    }
   }, [people])
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <Modal className="modal-overlay" onClose={onClose}>
       <div className="modal-card wpm-modal" onClick={(e) => e.stopPropagation()}>
-        <button type="button" className="modal-close" onClick={onClose} aria-label="Close">×</button>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="modal-close"
+          onClick={onClose}
+          aria-label="Close"
+        >
+          <DataIcon value={'×'} kind="meal" />
+        </Button>
         <div className="wpm-modal-t wf-serif">The shopping trip</div>
         <div className="wpm-modal-s">
-          It lands on the Tasks board as a real assignment — leaving it up for grabs is a real answer.
+          It lands on the Tasks board as a real assignment — leaving it up for grabs is a real
+          answer.
         </div>
 
         <div className="wpm-modal-h">Who's going</div>
         <div className="wpm-picks">
-          <button
+          <Button
+            variant="unstyled"
             type="button"
             className={`wpm-pick${personId === null ? ' on' : ''}`}
             onClick={() => setPersonId(null)}
           >
             Up for grabs
-          </button>
+          </Button>
           {people === null && <div className="wpm-msg">Loading…</div>}
           {people?.map((pp) => (
-            <button
+            <Button
+              variant="unstyled"
               key={pp.id}
               type="button"
               className={`wpm-pick${personId === pp.id ? ' on' : ''}`}
               onClick={() => setPersonId(pp.id)}
             >
-              <span aria-hidden>{pp.avatarEmoji ?? '\u{1F464}'}</span> {pp.name}
-            </button>
+              <span aria-hidden>
+                <DataIcon value={pp.avatarEmoji ?? '\u{1F464}'} kind="person" />
+              </span>{' '}
+              {pp.name}
+            </Button>
           ))}
         </div>
 
         <div className="wpm-modal-h">Which day</div>
         <div className="wpm-picks">
           {nights.map((n) => (
-            <button
+            <Button
+              variant="unstyled"
               key={n.date}
               type="button"
               className={`wpm-pick${dueOn === n.date ? ' on' : ''}`}
               onClick={() => setDueOn(n.date)}
             >
               {dow(n.date)}
-            </button>
+            </Button>
           ))}
         </div>
 
-        <label className="field">
+        <Label className="field">
           <span>What time (optional)</span>
-          <input type="time" value={dueTime} onChange={(e) => setDueTime(e.target.value)} />
-        </label>
+          <Input type="time" value={dueTime} onChange={(e) => setDueTime(e.target.value)} />
+        </Label>
 
         <div className="wpm-modal-f">
           {trip && (
-            <button type="button" className="btn btn-ghost" disabled={busy} onClick={() => onSave({ dueOn: null, personId: null, dueTime: null })}>
+            <Button
+              variant="ghost"
+              type="button"
+              disabled={busy}
+              onClick={() => onSave({ dueOn: null, personId: null, dueTime: null })}
+            >
               No trip this week
-            </button>
+            </Button>
           )}
           <div className="wpm-modal-sp" />
-          <button type="button" className="btn btn-ghost" onClick={onClose}>Cancel</button>
-          <button
-            type="button" className="btn btn-primary" disabled={busy}
+          <Button variant="ghost" type="button" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            variant="default"
+            type="button"
+            disabled={busy}
             onClick={() => onSave({ dueOn, personId, dueTime: dueTime || null })}
           >
             {trip ? 'Update the trip' : 'Add it to Tasks'}
-          </button>
+          </Button>
         </div>
       </div>
-    </div>
+    </Modal>
   )
 }
 
@@ -738,23 +941,37 @@ function FooterExtra(p: StepBodyProps) {
 
   if (s.filled.length) {
     return (
-      <button type="button" className="btn btn-ghost wpm-act" disabled={disabled} onClick={() => void runUndo(p.weekStart, p.refresh)}>
+      <Button
+        variant="ghost"
+        type="button"
+        className="wpm-act"
+        disabled={disabled}
+        onClick={() => void runUndo(p.weekStart, p.refresh)}
+      >
         Undo the {countWord(s.filled.length)}
-      </button>
+      </Button>
     )
   }
 
   const empties = s.view.emptyDates.length
   return (
-    <button
+    <Button
+      variant="ai"
       type="button"
-      className="btn btn-ai wpm-act"
+      className="wpm-act"
       disabled={disabled || !empties}
-      title={empties ? `Fills the ${countWord(empties)} empty ${empties === 1 ? 'night' : 'nights'}` : 'Every night is planned'}
+      title={
+        empties
+          ? `Fills the ${countWord(empties)} empty ${empties === 1 ? 'night' : 'nights'}`
+          : 'Every night is planned'
+      }
       onClick={() => set({ planner: true })}
     >
-      <span aria-hidden>✨</span> Plan the rest for me
-    </button>
+      <span aria-hidden>
+        <DataIcon value={'✨'} kind="meal" />
+      </span>{' '}
+      Plan the rest for me
+    </Button>
   )
 }
 

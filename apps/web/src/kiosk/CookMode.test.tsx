@@ -56,7 +56,7 @@ describe('CookMode — on-the-spot timer', () => {
     renderCook()
     await screen.findByText('Chop the onions')
     // No built-in Start button on this step.
-    expect(screen.queryByRole('button', { name: /^⏱ Start/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^Start/ })).toBeNull()
     // The add-timer control is present.
     expect(screen.getByRole('button', { name: /add timer/i })).toBeTruthy()
   })
@@ -66,7 +66,7 @@ describe('CookMode — on-the-spot timer', () => {
     renderCook()
     await screen.findByText('Simmer the sauce')
     // Built-in start button shows the formatted duration; no add-timer affordance.
-    expect(screen.getByRole('button', { name: /⏱ Start 10:00/ })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /Start 10:00/ })).toBeTruthy()
     expect(screen.queryByRole('button', { name: /add timer/i })).toBeNull()
   })
 

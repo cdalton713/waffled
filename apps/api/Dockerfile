@@ -5,19 +5,20 @@
 # ---- builder ----
 FROM node:20-alpine AS builder
 WORKDIR /app
-COPY package.json package-lock.json* ./
-RUN npm ci || npm install
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN npm install --global "$(node -p "require('./package.json').packageManager")" && \
+    pnpm install --frozen-lockfile
 COPY tsconfig.json esbuild.config.mjs ./
 COPY src ./src
 COPY scripts ./scripts
 COPY migrations ./migrations
-RUN npm run build
+RUN pnpm run build
 # Stage ONLY the @opentelemetry/* deps (+ their transitive deps) in an isolated
 # node_modules so the runtime image gets them and nothing else. Versions come from
 # the app's package.json.
 RUN mkdir -p /app/otel-deps && cd /app/otel-deps && \
     node -e "const p=require('/app/package.json');const d=Object.fromEntries(Object.entries(p.dependencies).filter(([k])=>k.startsWith('@opentelemetry/')));require('fs').writeFileSync('package.json',JSON.stringify({name:'otel-deps',version:'1.0.0',dependencies:d}))" && \
-    npm install --omit=dev --no-audit --no-fund
+    pnpm install --prod --no-frozen-lockfile --ignore-workspace
 
 # ---- runtime ----
 FROM node:20-alpine AS runtime

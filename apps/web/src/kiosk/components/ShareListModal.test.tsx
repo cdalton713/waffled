@@ -66,7 +66,7 @@ describe('ShareListModal', () => {
     render(<ShareListModal items={items} onClose={() => {}} />)
     fireEvent.click(screen.getByRole('button', { name: 'Copy list' }))
     expect(writeText).toHaveBeenCalledWith(EXPECTED_TEXT)
-    expect(await screen.findByText('Copied ✓')).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Copied' })).toBeInTheDocument()
   })
 
   it('offers navigator.share when the browser supports it', async () => {
@@ -74,7 +74,9 @@ describe('ShareListModal', () => {
     const share = stubShare()
     render(<ShareListModal items={items} onClose={() => {}} />)
     fireEvent.click(screen.getByRole('button', { name: 'Share…' }))
-    await waitFor(() => expect(share).toHaveBeenCalledWith({ title: 'Grocery list', text: EXPECTED_TEXT }))
+    await waitFor(() =>
+      expect(share).toHaveBeenCalledWith({ title: 'Grocery list', text: EXPECTED_TEXT }),
+    )
   })
 
   it('hides the share button when navigator.share is unavailable', () => {
@@ -105,7 +107,7 @@ describe('ShareListModal', () => {
 
     expect(QRCode.toDataURL).toHaveBeenCalledWith(
       EXPECTED_TEXT,
-      expect.objectContaining({ width: 640, margin: 4, errorCorrectionLevel: 'L' })
+      expect.objectContaining({ width: 640, margin: 4, errorCorrectionLevel: 'L' }),
     )
     const img = await screen.findByAltText('Scan to grab the list')
     expect(img).toHaveAttribute('width', '320')
@@ -113,7 +115,9 @@ describe('ShareListModal', () => {
 
   it('says the list is too long to scan instead of drawing an unreadable code', async () => {
     // 129 modules at 320px is 2.48 px/module — the real 45-item case.
-    vi.mocked(QRCode.create).mockReturnValueOnce({ modules: { size: 129 } } as unknown as ReturnType<typeof QRCode.create>)
+    vi.mocked(QRCode.create).mockReturnValueOnce({
+      modules: { size: 129 },
+    } as unknown as ReturnType<typeof QRCode.create>)
     render(<ShareListModal items={items} onClose={() => {}} />)
 
     expect(await screen.findByText(/too long to scan/i)).toBeInTheDocument()
@@ -124,7 +128,9 @@ describe('ShareListModal', () => {
   })
 
   it('still shows the list text when the QR is skipped', () => {
-    vi.mocked(QRCode.create).mockReturnValueOnce({ modules: { size: 129 } } as unknown as ReturnType<typeof QRCode.create>)
+    vi.mocked(QRCode.create).mockReturnValueOnce({
+      modules: { size: 129 },
+    } as unknown as ReturnType<typeof QRCode.create>)
     render(<ShareListModal items={items} onClose={() => {}} />)
     const block = document.querySelector('.share-list-text') as HTMLElement
     expect(block.textContent).toBe(EXPECTED_TEXT)
@@ -150,7 +156,7 @@ describe('ShareListModal', () => {
       render(<ShareListModal items={items} onClose={() => {}} />)
       fireEvent.click(screen.getByRole('button', { name: 'Copy as Markdown' }))
       expect(writeText).toHaveBeenCalledWith(EXPECTED_MD)
-      expect(await screen.findByText('Copied ✓')).toBeInTheDocument()
+      expect(await screen.findByRole('button', { name: 'Copied' })).toBeInTheDocument()
     })
 
     it('leaves the plain-text copy and the QR payload untouched', async () => {

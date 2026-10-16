@@ -1,0 +1,217 @@
+@reference './ui.css';
+/* ============================================================
+   NIGHT PANTRY palette — deep green-black with a butter-yellow accent,
+   built dark-first with a warm oat day variant. Selected per device in
+   Settings → Appearance or Display & Kiosk; theme.ts stamps
+   <html data-palette="night-pantry">. The light block is the base and the
+   [data-theme="dark"] block overrides it, as kitchen.css does.
+
+   Yellow needs dark text, so --on-accent is dark in both modes and every
+   fill that carries it (success, danger, info, ai, person-1/3) is a mid-tone.
+   night-pantry.test.ts checks each pair against WCAG AA.
+   ============================================================ */
+:root[data-palette='night-pantry'] {
+  --bg: #f4f1e8;
+  --rail: #eae6da;
+  --panel: #eae6da;
+  --card: #ffffff;
+  --card-2: #f2efe6;
+
+  --ink: #13201c;
+  --ink-2: #4e5e56;
+  --ink-3: #6a786f;
+
+  --hair: rgba(19, 32, 28, 0.1);
+  --hair-2: rgba(19, 32, 28, 0.05);
+  --line: rgba(19, 32, 28, 0.2);
+
+  --primary: #f2c14e;
+  --primary-d: #7a5a0e;
+  --primary-t: #fbebc2;
+  --on-accent: #1a1408;
+  --gold: #e0a21b;
+  --gold-t: #fdf1cc;
+  --gold-d: #7a5a0e;
+  --ai: #8c74e8;
+  --ai-d: #5a35b0;
+  --ai-t: #eee7fc;
+
+  --success: #3e9a68;
+  --success-t: #dcede3;
+  --success-tx: #1f6a44;
+  --danger: #e0604e;
+  --danger-t: #f9e1dd;
+  --danger-tx: #a8301f;
+  --warn: #a85f12;
+  --warn-t: #fbebd6;
+  --info: #4d8bea;
+  --info-t: #e3edfd;
+  --info-tx: #1559b8;
+
+  --person-1: #4d8bea;
+  --person-1-t: #e3edfd;
+  --person-1-tx: #1559b8;
+  --person-2: #c9457c;
+  --person-2-t: #fbe6ef;
+  --person-2-tx: #b22f66;
+  --person-3: #3e9a68;
+  --person-3-t: #e1f3e9;
+  --person-3-tx: #167a4a;
+  --person-4: #7a52d6;
+  --person-4-t: #eee7fc;
+  --person-4-tx: #6a3fc4;
+
+  --control-track: #b9b6ac;
+  --control-line: #7f8581;
+
+  --r-xs: 10px;
+  --r-sm: 14px;
+  --r-md: 22px;
+  --r-lg: 28px;
+  --r-xl: 36px;
+  --sh-1: 0 1px 2px rgba(19, 32, 28, 0.05);
+  --sh-2: 0 2px 8px rgba(19, 32, 28, 0.06), 0 8px 24px rgba(19, 32, 28, 0.05);
+
+  --font-sans: 'Atkinson Hyperlegible', system-ui, sans-serif;
+  --font-serif: 'Bricolage Grotesque Variable', 'Bricolage Grotesque', system-ui, sans-serif;
+  --sans: var(--font-sans);
+  --serif: var(--font-serif);
+
+  --rail-ink: #4e5e56;
+  --rail-on: #f2c14e;
+  --rail-on-ink: #1a1408;
+}
+
+:root[data-palette='night-pantry'][data-theme='dark'] {
+  --bg: #0e1916;
+  --rail: #0a1311;
+  --panel: #1c2d28;
+  --card: #15241f;
+  --card-2: #1c2d28;
+
+  --ink: #eef2ea;
+  --ink-2: #a8b7ae;
+  --ink-3: #74867c;
+
+  --hair: rgba(238, 242, 234, 0.1);
+  --hair-2: rgba(238, 242, 234, 0.05);
+  --line: rgba(238, 242, 234, 0.2);
+
+  --primary-d: #f7d684;
+  --primary-t: rgba(242, 193, 78, 0.16);
+  --gold: #f2c14e;
+  --gold-t: rgba(242, 193, 78, 0.16);
+  --gold-d: #f7d684;
+  --ai: #9c86f0;
+  --ai-d: #c7b4fa;
+  --ai-t: rgba(156, 134, 240, 0.2);
+
+  --success: #5fbf8f;
+  --success-t: rgba(125, 211, 166, 0.16);
+  --success-tx: #7dd3a6;
+  --danger: #ff8a7a;
+  --danger-t: rgba(255, 138, 122, 0.16);
+  --danger-tx: #ff8a7a;
+  --warn: #f5a65b;
+  --warn-t: rgba(245, 166, 91, 0.16);
+  --info: #8db8ff;
+  --info-t: rgba(141, 184, 255, 0.16);
+  --info-tx: #8db8ff;
+
+  --person-1: #8db8ff;
+  --person-1-t: rgba(141, 184, 255, 0.18);
+  --person-1-tx: #8db8ff;
+  --person-2: #f29bc0;
+  --person-2-t: rgba(242, 155, 192, 0.18);
+  --person-2-tx: #f29bc0;
+  --person-3: #7dd3a6;
+  --person-3-t: rgba(125, 211, 166, 0.18);
+  --person-3-tx: #7dd3a6;
+  --person-4: #c7b4fa;
+  --person-4-t: rgba(199, 180, 250, 0.2);
+  --person-4-tx: #c7b4fa;
+
+  --control-track: rgba(238, 242, 234, 0.18);
+  --control-line: #66706b;
+  --sh-1: none;
+  --sh-2: 0 2px 10px rgba(0, 0, 0, 0.5);
+
+  --rail-ink: #a8b7ae;
+  --rail-on: rgba(242, 193, 78, 0.16);
+  --rail-on-ink: #f2c14e;
+}
+
+/* ===== type ==================================================== */
+:root[data-palette='night-pantry'] .wf {
+  @apply [letter-spacing:0];
+}
+:root[data-palette='night-pantry'] .wf-serif {
+  @apply [letter-spacing:-0.02em];
+  @apply font-bold;
+}
+
+/* ===== rail ===================================================== */
+:root[data-palette='night-pantry'] .rail-item {
+  @apply [color:var(--rail-ink)];
+}
+:root[data-palette='night-pantry'] .rail-item:hover {
+  @apply [color:var(--ink)];
+}
+:root[data-palette='night-pantry'] .rail-item.on,
+:root[data-palette='night-pantry'] .rail-item.on:hover {
+  @apply [background:var(--rail-on)];
+  @apply [color:var(--rail-on-ink)];
+  @apply [box-shadow:none];
+}
+:root[data-palette='night-pantry'] .rail-switch {
+  @apply [color:var(--rail-ink)];
+}
+
+/* ===== touch targets — 48px on the tablet, 44px floor on a phone ===== */
+:root[data-palette='night-pantry'] .btn {
+  @apply [min-height:44px];
+  @apply [border-radius:var(--r-sm)];
+}
+:root[data-palette='night-pantry'] .pill {
+  @apply [min-height:44px];
+  @apply [border-radius:var(--r-sm)];
+}
+/* Compact controls the base styles draw at 36–37px. */
+:root[data-palette='night-pantry'] .ob-btn,
+:root[data-palette='night-pantry'] .chores-card-row {
+  @apply [min-height:44px];
+}
+:root[data-palette='night-pantry'] .icon-btn {
+  @apply [border-radius:var(--r-sm)];
+}
+@media (min-width: 721px) {
+  :root[data-palette='night-pantry'] .btn {
+    @apply [min-height:48px];
+  }
+}
+:root[data-palette='night-pantry'] .seg {
+  @apply [border-radius:16px];
+}
+:root[data-palette='night-pantry'] .seg button {
+  @apply [border-radius:12px];
+}
+:root[data-palette='night-pantry'] .toggle.on {
+  @apply [background:var(--primary)];
+}
+
+/* ===== cards — flat, no lift in the dark ======================== */
+:root[data-palette='night-pantry'] .card {
+  @apply [box-shadow:var(--sh-1)];
+}
+:root[data-palette='night-pantry'] .card-h {
+  @apply [font-family:var(--serif)];
+  @apply font-bold;
+}
+
+/* ===== reward shop — shop.css hard-codes a violet hero ========== */
+:root[data-palette='night-pantry'] .shop-hero {
+  @apply [background:linear-gradient(135deg,_#1C2D28,_#0E1916)];
+}
+:root[data-palette='night-pantry'] .shop-thumb {
+  @apply [background:var(--gold-t)];
+}

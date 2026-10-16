@@ -37,7 +37,12 @@ const end = (over: Partial<Record<string, unknown>> = {}) => ({
   emoji: '🗑️',
   detail: '3 days late',
   actions: ['done'],
-  owner: null as { id: string; name: string; colorHex: string | null; avatarEmoji: string | null } | null,
+  owner: null as {
+    id: string
+    name: string
+    colorHex: string | null
+    avatarEmoji: string | null
+  } | null,
   ...over,
 })
 
@@ -47,12 +52,24 @@ const VIEW = {
   weekStart: '2026-09-06',
   notDone: [
     end({ owner: WALLY }),
-    end({ key: 'list:l1', kind: 'list', id: 'l1', title: 'Return the library books', emoji: null, detail: 'on Around the house' }),
+    end({
+      key: 'list:l1',
+      kind: 'list',
+      id: 'l1',
+      title: 'Return the library books',
+      emoji: null,
+      detail: 'on Around the house',
+    }),
   ],
   parked: [
     end({
-      key: 'parked:p1', kind: 'parked', id: 'p1', title: 'Ask about the school trip', emoji: null,
-      detail: 'Parked by Kevin · 2 weeks ago · passed over 3 times', actions: ['done', 'drop'],
+      key: 'parked:p1',
+      kind: 'parked',
+      id: 'p1',
+      title: 'Ask about the school trip',
+      emoji: null,
+      detail: 'Parked by Kevin · 2 weeks ago · passed over 3 times',
+      actions: ['done', 'drop'],
     }),
   ],
   counts: { notDone: 2, parked: 1 },
@@ -81,7 +98,10 @@ const calls: { url: string; method: string; body: Record<string, unknown> | null
 // A stateful double: a double that replayed the same view couldn't tell a route from a
 // no-op.
 // `keep`: ids the module still reports after a resolve — a habit logged once can still be short.
-function mockApi(initial: Record<string, unknown> = VIEW, opts: { capabilities?: string[]; keep?: string[] } = {}) {
+function mockApi(
+  initial: Record<string, unknown> = VIEW,
+  opts: { capabilities?: string[]; keep?: string[] } = {},
+) {
   calls.length = 0
   const state = JSON.parse(JSON.stringify(initial)) as typeof VIEW & {
     lists?: { id: string; name: string; emoji: string | null; relevant: boolean }[]
@@ -100,7 +120,11 @@ function mockApi(initial: Record<string, unknown> = VIEW, opts: { capabilities?:
         json: async () => ({
           provisioned: true,
           household: { id: 'h1', name: 'Sites' },
-          person: { id: 'p1', name: 'Kevin', capabilities: opts.capabilities ?? ['planning.manage'] },
+          person: {
+            id: 'p1',
+            name: 'Kevin',
+            capabilities: opts.capabilities ?? ['planning.manage'],
+          },
         }),
       }
     }
@@ -114,18 +138,34 @@ function mockApi(initial: Record<string, unknown> = VIEW, opts: { capabilities?:
 
     if (method === 'POST' && u.endsWith('/loose-ends/route')) {
       state.routes = state.routes.filter((r) => !(r.kind === body.kind && r.id === body.id))
-      if (body.to != null) state.routes.push({ kind: body.kind, id: body.id, title: body.title, source: body.source, to: body.to })
+      if (body.to != null)
+        state.routes.push({
+          kind: body.kind,
+          id: body.id,
+          title: body.title,
+          source: body.source,
+          to: body.to,
+        })
       return { ok: true, json: async () => ({ routes: JSON.parse(JSON.stringify(state.routes)) }) }
     }
     if (method === 'POST' && u.endsWith('/loose-ends/resolve')) {
-      const drop = (list: typeof state.notDone) => list.filter((i) => i.id !== body.id || (opts.keep ?? []).includes(body.id))
+      const drop = (list: typeof state.notDone) =>
+        list.filter((i) => i.id !== body.id || (opts.keep ?? []).includes(body.id))
       state.notDone = drop(state.notDone)
       state.parked = drop(state.parked)
       state.counts = { notDone: state.notDone.length, parked: state.parked.length }
       return { ok: true, json: async () => ({ ok: true }) }
     }
     if (method === 'POST' && u.endsWith('/loose-ends/parked')) {
-      const item = end({ key: `parked:new`, kind: 'parked', id: 'new', title: body.note, emoji: null, detail: 'Parked by Kevin · today', actions: ['done', 'drop'] })
+      const item = end({
+        key: `parked:new`,
+        kind: 'parked',
+        id: 'new',
+        title: body.note,
+        emoji: null,
+        detail: 'Parked by Kevin · today',
+        actions: ['done', 'drop'],
+      })
       state.parked.push(item as unknown as (typeof state.parked)[number])
       state.counts = { notDone: state.notDone.length, parked: state.parked.length }
       return { ok: true, json: async () => ({ item: { id: 'new', note: body.note } }) }
@@ -142,7 +182,9 @@ const scrolled: string[] = []
 beforeAll(() => {
   Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
     configurable: true,
-    value(this: HTMLElement) { scrolled.push(this.id) },
+    value(this: HTMLElement) {
+      scrolled.push(this.id)
+    },
   })
 })
 
@@ -161,14 +203,15 @@ function renderStep(over: Partial<StepBodyProps> = {}) {
       refresh={refresh}
       busy={false}
       {...over}
-    />
+    />,
   )
 }
 
 const routeCalls = () => calls.filter((c) => c.url.endsWith('/loose-ends/route'))
 const resolveCalls = () => calls.filter((c) => c.url.endsWith('/loose-ends/resolve'))
 const parkCalls = () => calls.filter((c) => c.url.endsWith('/loose-ends/parked'))
-const configCalls = () => calls.filter((c) => c.method === 'PUT' && c.url.includes('/weekly-planning/config'))
+const configCalls = () =>
+  calls.filter((c) => c.method === 'PUT' && c.url.includes('/weekly-planning/config'))
 
 describe('loose ends · routing, which is the step', () => {
   it('shows one card whose choices are DESTINATIONS, with the reason under each name', async () => {
@@ -194,7 +237,12 @@ describe('loose ends · routing, which is the step', () => {
     fireEvent.click(await screen.findByRole('button', { name: /Tasks/ }))
     await waitFor(() => expect(routeCalls()).toHaveLength(1))
     expect(routeCalls()[0].body).toEqual({
-      sessionId: 's1', kind: 'chore', id: 'c1', title: 'Take the bins out', source: 'notDone', to: 'tasks',
+      sessionId: 's1',
+      kind: 'chore',
+      id: 'c1',
+      title: 'Take the bins out',
+      source: 'notDone',
+      to: 'tasks',
     })
     // THE CLAIM THE WHOLE STEP RESTS ON: nothing was written to any module.
     expect(resolveCalls()).toHaveLength(0)
@@ -206,12 +254,28 @@ describe('loose ends · routing, which is the step', () => {
       ...VIEW,
       destinations: {
         ...VIEW.destinations,
-        parked: [...VIEW.destinations.parked, { to: 'meals', label: 'Take it to Meals', hint: 'It changes what we eat', stepTitle: 'Meals' }],
+        parked: [
+          ...VIEW.destinations.parked,
+          {
+            to: 'meals',
+            label: 'Take it to Meals',
+            hint: 'It changes what we eat',
+            stepTitle: 'Meals',
+          },
+        ],
       },
-      routes: [{ kind: 'parked', id: 'p1', title: 'Ask about the school trip', source: 'parked', to: 'meals' }],
+      routes: [
+        {
+          kind: 'parked',
+          id: 'p1',
+          title: 'Ask about the school trip',
+          source: 'parked',
+          to: 'meals',
+        },
+      ],
     })
     renderStep()
-    expect(await screen.findByText(/→ Meals/)).toBeInTheDocument()
+    expect(await screen.findByText(/^Meals$/)).toBeInTheDocument()
   })
 
   it('counts down the deck and leaves a trail with an undo', async () => {
@@ -223,7 +287,7 @@ describe('loose ends · routing, which is the step', () => {
 
     const trail = await screen.findByText('Take the bins out')
     expect(trail).toBeInTheDocument()
-    expect(screen.getByText(/→ Tasks/)).toBeInTheDocument()
+    expect(screen.getByText(/Tasks/, { selector: '.wp-le-trail-i' })).toBeInTheDocument()
     expect(screen.getByTestId('wp-le-trail-h')).toHaveTextContent(/come up at that step/i)
 
     fireEvent.click(screen.getByRole('button', { name: 'Undo sending Take the bins out' }))
@@ -243,11 +307,19 @@ describe('loose ends · routing, which is the step', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Undo sending Take the bins out' }))
     await waitFor(() => expect(routeCalls()).toHaveLength(3))
     expect(routeCalls()[2].body).toMatchObject({ kind: 'chore', id: 'c1', to: null })
-    expect(await screen.findByRole('button', { name: 'Undo sending Return the library books' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('button', { name: 'Undo sending Return the library books' }),
+    ).toBeInTheDocument()
   })
 
   it('lists everything sent, collapsing past three behind “Show all”', async () => {
-    const routes = ['a', 'b', 'c', 'd'].map((id) => ({ kind: 'chore', id, title: `Thing ${id}`, source: 'notDone', to: 'tasks' }))
+    const routes = ['a', 'b', 'c', 'd'].map((id) => ({
+      kind: 'chore',
+      id,
+      title: `Thing ${id}`,
+      source: 'notDone',
+      to: 'tasks',
+    }))
     mockApi({ ...VIEW, routes })
     renderStep()
     expect(await screen.findByRole('button', { name: 'Undo sending Thing d' })).toBeInTheDocument()
@@ -257,8 +329,19 @@ describe('loose ends · routing, which is the step', () => {
   })
 
   it('seeds what was already routed from the step’s own persisted data', async () => {
-    mockApi({ ...VIEW, routes: [{ kind: 'chore', id: 'c1', title: 'Take the bins out', source: 'notDone', to: 'tasks' }] })
-    renderStep({ step: step({ routes: [{ kind: 'chore', id: 'c1', title: 'Take the bins out', source: 'notDone', to: 'tasks' }] }) })
+    mockApi({
+      ...VIEW,
+      routes: [
+        { kind: 'chore', id: 'c1', title: 'Take the bins out', source: 'notDone', to: 'tasks' },
+      ],
+    })
+    renderStep({
+      step: step({
+        routes: [
+          { kind: 'chore', id: 'c1', title: 'Take the bins out', source: 'notDone', to: 'tasks' },
+        ],
+      }),
+    })
     expect(await screen.findByText('Return the library books')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Not done 1/ })).toBeInTheDocument()
   })
@@ -268,7 +351,14 @@ describe('loose ends · routing, which is the step', () => {
     globalThis.fetch = vi.fn(async (url: string, init?: RequestInit) => {
       const u = String(url)
       if ((init?.method ?? 'GET') === 'POST') {
-        return { ok: false, status: 400, json: async () => ({ error: 'BadRequest', message: 'the tasks step is not running in this household' }) }
+        return {
+          ok: false,
+          status: 400,
+          json: async () => ({
+            error: 'BadRequest',
+            message: 'the tasks step is not running in this household',
+          }),
+        }
       }
       calls.push({ url: u, method: 'GET', body: null })
       return { ok: true, json: async () => JSON.parse(JSON.stringify(VIEW)) }
@@ -285,7 +375,9 @@ describe('loose ends · goals are the Goals step’s', () => {
     mockApi()
     renderStep()
     const note = await screen.findByText(/^Computed from your modules/)
-    expect(note.textContent).toMatch(/overdue chores, unchecked items on your lists, rhythms past due\./)
+    expect(note.textContent).toMatch(
+      /overdue chores, unchecked items on your lists, rhythms past due\./,
+    )
     expect(note.textContent).not.toMatch(/goal|habit/i)
   })
 })
@@ -293,7 +385,10 @@ describe('loose ends · goals are the Goals step’s', () => {
 describe('loose ends · the deck holds its order', () => {
   it('an answered card stays answered, and the counter doesn’t start over', async () => {
     const fish = end({ key: 'chore:c0', id: 'c0', title: 'Feed the fish', detail: '1 day late' })
-    mockApi({ ...VIEW, notDone: [fish, ...VIEW.notDone], counts: { notDone: 3, parked: 1 } }, { keep: ['c0'] })
+    mockApi(
+      { ...VIEW, notDone: [fish, ...VIEW.notDone], counts: { notDone: 3, parked: 1 } },
+      { keep: ['c0'] },
+    )
     renderStep()
     expect(await screen.findByText('1 of 3')).toBeInTheDocument()
     expect(screen.getByText('Feed the fish')).toBeInTheDocument()
@@ -322,7 +417,12 @@ describe('loose ends · the two answers that write', () => {
     await screen.findByText('Take the bins out')
     fireEvent.click(screen.getByRole('button', { name: /It's done already/ }))
     await waitFor(() => expect(resolveCalls()).toHaveLength(1))
-    expect(resolveCalls()[0].body).toEqual({ kind: 'chore', id: 'c1', action: 'done', sessionId: 's1' })
+    expect(resolveCalls()[0].body).toEqual({
+      kind: 'chore',
+      id: 'c1',
+      action: 'done',
+      sessionId: 's1',
+    })
   })
 
   it('leaves an item open without writing anything at all', async () => {
@@ -353,21 +453,37 @@ describe('loose ends · the group switch', () => {
     fireEvent.click(await screen.findByRole('button', { name: /Parked 1/ }))
     expect(await screen.findByText('Ask about the school trip')).toBeInTheDocument()
     expect(screen.getByText(/passed over 3 times/)).toBeInTheDocument()
-    for (const label of ['Make it a task', 'Put it on the calendar', 'Talk about it now', 'Keep it parked']) {
+    for (const label of [
+      'Make it a task',
+      'Put it on the calendar',
+      'Talk about it now',
+      'Keep it parked',
+    ]) {
       expect(screen.getByRole('button', { name: new RegExp(label) })).toBeInTheDocument()
     }
     fireEvent.click(screen.getByRole('button', { name: 'Drop it' }))
     await waitFor(() => expect(resolveCalls()).toHaveLength(1))
-    expect(resolveCalls()[0].body).toEqual({ kind: 'parked', id: 'p1', action: 'drop', sessionId: 's1' })
+    expect(resolveCalls()[0].body).toEqual({
+      kind: 'parked',
+      id: 'p1',
+      action: 'drop',
+      sessionId: 's1',
+    })
   })
 
   it('shows a check instead of a count once a group is clear', async () => {
     mockApi()
     renderStep()
     fireEvent.click(await screen.findByRole('button', { name: /Tasks/ }))
-    await waitFor(() => expect(screen.getByRole('button', { name: /Not done 1/ })).toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /Not done 1/ })).toBeInTheDocument(),
+    )
     fireEvent.click(screen.getByRole('button', { name: /Tasks/ }))
-    await waitFor(() => expect(screen.getByRole('button', { name: /Not done ✓/ })).toBeInTheDocument())
+    await waitFor(() => {
+      const clear = screen.getByRole('button', { name: /^Not done$/ })
+      expect(clear.querySelector('svg.lucide-check')).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /Not done 1/ })).not.toBeInTheDocument()
+    })
   })
 
   it('parks something new from the capture bar under group B', async () => {
@@ -379,7 +495,9 @@ describe('loose ends · the group switch', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Park it' }))
     await waitFor(() => expect(parkCalls()).toHaveLength(1))
     expect(parkCalls()[0].body).toEqual({ note: 'Renew the passports', sessionId: 's1' })
-    await waitFor(() => expect(screen.getByRole('button', { name: /Parked 2/ })).toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /Parked 2/ })).toBeInTheDocument(),
+    )
   })
 })
 
@@ -388,7 +506,9 @@ describe('loose ends · see all', () => {
     mockApi()
     renderStep()
     fireEvent.click(await screen.findByRole('button', { name: /see all/i }))
-    expect(await screen.findByText(/routing here changes nothing in your modules/i)).toBeInTheDocument()
+    expect(
+      await screen.findByText(/routing here changes nothing in your modules/i),
+    ).toBeInTheDocument()
     expect(screen.getByText('Take the bins out')).toBeInTheDocument()
     expect(screen.getByText('Return the library books')).toBeInTheDocument()
     expect(screen.getByText('Ask about the school trip')).toBeInTheDocument()
@@ -476,7 +596,12 @@ describe('loose ends · see all', () => {
     const row = (await screen.findByText('Ask about the school trip')).closest('li')!
     fireEvent.click(within(row).getByRole('button', { name: 'Make it a task' }))
     await waitFor(() => expect(routeCalls()).toHaveLength(1))
-    expect(routeCalls()[0].body).toMatchObject({ kind: 'parked', id: 'p1', source: 'parked', to: 'tasks' })
+    expect(routeCalls()[0].body).toMatchObject({
+      kind: 'parked',
+      id: 'p1',
+      source: 'parked',
+      to: 'tasks',
+    })
     expect(screen.getByRole('heading', { name: /Not done/ })).toBeInTheDocument()
   })
 })
@@ -516,7 +641,9 @@ describe('loose ends · the crumb on the record', () => {
     // The shell writes this into planning_session_steps.data when the step is
     // answered, so it MUST include the routes or the final write would erase them.
     expect(Object.keys(last).sort()).toEqual(['answered', 'left', 'routes'])
-    expect(last.routes).toEqual([{ kind: 'chore', id: 'c1', title: 'Take the bins out', source: 'notDone', to: 'tasks' }])
+    expect(last.routes).toEqual([
+      { kind: 'chore', id: 'c1', title: 'Take the bins out', source: 'notDone', to: 'tasks' },
+    ])
   })
 })
 
@@ -526,7 +653,7 @@ describe('loose ends · the crumb on the record', () => {
 describe('loose ends · which lists it asks about', () => {
   const openChooser = async () => {
     fireEvent.click(await screen.findByRole('button', { name: /Which lists/i }))
-    return screen.findByText('Lists it asks about')
+    return screen.findByRole('dialog', { name: 'Lists it asks about' })
   }
 
   it('lets whoever is running the session rule a list out, without leaving the step', async () => {
@@ -547,21 +674,31 @@ describe('loose ends · which lists it asks about', () => {
     renderStep()
     await openChooser()
     fireEvent.click(screen.getByLabelText('Ask about Someday in the weekly planning session'))
-    await waitFor(() => expect(calls.filter((c) => c.method === 'GET' && c.url.includes('/loose-ends')).length)
-      .toBeGreaterThan(1))
+    await waitFor(() =>
+      expect(
+        calls.filter((c) => c.method === 'GET' && c.url.includes('/loose-ends')).length,
+      ).toBeGreaterThan(1),
+    )
   })
 
   it('ruling a list out drops its cards from the count, not just from the deck', async () => {
     mockApi()
     // The server stops reporting the ruled-out list's cards once the config write lands.
-    const answer = globalThis.fetch as unknown as (u: string, i?: RequestInit) => Promise<{ json: () => Promise<Record<string, unknown>> }>
+    const answer = globalThis.fetch as unknown as (
+      u: string,
+      i?: RequestInit,
+    ) => Promise<{ json: () => Promise<Record<string, unknown>> }>
     let ruled = false
     globalThis.fetch = vi.fn(async (url: string, init?: RequestInit) => {
       const method = init?.method ?? 'GET'
       const res = await answer(url, init)
       if (method === 'PUT' && String(url).includes('/weekly-planning/config')) ruled = true
       if (ruled && method === 'GET' && String(url).includes('/loose-ends')) {
-        const v = (await res.json()) as { notDone: { kind: string }[]; parked: unknown[]; counts: unknown }
+        const v = (await res.json()) as {
+          notDone: { kind: string }[]
+          parked: unknown[]
+          counts: unknown
+        }
         v.notDone = v.notDone.filter((i) => i.kind !== 'list')
         v.counts = { notDone: v.notDone.length, parked: v.parked.length }
         return { ok: true, json: async () => v }
@@ -572,7 +709,9 @@ describe('loose ends · which lists it asks about', () => {
     expect(await screen.findByText('1 of 2')).toBeInTheDocument()
 
     await openChooser()
-    fireEvent.click(screen.getByLabelText('Ask about Around the house in the weekly planning session'))
+    fireEvent.click(
+      screen.getByLabelText('Ask about Around the house in the weekly planning session'),
+    )
 
     expect(await screen.findByText('1 of 1')).toBeInTheDocument()
   })
@@ -581,8 +720,8 @@ describe('loose ends · which lists it asks about', () => {
     mockApi()
     renderStep()
     await openChooser()
-    expect(screen.getByText(/🏠 Around the house/)).toBeTruthy()
-    expect(screen.getByText(/💭 Someday/)).toBeTruthy()
+    expect(screen.getByText(/Around the house/)).toBeTruthy()
+    expect(screen.getByText(/Someday/)).toBeTruthy()
   })
 
   it('is not offered to someone without the capability', async () => {

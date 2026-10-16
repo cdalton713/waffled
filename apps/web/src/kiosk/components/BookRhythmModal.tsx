@@ -1,5 +1,10 @@
 import { useState, type FormEvent } from 'react'
 import { rhythmsApi, cadenceLabel, type RhythmPeriod } from '../../lib/api'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { DataIcon } from '@/components/ui/data-icon'
+import { Modal } from '@/components/ui/modal'
 
 // Book a period: turn "this should happen" into an actual dated event.
 //
@@ -26,7 +31,10 @@ function lastBookableDay(windowEnd: string): string {
 }
 
 function day(value: string): string {
-  return new Date(`${value}T00:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  return new Date(`${value}T00:00:00`).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  })
 }
 
 function daysApart(from: string, to: string): number {
@@ -111,11 +119,20 @@ export function BookRhythmModal({
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <Modal className="modal-overlay" onClose={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 420 }}>
-        <button type="button" className="modal-close" aria-label="Close" onClick={onClose}>×</button>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="modal-close"
+          aria-label="Close"
+          onClick={onClose}
+        >
+          <DataIcon value={'×'} kind="rhythm" />
+        </Button>
         <div className="wf-serif" style={{ fontSize: 20, fontWeight: 600, marginBottom: 4 }}>
-          {rhythm.emoji ? `${rhythm.emoji} ` : ''}{rhythm.title}
+          {rhythm.emoji ? <>{<DataIcon value={rhythm.emoji} kind="rhythm" />} </> : ''}
+          {rhythm.title}
         </div>
         <div className="tiny muted" style={{ marginBottom: 14 }}>
           {series
@@ -125,38 +142,71 @@ export function BookRhythmModal({
 
         <form onSubmit={submit}>
           <div className="field-row">
-            <label className="field" style={{ flex: 2 }}>
+            <Label className="field" style={{ flex: 2 }}>
               <span>Date</span>
-              <input type="date" value={date} min={periodStart} max={last} onChange={(e) => setDate(e.target.value)} autoFocus />
-            </label>
+              <Input
+                type="date"
+                value={date}
+                min={periodStart}
+                max={last}
+                onChange={(e) => setDate(e.target.value)}
+                autoFocus
+              />
+            </Label>
             {!allDay && (
-              <label className="field" style={{ flex: 1 }}>
+              <Label className="field" style={{ flex: 1 }}>
                 <span>Time</span>
-                <input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
-              </label>
+                <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
+              </Label>
             )}
           </div>
 
-          <label
-            style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '2px 0 12px', cursor: 'pointer', fontWeight: 600 }}
-            onClick={(e) => { e.preventDefault(); setAllDay((v) => !v) }}
+          <Label
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              margin: '2px 0 12px',
+              cursor: 'pointer',
+              fontWeight: 600,
+            }}
+            onClick={(e) => {
+              e.preventDefault()
+              setAllDay((v) => !v)
+            }}
           >
-            <span className={`toggle ${allDay ? 'on' : ''}`} role="switch" aria-checked={allDay} aria-label="All day" />
-            <span className="tiny" style={{ fontWeight: 600 }}>All day</span>
-          </label>
+            <span
+              className={`toggle ${allDay ? 'on' : ''}`}
+              role="switch"
+              aria-checked={allDay}
+              aria-label="All day"
+            />
+            <span className="tiny" style={{ fontWeight: 600 }}>
+              All day
+            </span>
+          </Label>
 
           <div className="tiny muted" style={{ marginBottom: 10 }}>
             {outside
               ? `That's outside this period — pick a day between ${day(periodStart)} and ${day(last)} for it to count.`
               : windowNote(periodStart, last, today)}
           </div>
-          {failed && <div className="tiny muted" style={{ marginBottom: 10 }}>Couldn't book it — try again.</div>}
+          {failed && (
+            <div className="tiny muted" style={{ marginBottom: 10 }}>
+              Couldn't book it — try again.
+            </div>
+          )}
 
-          <button type="submit" className="btn btn-primary" disabled={busy || outside} style={{ width: '100%', justifyContent: 'center' }}>
+          <Button
+            variant="default"
+            type="submit"
+            disabled={busy || outside}
+            style={{ width: '100%', justifyContent: 'center' }}
+          >
             {busy ? 'Booking…' : series ? 'Put it back on the calendar' : 'Put it on the calendar'}
-          </button>
+          </Button>
         </form>
       </div>
-    </div>
+    </Modal>
   )
 }

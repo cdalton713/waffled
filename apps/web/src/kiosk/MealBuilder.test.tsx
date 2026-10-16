@@ -116,7 +116,12 @@ function mockServer() {
 
     // POST /api/meals — lazy create
     if (u === '/api/meals' && method === 'POST') {
-      server.plate = plate({ id: 'new-1', name: body.name, servings: body.servings ?? 4, recipes: [] })
+      server.plate = plate({
+        id: 'new-1',
+        name: body.name,
+        servings: body.servings ?? 4,
+        recipes: [],
+      })
       return ok({ meal: server.plate })
     }
 
@@ -125,7 +130,10 @@ function mockServer() {
       const m = server.plate!
       if (body.mealId) {
         const src = server.saved.find((s) => s.id === body.mealId)!
-        server.plate = recalc({ ...m, recipes: [...m.recipes, ...src.recipes.map((r) => ({ ...r }))] })
+        server.plate = recalc({
+          ...m,
+          recipes: [...m.recipes, ...src.recipes.map((r) => ({ ...r }))],
+        })
       } else {
         const r = server.recipes.find((x) => x.id === body.recipeId)!
         server.plate = recalc({
@@ -157,7 +165,9 @@ function mockServer() {
           const next = { ...r }
           if (typeof body.role === 'string') next.role = body.role
           if ('cookPersonId' in body) {
-            next.cook = p ? { personId: p.id, name: p.name, avatarEmoji: p.avatarEmoji, colorHex: p.colorHex } : null
+            next.cook = p
+              ? { personId: p.id, name: p.name, avatarEmoji: p.avatarEmoji, colorHex: p.colorHex }
+              : null
           }
           return next
         }),
@@ -168,12 +178,18 @@ function mockServer() {
     // DELETE /api/meals/:id/recipes/:recipeId
     const del = u.match(/^\/api\/meals\/[^/]+\/recipes\/([^/]+)$/)
     if (del && method === 'DELETE') {
-      server.plate = recalc({ ...server.plate!, recipes: server.plate!.recipes.filter((r) => r.recipeId !== del[1]) })
+      server.plate = recalc({
+        ...server.plate!,
+        recipes: server.plate!.recipes.filter((r) => r.recipeId !== del[1]),
+      })
       return ok({ meal: server.plate })
     }
 
     if (/^\/api\/meals\/[^/]+\/schedule$/.test(u) && method === 'POST') {
-      return ok({ entry: { id: 'e1', date: body.date, mealType: body.mealType, mealId: server.plate!.id }, meal: server.plate })
+      return ok({
+        entry: { id: 'e1', date: body.date, mealType: body.mealType, mealId: server.plate!.id },
+        meal: server.plate,
+      })
     }
 
     if (/^\/api\/meals\/[^/]+\/add-to-list/.test(u) && method === 'POST') {
@@ -217,7 +233,9 @@ function renderBuilder(path = '/meals/build/m1') {
 }
 
 function group(label: string): HTMLElement {
-  const heads = [...document.querySelectorAll('.mb-group-label')].filter((n) => n.textContent === label)
+  const heads = [...document.querySelectorAll('.mb-group-label')].filter(
+    (n) => n.textContent === label,
+  )
   return heads[0].closest('.mb-group') as HTMLElement
 }
 
@@ -270,7 +288,9 @@ describe('MealBuilder — the plate', () => {
   })
 
   it('navigates to the recipe detail when the dish title is tapped', async () => {
-    server.plate = plate({ recipes: [dish({ recipeId: 'r1', title: 'BBQ Chicken', role: 'main' })] })
+    server.plate = plate({
+      recipes: [dish({ recipeId: 'r1', title: 'BBQ Chicken', role: 'main' })],
+    })
     renderBuilder()
     fireEvent.click(await screen.findByText('BBQ Chicken'))
     expect(await screen.findByText('RECIPE DETAIL PAGE')).toBeInTheDocument()
@@ -287,22 +307,32 @@ describe('MealBuilder — the plate', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Remove Coleslaw' }))
     await waitFor(() => expect(screen.queryByText('Coleslaw')).not.toBeInTheDocument())
     expect(screen.getByText('BBQ Chicken')).toBeInTheDocument()
-    expect(server.calls.some((c) => c.method === 'DELETE' && c.url.endsWith('/recipes/r2'))).toBe(true)
+    expect(server.calls.some((c) => c.method === 'DELETE' && c.url.endsWith('/recipes/r2'))).toBe(
+      true,
+    )
   })
 })
 
 // ── the on-hand rendering rule (decision 14) ────────────────────────────────
 describe('MealBuilder — on-hand rendering rule', () => {
   it('renders "✓ all on hand" when nothing is left to buy', async () => {
-    server.plate = plate({ recipes: [dish({ recipeId: 'r1', title: 'Coleslaw', onHand: { have: 4, total: 4 }, toBuy: 0 })] })
+    server.plate = plate({
+      recipes: [
+        dish({ recipeId: 'r1', title: 'Coleslaw', onHand: { have: 4, total: 4 }, toBuy: 0 }),
+      ],
+    })
     renderBuilder()
     const row = (await screen.findByText('Coleslaw')).closest('.mb-dish') as HTMLElement
-    expect(within(row).getByText('✓ all on hand')).toBeInTheDocument()
+    expect(within(row).getByText('all on hand')).toBeInTheDocument()
     expect(within(row).queryByText(/to buy/)).not.toBeInTheDocument()
   })
 
   it('renders "N to buy" when some ingredients are missing — never "0 of N"', async () => {
-    server.plate = plate({ recipes: [dish({ recipeId: 'r1', title: 'Coleslaw', onHand: { have: 0, total: 4 }, toBuy: 4 })] })
+    server.plate = plate({
+      recipes: [
+        dish({ recipeId: 'r1', title: 'Coleslaw', onHand: { have: 0, total: 4 }, toBuy: 4 }),
+      ],
+    })
     renderBuilder()
     const row = (await screen.findByText('Coleslaw')).closest('.mb-dish') as HTMLElement
     expect(within(row).getByText('4 to buy')).toBeInTheDocument()
@@ -311,11 +341,15 @@ describe('MealBuilder — on-hand rendering rule', () => {
   })
 
   it('makes NO on-hand claim at all when the pantry module is off (onHand === null)', async () => {
-    server.plate = plate({ recipes: [dish({ recipeId: 'r1', title: 'Coleslaw', onHand: null, toBuy: 4, cookTimeMinutes: 20 })] })
+    server.plate = plate({
+      recipes: [
+        dish({ recipeId: 'r1', title: 'Coleslaw', onHand: null, toBuy: 4, cookTimeMinutes: 20 }),
+      ],
+    })
     renderBuilder()
     const row = (await screen.findByText('Coleslaw')).closest('.mb-dish') as HTMLElement
     // the time still shows…
-    expect(within(row).getByText('🕐 20 min')).toBeInTheDocument()
+    expect(within(row).getByText('20 min')).toBeInTheDocument()
     // …and so does the shopping, which is NOT a pantry claim: `toBuy` counts the
     // non-staple ingredients headed for the grocery list and is well-defined with
     // the pantry off (see pantry/on-hand.ts). Suppressing it here left a plate
@@ -331,9 +365,21 @@ describe('MealBuilder — on-hand rendering rule', () => {
 describe('MealBuilder — add from library', () => {
   beforeEach(() => {
     server.recipes = [
-      recipe({ id: 'r1', title: 'BBQ Chicken', emoji: '🍗', category: 'dinner', cookTimeMinutes: 40 }),
+      recipe({
+        id: 'r1',
+        title: 'BBQ Chicken',
+        emoji: '🍗',
+        category: 'dinner',
+        cookTimeMinutes: 40,
+      }),
       recipe({ id: 'r2', title: 'Coleslaw', emoji: '🥗', category: 'dinner', cookTimeMinutes: 15 }),
-      recipe({ id: 'r3', title: 'Peach Cobbler', emoji: '🍑', category: 'dessert', cookTimeMinutes: 55 }),
+      recipe({
+        id: 'r3',
+        title: 'Peach Cobbler',
+        emoji: '🍑',
+        category: 'dessert',
+        cookTimeMinutes: 55,
+      }),
     ]
   })
 
@@ -374,11 +420,15 @@ describe('MealBuilder — add from library', () => {
     fireEvent.click(within(seg).getByRole('button', { name: 'Desserts' }))
     fireEvent.click(screen.getByRole('button', { name: 'Add Peach Cobbler' }))
 
-    await waitFor(() => expect(within(group('Dessert')).getByText('Peach Cobbler')).toBeInTheDocument())
+    await waitFor(() =>
+      expect(within(group('Dessert')).getByText('Peach Cobbler')).toBeInTheDocument(),
+    )
   })
 
   it('dims a recipe that is already on the plate and disables its add button', async () => {
-    server.plate = plate({ recipes: [dish({ recipeId: 'r1', title: 'BBQ Chicken', role: 'main' })] })
+    server.plate = plate({
+      recipes: [dish({ recipeId: 'r1', title: 'BBQ Chicken', role: 'main' })],
+    })
     renderBuilder()
     await screen.findByRole('button', { name: 'Add Coleslaw' })
     const row = document.querySelector('.mb-lib-row.is-on') as HTMLElement
@@ -402,11 +452,20 @@ describe('MealBuilder — add from library', () => {
     vi.useFakeTimers({ shouldAdvanceTime: true })
     try {
       server.plate = plate({ recipes: [] })
-      server.saved = [plate({ id: 'sm1', name: 'Cobbler Night', isSaved: true, recipes: [dish({ recipeId: 'r3', title: 'Peach Cobbler', role: 'dessert' })] })]
+      server.saved = [
+        plate({
+          id: 'sm1',
+          name: 'Cobbler Night',
+          isSaved: true,
+          recipes: [dish({ recipeId: 'r3', title: 'Peach Cobbler', role: 'dessert' })],
+        }),
+      ]
       renderBuilder()
       await screen.findByText('BBQ Chicken')
 
-      fireEvent.change(screen.getByLabelText('Search recipes and meals'), { target: { value: 'cobbler' } })
+      fireEvent.change(screen.getByLabelText('Search recipes and meals'), {
+        target: { value: 'cobbler' },
+      })
       await vi.advanceTimersByTimeAsync(400)
 
       const lib = document.querySelector('.mb-lib-rows') as HTMLElement
@@ -414,7 +473,9 @@ describe('MealBuilder — add from library', () => {
       expect(within(lib).getByText('Peach Cobbler')).toBeInTheDocument()
       expect(within(lib).queryByText('BBQ Chicken')).not.toBeInTheDocument()
       // the saved-meal query went to the server
-      expect(server.calls.some((c) => c.method === 'GET' && c.url.includes('/api/meals?q=cobbler'))).toBe(true)
+      expect(
+        server.calls.some((c) => c.method === 'GET' && c.url.includes('/api/meals?q=cobbler')),
+      ).toBe(true)
     } finally {
       vi.useRealTimers()
     }
@@ -471,7 +532,11 @@ describe('MealBuilder — footer stat bar', () => {
   })
 
   it('shows hands-on time and the groceries count', async () => {
-    server.plate = plate({ totalMinutes: 65, toBuy: 7, recipes: [dish({ recipeId: 'r1', title: 'BBQ Chicken', role: 'main' })] })
+    server.plate = plate({
+      totalMinutes: 65,
+      toBuy: 7,
+      recipes: [dish({ recipeId: 'r1', title: 'BBQ Chicken', role: 'main' })],
+    })
     renderBuilder()
     expect(await screen.findByText('≈ 1h 5m')).toBeInTheDocument()
     expect(screen.getByText('7 to buy')).toBeInTheDocument()
@@ -480,11 +545,17 @@ describe('MealBuilder — footer stat bar', () => {
   it('toggles keeping the plate in the library', async () => {
     server.plate = plate({ name: 'BBQ Sunday', isSaved: false, recipes: [] })
     renderBuilder()
-    const toggle = await screen.findByRole('switch', { name: /Keep .*BBQ Sunday.* in your library/ })
+    const toggle = await screen.findByRole('switch', {
+      name: /Keep .*BBQ Sunday.* in your library/,
+    })
     expect(toggle).toHaveAttribute('aria-checked', 'false')
     fireEvent.click(toggle)
     await waitFor(() => expect(toggle).toHaveAttribute('aria-checked', 'true'))
-    expect(server.calls.some((c) => c.method === 'PATCH' && (c.body as { isSaved?: boolean }).isSaved === true)).toBe(true)
+    expect(
+      server.calls.some(
+        (c) => c.method === 'PATCH' && (c.body as { isSaved?: boolean }).isSaved === true,
+      ),
+    ).toBe(true)
   })
 
   it('disables "Schedule meal" while the plate is empty', async () => {
@@ -495,11 +566,15 @@ describe('MealBuilder — footer stat bar', () => {
 
   it('adds the whole plate to the grocery list', async () => {
     server.added = 6
-    server.plate = plate({ recipes: [dish({ recipeId: 'r1', title: 'BBQ Chicken', role: 'main' })] })
+    server.plate = plate({
+      recipes: [dish({ recipeId: 'r1', title: 'BBQ Chicken', role: 'main' })],
+    })
     renderBuilder()
     fireEvent.click(await screen.findByRole('button', { name: 'Add plate to list' }))
     await waitFor(() => expect(screen.getByText(/Added 6 items/)).toBeInTheDocument())
-    expect(server.calls.some((c) => c.method === 'POST' && c.url.includes('/add-to-list'))).toBe(true)
+    expect(server.calls.some((c) => c.method === 'POST' && c.url.includes('/add-to-list'))).toBe(
+      true,
+    )
   })
 })
 
@@ -510,13 +585,20 @@ function ymd(d: Date): string {
 
 describe('MealBuilder — schedule modal', () => {
   beforeEach(() => {
-    server.plate = plate({ name: 'BBQ Sunday', servings: 6, toBuy: 6, recipes: [dish({ recipeId: 'r1', title: 'BBQ Chicken', role: 'main', emoji: '🍗' })] })
+    server.plate = plate({
+      name: 'BBQ Sunday',
+      servings: 6,
+      toBuy: 6,
+      recipes: [dish({ recipeId: 'r1', title: 'BBQ Chicken', role: 'main', emoji: '🍗' })],
+    })
   })
 
   async function openModal() {
     renderBuilder()
     fireEvent.click(await screen.findByRole('button', { name: 'Schedule meal' }))
-    return (await screen.findByRole('button', { name: 'Confirm' })).closest('.modal-card') as HTMLElement
+    return (await screen.findByRole('button', { name: 'Confirm' })).closest(
+      '.modal-card',
+    ) as HTMLElement
   }
 
   it('offers all three meal slots (not just dinner)', async () => {
@@ -561,13 +643,17 @@ describe('MealBuilder — schedule modal', () => {
     expect(confirm).not.toBeDisabled()
 
     fireEvent.click(confirm)
-    await waitFor(() => expect(screen.queryByRole('button', { name: 'Confirm' })).not.toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.queryByRole('button', { name: 'Confirm' })).not.toBeInTheDocument(),
+    )
 
     const post = server.calls.find((c) => c.url.includes('/schedule'))
     expect(post?.body).toMatchObject({ date: ymd(sunday), mealType: 'lunch' })
 
     // toast + a link straight to the grocery list
-    expect(await screen.findByText(/Added “BBQ Sunday” to Sunday lunch · built 6-item list/)).toBeInTheDocument()
+    expect(
+      await screen.findByText(/Added “BBQ Sunday” to Sunday lunch · built 6-item list/),
+    ).toBeInTheDocument()
     fireEvent.click(screen.getByRole('link', { name: 'View grocery' }))
     expect(await screen.findByText('LISTS PAGE')).toBeInTheDocument()
   })
@@ -584,7 +670,9 @@ describe('MealBuilder — a brand-new plate', () => {
     expect(server.calls.some((c) => c.method === 'POST' && c.url === '/api/meals')).toBe(false)
 
     fireEvent.click(await screen.findByRole('button', { name: 'Add BBQ Chicken' }))
-    await waitFor(() => expect(server.calls.some((c) => c.method === 'POST' && c.url === '/api/meals')).toBe(true))
+    await waitFor(() =>
+      expect(server.calls.some((c) => c.method === 'POST' && c.url === '/api/meals')).toBe(true),
+    )
     // The first savoury dish on an empty plate becomes the Main, not a side.
     await waitFor(() => expect(within(group('Main')).getByText('BBQ Chicken')).toBeInTheDocument())
   })
@@ -615,7 +703,9 @@ describe('MealBuilder — a brand-new plate', () => {
       fireEvent.change(name, { target: { value: 'Smoky Sunday' } })
       await vi.advanceTimersByTimeAsync(900)
       await waitFor(() => {
-        const patch = server.calls.find((c) => c.method === 'PATCH' && (c.body as { name?: string }).name)
+        const patch = server.calls.find(
+          (c) => c.method === 'PATCH' && (c.body as { name?: string }).name,
+        )
         expect(patch?.body).toMatchObject({ name: 'Smoky Sunday' })
       })
     } finally {
@@ -626,7 +716,7 @@ describe('MealBuilder — a brand-new plate', () => {
   it('goes back to Meals from the header pill', async () => {
     server.plate = plate({ recipes: [] })
     renderBuilder()
-    fireEvent.click(await screen.findByRole('button', { name: '‹ Meals' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Meals' }))
     expect(await screen.findByText('MEALS PAGE')).toBeInTheDocument()
   })
 })
@@ -649,14 +739,15 @@ describe('MealBuilder — who cooks each dish', () => {
   it('defaults every dish to "whoever" — no cook badge', async () => {
     renderBuilder()
     const picker = await screen.findByLabelText('Who cooks BBQ Chicken?')
-    expect(picker).toHaveValue('')
-    expect(screen.queryByText(/👩‍🍳/)).not.toBeInTheDocument()
+    expect(picker).toHaveTextContent('whoever')
+    expect(document.querySelector('.mb-cook-badge')).not.toBeInTheDocument()
   })
 
   it('assigns a cook to one dish without touching the others', async () => {
     renderBuilder()
     const picker = await screen.findByLabelText('Who cooks BBQ Chicken?')
-    fireEvent.change(picker, { target: { value: 'p2' } })
+    fireEvent.keyDown(picker, { key: 'ArrowDown' })
+    fireEvent.click(await screen.findByRole('option', { name: /Sarah/ }))
 
     await waitFor(() => {
       const patch = server.calls.find((c) => c.method === 'PATCH' && c.url.endsWith('/recipes/r1'))
@@ -664,30 +755,46 @@ describe('MealBuilder — who cooks each dish', () => {
     })
 
     const chicken = (await screen.findByText('BBQ Chicken')).closest('.mb-dish') as HTMLElement
-    await waitFor(() => expect(within(chicken).getByText(/Sarah/, { selector: '.mb-cook-badge' })).toBeInTheDocument())
+    await waitFor(() =>
+      expect(
+        within(chicken).getByText(/Sarah/, { selector: '.mb-cook-badge' }),
+      ).toBeInTheDocument(),
+    )
 
     // the other dish is untouched
     const salad = screen.getByText('Potato Salad').closest('.mb-dish') as HTMLElement
-    expect(within(salad).queryByText(/Sarah/, { selector: '.mb-cook-badge' })).not.toBeInTheDocument()
-    expect(within(salad).getByLabelText('Who cooks Potato Salad?')).toHaveValue('')
+    expect(
+      within(salad).queryByText(/Sarah/, { selector: '.mb-cook-badge' }),
+    ).not.toBeInTheDocument()
+    expect(
+      within(salad).getByRole('combobox', { name: 'Who cooks Potato Salad?' }),
+    ).toHaveTextContent('whoever')
   })
 
   it('clears an assignment back to "whoever"', async () => {
     server.plate = plate({
       recipes: [
-        dish({ recipeId: 'r1', title: 'BBQ Chicken', role: 'main', cook: { personId: 'p1', name: 'Kevin', avatarEmoji: '🐻', colorHex: '#2F7FED' } }),
+        dish({
+          recipeId: 'r1',
+          title: 'BBQ Chicken',
+          role: 'main',
+          cook: { personId: 'p1', name: 'Kevin', avatarEmoji: '🐻', colorHex: '#2F7FED' },
+        }),
       ],
     })
     renderBuilder()
     const picker = await screen.findByLabelText('Who cooks BBQ Chicken?')
-    await waitFor(() => expect(picker).toHaveValue('p1'))
+    await waitFor(() => expect(picker).toHaveTextContent('Kevin'))
 
-    fireEvent.change(picker, { target: { value: '' } })
+    fireEvent.keyDown(picker, { key: 'ArrowDown' })
+    fireEvent.click(await screen.findByRole('option', { name: /whoever/ }))
     await waitFor(() => {
       const patch = server.calls.find((c) => c.method === 'PATCH' && c.url.endsWith('/recipes/r1'))
       expect(patch?.body).toEqual({ cookPersonId: null })
     })
-    await waitFor(() => expect(screen.queryByText(/Kevin/, { selector: '.mb-cook-badge' })).not.toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.queryByText(/Kevin/, { selector: '.mb-cook-badge' })).not.toBeInTheDocument(),
+    )
   })
 })
 
@@ -699,7 +806,9 @@ function dataTransfer() {
   return {
     dropEffect: '',
     effectAllowed: '',
-    setData: (k: string, v: string) => { store[k] = v },
+    setData: (k: string, v: string) => {
+      store[k] = v
+    },
     getData: (k: string) => store[k] ?? '',
     setDragImage: () => {},
   }
@@ -749,7 +858,9 @@ describe('MealBuilder — moving a dish between roles', () => {
     const patches = server.calls.filter((c) => c.method === 'PATCH' && /\/recipes\//.test(c.url))
     expect(patches).toHaveLength(1)
     expect(patches[0].body).toMatchObject({ role: 'main' })
-    expect(server.calls.filter((c) => c.method === 'POST' && /\/recipes$/.test(c.url))).toHaveLength(0)
+    expect(
+      server.calls.filter((c) => c.method === 'POST' && /\/recipes$/.test(c.url)),
+    ).toHaveLength(0)
   })
 
   it('does nothing when a dish is dropped back on the role it already has', async () => {
@@ -761,7 +872,9 @@ describe('MealBuilder — moving a dish between roles', () => {
     fireEvent.drop(screen.getByLabelText('Add a side'), { dataTransfer: dt })
 
     await waitFor(() => expect(groupOf('Coleslaw')).toBe('side'))
-    expect(server.calls.filter((c) => c.method === 'PATCH' && /\/recipes\//.test(c.url))).toHaveLength(0)
+    expect(
+      server.calls.filter((c) => c.method === 'PATCH' && /\/recipes\//.test(c.url)),
+    ).toHaveLength(0)
   })
 })
 
@@ -911,7 +1024,13 @@ describe('MealBuilder — seeing what is left to buy', () => {
     reset({
       plate: plate({
         recipes: [
-          dish({ recipeId: 'r1', title: 'BBQ Chicken', onHand: { have: 3, total: 3 }, toBuy: 0, toBuyNames: [] }),
+          dish({
+            recipeId: 'r1',
+            title: 'BBQ Chicken',
+            onHand: { have: 3, total: 3 },
+            toBuy: 0,
+            toBuyNames: [],
+          }),
         ],
       }),
     })
@@ -925,7 +1044,13 @@ describe('MealBuilder — seeing what is left to buy', () => {
     reset({
       plate: plate({
         recipes: [
-          dish({ recipeId: 'r1', title: 'BBQ Chicken', onHand: null, toBuy: 2, toBuyNames: ['BBQ sauce', 'Brown sugar'] }),
+          dish({
+            recipeId: 'r1',
+            title: 'BBQ Chicken',
+            onHand: null,
+            toBuy: 2,
+            toBuyNames: ['BBQ sauce', 'Brown sugar'],
+          }),
         ],
       }),
     })
@@ -941,7 +1066,9 @@ describe('MealBuilder — seeing what is left to buy', () => {
 // only by typing the URL. The plate screen is where you'd look for it.
 describe('MealBuilder — cooking the whole plate', () => {
   it('offers Cook mode and opens the plate route, not a single recipe', async () => {
-    server.plate = plate({ recipes: [dish({ recipeId: 'r1', title: 'BBQ Chicken', role: 'main', emoji: '🍗' })] })
+    server.plate = plate({
+      recipes: [dish({ recipeId: 'r1', title: 'BBQ Chicken', role: 'main', emoji: '🍗' })],
+    })
     renderBuilder()
     await screen.findByText('BBQ Chicken')
     fireEvent.click(screen.getByRole('button', { name: /Cook this meal/i }))
@@ -970,7 +1097,8 @@ describe('MealBuilder — what the library segments actually filter on', () => {
     server.plate = plate({ recipes: [] })
   })
 
-  const libTitles = () => [...document.querySelectorAll('.mb-lib-rows .mb-lib-t')].map((n) => n.textContent ?? '')
+  const libTitles = () =>
+    [...document.querySelectorAll('.mb-lib-rows .mb-lib-t')].map((n) => n.textContent ?? '')
   const seg = (label: string) => {
     const bar = document.querySelector('.mb-lib-seg') as HTMLElement
     fireEvent.click(within(bar).getByRole('button', { name: label }))
@@ -1011,7 +1139,9 @@ describe('MealBuilder — what the library segments actually filter on', () => {
     // Most libraries are half-tagged. A recipe with nothing to go on has to land
     // somewhere findable, and "main" is the safe default — the same assumption
     // the ＋ button already makes.
-    server.recipes = [recipe({ id: 'r9', title: 'Mystery Casserole', category: null, mealType: null })]
+    server.recipes = [
+      recipe({ id: 'r9', title: 'Mystery Casserole', category: null, mealType: null }),
+    ]
     server.plate = plate({ recipes: [] })
     renderBuilder()
     await screen.findByText('Mystery Casserole')
@@ -1019,7 +1149,6 @@ describe('MealBuilder — what the library segments actually filter on', () => {
     expect(libTitles()).toEqual(['Mystery Casserole'])
   })
 })
-
 
 // A write that fails must say so. Three of these callers paint the change locally
 // BEFORE the request, so silence isn't merely unhelpful — the screen goes on showing
@@ -1029,7 +1158,8 @@ describe('MealBuilder — when a write fails', () => {
     const real = globalThis.fetch
     globalThis.fetch = vi.fn(async (url: string, init?: { method?: string; body?: string }) => {
       const method = init?.method ?? 'GET'
-      if (methods.includes(method)) return { ok: false, status: 500, json: async () => ({ error: 'Boom' }) }
+      if (methods.includes(method))
+        return { ok: false, status: 500, json: async () => ({ error: 'Boom' }) }
       return (real as unknown as (u: string, i?: unknown) => Promise<unknown>)(url, init)
     }) as unknown as typeof fetch
   }
@@ -1048,7 +1178,9 @@ describe('MealBuilder — when a write fails', () => {
   it('puts the library toggle back', async () => {
     server.plate = plate({ name: 'BBQ Sunday', isSaved: false, recipes: [] })
     renderBuilder()
-    const toggle = await screen.findByRole('switch', { name: /Keep .*BBQ Sunday.* in your library/ })
+    const toggle = await screen.findByRole('switch', {
+      name: /Keep .*BBQ Sunday.* in your library/,
+    })
     failWrites(['PATCH'])
 
     fireEvent.click(toggle)
@@ -1063,7 +1195,11 @@ describe('MealBuilder — when a write fails', () => {
     const row = await screen.findByText('Roast Chicken')
     failWrites(['POST'])
 
-    fireEvent.click(within(row.closest('.mb-lib-row') as HTMLElement).getByRole('button', { name: /Add Roast Chicken/ }))
+    fireEvent.click(
+      within(row.closest('.mb-lib-row') as HTMLElement).getByRole('button', {
+        name: /Add Roast Chicken/,
+      }),
+    )
     expect(await screen.findByRole('status')).toHaveTextContent(/couldn’t save/i)
   })
 })
@@ -1074,11 +1210,17 @@ describe('MealBuilder — when a write fails', () => {
 describe('MealBuilder — two writes in flight', () => {
   it('ignores a stale snapshot that lands after a newer one', async () => {
     server.plate = plate({ recipes: [] })
-    server.recipes = [recipe({ id: 'r1', title: 'Roast Chicken' }), recipe({ id: 'r2', title: 'Green Beans' })]
+    server.recipes = [
+      recipe({ id: 'r1', title: 'Roast Chicken' }),
+      recipe({ id: 'r2', title: 'Green Beans' }),
+    ]
 
     // The FIRST add commits first but its response is delayed, so it arrives after
     // the second — ordinary network jitter, no server bug required.
-    const real = globalThis.fetch as unknown as (u: string, i?: unknown) => Promise<{ json: () => Promise<unknown> }>
+    const real = globalThis.fetch as unknown as (
+      u: string,
+      i?: unknown,
+    ) => Promise<{ json: () => Promise<unknown> }>
     let delayedFirst = false
     globalThis.fetch = vi.fn(async (url: string, init?: { method?: string }) => {
       const isAdd = /\/recipes$/.test(String(url)) && (init?.method ?? 'GET') === 'POST'
@@ -1095,7 +1237,12 @@ describe('MealBuilder — two writes in flight', () => {
     renderBuilder()
     await screen.findByText('Roast Chicken')
     const add = (title: string) =>
-      fireEvent.click(within(screen.getAllByText(title)[0].closest('.mb-lib-row') as HTMLElement).getByRole('button', { name: `Add ${title}` }))
+      fireEvent.click(
+        within(screen.getAllByText(title)[0].closest('.mb-lib-row') as HTMLElement).getByRole(
+          'button',
+          { name: `Add ${title}` },
+        ),
+      )
 
     add('Roast Chicken')
     add('Green Beans')

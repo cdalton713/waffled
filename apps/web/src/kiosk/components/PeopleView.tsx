@@ -4,6 +4,7 @@ import { evVars, useEventColor } from '../../lib/event-color'
 import { ymd, localDate, fmtHour, fmtTime, minutesOfDay, durationMin } from './cal-utils'
 import { peopleColumns, UNASSIGNED_COLUMN, type ColumnPerson } from './cal-people'
 import { RhythmMark } from './RhythmMark'
+import { DataIcon } from '@/components/ui/data-icon'
 
 const DAY_START = 0
 const DAY_END = 23
@@ -41,9 +42,15 @@ export function PeopleView({
 }) {
   const colorOf = useEventColor()
   const key = ymd(day)
-  const hours = useMemo(() => Array.from({ length: DAY_END - DAY_START + 1 }, (_, i) => DAY_START + i), [])
+  const hours = useMemo(
+    () => Array.from({ length: DAY_END - DAY_START + 1 }, (_, i) => DAY_START + i),
+    [],
+  )
 
-  const todays = useMemo(() => events.filter((e) => localDate(e.startsAt, tz) === key), [events, tz, key])
+  const todays = useMemo(
+    () => events.filter((e) => localDate(e.startsAt, tz) === key),
+    [events, tz, key],
+  )
   const columns = useMemo(() => peopleColumns(todays, people), [todays, people])
   const hasAllDay = columns.some((c) => c.events.some((e) => e.allDay))
 
@@ -67,7 +74,9 @@ export function PeopleView({
   if (people.length === 0) {
     return (
       <div className="pv-screen">
-        <p className="muted">{loading ? 'Loading…' : 'Add family members to see per-person columns.'}</p>
+        <p className="muted">
+          {loading ? 'Loading…' : 'Add family members to see per-person columns.'}
+        </p>
       </div>
     )
   }
@@ -85,99 +94,128 @@ export function PeopleView({
   return (
     <div className="pv-screen">
       <div className="wk" style={cols} data-testid="people-columns">
-       <div className="pv-hscroll">
-        <div className="wk-head">
-          <div className="wk-rail-sp" />
-          {columns.map((c) => (
-            <div key={`h:${c.id}`} className="wk-day-h pv-day-h" title={c.name}>
-              <div className="wk-dow pv-person-name">{c.id === UNASSIGNED_COLUMN ? 'Everyone' : c.name}</div>
-              <div className="pv-person-av" style={{ background: c.colorHex ?? 'var(--panel)' }}>
-                {c.id === UNASSIGNED_COLUMN ? '👪' : (c.avatarEmoji ?? '🙂')}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {hasAllDay && (
-          <div className="wk-allday">
-            <div className="wk-rail-lbl">ALL-DAY</div>
+        <div className="pv-hscroll">
+          <div className="wk-head">
+            <div className="wk-rail-sp" />
             {columns.map((c) => (
-              <div key={`a:${c.id}`} className="wk-allday-cell">
-                {c.events.filter((e) => e.allDay).map((e) => (
-                  <div
-                    // An event repeats across columns, so its id alone isn't unique.
-                    key={`${c.id}:${e.id}`}
-                    className="wk-allday-ev ev-tint"
-                    style={evVars(colorOf(e))}
-                    onClick={() => onOpenEvent(e)}
-                  >
-                    <RhythmMark event={e} />
-                    {e.title}
-                  </div>
-                ))}
+              <div key={`h:${c.id}`} className="wk-day-h pv-day-h" title={c.name}>
+                <div className="wk-dow pv-person-name">
+                  {c.id === UNASSIGNED_COLUMN ? 'Everyone' : c.name}
+                </div>
+                <div className="pv-person-av" style={{ background: c.colorHex ?? 'var(--panel)' }}>
+                  {c.id === UNASSIGNED_COLUMN ? (
+                    <DataIcon value={'👪'} kind="person" />
+                  ) : (
+                    <DataIcon value={c.avatarEmoji ?? '🙂'} kind="person" />
+                  )}
+                </div>
               </div>
             ))}
           </div>
-        )}
 
-        <div className="wk-body" ref={bodyRef}>
-          <div className="wk-grid" style={{ height: hours.length * HOUR_PX }}>
-            <div className="wk-rail">
-              {hours.map((h) => (
-                <div key={h} className="wk-hr" style={{ height: HOUR_PX }}>
-                  <span>{fmtHour(h)}</span>
+          {hasAllDay && (
+            <div className="wk-allday">
+              <div className="wk-rail-lbl">ALL-DAY</div>
+              {columns.map((c) => (
+                <div key={`a:${c.id}`} className="wk-allday-cell">
+                  {c.events
+                    .filter((e) => e.allDay)
+                    .map((e) => (
+                      <div
+                        // An event repeats across columns, so its id alone isn't unique.
+                        key={`${c.id}:${e.id}`}
+                        className="wk-allday-ev ev-tint"
+                        style={evVars(colorOf(e))}
+                        onClick={() => onOpenEvent(e)}
+                      >
+                        <RhythmMark event={e} />
+                        {e.title}
+                      </div>
+                    ))}
                 </div>
               ))}
             </div>
-            {columns.map((c) => {
-              const timed = c.events.filter((e) => !e.allDay)
-              return (
-                <div
-                  key={`c:${c.id}`}
-                  className="wk-col"
-                  style={{ backgroundSize: `100% ${HOUR_PX}px` }}
-                  onClick={() => onCreate(key)}
-                >
-                  {timed.map((e) => {
-                    const top = Math.max(0, ((minutesOfDay(e.startsAt) - DAY_START * 60) / 60) * HOUR_PX)
-                    const height = Math.max(22, (durationMin(e) / 60) * HOUR_PX - 3)
-                    const color = colorOf(e)
-                    // Lanes come from THIS column's packing — an event that overlaps
-                    // something in another person's column still spans full width here.
-                    const lane = c.lanes.get(e.id) ?? { lane: 0, lanes: 1 }
-                    const width = `calc((100% - 6px) / ${lane.lanes})`
-                    const left = `calc((100% - 6px) / ${lane.lanes} * ${lane.lane} + 3px)`
-                    const tight = height < 34
-                    return (
-                      <div
-                        key={`${c.id}:${e.id}`}
-                        className={`wk-ev ev-tint ${e.origin === 'meal_plan' ? 'ev-meal' : ''} ${tight ? 'tight' : ''}`}
-                        style={{ top, height, left, width, ...evVars(color), borderLeft: `3px solid ${color}` }}
-                        title={`${fmtTime(e)} · ${e.title}`}
-                        onClick={(ev) => { ev.stopPropagation(); onOpenEvent(e) }}
-                      >
-                        <div className="wk-ev-t">{fmtTime(e)}</div>
-                        <div className="wk-ev-title">
-                          {e.occurrenceStart && <span className="ev-rep" title="Repeats">↻ </span>}<RhythmMark event={e} />{e.title}
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              )
-            })}
+          )}
 
-            {/* One rule across every column — the time is the same for the whole
+          <div className="wk-body" ref={bodyRef}>
+            <div className="wk-grid" style={{ height: hours.length * HOUR_PX }}>
+              <div className="wk-rail">
+                {hours.map((h) => (
+                  <div key={h} className="wk-hr" style={{ height: HOUR_PX }}>
+                    <span>{fmtHour(h)}</span>
+                  </div>
+                ))}
+              </div>
+              {columns.map((c) => {
+                const timed = c.events.filter((e) => !e.allDay)
+                return (
+                  <div
+                    key={`c:${c.id}`}
+                    className="wk-col"
+                    style={{ backgroundSize: `100% ${HOUR_PX}px` }}
+                    onClick={() => onCreate(key)}
+                  >
+                    {timed.map((e) => {
+                      const top = Math.max(
+                        0,
+                        ((minutesOfDay(e.startsAt) - DAY_START * 60) / 60) * HOUR_PX,
+                      )
+                      const height = Math.max(22, (durationMin(e) / 60) * HOUR_PX - 3)
+                      const color = colorOf(e)
+                      // Lanes come from THIS column's packing — an event that overlaps
+                      // something in another person's column still spans full width here.
+                      const lane = c.lanes.get(e.id) ?? { lane: 0, lanes: 1 }
+                      const width = `calc((100% - 6px) / ${lane.lanes})`
+                      const left = `calc((100% - 6px) / ${lane.lanes} * ${lane.lane} + 3px)`
+                      const tight = height < 34
+                      return (
+                        <div
+                          key={`${c.id}:${e.id}`}
+                          className={`wk-ev ev-tint ${e.origin === 'meal_plan' ? 'ev-meal' : ''} ${tight ? 'tight' : ''}`}
+                          style={{
+                            top,
+                            height,
+                            left,
+                            width,
+                            ...evVars(color),
+                            borderLeft: `3px solid ${color}`,
+                          }}
+                          title={`${fmtTime(e)} · ${e.title}`}
+                          onClick={(ev) => {
+                            ev.stopPropagation()
+                            onOpenEvent(e)
+                          }}
+                        >
+                          <div className="wk-ev-t">{fmtTime(e)}</div>
+                          <div className="wk-ev-title">
+                            {e.occurrenceStart && (
+                              <span className="ev-rep" title="Repeats">
+                                <>
+                                  <DataIcon value={'↻'} kind="general" />{' '}
+                                </>
+                              </span>
+                            )}
+                            <RhythmMark event={e} />
+                            {e.title}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )
+              })}
+
+              {/* One rule across every column — the time is the same for the whole
                 household, so it belongs to the grid rather than to any one person.
                 Starts after the hour rail (the 64px first track of --wk-cols). */}
-            {isToday && (
-              <div className="pv-now" style={{ top: nowTop }}>
-                <span className="dv-now-dot" />
-              </div>
-            )}
+              {isToday && (
+                <div className="pv-now" style={{ top: nowTop }}>
+                  <span className="dv-now-dot" />
+                </div>
+              )}
+            </div>
           </div>
         </div>
-       </div>
       </div>
     </div>
   )

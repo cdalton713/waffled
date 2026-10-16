@@ -3,7 +3,11 @@ import { MemoryRouter, Routes, Route } from 'react-router'
 import { RecipeEditor } from './RecipeEditor'
 import { TopbarSlotProvider } from './topbar-slot'
 
-interface Sent { method: string; url: string; body: unknown }
+interface Sent {
+  method: string
+  url: string
+  body: unknown
+}
 
 function mockApi(sent: Sent[], parsed?: unknown, suggest?: unknown) {
   globalThis.fetch = vi.fn(async (url: string, init?: { method?: string; body?: string }) => {
@@ -41,18 +45,52 @@ function renderNew() {
 // ── edit mode ──
 // A saved recipe as the detail GET returns it; `recipe`/`ingredients` are overridden
 // per test so a test can feed back exactly what the previous save sent.
-function makeDetail(recipe: Record<string, unknown> = {}, ingredients: Record<string, unknown>[] = []) {
+function makeDetail(
+  recipe: Record<string, unknown> = {},
+  ingredients: Record<string, unknown>[] = [],
+) {
   return {
     recipe: {
-      id: 'edit-id', title: 'Saved Recipe', emoji: null, description: null, category: null, tags: [],
-      prepTimeMinutes: null, cookTimeMinutes: null, servings: 4,
-      imageUrl: null, storageKey: null, sourceName: null,
-      isFavorite: false, cookedCount: 0, lastCookedAt: null, notes: null, userNotes: null,
-      addedTags: [], overrides: {}, mealType: null, protein: null, base: null, cuisine: null,
-      effort: null, cookMethod: null, flavorProfile: null, dietary: [], vegetables: [], collection: null,
+      id: 'edit-id',
+      title: 'Saved Recipe',
+      emoji: null,
+      description: null,
+      category: null,
+      tags: [],
+      prepTimeMinutes: null,
+      cookTimeMinutes: null,
+      servings: 4,
+      imageUrl: null,
+      storageKey: null,
+      sourceName: null,
+      isFavorite: false,
+      cookedCount: 0,
+      lastCookedAt: null,
+      notes: null,
+      userNotes: null,
+      addedTags: [],
+      overrides: {},
+      mealType: null,
+      protein: null,
+      base: null,
+      cuisine: null,
+      effort: null,
+      cookMethod: null,
+      flavorProfile: null,
+      dietary: [],
+      vegetables: [],
+      collection: null,
       ...recipe,
     },
-    ingredients: ingredients.map((i, n) => ({ id: `i${n}`, name: 'ingredient', amount: null, unit: null, prepNote: null, section: null, ...i })),
+    ingredients: ingredients.map((i, n) => ({
+      id: `i${n}`,
+      name: 'ingredient',
+      amount: null,
+      unit: null,
+      prepNote: null,
+      section: null,
+      ...i,
+    })),
     steps: [] as unknown[],
   }
 }
@@ -63,8 +101,10 @@ function mockEditApi(sent: Sent[], detail: ReturnType<typeof makeDetail>) {
     const method = init?.method ?? 'GET'
     const body = init?.body ? JSON.parse(init.body) : undefined
     sent.push({ method, url: u, body })
-    if (u.endsWith('/api/recipes/edit-id') && method === 'GET') return { ok: true, json: async () => detail }
-    if (u.endsWith('/api/recipes/edit-id') && method === 'PATCH') return { ok: true, json: async () => ({ recipe: detail.recipe }) }
+    if (u.endsWith('/api/recipes/edit-id') && method === 'GET')
+      return { ok: true, json: async () => detail }
+    if (u.endsWith('/api/recipes/edit-id') && method === 'PATCH')
+      return { ok: true, json: async () => ({ recipe: detail.recipe }) }
     return { ok: false, status: 404, json: async () => ({}) }
   }) as unknown as typeof fetch
 }
@@ -89,12 +129,19 @@ function renderEdit() {
 describe('RecipeEditor — edit: recipe notes vs your notes', () => {
   it('prefills each column into its own field', async () => {
     const sent: Sent[] = []
-    mockEditApi(sent, makeDetail({ notes: 'Soak the lentils overnight.', userNotes: 'Kids love it — double it.' }))
+    mockEditApi(
+      sent,
+      makeDetail({ notes: 'Soak the lentils overnight.', userNotes: 'Kids love it — double it.' }),
+    )
     renderEdit()
 
     await screen.findByDisplayValue('Saved Recipe')
-    expect((screen.getByLabelText('Recipe notes') as HTMLTextAreaElement).value).toBe('Soak the lentils overnight.')
-    expect((screen.getByLabelText('Your notes') as HTMLTextAreaElement).value).toBe('Kids love it — double it.')
+    expect((screen.getByLabelText('Recipe notes') as HTMLTextAreaElement).value).toBe(
+      'Soak the lentils overnight.',
+    )
+    expect((screen.getByLabelText('Your notes') as HTMLTextAreaElement).value).toBe(
+      'Kids love it — double it.',
+    )
   })
 
   it('does not copy personal notes into the shared notes column on save', async () => {
@@ -103,11 +150,16 @@ describe('RecipeEditor — edit: recipe notes vs your notes', () => {
     renderEdit()
 
     await screen.findByDisplayValue('Saved Recipe')
-    fireEvent.change(screen.getByLabelText('Your notes'), { target: { value: 'Use much less salt.' } })
+    fireEvent.change(screen.getByLabelText('Your notes'), {
+      target: { value: 'Use much less salt.' },
+    })
     fireEvent.click(screen.getByText('Save changes'))
 
     await waitFor(() => expect(sent.some((s) => s.method === 'PATCH')).toBe(true))
-    const b = sent.find((s) => s.method === 'PATCH')!.body as { notes: string | null; userNotes?: string }
+    const b = sent.find((s) => s.method === 'PATCH')!.body as {
+      notes: string | null
+      userNotes?: string
+    }
     expect(b.notes).toBeNull() // the source's notes stay empty
     expect(b.userNotes).toBe('Use much less salt.') // personal notes stay personal
   })
@@ -121,7 +173,9 @@ describe('RecipeEditor — edit: recipe notes vs your notes', () => {
     renderEdit()
 
     await screen.findByDisplayValue('Saved Recipe')
-    fireEvent.change(screen.getByPlaceholderText('Recipe title'), { target: { value: 'Renamed Recipe' } })
+    fireEvent.change(screen.getByPlaceholderText('Recipe title'), {
+      target: { value: 'Renamed Recipe' },
+    })
     fireEvent.click(screen.getByText('Save changes'))
 
     await waitFor(() => expect(sent.some((s) => s.method === 'PATCH')).toBe(true))
@@ -136,12 +190,19 @@ describe('RecipeEditor — edit: recipe notes vs your notes', () => {
     renderEdit()
 
     await screen.findByDisplayValue('Saved Recipe')
-    fireEvent.change(screen.getByLabelText('Recipe notes'), { target: { value: 'Soak overnight, then rinse.' } })
-    fireEvent.change(screen.getByLabelText('Your notes'), { target: { value: 'Triple the batch.' } })
+    fireEvent.change(screen.getByLabelText('Recipe notes'), {
+      target: { value: 'Soak overnight, then rinse.' },
+    })
+    fireEvent.change(screen.getByLabelText('Your notes'), {
+      target: { value: 'Triple the batch.' },
+    })
     fireEvent.click(screen.getByText('Save changes'))
 
     await waitFor(() => expect(sent.some((s) => s.method === 'PATCH')).toBe(true))
-    const b = sent.find((s) => s.method === 'PATCH')!.body as { notes: string | null; userNotes?: string }
+    const b = sent.find((s) => s.method === 'PATCH')!.body as {
+      notes: string | null
+      userNotes?: string
+    }
     expect(b.notes).toBe('Soak overnight, then rinse.')
     expect(b.userNotes).toBe('Triple the batch.')
   })
@@ -172,7 +233,7 @@ describe('RecipeEditor — edit: delete', () => {
     renderEdit()
 
     await screen.findByDisplayValue('Keeper')
-    fireEvent.click(screen.getByText('🗑 Delete recipe'))
+    fireEvent.click(screen.getByRole('button', { name: 'Delete recipe' }))
     fireEvent.click(screen.getByText('Delete'))
 
     expect(await screen.findByText(/Couldn’t delete/)).toBeTruthy()
@@ -187,11 +248,15 @@ describe('RecipeEditor — new', () => {
     mockApi(sent)
     renderNew()
 
-    fireEvent.change(screen.getByPlaceholderText('Recipe title'), { target: { value: 'Test Soup' } })
+    fireEvent.change(screen.getByPlaceholderText('Recipe title'), {
+      target: { value: 'Test Soup' },
+    })
     fireEvent.change(screen.getByPlaceholderText('ingredient'), { target: { value: 'carrots' } })
     fireEvent.change(screen.getByPlaceholderText('2'), { target: { value: '3' } })
     fireEvent.change(screen.getByPlaceholderText('cups'), { target: { value: 'cups' } })
-    fireEvent.change(screen.getByPlaceholderText('Describe this step…'), { target: { value: 'Simmer everything.' } })
+    fireEvent.change(screen.getByPlaceholderText('Describe this step…'), {
+      target: { value: 'Simmer everything.' },
+    })
 
     // Tag the ingredient onto the step via the popover (no retyping); default amount "3 cups".
     fireEvent.click(screen.getByText('+ Tag ingredient'))
@@ -199,9 +264,15 @@ describe('RecipeEditor — new', () => {
 
     fireEvent.click(screen.getByText('Create recipe'))
 
-    await waitFor(() => expect(sent.some((s) => s.url.endsWith('/api/recipes') && s.method === 'POST')).toBe(true))
+    await waitFor(() =>
+      expect(sent.some((s) => s.url.endsWith('/api/recipes') && s.method === 'POST')).toBe(true),
+    )
     const post = sent.find((s) => s.url.endsWith('/api/recipes') && s.method === 'POST')!
-    const b = post.body as { title: string; ingredients: { name: string; amount: number }[]; steps: { instruction: string; ingredients: string[] }[] }
+    const b = post.body as {
+      title: string
+      ingredients: { name: string; amount: number }[]
+      steps: { instruction: string; ingredients: string[] }[]
+    }
     expect(b.title).toBe('Test Soup')
     expect(b.ingredients).toHaveLength(1)
     expect(b.ingredients[0]).toMatchObject({ name: 'carrots', amount: 3 })
@@ -223,7 +294,9 @@ describe('RecipeEditor — new', () => {
     fireEvent.change(screen.getByPlaceholderText('cups'), { target: { value: 'cups' } })
 
     fireEvent.click(screen.getByText('Create recipe'))
-    await waitFor(() => expect(sent.some((s) => s.url.endsWith('/api/recipes') && s.method === 'POST')).toBe(true))
+    await waitFor(() =>
+      expect(sent.some((s) => s.url.endsWith('/api/recipes') && s.method === 'POST')).toBe(true),
+    )
     const b = sent.find((s) => s.url.endsWith('/api/recipes') && s.method === 'POST')!.body as {
       ingredients: { name: string; amount: number | null; unit: string | null }[]
     }
@@ -242,15 +315,21 @@ describe('RecipeEditor — new', () => {
     fireEvent.change(screen.getByPlaceholderText('cups'), { target: { value: 'cups' } })
     fireEvent.click(screen.getByText('Create recipe'))
 
-    await waitFor(() => expect(sent.some((s) => s.url.endsWith('/api/recipes') && s.method === 'POST')).toBe(true))
-    const created = sent.find((s) => s.url.endsWith('/api/recipes') && s.method === 'POST')!.body as {
+    await waitFor(() =>
+      expect(sent.some((s) => s.url.endsWith('/api/recipes') && s.method === 'POST')).toBe(true),
+    )
+    const created = sent.find((s) => s.url.endsWith('/api/recipes') && s.method === 'POST')!
+      .body as {
       ingredients: { name: string; amount: number | null; unit: string | null }[]
     }
     first.unmount()
 
     // Reload the editor on exactly what was saved — not a hand-written fixture.
     const sent2: Sent[] = []
-    mockEditApi(sent2, makeDetail({ title: 'Pancakes' }, [created.ingredients[0] as Record<string, unknown>]))
+    mockEditApi(
+      sent2,
+      makeDetail({ title: 'Pancakes' }, [created.ingredients[0] as Record<string, unknown>]),
+    )
     renderEdit()
 
     await screen.findByDisplayValue('Pancakes')
@@ -259,7 +338,9 @@ describe('RecipeEditor — new', () => {
 
     fireEvent.click(screen.getByText('Save changes'))
     await waitFor(() => expect(sent2.some((s) => s.method === 'PATCH')).toBe(true))
-    const patched = sent2.find((s) => s.method === 'PATCH')!.body as { ingredients: { amount: number | null }[] }
+    const patched = sent2.find((s) => s.method === 'PATCH')!.body as {
+      ingredients: { amount: number | null }[]
+    }
     expect(patched.ingredients[0].amount).toBe(1.5)
   })
 
@@ -267,7 +348,10 @@ describe('RecipeEditor — new', () => {
   // paste that straight into the Qty box; a save from there is exact but unreadable.
   it('re-opens an awkward fraction as the fraction, not its decimal', async () => {
     const sent: Sent[] = []
-    mockEditApi(sent, makeDetail({ title: 'Dressing' }, [{ name: 'oil', amount: 1 / 3, unit: 'cup' }]))
+    mockEditApi(
+      sent,
+      makeDetail({ title: 'Dressing' }, [{ name: 'oil', amount: 1 / 3, unit: 'cup' }]),
+    )
     renderEdit()
 
     await screen.findByDisplayValue('Dressing')
@@ -275,7 +359,9 @@ describe('RecipeEditor — new', () => {
 
     fireEvent.click(screen.getByText('Save changes'))
     await waitFor(() => expect(sent.some((s) => s.method === 'PATCH')).toBe(true))
-    const patched = sent.find((s) => s.method === 'PATCH')!.body as { ingredients: { amount: number | null }[] }
+    const patched = sent.find((s) => s.method === 'PATCH')!.body as {
+      ingredients: { amount: number | null }[]
+    }
     expect(patched.ingredients[0].amount).toBeCloseTo(1 / 3, 10)
   })
 
@@ -286,12 +372,21 @@ describe('RecipeEditor — new', () => {
     renderNew()
 
     expect(screen.queryByLabelText('Your notes')).toBeNull()
-    fireEvent.change(screen.getByPlaceholderText('Recipe title'), { target: { value: 'Noted Soup' } })
-    fireEvent.change(screen.getByPlaceholderText('Anything worth remembering…'), { target: { value: 'From Grandma.' } })
+    fireEvent.change(screen.getByPlaceholderText('Recipe title'), {
+      target: { value: 'Noted Soup' },
+    })
+    fireEvent.change(screen.getByPlaceholderText('Anything worth remembering…'), {
+      target: { value: 'From Grandma.' },
+    })
     fireEvent.click(screen.getByText('Create recipe'))
 
-    await waitFor(() => expect(sent.some((s) => s.url.endsWith('/api/recipes') && s.method === 'POST')).toBe(true))
-    const b = sent.find((s) => s.url.endsWith('/api/recipes') && s.method === 'POST')!.body as { notes: string | null; userNotes?: string }
+    await waitFor(() =>
+      expect(sent.some((s) => s.url.endsWith('/api/recipes') && s.method === 'POST')).toBe(true),
+    )
+    const b = sent.find((s) => s.url.endsWith('/api/recipes') && s.method === 'POST')!.body as {
+      notes: string | null
+      userNotes?: string
+    }
     expect(b.notes).toBe('From Grandma.')
     expect(b.userNotes).toBeUndefined()
   })
@@ -308,13 +403,17 @@ describe('RecipeEditor — new', () => {
     }) as unknown as typeof fetch
     renderNew()
 
-    fireEvent.change(screen.getByPlaceholderText('Recipe title'), { target: { value: 'Doomed Soup' } })
+    fireEvent.change(screen.getByPlaceholderText('Recipe title'), {
+      target: { value: 'Doomed Soup' },
+    })
     fireEvent.click(screen.getByText('Create recipe'))
 
     expect(await screen.findByText(/Couldn’t save/)).toBeTruthy()
     // still on the editor, button back to normal so the user can try again
     expect(screen.queryByText('recipe page')).toBeNull()
-    expect((screen.getByText('Create recipe').closest('button') as HTMLButtonElement).disabled).toBe(false)
+    expect(
+      (screen.getByText('Create recipe').closest('button') as HTMLButtonElement).disabled,
+    ).toBe(false)
   })
 
   it('per-step amount can be split (override the chip amount)', async () => {
@@ -322,11 +421,15 @@ describe('RecipeEditor — new', () => {
     mockApi(sent)
     renderNew()
 
-    fireEvent.change(screen.getByPlaceholderText('Recipe title'), { target: { value: 'Water Test' } })
+    fireEvent.change(screen.getByPlaceholderText('Recipe title'), {
+      target: { value: 'Water Test' },
+    })
     fireEvent.change(screen.getByPlaceholderText('ingredient'), { target: { value: 'water' } })
     fireEvent.change(screen.getByPlaceholderText('2'), { target: { value: '2' } })
     fireEvent.change(screen.getByPlaceholderText('cups'), { target: { value: 'cups' } })
-    fireEvent.change(screen.getByPlaceholderText('Describe this step…'), { target: { value: 'Add half the water.' } })
+    fireEvent.change(screen.getByPlaceholderText('Describe this step…'), {
+      target: { value: 'Add half the water.' },
+    })
 
     fireEvent.click(screen.getByText('+ Tag ingredient'))
     fireEvent.click(screen.getByLabelText('Tag water'))
@@ -334,8 +437,12 @@ describe('RecipeEditor — new', () => {
     fireEvent.change(screen.getByLabelText('Amount of water'), { target: { value: '1 cup' } })
 
     fireEvent.click(screen.getByText('Create recipe'))
-    await waitFor(() => expect(sent.some((s) => s.url.endsWith('/api/recipes') && s.method === 'POST')).toBe(true))
-    const b = sent.find((s) => s.url.endsWith('/api/recipes') && s.method === 'POST')!.body as { steps: { ingredients: string[] }[] }
+    await waitFor(() =>
+      expect(sent.some((s) => s.url.endsWith('/api/recipes') && s.method === 'POST')).toBe(true),
+    )
+    const b = sent.find((s) => s.url.endsWith('/api/recipes') && s.method === 'POST')!.body as {
+      steps: { ingredients: string[] }[]
+    }
     expect(b.steps[0].ingredients).toEqual(['1 cup water'])
   })
 
@@ -343,25 +450,40 @@ describe('RecipeEditor — new', () => {
     const sent: Sent[] = []
     mockApi(sent, undefined, {
       suggestion: {
-        cuisine: 'Italian', mealType: 'dinner', protein: 'chicken', base: 'pasta',
-        effort: null, cookMethod: 'stovetop', flavorProfile: null,
-        dietary: ['gluten-free'], vegetables: ['spinach'], tags: ['quick'],
+        cuisine: 'Italian',
+        mealType: 'dinner',
+        protein: 'chicken',
+        base: 'pasta',
+        effort: null,
+        cookMethod: 'stovetop',
+        flavorProfile: null,
+        dietary: ['gluten-free'],
+        vegetables: ['spinach'],
+        tags: ['quick'],
       },
       via: 'test',
     })
     renderNew()
 
-    fireEvent.change(screen.getByPlaceholderText('Recipe title'), { target: { value: 'Spaghetti' } })
+    fireEvent.change(screen.getByPlaceholderText('Recipe title'), {
+      target: { value: 'Spaghetti' },
+    })
     fireEvent.change(screen.getByPlaceholderText('ingredient'), { target: { value: 'noodles' } })
     // pre-fill protein so we can prove it is NOT overwritten
-    fireEvent.change(screen.getByPlaceholderText('chicken, beef, tofu…'), { target: { value: 'beef' } })
+    fireEvent.change(screen.getByPlaceholderText('chicken, beef, tofu…'), {
+      target: { value: 'beef' },
+    })
 
     // suggestions surface after the debounced background call; Keep all applies them
     const keepAll = await screen.findByText('Keep all', {}, { timeout: 4000 })
     fireEvent.click(keepAll)
 
-    expect((screen.getByPlaceholderText('Italian, Thai…') as HTMLInputElement).value).toBe('Italian') // empty → filled
-    expect((screen.getByPlaceholderText('chicken, beef, tofu…') as HTMLInputElement).value).toBe('beef') // yours → kept
+    expect((screen.getByPlaceholderText('Italian, Thai…') as HTMLInputElement).value).toBe(
+      'Italian',
+    ) // empty → filled
+    expect((screen.getByPlaceholderText('chicken, beef, tofu…') as HTMLInputElement).value).toBe(
+      'beef',
+    ) // yours → kept
     expect(screen.getByText('spinach')).toBeTruthy() // vegetable chip merged in
     expect(screen.getByText('gluten-free')).toBeTruthy()
   })
@@ -370,14 +492,23 @@ describe('RecipeEditor — new', () => {
     const sent: Sent[] = []
     mockApi(sent, undefined, {
       suggestion: {
-        cuisine: 'Italian', mealType: null, protein: null, base: 'pasta',
-        effort: null, cookMethod: null, flavorProfile: null,
-        dietary: [], vegetables: [], tags: [],
+        cuisine: 'Italian',
+        mealType: null,
+        protein: null,
+        base: 'pasta',
+        effort: null,
+        cookMethod: null,
+        flavorProfile: null,
+        dietary: [],
+        vegetables: [],
+        tags: [],
       },
       via: 'test',
     })
     renderNew()
-    fireEvent.change(screen.getByPlaceholderText('Recipe title'), { target: { value: 'Spaghetti' } })
+    fireEvent.change(screen.getByPlaceholderText('Recipe title'), {
+      target: { value: 'Spaghetti' },
+    })
     fireEvent.change(screen.getByPlaceholderText('ingredient'), { target: { value: 'noodles' } })
 
     await screen.findByLabelText('Use Italian', {}, { timeout: 4000 })
@@ -390,33 +521,77 @@ describe('RecipeEditor — new', () => {
   it('paste → parse prefills the form', async () => {
     const sent: Sent[] = []
     mockApi(sent, {
-      recipe: { title: 'Parsed Dish', emoji: '🍲', servings: 2, tags: [], notes: null, sourceName: null, mealType: 'dinner', protein: null, base: null, cuisine: 'Thai', effort: null, cookMethod: null, flavorProfile: null, dietary: [], vegetables: [] },
+      recipe: {
+        title: 'Parsed Dish',
+        emoji: '🍲',
+        servings: 2,
+        tags: [],
+        notes: null,
+        sourceName: null,
+        mealType: 'dinner',
+        protein: null,
+        base: null,
+        cuisine: 'Thai',
+        effort: null,
+        cookMethod: null,
+        flavorProfile: null,
+        dietary: [],
+        vegetables: [],
+      },
       ingredients: [{ name: 'rice', amount: 1, unit: 'cup', prepNote: null, section: null }],
       steps: [{ instruction: 'Cook the rice.', ingredients: [] }],
     })
     renderNew()
 
-    fireEvent.click(screen.getByText('📋 Paste markdown'))
-    fireEvent.change(screen.getByPlaceholderText('Paste frontmatter + markdown here…'), { target: { value: '# Parsed Dish' } })
-    fireEvent.click(screen.getByText('Parse → fill the form'))
+    fireEvent.click(screen.getByRole('button', { name: 'Paste markdown' }))
+    fireEvent.change(screen.getByPlaceholderText('Paste frontmatter + markdown here…'), {
+      target: { value: '# Parsed Dish' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Parse fill the form' }))
 
-    await waitFor(() => expect((screen.getByPlaceholderText('Recipe title') as HTMLInputElement).value).toBe('Parsed Dish'))
+    await waitFor(() =>
+      expect((screen.getByPlaceholderText('Recipe title') as HTMLInputElement).value).toBe(
+        'Parsed Dish',
+      ),
+    )
     expect((screen.getByPlaceholderText('ingredient') as HTMLInputElement).value).toBe('rice')
-    expect((screen.getByPlaceholderText('Describe this step…') as HTMLTextAreaElement).value).toBe('Cook the rice.')
+    expect((screen.getByPlaceholderText('Describe this step…') as HTMLTextAreaElement).value).toBe(
+      'Cook the rice.',
+    )
   })
 
   it('paste → parse carries a step timer into the timer control', async () => {
     const sent: Sent[] = []
     mockApi(sent, {
-      recipe: { title: 'Timed Dish', emoji: '🍲', servings: 2, tags: [], notes: null, sourceName: null, mealType: null, protein: null, base: null, cuisine: null, effort: null, cookMethod: null, flavorProfile: null, dietary: [], vegetables: [] },
+      recipe: {
+        title: 'Timed Dish',
+        emoji: '🍲',
+        servings: 2,
+        tags: [],
+        notes: null,
+        sourceName: null,
+        mealType: null,
+        protein: null,
+        base: null,
+        cuisine: null,
+        effort: null,
+        cookMethod: null,
+        flavorProfile: null,
+        dietary: [],
+        vegetables: [],
+      },
       ingredients: [{ name: 'rice', amount: 1, unit: 'cup', prepNote: null, section: null }],
-      steps: [{ instruction: 'Cook on the grill for 6 minutes.', ingredients: [], timerSeconds: 360 }],
+      steps: [
+        { instruction: 'Cook on the grill for 6 minutes.', ingredients: [], timerSeconds: 360 },
+      ],
     })
     renderNew()
 
-    fireEvent.click(screen.getByText('📋 Paste markdown'))
-    fireEvent.change(screen.getByPlaceholderText('Paste frontmatter + markdown here…'), { target: { value: '# Timed Dish' } })
-    fireEvent.click(screen.getByText('Parse → fill the form'))
+    fireEvent.click(screen.getByRole('button', { name: 'Paste markdown' }))
+    fireEvent.change(screen.getByPlaceholderText('Paste frontmatter + markdown here…'), {
+      target: { value: '# Timed Dish' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Parse fill the form' }))
 
     // The parsed timerSeconds should surface as a "6:00" timer pill, not "Add timer".
     await waitFor(() => expect(screen.getByText('6:00')).toBeTruthy())

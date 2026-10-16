@@ -4,6 +4,10 @@
 // Reuses the auth-card chrome.
 import { useEffect, useRef, useState } from 'react'
 import { kioskApi } from '../lib/api'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { DataIcon } from '@/components/ui/data-icon'
 
 const LEN = 6
 const clean = (s: string) => s.toUpperCase().replace(/[^A-Z0-9]/g, '')
@@ -27,9 +31,15 @@ function CodeStep({ onPaired, onCancel }: { onPaired: () => void; onCancel: () =
     const v = clean(raw)
     setChars((prev) => {
       const next = [...prev]
-      if (!v) { next[i] = ''; return next }
+      if (!v) {
+        next[i] = ''
+        return next
+      }
       let idx = i
-      for (const ch of v.split('')) { if (idx >= LEN) break; next[idx++] = ch }
+      for (const ch of v.split('')) {
+        if (idx >= LEN) break
+        next[idx++] = ch
+      }
       focus(idx)
       return next
     })
@@ -71,19 +81,31 @@ function CodeStep({ onPaired, onCancel }: { onPaired: () => void; onCancel: () =
   }, [code])
 
   return (
-    <div className="auth-screen">
+    <div className="auth-screen wf">
       <div className="auth-card">
         <img className="auth-logo-img" src="/logo.png" alt="Waffled" width={96} height={96} />
         <div className="auth-title wf-serif">Set up this device</div>
-        <div className="auth-sub">Enter the pairing code from Settings → Sign-in &amp; Security on an admin’s device.</div>
-        {error && <div className="auth-error" style={{ marginBottom: 12 }}>{error}</div>}
+        <div className="auth-sub">
+          <>
+            {'Enter the pairing code from Settings '}
+            <DataIcon value={'→'} kind="general" />
+            {' Sign-in &amp; Security on an admin’s device.'}
+          </>
+        </div>
+        {error && (
+          <div className="auth-error" style={{ marginBottom: 12 }}>
+            {error}
+          </div>
+        )}
 
-        <label className="auth-label">Pairing code</label>
+        <Label className="auth-label">Pairing code</Label>
         <div className="pair-code">
           {chars.map((c, i) => (
-            <input
+            <Input
               key={i}
-              ref={(el) => { refs.current[i] = el }}
+              ref={(el) => {
+                refs.current[i] = el
+              }}
               className="pair-box"
               value={c}
               onChange={(e) => onChange(i, e.target.value)}
@@ -99,10 +121,24 @@ function CodeStep({ onPaired, onCancel }: { onPaired: () => void; onCancel: () =
             />
           ))}
         </div>
-        {busy && <div className="auth-sub" style={{ marginTop: 14, textAlign: 'center' }}>Pairing…</div>}
-        <button type="button" className="kp-cancel" style={{ marginTop: 18 }} onClick={onCancel}>
-          ← Back to sign in
-        </button>
+        {busy && (
+          <div className="auth-sub" style={{ marginTop: 14, textAlign: 'center' }}>
+            Pairing…
+          </div>
+        )}
+        <Button
+          variant="unstyled"
+          type="button"
+          className="kp-cancel"
+          style={{ marginTop: 18 }}
+          onClick={onCancel}
+        >
+          <>
+            {'\n          '}
+            <DataIcon value={'←'} kind="general" />
+            {' Back to sign in\n        '}
+          </>
+        </Button>
       </div>
     </div>
   )
@@ -125,20 +161,34 @@ function NameStep() {
   }
 
   return (
-    <div className="auth-screen">
+    <div className="auth-screen wf">
       <div className="auth-card">
         <img className="auth-logo-img" src="/logo.png" alt="Waffled" width={96} height={96} />
         <div className="auth-title wf-serif">Name this kiosk</div>
         <div className="auth-sub">So you can tell your devices apart in Settings.</div>
         <form
           className="auth-form"
-          onSubmit={(e) => { e.preventDefault(); void save() }}
+          onSubmit={(e) => {
+            e.preventDefault()
+            void save()
+          }}
         >
-          <label className="auth-label">Device name</label>
-          <input className="auth-input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Kitchen" autoFocus />
-          <button type="submit" className="btn btn-primary auth-submit" disabled={busy || !name.trim()}>
+          <Label className="auth-label">Device name</Label>
+          <Input
+            className="auth-input"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Kitchen"
+            autoFocus
+          />
+          <Button
+            variant="default"
+            type="submit"
+            className="auth-submit"
+            disabled={busy || !name.trim()}
+          >
             {busy ? 'Saving…' : 'Start kiosk'}
-          </button>
+          </Button>
         </form>
       </div>
     </div>

@@ -1,3 +1,4 @@
+import { selectOption } from '../../test/select-option'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { PhotoDetail } from './PhotoDetail'
 import type { Photo } from '../../lib/api'
@@ -43,7 +44,7 @@ function renderDetail() {
       onClose={() => {}}
       onUpdated={onUpdated}
       onDeleted={() => {}}
-    />
+    />,
   )
 }
 const onUpdated = vi.fn()
@@ -65,13 +66,13 @@ describe('PhotoDetail', () => {
     renderDetail()
 
     // enter edit mode via the topbar Edit pill
-    fireEvent.click(screen.getByRole('button', { name: /✏️ Edit/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Edit/ }))
 
     const caption = screen.getByPlaceholderText('Caption') as HTMLInputElement
     fireEvent.change(caption, { target: { value: 'Sunset swim' } })
     // Album is now an AlbumPicker: choose "＋ New album…", then type a new name.
     const albumSelect = screen.getByRole('combobox') as HTMLSelectElement
-    fireEvent.change(albumSelect, { target: { value: '__new__' } })
+    await selectOption(albumSelect, 'New album…')
     const albumInput = screen.getByPlaceholderText('New album name') as HTMLInputElement
     fireEvent.change(albumInput, { target: { value: 'Beach Trip' } })
     fireEvent.click(screen.getByRole('button', { name: /Favorite/ }))
@@ -90,9 +91,9 @@ describe('PhotoDetail', () => {
 
   it('selecting an existing album sends it as memory', async () => {
     renderDetail()
-    fireEvent.click(screen.getByRole('button', { name: /✏️ Edit/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Edit/ }))
     const albumSelect = screen.getByRole('combobox') as HTMLSelectElement
-    fireEvent.change(albumSelect, { target: { value: 'Birthday' } })
+    await selectOption(albumSelect, 'Birthday')
     fireEvent.click(screen.getByRole('button', { name: /^Save$/ }))
     await waitFor(() => expect(patched.length).toBe(1))
     expect(patched[0].patch).toMatchObject({ memory: 'Birthday' })
@@ -107,9 +108,9 @@ describe('PhotoDetail', () => {
         onClose={() => {}}
         onUpdated={onUpdated}
         onDeleted={() => {}}
-      />
+      />,
     )
-    fireEvent.click(screen.getByRole('button', { name: /✏️ Edit/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Edit/ }))
     const date = document.querySelector('input[type="date"]') as HTMLInputElement
     expect(date.value).not.toBe('')
   })
@@ -124,7 +125,7 @@ describe('PhotoDetail', () => {
         onClose={() => {}}
         onUpdated={() => {}}
         onDeleted={onDeleted}
-      />
+      />,
     )
 
     // tapping the trash opens a confirm dialog — it does NOT delete outright
@@ -138,7 +139,7 @@ describe('PhotoDetail', () => {
 
   it('Cancel exits edit mode without saving', () => {
     renderDetail()
-    fireEvent.click(screen.getByRole('button', { name: /✏️ Edit/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Edit/ }))
     fireEvent.click(screen.getByRole('button', { name: /Cancel/ }))
     expect(patched.length).toBe(0)
     expect(screen.queryByPlaceholderText('Caption')).not.toBeInTheDocument()

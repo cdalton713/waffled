@@ -2,6 +2,7 @@ import { defineConfig, devices } from '@playwright/test'
 
 export default defineConfig({
   testDir: './e2e',
+  snapshotPathTemplate: '{testDir}/{testFilePath}-snapshots/{arg}{ext}',
   timeout: 30_000,
   expect: { timeout: 8_000 },
   fullyParallel: true,
@@ -14,11 +15,9 @@ export default defineConfig({
     serviceWorkers: 'allow',
     trace: 'retain-on-failure',
   },
-  projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-  ],
+  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
-    command: 'npm run build && npm run preview -- --host 127.0.0.1 --port 4178',
+    command: 'pnpm run build && pnpm run preview --host 127.0.0.1 --port 4178',
     url: 'http://127.0.0.1:4178',
     reuseExistingServer: false,
     timeout: 120_000,

@@ -1,3 +1,4 @@
+import { IconValue } from '@/components/ui/icon-value'
 // Parent review/approval surfaces. Two kinds of thing wait on a parent's OK:
 // chore completions (status 'awaiting') and reward redemptions (status
 // 'pending'). Three surfaces share this file:
@@ -24,11 +25,27 @@ import {
 } from '../../lib/api'
 import { Icon } from '../icons'
 import '../../styles/goals.css'
+import { Button } from '@/components/ui/button'
+import { DataIcon } from '@/components/ui/data-icon'
+import { Modal } from '@/components/ui/modal'
+import { Card } from '@/components/ui/card'
 
-function Avatar({ emoji, color, name }: { emoji: string | null; color: string | null; name: string | null }) {
+function Avatar({
+  emoji,
+  color,
+  name,
+}: {
+  emoji: string | null
+  color: string | null
+  name: string | null
+}) {
   return (
-    <span className="rw-av" style={{ background: color ? `${color}22` : 'var(--panel)' }} title={name ?? ''}>
-      {emoji ?? '🙂'}
+    <span
+      className="rw-av"
+      style={{ background: color ? `${color}22` : 'var(--panel)' }}
+      title={name ?? ''}
+    >
+      <DataIcon value={emoji ?? '🙂'} kind="general" />
     </span>
   )
 }
@@ -78,39 +95,88 @@ export function ChoreProofModal({
   const c = instance
   const when = dayLabel(c.dueOn)
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
   const acting = busy === c.id
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <Modal className="modal-overlay" onClose={onClose}>
       <div className="modal-card chore-proof-modal" onClick={(e) => e.stopPropagation()}>
-        <button type="button" className="modal-close" aria-label="Close" onClick={onClose}>×</button>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="modal-close"
+          aria-label="Close"
+          onClick={onClose}
+        >
+          <DataIcon value={'×'} kind="chore" />
+        </Button>
         <div className="cpm-head">
           <Avatar emoji={c.personAvatar} color={c.personColor} name={c.personName} />
           <div className="cpm-head-tx">
             <div className="cpm-title">
               <span className="rw-appr-name">{c.personName ?? 'Someone'}</span> finished{' '}
-              <span className="rw-appr-reward">{c.emoji ? `${c.emoji} ` : ''}{c.choreTitle}</span>
+              <span className="rw-appr-reward">
+                {c.emoji ? <>{<DataIcon value={c.emoji} kind="reward" />} </> : ''}
+                {c.choreTitle}
+              </span>
             </div>
             <div className="cpm-sub">
               {when ? `Completed ${when}` : 'Completed'}
-              <span className="rw-appr-cost">{symbolFor(c.rewardCurrency, cur)} {c.rewardAmount ?? 0}</span>
+              <span className="rw-appr-cost">
+                <IconValue value={symbolFor(c.rewardCurrency, cur)} /> {c.rewardAmount ?? 0}
+              </span>
             </div>
           </div>
         </div>
         <div className="cpm-stage">
-          {c.proofUrl
-            ? <img src={c.proofUrl} alt={`Photo proof for ${c.choreTitle}`} />
-            : <div className="cpm-noimg">{c.hadProof ? '📷 A photo was attached but is no longer saved.' : 'No photo was attached.'}</div>}
+          {c.proofUrl ? (
+            <img src={c.proofUrl} alt={`Photo proof for ${c.choreTitle}`} />
+          ) : (
+            <div className="cpm-noimg">
+              {c.hadProof ? (
+                <>
+                  <DataIcon value={'📷'} kind="general" />
+                  {' A photo was attached but is no longer saved.'}
+                </>
+              ) : (
+                'No photo was attached.'
+              )}
+            </div>
+          )}
         </div>
         <div className="cpm-actions">
-          <button type="button" className="pill" disabled={acting} onClick={() => { onReject(c.id); onClose() }}>Not yet</button>
-          <button type="button" className="pill btn-primary" style={{ color: 'var(--on-accent)', border: 0 }} disabled={acting} onClick={() => { onApprove(c.id); onClose() }}>Approve</button>
+          <Button
+            variant="unstyled"
+            type="button"
+            className="pill btn-primary"
+            disabled={acting}
+            onClick={() => {
+              onReject(c.id)
+              onClose()
+            }}
+          >
+            Not yet
+          </Button>
+          <Button
+            variant="unstyled"
+            type="button"
+            className="pill btn-primary"
+            style={{ color: 'var(--on-accent)', border: 0 }}
+            disabled={acting}
+            onClick={() => {
+              onApprove(c.id)
+              onClose()
+            }}
+          >
+            Approve
+          </Button>
         </div>
       </div>
-    </div>
+    </Modal>
   )
 }
 
@@ -134,31 +200,66 @@ export function ChoreApprovalsCard({
   const [review, setReview] = useState<ChoreInstance | null>(null)
   if (chores.length === 0) return null
   // Keep the reviewed instance fresh as the queue refetches (else a stale snapshot lingers).
-  const reviewing = review ? chores.find((c) => c.id === review.id) ?? null : null
+  const reviewing = review ? (chores.find((c) => c.id === review.id) ?? null) : null
   return (
-    <div className="card rw-approvals">
-      <div className="card-h" style={{ marginBottom: 10 }}>{title}</div>
+    <Card className="card rw-approvals">
+      <div className="card-h" style={{ marginBottom: 10 }}>
+        {title}
+      </div>
       {chores.map((c) => {
         const when = dayLabel(c.dueOn)
         return (
-        <div key={c.id} className="rw-appr">
-          <Avatar emoji={c.personAvatar} color={c.personColor} name={c.personName} />
-          <div className="rw-appr-txt">
-            <span className="rw-appr-name">{c.personName ?? 'Someone'}</span> finished{' '}
-            <span className="rw-appr-reward">{c.emoji ? `${c.emoji} ` : ''}{c.choreTitle}</span>
-            {when && <> <span className="rw-appr-when">({when})</span></>}
-            <span className="rw-appr-cost">{symbolFor(c.rewardCurrency, cur)} {c.rewardAmount ?? 0}</span>
+          <div key={c.id} className="rw-appr">
+            <Avatar emoji={c.personAvatar} color={c.personColor} name={c.personName} />
+            <div className="rw-appr-txt">
+              <span className="rw-appr-name">{c.personName ?? 'Someone'}</span> finished{' '}
+              <span className="rw-appr-reward">
+                {c.emoji ? <>{<DataIcon value={c.emoji} kind="reward" />} </> : ''}
+                {c.choreTitle}
+              </span>
+              {when && (
+                <>
+                  {' '}
+                  <span className="rw-appr-when">({when})</span>
+                </>
+              )}
+              <span className="rw-appr-cost">
+                <IconValue value={symbolFor(c.rewardCurrency, cur)} /> {c.rewardAmount ?? 0}
+              </span>
+            </div>
+            {c.proofUrl && (
+              <Button
+                variant="unstyled"
+                type="button"
+                className="chore-proof-thumb"
+                title="Review photo proof"
+                onClick={() => setReview(c)}
+              >
+                <img src={c.proofUrl} alt={`Proof for ${c.choreTitle}`} />
+              </Button>
+            )}
+            <div className="rw-appr-actions">
+              <Button
+                variant="unstyled"
+                type="button"
+                className="pill btn-primary"
+                disabled={busy === c.id}
+                onClick={() => onReject(c.id)}
+              >
+                Not yet
+              </Button>
+              <Button
+                variant="unstyled"
+                type="button"
+                className="pill btn-primary"
+                style={{ color: 'var(--on-accent)', border: 0 }}
+                disabled={busy === c.id}
+                onClick={() => onApprove(c.id)}
+              >
+                Approve
+              </Button>
+            </div>
           </div>
-          {c.proofUrl && (
-            <button type="button" className="chore-proof-thumb" title="Review photo proof" onClick={() => setReview(c)}>
-              <img src={c.proofUrl} alt={`Proof for ${c.choreTitle}`} />
-            </button>
-          )}
-          <div className="rw-appr-actions">
-            <button type="button" className="pill" disabled={busy === c.id} onClick={() => onReject(c.id)}>Not yet</button>
-            <button type="button" className="pill btn-primary" style={{ color: 'var(--on-accent)', border: 0 }} disabled={busy === c.id} onClick={() => onApprove(c.id)}>Approve</button>
-          </div>
-        </div>
         )
       })}
       {reviewing && (
@@ -171,7 +272,7 @@ export function ChoreApprovalsCard({
           onClose={() => setReview(null)}
         />
       )}
-    </div>
+    </Card>
   )
 }
 
@@ -191,23 +292,47 @@ export function RewardApprovalsCard({
 }) {
   if (pending.length === 0) return null
   return (
-    <div className="card rw-approvals">
-      <div className="card-h" style={{ marginBottom: 10 }}>{title}</div>
+    <Card className="card rw-approvals">
+      <div className="card-h" style={{ marginBottom: 10 }}>
+        {title}
+      </div>
       {pending.map((p) => (
         <div key={p.id} className="rw-appr">
           <Avatar emoji={p.personAvatar} color={p.personColor} name={p.personName} />
           <div className="rw-appr-txt">
             <span className="rw-appr-name">{p.personName}</span> wants{' '}
-            <span className="rw-appr-reward">{p.emoji ? `${p.emoji} ` : ''}{p.title}</span>
-            <span className="rw-appr-cost">{symbolFor(p.currency, cur)} {p.cost}</span>
+            <span className="rw-appr-reward">
+              {p.emoji ? <>{<DataIcon value={p.emoji} kind="reward" />} </> : ''}
+              {p.title}
+            </span>
+            <span className="rw-appr-cost">
+              <IconValue value={symbolFor(p.currency, cur)} /> {p.cost}
+            </span>
           </div>
           <div className="rw-appr-actions">
-            <button type="button" className="pill" disabled={busy === p.id} onClick={() => onDecide(p.id, false)}>Deny</button>
-            <button type="button" className="pill btn-primary" style={{ color: 'var(--on-accent)', border: 0 }} disabled={busy === p.id} onClick={() => onDecide(p.id, true)}>Approve</button>
+            <Button
+              variant="unstyled"
+              type="button"
+              className="pill btn-primary"
+              disabled={busy === p.id}
+              onClick={() => onDecide(p.id, false)}
+            >
+              Deny
+            </Button>
+            <Button
+              variant="unstyled"
+              type="button"
+              className="pill btn-primary"
+              style={{ color: 'var(--on-accent)', border: 0 }}
+              disabled={busy === p.id}
+              onClick={() => onDecide(p.id, true)}
+            >
+              Approve
+            </Button>
           </div>
         </div>
       ))}
-    </div>
+    </Card>
   )
 }
 
@@ -272,19 +397,33 @@ export function ApprovalsBar() {
       : nChores
         ? `${nChores} ${nChores === 1 ? 'chore' : 'chores'} to approve`
         : `${nReds} ${nReds === 1 ? 'reward' : 'rewards'} to approve`
-  const names = [...chores.map((c) => c.choreTitle), ...pending.map((p) => p.title)].slice(0, 3).join(' · ')
+  const names = [...chores.map((c) => c.choreTitle), ...pending.map((p) => p.title)]
+    .slice(0, 3)
+    .join(' · ')
 
   return (
     <>
       {total > 0 && (
-        <button type="button" className="recap-bar recap-bar--approve" onClick={() => setOpen(true)}>
-          <span className="recap-bar-ico"><Icon name="family" /></span>
+        <Button
+          variant="unstyled"
+          type="button"
+          className="recap-bar recap-bar--approve"
+          onClick={() => setOpen(true)}
+        >
+          <span className="recap-bar-ico">
+            <Icon name="family" />
+          </span>
           <span className="recap-bar-txt">
             <span className="recap-bar-title">{title}</span>
             <span className="recap-bar-sub">{names} — your OK awards the stars.</span>
           </span>
-          <span className="recap-bar-cta">Review ›</span>
-        </button>
+          <span className="recap-bar-cta">
+            <>
+              {'Review '}
+              <DataIcon value={'›'} kind="general" />
+            </>
+          </span>
+        </Button>
       )}
       <ApprovalsDrawer
         open={open}
@@ -336,20 +475,53 @@ function ApprovalsDrawer({
   const allClear = chores.length === 0 && pending.length === 0
   return (
     <div className="review-scrim" onClick={onClose}>
-      <div className="review-drawer" role="dialog" aria-label="Review approvals" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="review-drawer"
+        role="dialog"
+        aria-label="Review approvals"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="review-drawer-head">
-          <button type="button" className="pill" style={{ cursor: 'pointer' }} onClick={onClose}>‹ Today</button>
+          <Button
+            variant="unstyled"
+            type="button"
+            className="pill btn-primary"
+            style={{ cursor: 'pointer' }}
+            onClick={onClose}
+          >
+            <>
+              <DataIcon value={'‹'} kind="general" />
+              {' Today'}
+            </>
+          </Button>
         </div>
         <div className="review-drawer-body">
           <div className="wf-serif review-title">Needs your OK</div>
-          <div className="review-sub">Approve finished chores to award their stars, and approve or deny reward requests.</div>
-          <ChoreApprovalsCard chores={chores} cur={cur} busy={busy} onApprove={onApproveChore} onReject={onRejectChore} title="Chores to approve" />
-          <RewardApprovalsCard pending={pending} cur={cur} busy={busy} onDecide={onDecideReward} title="Rewards to approve" />
+          <div className="review-sub">
+            Approve finished chores to award their stars, and approve or deny reward requests.
+          </div>
+          <ChoreApprovalsCard
+            chores={chores}
+            cur={cur}
+            busy={busy}
+            onApprove={onApproveChore}
+            onReject={onRejectChore}
+            title="Chores to approve"
+          />
+          <RewardApprovalsCard
+            pending={pending}
+            cur={cur}
+            busy={busy}
+            onDecide={onDecideReward}
+            title="Rewards to approve"
+          />
           {allClear && (
-            <div className="card recap-empty">
-              <span className="recap-empty-emo">🎉</span>
+            <Card className="card recap-empty">
+              <span className="recap-empty-emo">
+                <DataIcon value={'🎉'} kind="general" />
+              </span>
               <span>You’re all caught up — nothing waiting for your OK.</span>
-            </div>
+            </Card>
           )}
         </div>
       </div>

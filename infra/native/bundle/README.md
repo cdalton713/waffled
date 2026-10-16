@@ -64,8 +64,8 @@ infra/native/bundle/build.sh clean [--all]         # rm ./out (and the cache wit
 - Build host: Apple-silicon macOS with the Xcode command-line tools (`lipo`, `codesign`,
   `xxd`, `rsync`, `curl`, `shasum`, `tar` — all in the base system + CLT). **No Node, npm or
   pnpm needs to be installed**: `fetch` downloads the bundled Node first and then uses *that*
-  Node (and its npm/npx) for everything — symlink hydration, `npx pnpm@11.0.9`, `npm ci`,
-  `npm run build` for api and web, and the manifest.
+  Node (and its npm/npx) for everything — symlink hydration, `npx pnpm@11.0.9` for
+  PowerSync, each app's pinned pnpm for frozen installs and builds, and the manifest.
 - **Go is the one exception**, and only for `build`: `bin/waffled-runtime` is compiled from
   `apps/runtime` (the version in its `go.mod`), so `build` dies with a clear message if `go`
   is not on `PATH`. `fetch` and `verify` need none. It is not downloaded into the cache like
@@ -78,11 +78,13 @@ infra/native/bundle/build.sh clean [--all]         # rm ./out (and the cache wit
   `WAFFLED_BUNDLE_SEED` (default `~/Library/Caches/WaffledSpike` — an optional second cache
   dir to copy downloads from, e.g. a previous machine's; unset or missing = no seeding),
   `WAFFLED_BUNDLE_NO_NETWORK=1` (die instead of downloading),
-  `WAFFLED_BUNDLE_NPM_CI=1` (force `npm ci` for api/web even if `node_modules` exists), and
+  `WAFFLED_BUNDLE_PNPM_INSTALL=1` (force a frozen pnpm install for api/web;
+  `WAFFLED_BUNDLE_NPM_CI` is also accepted), and
   `WAFFLED_{NODE,PG_NPM,PG_CLIENT,CADDY,POWERSYNC}_VERSION` to override a pin.
 - Pins live at the top of `build.sh`: Node **24.19.0** (major must match `.nvmrc`), Postgres
   **`@embedded-postgres/darwin-arm64@16.14.0-beta.17`** (server) + **theseus 16.14.0** (client
-  tools), Caddy **2.11.4**, PowerSync **v1.22.0** (= the compose image tag), pnpm **11.0.9**.
+  tools), Caddy **2.11.4**, PowerSync **v1.22.0** (= the compose image tag). PowerSync
+  uses pnpm **11.0.9**; API and web builds use their pinned pnpm **10.34.7**.
 - Every download is checksum-verified against the publisher's file: nodejs.org
   `SHASUMS256.txt`, Caddy's `caddy_<v>_checksums.txt` (SHA-512), theseus' `.tar.gz.sha256`.
   The EDB tgz has no publisher checksum (npm's integrity is implied by `npm pack`).
@@ -97,8 +99,8 @@ infra/native/bundle/build.sh clean [--all]         # rm ./out (and the cache wit
 keyed on a hash of just the pin lines at the top of `build.sh` (`NODE_VERSION`,
 `PG_NPM_VERSION`, `PG_VERSION`, `PG_CLIENT_VERSION`, `CADDY_VERSION`, `POWERSYNC_VERSION`,
 `PNPM_SPEC`) rather than the whole file, so an unrelated script edit doesn't force a ~600 MB
-re-download — only bumping a pin does. `WAFFLED_BUNDLE_NPM_CI=1` is set so `build` always runs
-`npm ci` for api/web. No `actions/setup-node`/pnpm step is needed or used: `fetch` downloads
+re-download — only bumping a pin does. `WAFFLED_BUNDLE_PNPM_INSTALL=1` is set so `build` always runs
+`pnpm install --frozen-lockfile` for api/web. No `actions/setup-node`/pnpm step is needed or used: `fetch` downloads
 the pinned Node first and every subsequent step (including `npx pnpm@11.0.9`) runs through
 *that* Node with its `bin/` prepended to `PATH`, never the runner's own.
 
@@ -133,8 +135,8 @@ the embedded Mach-O files and invalidates their hashes.
 | Postgres client tools | `https://github.com/theseus-rs/postgresql-binaries/releases/download/16.14.0/postgresql-16.14.0-aarch64-apple-darwin.tar.gz` | 16.14.0 | (in the 69 MB, ~1.5 MB) | `pg_dump`, `pg_restore`, `pg_isready`, `psql` — the npm repack ships none of them, EDB's full zip is ~300 MB. theseus is a complete arm64 build of the *same minor*; its tools link `@loader_path/../lib/libpq.5.dylib` (+ `libcrypto.3.dylib`), which EDB's `lib/` provides, so they drop into the same `bin/`. Ad-hoc signed (re-signed for a release anyway). |
 | Caddy | `https://github.com/caddyserver/caddy/releases/download/v2.11.4/caddy_2.11.4_mac_arm64.tar.gz` | 2.11.4 | **45 MB** | Ad-hoc signed upstream. |
 | waffled-runtime | `apps/runtime` (`go build -trimpath -ldflags "-s -w -X main.version=…"`) | 0.14.3 | **7 MB** | The supervisor, built before the manifest so it is *in* it. `-s -w` drops the symbol and DWARF tables; the `-X` stamps the version `waffled-runtime version` prints, which `verify` then asserts — so a stale binary from an earlier build fails the check instead of passing it. |
-| api | `apps/api` (esbuild, `npm run build`) | 0.14.3 | **11 MB** | dist 10 MB incl. sourcemaps (server.js ≈ 3 MB), 92 migrations 0.4 MB. |
-| web | `apps/web` (Vite, `npm run build`) | 0.14.3 | **10 MB** | |
+| api | `apps/api` (esbuild, `pnpm run build`) | 0.14.3 | **11 MB** | dist 10 MB incl. sourcemaps (server.js ≈ 3 MB), 92 migrations 0.4 MB. |
+| web | `apps/web` (Vite, `pnpm run build`) | 0.14.3 | **10 MB** | |
 | PowerSync | `https://github.com/powersync-ja/powersync-service` @ `v1.22.0`, `pnpm build:production`, then `pnpm install --prod --ignore-scripts --filter '@powersync/service-image...'` | 1.22.0 | **402 MB** (node_modules 381 MB, 1,321 symlinks) | Dev node_modules **619 MB** → prod-pruned **383 MB** (the compose image measures 292 MB on Linux; the darwin-arm64 native prebuilds — rolldown 19 MB, esbuild 10, lightningcss 9, snappy, zstd — account for most of the difference). |
 | config | `infra/compose/{caddy/Caddyfile, postgres/init/00-init.sql, powersync/*.yaml}` | — | 16 KB | byte-identical; `verify` diffs them against the repo. |
 | licenses | upstream | — | 180 KB | |

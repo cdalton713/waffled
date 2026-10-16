@@ -1,0 +1,18 @@
+{
+  "$schema": "./apps/api/node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc"],
+  "categories": {
+    "correctness": "warn"
+  },
+  "env": {
+    "browser": true,
+    "node": true
+  },
+  "ignorePatterns": [
+    "**/dist/**",
+    "**/coverage/**",
+    "**/.astro/**",
+    "**/playwright-report/**",
+    "**/test-results/**"
+  ]
+}

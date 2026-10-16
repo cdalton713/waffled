@@ -2,6 +2,11 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { googlePhotosApi, useGoogleImport } from '../../lib/api'
 import { ApiSendError } from '../../lib/api/client'
 import { AlbumPicker } from './AlbumPicker'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { DataIcon } from '@/components/ui/data-icon'
+import { Modal } from '@/components/ui/modal'
 
 // Import from Google Photos into one album. Google's picker opens in its own tab
 // (the /autoclose suffix closes it when the user taps Done); this dialog polls the
@@ -56,69 +61,122 @@ export function GooglePhotosImportModal({
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-card" role="dialog" aria-label="Import from Google Photos" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 420 }}>
-        <button type="button" className="modal-close" aria-label="Close" onClick={onClose}>×</button>
-        <div className="wf-serif" style={{ fontSize: 19, fontWeight: 600, marginBottom: 6 }}>Import from Google Photos</div>
+    <Modal className="modal-overlay" onClose={onClose}>
+      <div
+        className="modal-card"
+        role="dialog"
+        aria-label="Import from Google Photos"
+        onClick={(e) => e.stopPropagation()}
+        style={{ maxWidth: 420 }}
+      >
+        <Button
+          variant="unstyled"
+          type="button"
+          className="modal-close"
+          aria-label="Close"
+          onClick={onClose}
+        >
+          <DataIcon value={'×'} kind="photo" />
+        </Button>
+        <div className="wf-serif" style={{ fontSize: 19, fontWeight: 600, marginBottom: 6 }}>
+          Import from Google Photos
+        </div>
         {!imp ? (
           <form onSubmit={start}>
             <div className="tiny muted" style={{ marginBottom: 14, fontWeight: 600 }}>
-              {initialAlbum ? `Re-sync “${initialAlbum}”: pick the album again in Google Photos and only the photos Waffled doesn’t have yet are copied. ` : null}
-              Name the album these photos go into here. Your Google albums appear in the next step, inside Google Photos, where you can open one and select its photos.
+              {initialAlbum
+                ? `Re-sync “${initialAlbum}”: pick the album again in Google Photos and only the photos Waffled doesn’t have yet are copied. `
+                : null}
+              Name the album these photos go into here. Your Google albums appear in the next step,
+              inside Google Photos, where you can open one and select its photos.
             </div>
-            <label className="ap-field-label" style={{ marginBottom: 18 }}>
+            <Label className="ap-field-label" style={{ marginBottom: 18 }}>
               Waffled album
               {albums.length > 0 ? (
                 <AlbumPicker value={album} onChange={setAlbum} albums={albums} />
               ) : (
-                <input className="field" placeholder="e.g. Beach 2024" value={album} onChange={(e) => setAlbum(e.target.value)} autoFocus />
+                <Input
+                  className="field"
+                  placeholder="e.g. Beach 2024"
+                  value={album}
+                  onChange={(e) => setAlbum(e.target.value)}
+                  autoFocus
+                />
               )}
-            </label>
+            </Label>
             {err && (
-              <div className="tiny" style={{ color: 'var(--danger)', fontWeight: 700, marginBottom: 12 }}>
+              <div
+                className="tiny"
+                style={{ color: 'var(--danger)', fontWeight: 700, marginBottom: 12 }}
+              >
                 {err.message}
                 {err.enableUrl && (
                   <>
                     {' '}
-                    <a href={err.enableUrl} target="_blank" rel="noreferrer">Enable it in Google Cloud ↗</a>
+                    <a href={err.enableUrl} target="_blank" rel="noreferrer">
+                      Enable it in Google Cloud ↗
+                    </a>
                   </>
                 )}
               </div>
             )}
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-              <button type="button" className="btn btn-ghost" onClick={onClose}>Cancel</button>
-              <button type="submit" className="btn btn-primary" disabled={!album.trim() || busy}>Open Google Photos</button>
+              <Button variant="ghost" type="button" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button variant="default" type="submit" disabled={!album.trim() || busy}>
+                Open Google Photos
+              </Button>
             </div>
           </form>
         ) : (
           <div>
-            <div className="tiny muted" style={{ fontWeight: 600, margin: '8px 0 18px' }}>{importMessage(imp)}</div>
+            <div className="tiny muted" style={{ fontWeight: 600, margin: '8px 0 18px' }}>
+              {importMessage(imp)}
+            </div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
               {(imp.status === 'expired' || imp.status === 'failed') && (
-                <button type="button" className="btn btn-ghost" onClick={() => setImportId(null)}>Try again</button>
+                <Button variant="ghost" type="button" onClick={() => setImportId(null)}>
+                  Try again
+                </Button>
               )}
               {imp.status === 'picking' && (
-                <a className="btn btn-ghost" href={`${imp.pickerUri}/autoclose`} target="_blank" rel="noreferrer">Reopen picker</a>
+                <a
+                  className="btn btn-ghost"
+                  href={`${imp.pickerUri}/autoclose`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Reopen picker
+                </a>
               )}
-              <button type="button" className="btn btn-primary" onClick={onClose}>
+              <Button variant="default" type="button" onClick={onClose}>
                 {imp.status === 'done' ? 'Done' : 'Close'}
-              </button>
+              </Button>
             </div>
           </div>
         )}
       </div>
-    </div>
+    </Modal>
   )
 }
 
-function importMessage(imp: { status: string; album: string; importedCount: number; skippedCount: number; error: string | null }): string {
+function importMessage(imp: {
+  status: string
+  album: string
+  importedCount: number
+  skippedCount: number
+  error: string | null
+}): string {
   switch (imp.status) {
     case 'picking':
       return 'Pick photos in the Google Photos tab, then tap Done there. This window updates on its own.'
     case 'importing':
       return `Copying photos into “${imp.album}”… ${imp.importedCount} so far.`
     case 'done': {
-      const skipped = imp.skippedCount ? ` (${imp.skippedCount} skipped — videos or already imported)` : ''
+      const skipped = imp.skippedCount
+        ? ` (${imp.skippedCount} skipped — videos or already imported)`
+        : ''
       return `Added ${imp.importedCount} ${imp.importedCount === 1 ? 'photo' : 'photos'} to “${imp.album}”${skipped}. Photos added in Google later need another re-sync.`
     }
     case 'expired':

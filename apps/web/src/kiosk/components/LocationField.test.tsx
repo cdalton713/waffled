@@ -1,7 +1,11 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { LocationField } from './LocationField'
 
-interface Sent { method: string; url: string; body: unknown }
+interface Sent {
+  method: string
+  url: string
+  body: unknown
+}
 
 // Stands in for POST /api/pantry/locations, matching what the route actually does:
 // a name that already exists in ANY casing is a no-op that hands back the list the
@@ -25,11 +29,23 @@ function mockFetch(sent: Sent[], locations: string[]) {
 }
 
 describe('LocationField', () => {
-  it('offers the configured sections', () => {
-    render(<LocationField value="Fridge" locations={['Freezer', 'Fridge', 'Pantry']} onChange={() => {}} />)
-    const select = screen.getByLabelText('Location') as HTMLSelectElement
-    expect(select.value).toBe('Fridge')
-    expect(Array.from(select.options).map((o) => o.text)).toContain('Freezer')
+  async function newSection() {
+    fireEvent.keyDown(screen.getByRole('combobox', { name: 'Location' }), { key: 'ArrowDown' })
+    fireEvent.click(await screen.findByRole('option', { name: /New section/ }))
+  }
+
+  it('offers the configured sections', async () => {
+    render(
+      <LocationField
+        value="Fridge"
+        locations={['Freezer', 'Fridge', 'Pantry']}
+        onChange={() => {}}
+      />,
+    )
+    const select = screen.getByRole('combobox', { name: 'Location' })
+    expect(select).toHaveTextContent('Fridge')
+    fireEvent.keyDown(select, { key: 'ArrowDown' })
+    expect(await screen.findByRole('option', { name: 'Freezer' })).toBeInTheDocument()
   })
 
   // The whole point of the fix: you shouldn't have to leave the add sheet and go to
@@ -40,17 +56,26 @@ describe('LocationField', () => {
     const onChange = vi.fn()
     const onLocationsChanged = vi.fn()
     render(
-      <LocationField value="Fridge" locations={['Freezer', 'Fridge', 'Pantry']} onChange={onChange} onLocationsChanged={onLocationsChanged} />
+      <LocationField
+        value="Fridge"
+        locations={['Freezer', 'Fridge', 'Pantry']}
+        onChange={onChange}
+        onLocationsChanged={onLocationsChanged}
+      />,
     )
 
-    fireEvent.change(screen.getByLabelText('Location'), { target: { value: '__new__' } })
+    await newSection()
     const input = screen.getByPlaceholderText('New section name')
     fireEvent.change(input, { target: { value: '  Garage shelf ' } })
     fireEvent.click(screen.getByRole('button', { name: 'Add section' }))
 
     await waitFor(() => expect(onChange).toHaveBeenCalledWith('Garage shelf'))
     expect(sent.filter((s) => s.method === 'POST')).toEqual([
-      { method: 'POST', url: expect.stringContaining('/api/pantry/locations'), body: { name: 'Garage shelf' } },
+      {
+        method: 'POST',
+        url: expect.stringContaining('/api/pantry/locations'),
+        body: { name: 'Garage shelf' },
+      },
     ])
     expect(onLocationsChanged).toHaveBeenCalled()
     // Back to the picker, with the new section chosen.
@@ -65,11 +90,17 @@ describe('LocationField', () => {
     mockFetch(sent, ['Freezer', 'Fridge', 'Garage shelf'])
     const onChange = vi.fn()
     render(
-      <LocationField value="Fridge" locations={['Freezer', 'Fridge', 'Garage shelf']} onChange={onChange} />
+      <LocationField
+        value="Fridge"
+        locations={['Freezer', 'Fridge', 'Garage shelf']}
+        onChange={onChange}
+      />,
     )
 
-    fireEvent.change(screen.getByLabelText('Location'), { target: { value: '__new__' } })
-    fireEvent.change(screen.getByPlaceholderText('New section name'), { target: { value: 'garage shelf' } })
+    await newSection()
+    fireEvent.change(screen.getByPlaceholderText('New section name'), {
+      target: { value: 'garage shelf' },
+    })
     fireEvent.click(screen.getByRole('button', { name: 'Add section' }))
 
     await waitFor(() => expect(onChange).toHaveBeenCalled())
@@ -81,7 +112,7 @@ describe('LocationField', () => {
     mockFetch(sent, ['Pantry'])
     render(<LocationField value="Pantry" locations={['Pantry']} onChange={() => {}} />)
 
-    fireEvent.change(screen.getByLabelText('Location'), { target: { value: '__new__' } })
+    await newSection()
     expect(screen.getByRole('button', { name: 'Add section' })).toBeDisabled()
 
     fireEvent.click(screen.getByRole('button', { name: 'Cancel new section' }))

@@ -36,13 +36,13 @@ ps:
 psql:
     {{compose}} exec postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
 
-# apply DB migrations against the running local stack (needs `npm install` in apps/api)
+# apply DB migrations against the running local stack (needs `pnpm install` in apps/api)
 migrate:
-    set -a && . infra/compose/.env && set +a && cd apps/api && DATABASE_URL="postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@localhost:$POSTGRES_PORT/$POSTGRES_DB" npm run migrate
+    set -a && . infra/compose/.env && set +a && cd apps/api && DATABASE_URL="postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@localhost:$POSTGRES_PORT/$POSTGRES_DB" pnpm run migrate
 
 # import a folder of Markdown recipes into a household. e.g. `just import-recipes ~/Documents/Recipes/recipeFiles/Noodles`
 import-recipes folder *ARGS:
-    set -a && . infra/compose/.env && set +a && cd apps/api && DATABASE_URL="postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@localhost:$POSTGRES_PORT/$POSTGRES_DB" npx tsx scripts/import-recipes.ts "{{folder}}" {{ARGS}}
+    set -a && . infra/compose/.env && set +a && cd apps/api && DATABASE_URL="postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@localhost:$POSTGRES_PORT/$POSTGRES_DB" pnpm exec tsx scripts/import-recipes.ts "{{folder}}" {{ARGS}}
 
 # mint a local dev JWT (prints only the token). e.g. `export TOKEN=$(just token)`
 # pass flags through: `just token --household <uuid> --sub dev:kelly`
@@ -51,7 +51,7 @@ token *ARGS:
 
 # run the api test suite (Vitest + Testcontainers; needs Docker running)
 test:
-    cd apps/api && npm test
+    cd apps/api && pnpm test
 
 # run the api from source with hot reload (tsx watch) against the compose Postgres.
 # Frees :3000 by stopping the containerized api; `just up` brings the container back.
@@ -60,11 +60,11 @@ api:
     set -euo pipefail
     {{compose}} stop api >/dev/null 2>&1 || true
     set -a; . infra/compose/.env; set +a
-    cd apps/api && DATABASE_URL="postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@localhost:$POSTGRES_PORT/$POSTGRES_DB" npm run dev
+    cd apps/api && DATABASE_URL="postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@localhost:$POSTGRES_PORT/$POSTGRES_DB" pnpm run dev
 
 # run the web app dev server (Vite; proxies /api to the local api on :3000)
 web:
-    cd apps/web && npm run dev
+    cd apps/web && pnpm run dev
 
 # seed a demo household + members + chores + a grocery item; print a kiosk token
 # (needs the stack up + migrated)

@@ -1,236 +1,237 @@
+@reference './ui.css';
 /* Kiosk profile picker + PIN pad (the paired-device resting state). */
 .kp-screen {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 28px;
-  padding: 32px;
-  background: var(--bg);
+  @apply [min-height:100vh];
+  @apply flex;
+  @apply flex-col;
+  @apply items-center;
+  @apply justify-center;
+  @apply [gap:28px];
+  @apply [padding:32px];
+  @apply [background:var(--bg)];
 }
 .kp-head {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
+  @apply flex;
+  @apply flex-col;
+  @apply items-center;
+  @apply text-center;
 }
 .kp-logo {
-  width: 72px;
-  height: 72px;
-  border-radius: 18px;
-  object-fit: contain;
-  margin-bottom: 14px;
+  @apply [width:72px];
+  @apply [height:72px];
+  @apply [border-radius:18px];
+  @apply [object-fit:contain];
+  @apply [margin-bottom:14px];
 }
 .kp-title {
-  font-size: 28px;
-  font-weight: 600;
+  @apply [font-size:28px];
+  @apply font-semibold;
 }
 .kp-sub {
-  color: var(--ink-2);
-  font-weight: 500;
-  margin-top: 4px;
+  @apply [color:var(--ink-2)];
+  @apply font-medium;
+  @apply [margin-top:4px];
 }
 .kp-error {
-  color: var(--danger-tx);
-  font-weight: 600;
-  margin-top: 4px;
+  @apply [color:var(--danger-tx)];
+  @apply font-semibold;
+  @apply [margin-top:4px];
 }
 
 /* Profile grid */
 .kp-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, 140px);
-  gap: 20px;
-  justify-content: center;
-  max-width: 760px;
+  @apply grid;
+  @apply [grid-template-columns:repeat(auto-fit,_140px)];
+  @apply [gap:20px];
+  @apply justify-center;
+  @apply [max-width:760px];
 }
 .kp-tile {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: var(--r-lg);
-  transition: transform 0.12s ease, background 0.12s ease;
+  @apply flex;
+  @apply flex-col;
+  @apply items-center;
+  @apply [gap:12px];
+  @apply [background:none];
+  @apply [border:none];
+  @apply cursor-pointer;
+  @apply [padding:8px];
+  @apply [border-radius:var(--r-lg)];
+  @apply [transition:transform_0.12s_ease,_background_0.12s_ease];
 }
 .kp-tile:hover:not(:disabled),
 .kp-tile:focus-visible {
-  transform: translateY(-3px);
-  background: var(--card);
-  box-shadow: var(--sh-1);
+  @apply [transform:translateY(-3px)];
+  @apply [background:var(--card)];
+  @apply [box-shadow:var(--sh-1)];
 }
 .kp-tile:disabled {
-  opacity: 0.5;
-  cursor: default;
+  @apply [opacity:0.5];
+  @apply cursor-default;
 }
 .kp-av {
-  width: 104px;
-  height: 104px;
-  border-radius: 24px;
-  display: grid;
-  place-items: center;
-  font-size: 52px;
+  @apply [width:104px];
+  @apply [height:104px];
+  @apply [border-radius:24px];
+  @apply grid;
+  @apply [place-items:center];
+  @apply [font-size:52px];
 }
 .kp-av-lg {
-  width: 88px;
-  height: 88px;
-  border-radius: 22px;
-  font-size: 44px;
-  margin-bottom: 12px;
+  @apply [width:88px];
+  @apply [height:88px];
+  @apply [border-radius:22px];
+  @apply [font-size:44px];
+  @apply [margin-bottom:12px];
 }
 .kp-name {
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--ink);
+  @apply [font-size:17px];
+  @apply font-bold;
+  @apply [color:var(--ink)];
 }
 .kp-lock {
-  font-size: 13px;
+  @apply [font-size:13px];
 }
 .kp-empty {
-  color: var(--ink-3);
-  font-weight: 500;
+  @apply [color:var(--ink-3)];
+  @apply font-medium;
 }
 .kp-device {
-  color: var(--ink-3);
-  font-weight: 700;
-  font-size: 13px;
-  letter-spacing: 0.02em;
+  @apply [color:var(--ink-3)];
+  @apply font-bold;
+  @apply [font-size:13px];
+  @apply [letter-spacing:0.02em];
 }
 
 /* PIN pad */
 .kp-dots {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin-top: 16px;
-  min-height: 18px; /* reserve space so the keypad doesn't jump as dots appear */
+  @apply flex;
+  @apply items-center;
+  @apply justify-center;
+  @apply [gap:12px];
+  @apply [margin-top:16px];
+  @apply [min-height:18px]; /* reserve space so the keypad doesn't jump as dots appear */
 }
 .kp-dot {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--ink);
+  @apply [width:14px];
+  @apply [height:14px];
+  @apply [border-radius:50%];
+  @apply [background:var(--ink)];
 }
 .kp-dots-hint {
-  color: var(--ink-3);
-  font-weight: 600;
-  font-size: 14px;
+  @apply [color:var(--ink-3)];
+  @apply font-semibold;
+  @apply [font-size:14px];
 }
 .kp-cap {
-  margin-top: 6px;
-  color: var(--ink-3);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  @apply [margin-top:6px];
+  @apply [color:var(--ink-3)];
+  @apply [font-size:12px];
+  @apply font-semibold;
+  @apply [letter-spacing:0.02em];
 }
 .kp-pad {
-  display: grid;
-  grid-template-columns: repeat(3, 84px);
-  gap: 14px;
+  @apply grid;
+  @apply [grid-template-columns:repeat(3,_84px)];
+  @apply [gap:14px];
 }
 .kp-key {
-  height: 84px;
-  border-radius: 18px;
-  border: none;
-  background: var(--card);
-  box-shadow: var(--sh-1);
-  font-size: 28px;
-  font-weight: 600;
-  color: var(--ink);
-  cursor: pointer;
-  transition: transform 0.08s ease;
+  @apply [height:84px];
+  @apply [border-radius:18px];
+  @apply [border:none];
+  @apply [background:var(--card)];
+  @apply [box-shadow:var(--sh-1)];
+  @apply [font-size:28px];
+  @apply font-semibold;
+  @apply [color:var(--ink)];
+  @apply cursor-pointer;
+  @apply [transition:transform_0.08s_ease];
 }
 .kp-key:active:not(:disabled) {
-  transform: scale(0.95);
+  @apply [transform:scale(0.95)];
 }
 .kp-key:disabled {
-  opacity: 0.45;
-  cursor: default;
+  @apply [opacity:0.45];
+  @apply cursor-default;
 }
 .kp-key-ok {
-  background: var(--success);
-  color: var(--on-accent);
+  @apply [background:var(--success)];
+  @apply [color:var(--on-accent)];
 }
 .kp-key-del {
-  background: var(--panel);
+  @apply [background:var(--panel)];
 }
 .kp-cancel {
-  background: none;
-  border: none;
-  color: var(--ink-2);
-  font-weight: 600;
-  cursor: pointer;
+  @apply [background:none];
+  @apply [border:none];
+  @apply [color:var(--ink-2)];
+  @apply font-semibold;
+  @apply cursor-pointer;
 }
 .kp-cancel:hover {
-  color: var(--ink);
+  @apply [color:var(--ink)];
 }
 
 /* Night dimming overlay (display mode, scheduled). Below the screensaver (z 1000). */
 .kiosk-dim {
-  position: fixed;
-  inset: 0;
-  z-index: 900;
-  background: rgba(0, 0, 0, 0.55);
-  pointer-events: none;
-  transition: opacity 0.6s ease;
+  @apply fixed;
+  @apply [inset:0];
+  @apply [z-index:900];
+  @apply [background:rgba(0,_0,_0,_0.55)];
+  @apply pointer-events-none;
+  @apply [transition:opacity_0.6s_ease];
 }
 
 /* Pairing code display (Settings → Sign-in & Security). */
 .kp-code {
-  display: inline-block;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 34px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  padding: 10px 18px;
-  border-radius: 12px;
-  background: var(--panel);
-  color: var(--ink);
+  @apply inline-block;
+  @apply [font-family:ui-monospace,_SFMono-Regular,_Menlo,_monospace];
+  @apply [font-size:34px];
+  @apply font-bold;
+  @apply [letter-spacing:0.18em];
+  @apply [padding:10px_18px];
+  @apply [border-radius:12px];
+  @apply [background:var(--panel)];
+  @apply [color:var(--ink)];
 }
 /* The pairing code is meant to be read/copied — make it selectable. */
 .kp-code-sel {
-  user-select: all;
-  -webkit-user-select: all;
-  cursor: text;
+  @apply [user-select:all];
+  @apply [-webkit-user-select:all];
+  @apply [cursor:text];
 }
 
 /* Rail account chip: "Switch profile" in kiosk mode, the signed-in person's name
    (linking to Settings) otherwise. */
 .rail-switch {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  margin-top: 8px;
-  padding: 6px 4px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--ink-2);
-  font-size: 11px;
-  font-weight: 700;
-  text-decoration: none;
+  @apply flex;
+  @apply flex-col;
+  @apply items-center;
+  @apply [gap:4px];
+  @apply [margin-top:8px];
+  @apply [padding:6px_4px];
+  @apply [background:none];
+  @apply [border:none];
+  @apply cursor-pointer;
+  @apply [color:var(--ink-2)];
+  @apply [font-size:11px];
+  @apply font-bold;
+  @apply [text-decoration:none];
 }
 .rail-switch:hover {
-  color: var(--ink);
+  @apply [color:var(--ink)];
 }
 .rail-switch-av {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  display: grid;
-  place-items: center;
-  font-size: 18px;
+  @apply [width:34px];
+  @apply [height:34px];
+  @apply [border-radius:10px];
+  @apply grid;
+  @apply [place-items:center];
+  @apply [font-size:18px];
 }
 .rail-switch-label {
-  letter-spacing: 0.02em;
-  max-width: 60px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  @apply [letter-spacing:0.02em];
+  @apply [max-width:60px];
+  @apply overflow-hidden;
+  @apply [text-overflow:ellipsis];
+  @apply whitespace-nowrap;
 }

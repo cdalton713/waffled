@@ -1,3 +1,5 @@
+@reference './ui.css';
+
 /* Meal Builder screen — compose a multi-recipe plate.
  *
  * Shared controls come from the design system (.pill, .seg, .sel, .toggle,
@@ -6,462 +8,462 @@
  * stat bar, the toast). See apps/web/CLAUDE.md. */
 
 .mb-shell {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  height: 100%;
+  @apply flex;
+  @apply flex-col;
+  @apply [min-height:0];
+  @apply [height:100%];
 }
 
 /* ── header ─────────────────────────────────────────────────────────────── */
 .mb-head {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 18px 30px 12px;
-  flex: none;
+  @apply flex;
+  @apply items-center;
+  @apply [gap:14px];
+  @apply [padding:18px_30px_12px];
+  @apply [flex:none];
 }
 .mb-back {
-  flex: none;
+  @apply [flex:none];
 }
 .mb-head-b {
-  min-width: 0;
-  flex: 1;
+  @apply [min-width:0];
+  @apply [flex:1];
 }
 /* Inline-editable title: reads as the page heading, behaves as an input. */
 .mb-name {
-  display: block;
-  width: 100%;
-  max-width: 520px;
-  font-family: var(--serif);
-  font-size: 25px;
-  font-weight: 600;
-  letter-spacing: -0.015em;
-  color: var(--ink);
-  background: transparent;
-  border: 0;
-  border-radius: 10px;
-  padding: 2px 6px;
-  margin-left: -6px;
+  @apply block;
+  @apply [width:100%];
+  @apply [max-width:520px];
+  @apply [font-family:var(--serif)];
+  @apply [font-size:25px];
+  @apply font-semibold;
+  @apply [letter-spacing:-0.015em];
+  @apply [color:var(--ink)];
+  @apply [background:transparent];
+  @apply [border:0];
+  @apply [border-radius:10px];
+  @apply [padding:2px_6px];
+  @apply [margin-left:-6px];
 }
 .mb-name::placeholder {
-  color: var(--ink-3);
+  @apply [color:var(--ink-3)];
 }
 .mb-name:hover {
-  background: var(--overlay-hover);
+  @apply [background:var(--overlay-hover)];
 }
 .mb-name:focus {
-  outline: none;
-  background: var(--card);
-  box-shadow: 0 0 0 3px var(--ring);
+  @apply [outline:none];
+  @apply [background:var(--card)];
+  @apply [box-shadow:0_0_0_3px_var(--ring)];
 }
 .mb-hint {
-  font-weight: 600;
-  margin-top: 2px;
+  @apply font-semibold;
+  @apply [margin-top:2px];
 }
 
 /* ── two columns ────────────────────────────────────────────────────────── */
 .mb-body {
-  display: flex;
-  gap: 20px;
-  align-items: flex-start;
-  padding: 0 30px 18px;
-  flex: 1;
-  min-height: 0;
+  @apply flex;
+  @apply [gap:20px];
+  @apply items-start;
+  @apply [padding:0_30px_18px];
+  @apply [flex:1];
+  @apply [min-height:0];
 }
 .mb-plate {
-  flex: 1;
-  min-width: 0;
-  overflow-y: auto;
-  max-height: 100%;
-  padding-bottom: 8px;
+  @apply [flex:1];
+  @apply [min-width:0];
+  @apply overflow-y-auto;
+  @apply [max-height:100%];
+  @apply [padding-bottom:8px];
 }
 
 /* ── role groups ────────────────────────────────────────────────────────── */
 .mb-group + .mb-group {
-  margin-top: 22px;
+  @apply [margin-top:22px];
 }
 .mb-group-head {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  margin-bottom: 10px;
+  @apply flex;
+  @apply items-center;
+  @apply [gap:9px];
+  @apply [margin-bottom:10px];
 }
 .mb-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  flex: none;
-  background: var(--ink-3);
+  @apply [width:10px];
+  @apply [height:10px];
+  @apply [border-radius:999px];
+  @apply [flex:none];
+  @apply [background:var(--ink-3)];
 }
 .mb-dot-main {
-  background: var(--primary);
+  @apply [background:var(--primary)];
 }
 .mb-dot-side {
-  background: var(--person-3);
+  @apply [background:var(--person-3)];
 }
 .mb-dot-dessert {
-  background: var(--person-4);
+  @apply [background:var(--person-4)];
 }
 .mb-group-label {
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: var(--ink);
+  @apply [font-size:14px];
+  @apply font-bold;
+  @apply [letter-spacing:0.02em];
+  @apply [color:var(--ink)];
 }
 .mb-group-count {
-  display: inline-grid;
-  place-items: center;
-  min-width: 20px;
-  height: 20px;
-  padding: 0 6px;
-  border-radius: 999px;
-  background: var(--panel);
-  color: var(--ink-2);
-  font-size: 12px;
-  font-weight: 700;
+  @apply [display:inline-grid];
+  @apply [place-items:center];
+  @apply [min-width:20px];
+  @apply [height:20px];
+  @apply [padding:0_6px];
+  @apply [border-radius:999px];
+  @apply [background:var(--panel)];
+  @apply [color:var(--ink-2)];
+  @apply [font-size:12px];
+  @apply font-bold;
 }
 
 /* ── dish rows ──────────────────────────────────────────────────────────── */
 .mb-dish {
-  display: flex;
-  align-items: center;
+  @apply flex;
+  @apply items-center;
   /* wraps so the expanded to-buy list gets its own full-width line in the card */
-  flex-wrap: wrap;
-  gap: 10px;
-  background: var(--card);
-  border: 1px solid var(--hair);
-  border-radius: var(--r-md, 16px);
-  box-shadow: var(--sh-1);
-  padding: 9px 12px 9px 9px;
-  margin-bottom: 9px;
+  @apply flex-wrap;
+  @apply [gap:10px];
+  @apply [background:var(--card)];
+  @apply [border:1px_solid_var(--hair)];
+  @apply [border-radius:var(--r-md,_16px)];
+  @apply [box-shadow:var(--sh-1)];
+  @apply [padding:9px_12px_9px_9px];
+  @apply [margin-bottom:9px];
 }
 .mb-dish-open {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 1;
-  min-width: 0;
-  border: 0;
-  background: transparent;
-  font: inherit;
-  text-align: left;
-  color: var(--ink);
-  cursor: pointer;
-  padding: 0;
+  @apply flex;
+  @apply items-center;
+  @apply [gap:12px];
+  @apply [flex:1];
+  @apply [min-width:0];
+  @apply [border:0];
+  @apply [background:transparent];
+  @apply [font:inherit];
+  @apply text-left;
+  @apply [color:var(--ink)];
+  @apply cursor-pointer;
+  @apply [padding:0];
 }
 .mb-thumb {
-  width: 46px;
-  height: 46px;
-  border-radius: 13px;
-  flex: none;
-  display: grid;
-  place-items: center;
-  font-size: 23px;
-  background: var(--panel);
+  @apply [width:46px];
+  @apply [height:46px];
+  @apply [border-radius:13px];
+  @apply [flex:none];
+  @apply grid;
+  @apply [place-items:center];
+  @apply [font-size:23px];
+  @apply [background:var(--panel)];
 }
 .mb-dish-b {
-  min-width: 0;
-  display: block;
+  @apply [min-width:0];
+  @apply block;
 }
 .mb-dish-t {
-  display: block;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--ink);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  @apply block;
+  @apply [font-size:15px];
+  @apply font-semibold;
+  @apply [color:var(--ink)];
+  @apply overflow-hidden;
+  @apply [text-overflow:ellipsis];
+  @apply whitespace-nowrap;
 }
 .mb-dish-m {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 4px 10px;
-  margin-top: 3px;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--ink-2);
+  @apply flex;
+  @apply items-center;
+  @apply flex-wrap;
+  @apply [gap:4px_10px];
+  @apply [margin-top:3px];
+  @apply [font-size:12.5px];
+  @apply font-semibold;
+  @apply [color:var(--ink-2)];
 }
 .mb-onhand-ok {
-  color: var(--success-tx);
+  @apply [color:var(--success-tx)];
 }
 .mb-onhand-buy {
-  color: var(--warn);
+  @apply [color:var(--warn)];
 }
 .mb-onhand-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  border: 0;
-  background: transparent;
-  font: inherit;
-  font-size: 12.5px;
-  font-weight: 600;
-  padding: 0;
-  cursor: pointer;
+  @apply inline-flex;
+  @apply items-center;
+  @apply [gap:4px];
+  @apply [border:0];
+  @apply [background:transparent];
+  @apply [font:inherit];
+  @apply [font-size:12.5px];
+  @apply font-semibold;
+  @apply [padding:0];
+  @apply cursor-pointer;
 }
 .mb-onhand-caret {
-  font-size: 9px;
-  opacity: 0.75;
+  @apply [font-size:9px];
+  @apply [opacity:0.75];
 }
 .mb-tobuy {
-  width: 100%;
-  margin: 2px 0 0;
-  padding: 9px 12px;
-  list-style: none;
-  background: var(--panel);
-  border-radius: var(--r-sm, 12px);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px 8px;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--ink-2);
+  @apply [width:100%];
+  @apply [margin:2px_0_0];
+  @apply [padding:9px_12px];
+  @apply [list-style:none];
+  @apply [background:var(--panel)];
+  @apply [border-radius:var(--r-sm,_12px)];
+  @apply flex;
+  @apply flex-wrap;
+  @apply [gap:5px_8px];
+  @apply [font-size:12.5px];
+  @apply font-semibold;
+  @apply [color:var(--ink-2)];
 }
 .mb-tobuy li {
-  background: var(--card);
-  border: 1px solid var(--hair);
-  border-radius: 999px;
-  padding: 3px 10px;
+  @apply [background:var(--card)];
+  @apply [border:1px_solid_var(--hair)];
+  @apply [border-radius:999px];
+  @apply [padding:3px_10px];
 }
 .mb-cook-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: var(--panel);
-  color: var(--ink-2);
-  font-size: 12px;
-  font-weight: 700;
+  @apply inline-flex;
+  @apply items-center;
+  @apply [gap:4px];
+  @apply [padding:2px_8px];
+  @apply [border-radius:999px];
+  @apply [background:var(--panel)];
+  @apply [color:var(--ink-2)];
+  @apply [font-size:12px];
+  @apply font-bold;
 }
 .mb-cook-sel {
-  flex: none;
-  max-width: 150px;
-  font-size: 13px;
-  border: 0;
-  padding: 6px 10px;
+  @apply [flex:none];
+  @apply [max-width:150px];
+  @apply [font-size:13px];
+  @apply [border:0];
+  @apply [padding:6px_10px];
 }
 .mb-x {
-  width: 30px;
-  height: 30px;
-  flex: none;
-  border-radius: 999px;
-  border: 1px solid var(--hair);
-  background: var(--card-2);
-  color: var(--ink-2);
-  font-size: 17px;
-  line-height: 1;
-  cursor: pointer;
-  display: grid;
-  place-items: center;
+  @apply [width:30px];
+  @apply [height:30px];
+  @apply [flex:none];
+  @apply [border-radius:999px];
+  @apply [border:1px_solid_var(--hair)];
+  @apply [background:var(--card-2)];
+  @apply [color:var(--ink-2)];
+  @apply [font-size:17px];
+  @apply [line-height:1];
+  @apply cursor-pointer;
+  @apply grid;
+  @apply [place-items:center];
 }
 .mb-x:hover {
-  background: var(--danger-t);
-  color: var(--danger-tx);
-  border-color: transparent;
+  @apply [background:var(--danger-t)];
+  @apply [color:var(--danger-tx)];
+  @apply [border-color:transparent];
 }
 
 /* ── drop zone / "add a side" ───────────────────────────────────────────── */
 .mb-slot {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 11px 12px;
-  border-radius: var(--r-md, 16px);
-  border: 1.5px dashed var(--line);
-  background: transparent;
-  font: inherit;
-  color: var(--ink-2);
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
+  @apply flex;
+  @apply items-center;
+  @apply [gap:12px];
+  @apply [width:100%];
+  @apply [padding:11px_12px];
+  @apply [border-radius:var(--r-md,_16px)];
+  @apply [border:1.5px_dashed_var(--line)];
+  @apply [background:transparent];
+  @apply [font:inherit];
+  @apply [color:var(--ink-2)];
+  @apply cursor-pointer;
+  @apply [transition:background_0.15s,_border-color_0.15s];
 }
 .mb-slot:hover {
-  border-color: var(--primary);
-  color: var(--ink);
+  @apply [border-color:var(--primary)];
+  @apply [color:var(--ink)];
 }
 .mb-slot.is-over,
 .mb-slot.is-adding {
-  border-color: var(--primary);
-  border-style: solid;
-  background: var(--primary-t);
-  color: var(--ink);
+  @apply [border-color:var(--primary)];
+  @apply [border-style:solid];
+  @apply [background:var(--primary-t)];
+  @apply [color:var(--ink)];
 }
 .mb-slot-plus {
-  width: 46px;
-  height: 46px;
-  flex: none;
-  border-radius: 13px;
-  display: grid;
-  place-items: center;
-  font-size: 20px;
-  background: var(--panel);
-  color: var(--ink-2);
+  @apply [width:46px];
+  @apply [height:46px];
+  @apply [flex:none];
+  @apply [border-radius:13px];
+  @apply grid;
+  @apply [place-items:center];
+  @apply [font-size:20px];
+  @apply [background:var(--panel)];
+  @apply [color:var(--ink-2)];
 }
 .mb-slot-label {
-  font-size: 14px;
-  font-weight: 600;
+  @apply [font-size:14px];
+  @apply font-semibold;
 }
 
 /* ── library panel ──────────────────────────────────────────────────────── */
 .mb-lib {
-  width: 336px;
-  flex: none;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  max-height: 100%;
-  background: var(--card);
-  border: 1px solid var(--hair);
-  border-radius: var(--r-lg, 20px);
-  box-shadow: var(--sh-1);
-  padding: 16px;
+  @apply [width:336px];
+  @apply [flex:none];
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:10px];
+  @apply [max-height:100%];
+  @apply [background:var(--card)];
+  @apply [border:1px_solid_var(--hair)];
+  @apply [border-radius:var(--r-lg,_20px)];
+  @apply [box-shadow:var(--sh-1)];
+  @apply [padding:16px];
 }
 .mb-lib-head {
-  font-family: var(--serif);
-  font-size: 17px;
-  font-weight: 600;
+  @apply [font-family:var(--serif)];
+  @apply [font-size:17px];
+  @apply font-semibold;
 }
 .mb-adding {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  border-radius: 12px;
-  background: var(--primary-t);
-  color: var(--ink);
-  font-size: 13px;
-  font-weight: 600;
+  @apply flex;
+  @apply items-center;
+  @apply [gap:8px];
+  @apply [padding:8px_10px];
+  @apply [border-radius:12px];
+  @apply [background:var(--primary-t)];
+  @apply [color:var(--ink)];
+  @apply [font-size:13px];
+  @apply font-semibold;
 }
 .mb-adding-x {
-  margin-left: auto;
-  border: 0;
-  background: transparent;
-  font: inherit;
-  color: var(--ink-2);
-  cursor: pointer;
+  @apply [margin-left:auto];
+  @apply [border:0];
+  @apply [background:transparent];
+  @apply [font:inherit];
+  @apply [color:var(--ink-2)];
+  @apply cursor-pointer;
 }
 .mb-lib-seg {
-  width: 100%;
-  justify-content: space-between;
+  @apply [width:100%];
+  @apply justify-between;
 }
 .mb-lib-seg button {
-  padding: 6px 11px;
-  font-size: 13px;
+  @apply [padding:6px_11px];
+  @apply [font-size:13px];
 }
 .mb-search {
-  width: 100%;
-  font: inherit;
-  font-size: 14px;
-  padding: 9px 12px;
-  border-radius: 999px;
-  border: 1px solid var(--control-line);
-  background: var(--card-2);
-  color: var(--ink);
+  @apply [width:100%];
+  @apply [font:inherit];
+  @apply [font-size:14px];
+  @apply [padding:9px_12px];
+  @apply [border-radius:999px];
+  @apply [border:1px_solid_var(--control-line)];
+  @apply [background:var(--card-2)];
+  @apply [color:var(--ink)];
 }
 .mb-search:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--ring);
+  @apply [outline:none];
+  @apply [border-color:var(--primary)];
+  @apply [box-shadow:0_0_0_3px_var(--ring)];
 }
 .mb-lib-rows {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
+  @apply [flex:1];
+  @apply [min-height:0];
+  @apply overflow-y-auto;
+  @apply flex;
+  @apply flex-col;
+  @apply [gap:7px];
 }
 .mb-lib-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 7px 8px;
-  border-radius: 13px;
-  border: 1px solid var(--hair-2);
-  background: var(--card-2);
-  cursor: grab;
+  @apply flex;
+  @apply items-center;
+  @apply [gap:10px];
+  @apply [padding:7px_8px];
+  @apply [border-radius:13px];
+  @apply [border:1px_solid_var(--hair-2)];
+  @apply [background:var(--card-2)];
+  @apply [cursor:grab];
 }
 .mb-lib-row.is-on {
-  opacity: 0.42;
-  cursor: default;
-  pointer-events: none;
+  @apply [opacity:0.42];
+  @apply cursor-default;
+  @apply pointer-events-none;
 }
 .mb-lib-row .mb-thumb {
-  width: 36px;
-  height: 36px;
-  border-radius: 11px;
-  font-size: 18px;
-  background: var(--card);
+  @apply [width:36px];
+  @apply [height:36px];
+  @apply [border-radius:11px];
+  @apply [font-size:18px];
+  @apply [background:var(--card)];
 }
 .mb-lib-b {
-  flex: 1;
-  min-width: 0;
+  @apply [flex:1];
+  @apply [min-width:0];
 }
 .mb-lib-t {
-  display: block;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--ink);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  @apply block;
+  @apply [font-size:14px];
+  @apply font-semibold;
+  @apply [color:var(--ink)];
+  @apply overflow-hidden;
+  @apply [text-overflow:ellipsis];
+  @apply whitespace-nowrap;
 }
 .mb-lib-m {
-  display: block;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--ink-2);
-  margin-top: 1px;
+  @apply block;
+  @apply [font-size:12px];
+  @apply font-semibold;
+  @apply [color:var(--ink-2)];
+  @apply [margin-top:1px];
 }
 /* A saved meal flattens when added — badge it so that's obvious up front. */
 .mb-lib-badge {
-  flex: none;
-  padding: 3px 8px;
-  border-radius: 999px;
-  background: var(--ai-t);
-  color: var(--ai-d);
-  font-size: 11px;
-  font-weight: 700;
+  @apply [flex:none];
+  @apply [padding:3px_8px];
+  @apply [border-radius:999px];
+  @apply [background:var(--ai-t)];
+  @apply [color:var(--ai-d)];
+  @apply [font-size:11px];
+  @apply font-bold;
 }
 .mb-lib-add {
-  width: 28px;
-  height: 28px;
-  flex: none;
-  border-radius: 999px;
-  border: 0;
-  background: var(--primary);
-  color: var(--on-accent);
-  font-size: 14px;
-  line-height: 1;
-  cursor: pointer;
-  display: grid;
-  place-items: center;
+  @apply [width:28px];
+  @apply [height:28px];
+  @apply [flex:none];
+  @apply [border-radius:999px];
+  @apply [border:0];
+  @apply [background:var(--primary)];
+  @apply [color:var(--on-accent)];
+  @apply [font-size:14px];
+  @apply [line-height:1];
+  @apply cursor-pointer;
+  @apply grid;
+  @apply [place-items:center];
 }
 .mb-lib-add:disabled {
-  background: var(--panel);
-  color: var(--ink-3);
-  cursor: default;
+  @apply [background:var(--panel)];
+  @apply [color:var(--ink-3)];
+  @apply cursor-default;
 }
 .mb-lib-empty,
 .mb-lib-foot {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--ink-3);
-  padding: 4px 2px;
+  @apply [font-size:12.5px];
+  @apply font-semibold;
+  @apply [color:var(--ink-3)];
+  @apply [padding:4px_2px];
 }
 
 /* ── footer stat bar ────────────────────────────────────────────────────── */
 .mb-bar {
-  flex: none;
-  display: flex;
-  align-items: center;
-  gap: 26px;
-  flex-wrap: wrap;
-  padding: 13px 30px;
-  background: var(--ink);
-  color: var(--on-inverse);
+  @apply [flex:none];
+  @apply flex;
+  @apply items-center;
+  @apply [gap:26px];
+  @apply flex-wrap;
+  @apply [padding:13px_30px];
+  @apply [background:var(--ink)];
+  @apply [color:var(--on-inverse)];
 }
 /* `background: var(--ink)` is the repo's inverted-fill idiom, and it inverts in
    BOTH directions — in dark mode --ink is cream, so this bar became a bright slab
@@ -469,208 +471,233 @@
    only other places we use it) but not on a full-width persistent footer, where it
    dominates the page and drags the toggle's translucent track down with it until
    only the knob is visible. In dark mode the bar is just an elevated surface. */
-:root[data-theme="dark"] .mb-bar,
+:root[data-theme='dark'] .mb-bar,
 .dark .mb-bar {
-  background: var(--card-2);
-  color: var(--ink);
-  border-top: 1px solid var(--hair-2);
+  @apply [background:var(--card-2)];
+  @apply [color:var(--ink)];
+  @apply [border-top:1px_solid_var(--hair-2)];
 }
-:root[data-theme="dark"] .mb-bar .mb-step,
+:root[data-theme='dark'] .mb-bar .mb-step,
 .dark .mb-bar .mb-step {
-  background: var(--panel);
+  @apply [background:var(--panel)];
 }
-:root[data-theme="dark"] .mb-bar .mb-step button,
+:root[data-theme='dark'] .mb-bar .mb-step button,
 .dark .mb-bar .mb-step button {
-  color: var(--ink);
+  @apply [color:var(--ink)];
 }
-:root[data-theme="dark"] .mb-bar-actions .btn-ghost,
+:root[data-theme='dark'] .mb-bar-actions .btn-ghost,
 .dark .mb-bar-actions .btn-ghost {
-  background: var(--panel);
-  color: var(--ink);
+  @apply [background:var(--panel)];
+  @apply [color:var(--ink)];
 }
 .mb-bar-stat {
-  display: flex;
-  align-items: center;
-  gap: 9px;
+  @apply flex;
+  @apply items-center;
+  @apply [gap:9px];
 }
 .mb-bar-l {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  opacity: 0.62;
+  @apply [font-size:12px];
+  @apply font-bold;
+  @apply [letter-spacing:0.04em];
+  @apply [text-transform:uppercase];
+  @apply [opacity:0.62];
 }
 .mb-bar-v {
-  font-size: 15px;
-  font-weight: 700;
+  @apply [font-size:15px];
+  @apply font-bold;
 }
 .mb-step {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: 999px;
-  padding: 3px;
+  @apply inline-flex;
+  @apply items-center;
+  @apply [gap:2px];
+  @apply [background:rgba(255,_255,_255,_0.12)];
+  @apply [border-radius:999px];
+  @apply [padding:3px];
 }
 .mb-step button {
-  width: 26px;
-  height: 26px;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--on-inverse);
-  font: inherit;
-  font-size: 14px;
-  line-height: 1;
-  cursor: pointer;
+  @apply [width:26px];
+  @apply [height:26px];
+  @apply [border:0];
+  @apply [border-radius:999px];
+  @apply [background:transparent];
+  @apply [color:var(--on-inverse)];
+  @apply [font:inherit];
+  @apply [font-size:14px];
+  @apply [line-height:1];
+  @apply cursor-pointer;
 }
 .mb-step button:hover {
-  background: rgba(255, 255, 255, 0.16);
+  @apply [background:rgba(255,_255,_255,_0.16)];
 }
 .mb-step-v {
-  min-width: 22px;
-  text-align: center;
-  font-size: 15px;
-  font-weight: 700;
+  @apply [min-width:22px];
+  @apply text-center;
+  @apply [font-size:15px];
+  @apply font-bold;
 }
 .mb-bar-save {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  @apply flex;
+  @apply items-center;
+  @apply [gap:10px];
 }
 .mb-bar-save .toggle {
-  cursor: pointer;
-  border: 0;
-  padding: 0;
+  @apply cursor-pointer;
+  @apply [border:0];
+  @apply [padding:0];
 }
 .mb-bar-save-b {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.25;
+  @apply flex;
+  @apply flex-col;
+  @apply [line-height:1.25];
 }
 .mb-bar-save-t {
-  font-size: 13.5px;
-  font-weight: 600;
+  @apply [font-size:13.5px];
+  @apply font-semibold;
 }
 .mb-bar-save-h {
-  font-size: 11.5px;
-  font-weight: 600;
-  opacity: 0.62;
+  @apply [font-size:11.5px];
+  @apply font-semibold;
+  @apply [opacity:0.62];
 }
 .mb-bar-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-left: auto;
+  @apply flex;
+  @apply items-center;
+  @apply [gap:10px];
+  @apply [margin-left:auto];
 }
 .mb-bar-actions .btn-ghost {
-  background: rgba(255, 255, 255, 0.12);
-  color: var(--on-inverse);
-  border-color: transparent;
+  @apply [background:rgba(255,_255,_255,_0.12)];
+  @apply [color:var(--on-inverse)];
+  @apply [border-color:transparent];
 }
 .mb-bar-actions .btn:disabled {
-  opacity: 0.45;
-  cursor: default;
+  @apply [opacity:0.45];
+  @apply cursor-default;
 }
 
 /* ── toast ──────────────────────────────────────────────────────────────── */
 .mb-toast {
-  position: fixed;
-  left: 50%;
-  bottom: 84px;
-  transform: translateX(-50%);
-  z-index: 60;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 11px 18px;
-  border-radius: 999px;
-  background: var(--ink);
-  color: var(--on-inverse);
-  font-size: 14px;
-  font-weight: 600;
-  box-shadow: var(--sh-2, 0 8px 30px rgba(0, 0, 0, 0.18));
+  @apply fixed;
+  @apply [left:50%];
+  @apply [bottom:84px];
+  @apply [transform:translateX(-50%)];
+  @apply [z-index:60];
+  @apply flex;
+  @apply items-center;
+  @apply [gap:14px];
+  @apply [padding:11px_18px];
+  @apply [border-radius:999px];
+  @apply [background:var(--ink)];
+  @apply [color:var(--on-inverse)];
+  @apply [font-size:14px];
+  @apply font-semibold;
+  @apply [box-shadow:var(--sh-2,_0_8px_30px_rgba(0,_0,_0,_0.18))];
 }
 .mb-toast-link {
-  color: var(--on-inverse);
-  text-decoration: underline;
-  font-weight: 700;
+  @apply [color:var(--on-inverse)];
+  @apply [text-decoration:underline];
+  @apply font-bold;
 }
 
 /* ── schedule modal ─────────────────────────────────────────────────────── */
 .mb-sched-strip {
-  font-size: 26px;
-  letter-spacing: 2px;
-  margin-bottom: 4px;
+  @apply [font-size:26px];
+  @apply [letter-spacing:2px];
+  @apply [margin-bottom:4px];
 }
 .mb-sched-name {
-  font-size: 20px;
-  font-weight: 600;
+  @apply [font-size:20px];
+  @apply font-semibold;
 }
 .mb-sched-sub {
-  font-weight: 600;
-  margin-bottom: 14px;
+  @apply font-semibold;
+  @apply [margin-bottom:14px];
 }
 .mb-sched-week {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 4px 0 10px;
+  @apply flex;
+  @apply items-center;
+  @apply [gap:10px];
+  @apply [margin:4px_0_10px];
 }
 .mb-sched-weekl {
-  flex: 1;
-  text-align: center;
-  font-size: 14px;
-  font-weight: 700;
+  @apply [flex:1];
+  @apply text-center;
+  @apply [font-size:14px];
+  @apply font-bold;
 }
 .mb-sched-days {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
+  @apply grid;
+  @apply [grid-template-columns:repeat(7,_1fr)];
+  @apply [gap:6px];
 }
 .mb-sched-day {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  padding: 10px 0;
-  border-radius: 12px;
-  border: 1px solid var(--hair);
-  background: var(--card-2);
-  color: var(--ink);
-  font: inherit;
-  cursor: pointer;
+  @apply flex;
+  @apply flex-col;
+  @apply items-center;
+  @apply [gap:2px];
+  @apply [padding:10px_0];
+  @apply [border-radius:12px];
+  @apply [border:1px_solid_var(--hair)];
+  @apply [background:var(--card-2)];
+  @apply [color:var(--ink)];
+  @apply [font:inherit];
+  @apply cursor-pointer;
 }
 .mb-sched-day.is-picked {
-  background: var(--primary);
-  border-color: transparent;
-  color: var(--on-accent);
+  @apply [background:var(--primary)];
+  @apply [border-color:transparent];
+  @apply [color:var(--on-accent)];
 }
 .mb-sched-dow {
-  font-weight: 700;
+  @apply font-bold;
 }
 .mb-sched-dom {
-  font-family: var(--serif);
-  font-size: 17px;
-  font-weight: 600;
+  @apply [font-family:var(--serif)];
+  @apply [font-size:17px];
+  @apply font-semibold;
 }
 .mb-sched-go {
-  width: 100%;
-  justify-content: center;
-  margin-top: 14px;
+  @apply [width:100%];
+  @apply justify-center;
+  @apply [margin-top:14px];
 }
 
 .mb-empty {
-  padding: 22px 30px;
-  color: var(--ink-3);
-  font-weight: 600;
+  @apply [padding:22px_30px];
+  @apply [color:var(--ink-3)];
+  @apply font-semibold;
 }
 
 @media (max-width: 1000px) {
   .mb-body {
-    flex-direction: column;
+    @apply flex-col;
   }
   .mb-lib {
-    width: 100%;
+    @apply [width:100%];
+  }
+}
+
+/* Phone: no room for a fixed-height two-pane builder — the plate, library and bar
+   stack and the page scrolls as one. */
+@media (max-width: 720px) {
+  .mb-shell {
+    @apply [height:auto];
+  }
+  .mb-head {
+    @apply [padding:12px_16px_10px];
+  }
+  .mb-body {
+    @apply [flex:none];
+    @apply items-stretch;
+    @apply [padding:0_16px_16px];
+  }
+  .mb-plate,
+  .mb-lib {
+    @apply [max-height:none];
+    @apply [overflow:visible];
+  }
+  .mb-bar {
+    @apply [padding:12px_16px];
+    @apply [gap:12px_20px];
   }
 }

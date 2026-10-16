@@ -1,7 +1,15 @@
 import { render, screen, fireEvent, within } from '@testing-library/react'
 import { setViewOnly } from '../lib/viewOnly'
 import { useTopbarSlots } from './topbar-slot'
-function KioskTopbarRight() { const { full, right } = useTopbarSlots(); return <>{full}{right}</> }
+function KioskTopbarRight() {
+  const { full, right } = useTopbarSlots()
+  return (
+    <>
+      {full}
+      {right}
+    </>
+  )
+}
 import { MemoryRouter, Routes, Route } from 'react-router'
 import { RecipesLibrary } from './RecipesLibrary'
 import { TopbarSlotProvider } from './topbar-slot'
@@ -80,10 +88,12 @@ describe('RecipesLibrary — New / never-cooked filter', () => {
         </MemoryRouter>,
       )
       expect(screen.getByText('Fresh Salad')).toBeInTheDocument()
-      expect(screen.getByText('‹ Meals')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Meals' })).toBeInTheDocument()
       expect(screen.queryByText(/New recipe/)).toBeNull()
       expect(screen.queryByText(/New meal/)).toBeNull()
-    } finally { setViewOnly(false) }
+    } finally {
+      setViewOnly(false)
+    }
   })
 
   beforeEach(() => {
@@ -106,15 +116,19 @@ describe('RecipesLibrary — New / never-cooked filter', () => {
     expect(screen.queryByText('Old Faithful Stew')).not.toBeInTheDocument()
   })
 
-  it('renders the 🆕 badge only on never-cooked cards', () => {
+  it('renders the new badge only on never-cooked cards', () => {
     renderLib()
-    expect(within(cardFor('Fresh Salad')).getByText('🆕')).toBeInTheDocument()
-    expect(within(cardFor('Old Faithful Stew')).queryByText('🆕')).not.toBeInTheDocument()
+    expect(within(cardFor('Fresh Salad')).getByTitle('Never cooked')).toBeInTheDocument()
+    expect(
+      within(cardFor('Old Faithful Stew')).queryByTitle('Never cooked'),
+    ).not.toBeInTheDocument()
   })
 })
 
 describe('RecipesLibrary — the empty library', () => {
-  beforeEach(() => { recipesRef.current = [] })
+  beforeEach(() => {
+    recipesRef.current = []
+  })
 
   it('is one invitation, with exactly one primary button', () => {
     renderLib()
@@ -144,7 +158,9 @@ describe('RecipesLibrary — the empty library', () => {
   it('says "nothing matches" rather than "no recipes" when a search misses', () => {
     recipesRef.current = [makeRecipe({ id: 'a', title: 'Fresh Salad' })]
     renderLib()
-    fireEvent.change(screen.getByLabelText(/search recipes and meals/i), { target: { value: 'zzz' } })
+    fireEvent.change(screen.getByLabelText(/search recipes and meals/i), {
+      target: { value: 'zzz' },
+    })
     expect(screen.getByText(/nothing matches these filters/i)).toBeInTheDocument()
     // The way out stays on screen: the box you typed in, and Clear.
     expect(screen.getByLabelText(/search recipes and meals/i)).toBeInTheDocument()

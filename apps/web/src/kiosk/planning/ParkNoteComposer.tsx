@@ -2,6 +2,10 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { looseEndsApi } from '../../lib/api'
 import { ApiSendError } from '../../lib/api/client'
 import type { ParkedTag } from './ParkedNoteEditor'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { DataIcon } from '@/components/ui/data-icon'
+import { Modal } from '@/components/ui/modal'
 
 /**
  * PARK A NOTE FROM ANY STEP — the shell's copy of Horizon's bar, opened from the session footer.
@@ -46,7 +50,7 @@ export function ParkNoteComposer({
         setError(
           err instanceof ApiSendError && typeof err.body?.message === 'string'
             ? err.body.message
-            : "That note didn't park — try again."
+            : "That note didn't park — try again.",
         )
         setSaving(false)
       })
@@ -55,11 +59,29 @@ export function ParkNoteComposer({
   const landsAt = tags.find((t) => t.stepKey === tag)?.label
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <form className="modal-card wp-park" data-testid="wp-park" onClick={(e) => e.stopPropagation()} onSubmit={park}>
-        <button type="button" className="modal-close" onClick={onClose} aria-label="Close">×</button>
-        <div className="wp-park-t wf-serif">📌 Park a note</div>
-        <input
+    <Modal className="modal-overlay" onClose={onClose}>
+      <form
+        className="modal-card wp-park"
+        data-testid="wp-park"
+        onClick={(e) => e.stopPropagation()}
+        onSubmit={park}
+      >
+        <Button
+          variant="unstyled"
+          type="button"
+          className="modal-close"
+          onClick={onClose}
+          aria-label="Close"
+        >
+          <DataIcon value={'×'} kind="general" />
+        </Button>
+        <div className="wp-park-t wf-serif">
+          <>
+            <DataIcon value={'📌'} kind="general" />
+            {' Park a note'}
+          </>
+        </div>
+        <Input
           ref={inputRef}
           className="wp-pne-in"
           value={text}
@@ -76,34 +98,40 @@ export function ParkNoteComposer({
             }
           }}
         />
-        {sessionId && <div className="wp-pne-tags" role="group" aria-label="Which step should look at this?">
-          {tags.map((t) => (
-            <button
-              key={t.stepKey}
+        {sessionId && (
+          <div className="wp-pne-tags" role="group" aria-label="Which step should look at this?">
+            {tags.map((t) => (
+              <Button
+                variant="unstyled"
+                key={t.stepKey}
+                type="button"
+                className={`wp-pne-tag${tag === t.stepKey ? ' on' : ''}`}
+                disabled={saving}
+                aria-pressed={tag === t.stepKey}
+                onClick={() => setTag(t.stepKey)}
+              >
+                {t.label}
+              </Button>
+            ))}
+            <Button
+              variant="unstyled"
               type="button"
-              className={`wp-pne-tag${tag === t.stepKey ? ' on' : ''}`}
+              className={`wp-pne-tag${tag === null ? ' on' : ''}`}
               disabled={saving}
-              aria-pressed={tag === t.stepKey}
-              onClick={() => setTag(t.stepKey)}
+              aria-pressed={tag === null}
+              onClick={() => setTag(null)}
             >
-              {t.label}
-            </button>
-          ))}
-          <button
-            type="button"
-            className={`wp-pne-tag${tag === null ? ' on' : ''}`}
-            disabled={saving}
-            aria-pressed={tag === null}
-            onClick={() => setTag(null)}
-          >
-            No tag
-          </button>
-        </div>}
+              No tag
+            </Button>
+          </div>
+        )}
         <p className="wp-park-says">
           {!sessionId ? (
             <>It waits in the recap and at the next session&rsquo;s Loose ends.</>
           ) : landsAt ? (
-            <>Comes back at <b>{landsAt}</b>, later in this session.</>
+            <>
+              Comes back at <b>{landsAt}</b>, later in this session.
+            </>
           ) : (
             <>No step will raise it. It waits in the recap and at next week&rsquo;s Loose ends.</>
           )}
@@ -114,14 +142,25 @@ export function ParkNoteComposer({
           </p>
         )}
         <div className="wp-pne-acts">
-          <button type="submit" className="btn btn-primary wp-pne-act" disabled={saving || !trimmed}>
+          <Button
+            variant="default"
+            type="submit"
+            className="wp-pne-act"
+            disabled={saving || !trimmed}
+          >
             Park it
-          </button>
-          <button type="button" className="btn btn-ghost wp-pne-act" disabled={saving} onClick={onClose}>
+          </Button>
+          <Button
+            variant="ghost"
+            type="button"
+            className="wp-pne-act"
+            disabled={saving}
+            onClick={onClose}
+          >
             Cancel
-          </button>
+          </Button>
         </div>
       </form>
-    </div>
+    </Modal>
   )
 }
