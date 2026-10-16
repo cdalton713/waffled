@@ -1,0 +1,35 @@
+<resources>
+    <string name="app_name">Waffled Home Bridge</string>
+    <string name="service_notification">Local light and thermostat controls are enabled.</string>
+    <string name="stop">Stop service</string>
+    <string name="setup_help">Connect Google Home here. Waffled’s server on this Android device can use the local service address and token.</string>
+    <string name="connect">Connect or change Google Home</string>
+    <string name="permission_error">Google Home permission failed. Check the OAuth client, signing fingerprint, and test account.</string>
+    <string name="port">Local service port</string>
+    <string name="start">Start service</string>
+    <string name="stop_before_port">Stop the service before changing its port.</string>
+    <string name="start_error">Cannot start. Use a port from 1024 to 65535 and try again.</string>
+    <string name="copy_token">Copy service token</string>
+    <string name="token_label">Waffled Home Bridge token</string>
+    <string name="token_copied">Service token copied.</string>
+    <string name="token_error">Token storage is unavailable. Replace the token or reinstall the app.</string>
+    <string name="rotate_token">Replace service token</string>
+    <string name="rotate_warning">The old token will stop working. Update Waffled with the replacement token.</string>
+    <string name="token_rotated">Token replaced. Copy the replacement token to Waffled.</string>
+    <string name="refresh_devices">Refresh devices</string>
+    <string name="status_text">%1$s\nGoogle Home permission: %2$s\nHome: %3$s\n%4$s</string>
+    <string name="device_status">%1$s · available: %2$s\nLast observation: %3$s</string>
+    <string name="power_state">Power: %1$s</string>
+    <string name="light_on">Turn on</string>
+    <string name="light_off">Turn off</string>
+    <string name="thermostat_state">Current temperature: %1$s °C · mode: %2$s</string>
+    <string name="mode">Thermostat mode</string>
+    <string name="apply_mode">Apply mode</string>
+    <string name="heat_target">Heating target (°C)</string>
+    <string name="cool_target">Cooling target (°C)</string>
+    <string name="apply_targets">Apply targets</string>
+    <string name="target_error">Enter a temperature for each active target.</string>
+    <string name="no_devices">No supported devices are available. Connect Google Home, wait for discovery, and refresh.</string>
+    <string name="command_accepted">Command accepted. Refresh devices to confirm the result.</string>
+    <string name="command_error">The command failed.</string>
+</resources>

@@ -5,6 +5,10 @@ description: Every Waffled feature and whether it's supported on each surface.
 
 Every Waffled feature and whether it's supported on each surface.
 
+**Google Home bridge:** Android service and backend API prototype; web setup and
+Today controls are pending hardware verification. See
+[Test the Google Home bridge](/guides/google-home-bridge/).
+
 - **Web / Kiosk** — the React app (same build powers the desktop browser and the kitchen
   tablet kiosk).
 - **iPhone** — the native iOS app's *personal-planner* experience (`AppRoot` + bottom tab

@@ -9,6 +9,7 @@ import { version } from './platform/version'
 import { recordHttpRequest } from './platform/telemetry'
 import { sensitiveRouteRateLimit } from './platform/rate-limit'
 import { registerHealthRoutes } from './modules/health/health'
+import { registerSmartHomeRoutes } from './modules/smartHome/smartHome.routes'
 import { registerUpdateRoutes } from './modules/updates/updates'
 import {
   resolveTenant,
@@ -287,6 +288,7 @@ registerPowerSyncCrudRoutes(api)
 registerApiKeyRoutes(api)
 
 registerHealthRoutes(api)
+registerSmartHomeRoutes(api)
 
 registerUpdateRoutes(api)
 

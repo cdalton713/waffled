@@ -118,7 +118,7 @@ describe('goal capability gating (non-admin members)', () => {
 
   it('a non-admin teen holds no goal.manage by default; an admin holds it', async () => {
     const teen = JSON.parse((await call('GET', '/api/household', teenToken)).body).person
-    expect(teen.capabilities).toEqual([])
+    expect(teen.capabilities).toEqual(['smartHome.control'])
     const admin = JSON.parse((await call('GET', '/api/household', kevin)).body).person
     expect(admin.capabilities).toContain('goal.manage')
   })

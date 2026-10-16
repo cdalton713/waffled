@@ -10,11 +10,11 @@ import {
 } from '../src/platform/permissions'
 
 describe('DEFAULT_PERMISSIONS', () => {
-  it('adult has every capability; teen and kid have none', () => {
+  it('adults have every capability; teens and kids can use selected home controls', () => {
     for (const cap of CAPABILITIES) {
       expect(DEFAULT_PERMISSIONS.adult[cap]).toBe(true)
-      expect(DEFAULT_PERMISSIONS.teen[cap]).toBe(false)
-      expect(DEFAULT_PERMISSIONS.kid[cap]).toBe(false)
+      expect(DEFAULT_PERMISSIONS.teen[cap]).toBe(cap === 'smartHome.control')
+      expect(DEFAULT_PERMISSIONS.kid[cap]).toBe(cap === 'smartHome.control')
     }
   })
 
@@ -28,6 +28,7 @@ describe('DEFAULT_PERMISSIONS', () => {
       'goal.manage',
       // Not "run the weekly planning session" — anybody may do that. See lib/api/permissions.ts.
       'planning.manage',
+      'smartHome.control',
     ])
     expect(DEFAULT_PERMISSIONS.adult['goal.manage']).toBe(true)
     expect(DEFAULT_PERMISSIONS.teen['goal.manage']).toBe(false)
@@ -90,14 +91,15 @@ describe('resolveCapabilities', () => {
     expect(resolveCapabilities('kid', true, undefined).sort()).toEqual([...CAPABILITIES].sort())
   })
 
-  it('adult default gets all; teen default gets none', () => {
+  it('adults get all capabilities; teens get home controls by default', () => {
     expect(resolveCapabilities('adult', false, undefined).sort()).toEqual([...CAPABILITIES].sort())
-    expect(resolveCapabilities('teen', false, undefined)).toEqual([])
+    expect(resolveCapabilities('teen', false, undefined)).toEqual(['smartHome.control'])
   })
 
   it('reflects a granted cell', () => {
     expect(resolveCapabilities('teen', false, { permissions: { teen: { 'reward.approve': true } } })).toEqual([
       'reward.approve',
+      'smartHome.control',
     ])
   })
 

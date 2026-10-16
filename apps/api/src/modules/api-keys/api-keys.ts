@@ -74,6 +74,7 @@ export interface UnscopedYet extends NeverReachable {
 }
 
 export const NEVER_KEY_REACHABLE: NeverReachable[] = [
+  { why: 'local home device controls require a first-party household session', prefixes: ['/api/smart-home'] },
   { why: 'public liveness probe', prefixes: ['/healthz'] },
   { why: 'echoes the token sub — tells a key nothing it does not already know', prefixes: ['/api/me'] },
   { why: 'login, OIDC, invites and self-service account are session-only', prefixes: ['/api/auth', '/auth', '/api/account', '/api/households'] },
