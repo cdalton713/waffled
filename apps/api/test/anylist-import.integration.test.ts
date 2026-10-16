@@ -153,6 +153,90 @@ describe('AnyList import', () => {
   it('rejects a wrong password with a clear error', async () => {
     await expect(importAnyList({ householdId, personId, email: EMAIL, password: 'nope' })).rejects.toThrow(/email or password/)
   })
+
+  it('imports the grocery Pantry section into the pantry even without a separate Pantry list', async () => {
+    const shopping = fake.data.shoppingListsResponse!
+    const savedLists = shopping.newLists!
+    const groceries = savedLists.find((list) => list.identifier === 'list-groceries')!
+    const categories = shopping.listResponses![0].categoryGroupResponses![0].categoryGroup!.categories!
+    shopping.newLists = savedLists.filter((list) => list.identifier !== 'list-pantry')
+    groceries.items!.push(
+      { identifier: 'item-oats', listId: 'list-groceries', name: 'Oats', category: 'c-pantry', deprecatedQuantity: '2 lb', details: 'rolled', checked: false },
+      { identifier: 'item-sugar', listId: 'list-groceries', name: 'Sugar', category: 'pantry', checked: true },
+    )
+    categories.push({ identifier: 'c-pantry', name: ' pAnTrY ', systemCategory: 'pantry' })
+    try {
+      const preview = await importAnyList({ householdId, personId, email: EMAIL, password: PASSWORD, dryRun: true })
+      expect(preview).toMatchObject({ pantryList: null, pantry: { created: 2, skipped: 0 }, items: { created: 0, skipped: 5 } })
+      expect((await get('/api/pantry')).items.map((item: { name: string }) => item.name)).not.toContain('Oats')
+
+      const report = await importAnyList({ householdId, personId, email: EMAIL, password: PASSWORD })
+      expect(report.pantry).toEqual({ created: 2, skipped: 0 })
+      const pantry = (await get('/api/pantry')).items
+      expect(pantry).toEqual(expect.arrayContaining([
+        expect.objectContaining({ name: 'Oats', amount: '2', unit: 'lb', note: 'rolled', usedUp: false }),
+        expect.objectContaining({ name: 'Sugar', usedUp: true }),
+      ]))
+      expect((await get('/api/lists/grocery')).items.map((item: { name: string }) => item.name)).not.toContain('Oats')
+
+      const again = await importAnyList({ householdId, personId, email: EMAIL, password: PASSWORD })
+      expect(again.pantry).toEqual({ created: 0, skipped: 2 })
+      expect((await get('/api/pantry')).items.filter((item: { name: string }) => item.name === 'Oats')).toHaveLength(1)
+    } finally {
+      shopping.newLists = savedLists
+      groceries.items!.splice(-2)
+      categories.pop()
+    }
+  })
+  it.each([
+    'soups-and-canned-goods', 'grains-pasta-and-sides', 'cooking-and-baking',
+    'condiments-oils-and-salad-dressings', 'spices-and-seasonings',
+  ])('imports the %s grocery category into the pantry', async (category) => {
+    const groceries = fake.data.shoppingListsResponse!.newLists!.find((list) => list.identifier === 'list-groceries')!
+    const categories = fake.data.shoppingListsResponse!.listResponses![0].categoryGroupResponses![0].categoryGroup!.categories!
+    const name = `Pantry item ${category}`
+    categories.push({ identifier: `category-${category}`, systemCategory: category, name: category.replaceAll('-', ' ') })
+    groceries.items!.push({ identifier: `item-${category}`, listId: 'list-groceries', name, category, checked: false })
+    try {
+      const preview = await importAnyList({ householdId, personId, email: EMAIL, password: PASSWORD, dryRun: true })
+      expect(preview.pantry.created).toBe(1)
+      expect(preview.items.created).toBe(0)
+      await importAnyList({ householdId, personId, email: EMAIL, password: PASSWORD })
+      expect((await get('/api/pantry')).items).toEqual(expect.arrayContaining([expect.objectContaining({ name })]))
+      expect((await get('/api/lists/grocery')).items.map((item: { name: string }) => item.name)).not.toContain(name)
+    } finally {
+      groceries.items!.pop()
+      categories.pop()
+    }
+  })
+
+  it('moves an item already imported into groceries when it belongs to the Pantry section', async () => {
+    const groceries = fake.data.shoppingListsResponse!.newLists!.find((list) => list.identifier === 'list-groceries')!
+    const item = { identifier: 'item-lentils', listId: 'list-groceries', name: 'Lentils', category: 'other', deprecatedQuantity: '3 cans', details: 'green', checked: false }
+    groceries.items!.push(item)
+    try {
+      await importAnyList({ householdId, personId, email: EMAIL, password: PASSWORD })
+      expect((await get('/api/lists/grocery')).items).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'Lentils' })]))
+      item.category = 'pantry'
+
+      await importAnyList({ householdId, personId, email: EMAIL, password: PASSWORD, dryRun: true })
+      expect((await get('/api/lists/grocery')).items).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'Lentils' })]))
+      expect((await get('/api/pantry')).items.map((entry: { name: string }) => entry.name)).not.toContain('Lentils')
+
+      await importAnyList({ householdId, personId, email: EMAIL, password: PASSWORD })
+      const grocery = (await get('/api/lists/grocery')).items.map((entry: { name: string }) => entry.name)
+      expect(grocery).not.toContain('Lentils')
+      expect(grocery).toContain('Milk')
+      expect((await get('/api/pantry')).items).toEqual(expect.arrayContaining([
+        expect.objectContaining({ name: 'Lentils', amount: '3', unit: 'cans', note: 'green', usedUp: false }),
+      ]))
+
+      await importAnyList({ householdId, personId, email: EMAIL, password: PASSWORD })
+      expect((await get('/api/pantry')).items.filter((entry: { name: string }) => entry.name === 'Lentils')).toHaveLength(1)
+    } finally {
+      groceries.items!.pop()
+    }
+  })
 })
 
 describe('./waffled admin import-anylist', () => {

@@ -1,5 +1,5 @@
 // One-way import of an AnyList account into Waffled's own tables: the grocery list's
-// items, every other list, the Pantry list (as pantry items) and recipes with photos.
+// items, every other list, the Pantry list/section (as pantry items) and recipes with photos.
 // Each imported AnyList id is recorded in import_links, so a re-run adds only what is
 // new and never duplicates. Run it with `pnpm run anylist:import` (scripts/anylist-import.ts).
 import { query } from '../../platform/db'
@@ -174,6 +174,7 @@ export async function importAnyList(opts: ImportOptions): Promise<ImportReport> 
     return !seen && !dry
   }
 
+  const pantryItems = [...(pantry?.items ?? [])]
   for (const [position, list] of lists.entries()) {
     if (list === pantry) continue
     let targetListId: string | null = null
@@ -190,6 +191,10 @@ export async function importAnyList(opts: ImportOptions): Promise<ImportReport> 
     }
     for (const [index, item] of list.items.entries()) {
       if (!item.name.trim()) continue
+      if (list === grocery && sectionOf(item, list, true)?.trim().toLowerCase() === 'pantry') {
+        pantryItems.push(item)
+        continue
+      }
       if (!tally(report.items, 'item', item.id) || !targetListId) continue
       const meta = legacy.byExternalId.get(item.id) ?? {}
       // A crossed-off AnyList item is history: kept for suggestions, but off the live list.
@@ -206,18 +211,32 @@ export async function importAnyList(opts: ImportOptions): Promise<ImportReport> 
     }
   }
 
-  for (const item of pantry?.items ?? []) {
+  for (const item of pantryItems) {
     if (!item.name.trim()) continue
-    if (!tally(report.pantry, 'pantry', item.id)) continue
-    const meta = (legacy.byExternalId.get(item.id)?.pantry ?? {}) as Record<string, unknown>
-    const { n, unit } = parseQuantity(item.quantity)
-    const split = n != null ? { amount: String(n), unit: unit.trim() || null } : { amount: item.quantity, unit: null }
-    const row = await insertPantryItem(opts.householdId, {
-      name: item.name.trim(), amount: text(meta.amount) ?? split.amount, unit: text(meta.unit) ?? split.unit,
-      location: text(meta.location) ?? 'Pantry', expiresOn: text(meta.expiresOn), note: item.details,
-    })
-    if (item.checked) await query('update pantry_items set used_up_at = now() where id = $1', [row.id])
-    await link(opts.householdId, 'pantry', item.id, row.id)
+    const create = tally(report.pantry, 'pantry', item.id)
+    if (dry) continue
+    if (create) {
+      const meta = (legacy.byExternalId.get(item.id)?.pantry ?? {}) as Record<string, unknown>
+      const { n, unit } = parseQuantity(item.quantity)
+      const split = n != null ? { amount: String(n), unit: unit.trim() || null } : { amount: item.quantity, unit: null }
+      const row = await insertPantryItem(opts.householdId, {
+        name: item.name.trim(), amount: text(meta.amount) ?? split.amount, unit: text(meta.unit) ?? split.unit,
+        location: text(meta.location) ?? 'Pantry', expiresOn: text(meta.expiresOn), note: item.details,
+      })
+      if (item.checked) await query('update pantry_items set used_up_at = now() where id = $1', [row.id])
+      await link(opts.householdId, 'pantry', item.id, row.id)
+    }
+    // Correct earlier imports only after the pantry copy is saved. Keep the link
+    // so a later run cannot add the old shopping entry again.
+    if (done.has(`item:${item.id}`)) {
+      await query(
+        `update list_items i set deleted_at = now()
+          from import_links l, lists grocery
+         where i.id = l.target_id and i.household_id = $1 and i.deleted_at is null
+           and l.household_id = $1 and l.source = $2 and l.kind = 'item' and l.external_id = $3
+           and grocery.id = i.list_id and grocery.household_id = $1 and grocery.list_type = 'grocery'`,
+        [opts.householdId, SOURCE, item.id])
+    }
   }
   if (!dry && report.pantry.created > 0) {
     await updateModules(opts.householdId, { pantry: true })

@@ -15,12 +15,16 @@ items, which powers [suggestions as you type](/features/lists/)).
 | Your grocery list | Items on the [grocery board](/features/lists/), with quantities, notes and aisles |
 | Every other list | A custom list each, in the same order, with sections |
 | Crossed-off items | History: kept for suggestions and **Recently crossed off**, but not on the live list |
-| Your Pantry list | [Pantry](/features/pantry/) items (the Pantry module is switched on for you) |
+| Your Pantry list and the Pantry section of your grocery list | [Pantry](/features/pantry/) items (the Pantry module is switched on for you) |
 | Recipes | [Recipes](/features/meals/) with ingredients (and their headings), steps, times, servings, source, notes, rating, collection and photo |
 
-AnyList's aisles map onto Waffled's where they match (Produce, Dairy, Meat, Bakery, Frozen,
-Pantry); the rest keep their AnyList name, such as Snacks or Household. "Other" is left for
+AnyList's aisles map onto Waffled's where they match (Produce, Dairy, Meat, Bakery, Frozen);
+the rest keep their AnyList name, such as Snacks or Household. "Other" is left for
 Waffled to file by name.
+
+Items in your grocery list's Pantry section go into Waffled's Pantry, even if AnyList has no
+separate Pantry list. This includes categories that Waffled maps to Pantry, such as Soups &
+Canned Goods, Cooking & Baking, and Condiments & Dressings. They are not added to the shopping list.
 
 Meal-plan entries aren't copied.
 
@@ -55,6 +59,9 @@ It's safe to run more than once. Each AnyList item and recipe is remembered afte
 so a second run only adds what's new — handy if the family keeps using AnyList for a few days
 while everyone switches over. Edits made in AnyList to things already copied aren't brought
 across.
+
+If an earlier import put Pantry-section items on the shopping list, run the import again.
+It copies those items into Pantry and removes their old shopping entries without adding duplicates.
 
 ## Good to know
 
