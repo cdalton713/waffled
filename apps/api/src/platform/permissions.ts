@@ -9,17 +9,17 @@ import type { Tenant } from '../modules/households/households'
 // `planning.manage` is the odd one out: it does not gate RUNNING a weekly planning session —
 // anybody in the household can — only the household-wide choices the session offers, currently
 // which of your lists its first step asks about.
-export type Capability = 'chore.manage' | 'chore.approve' | 'reward.manage' | 'reward.approve' | 'reward.grant' | 'goal.manage' | 'planning.manage'
-export const CAPABILITIES: Capability[] = ['chore.manage', 'chore.approve', 'reward.manage', 'reward.approve', 'reward.grant', 'goal.manage', 'planning.manage']
+export type Capability = 'chore.manage' | 'chore.approve' | 'reward.manage' | 'reward.approve' | 'reward.grant' | 'goal.manage' | 'planning.manage' | 'smartHome.control'
+export const CAPABILITIES: Capability[] = ['chore.manage', 'chore.approve', 'reward.manage', 'reward.approve', 'reward.grant', 'goal.manage', 'planning.manage', 'smartHome.control']
 
 export type MemberRole = 'adult' | 'teen' | 'kid'
 export const ROLES: MemberRole[] = ['adult', 'teen', 'kid']
 
-// adult = full rights; teen/kid = nothing until an admin grants it.
+// Adults have full rights. Everyone can use selected home controls by default.
 export const DEFAULT_PERMISSIONS: Record<MemberRole, Record<Capability, boolean>> = {
-  adult: { 'chore.manage': true, 'chore.approve': true, 'reward.manage': true, 'reward.approve': true, 'reward.grant': true, 'goal.manage': true, 'planning.manage': true },
-  teen: { 'chore.manage': false, 'chore.approve': false, 'reward.manage': false, 'reward.approve': false, 'reward.grant': false, 'goal.manage': false, 'planning.manage': false },
-  kid: { 'chore.manage': false, 'chore.approve': false, 'reward.manage': false, 'reward.approve': false, 'reward.grant': false, 'goal.manage': false, 'planning.manage': false },
+  adult: { 'chore.manage': true, 'chore.approve': true, 'reward.manage': true, 'reward.approve': true, 'reward.grant': true, 'goal.manage': true, 'planning.manage': true, 'smartHome.control': true },
+  teen: { 'chore.manage': false, 'chore.approve': false, 'reward.manage': false, 'reward.approve': false, 'reward.grant': false, 'goal.manage': false, 'planning.manage': false, 'smartHome.control': true },
+  kid: { 'chore.manage': false, 'chore.approve': false, 'reward.manage': false, 'reward.approve': false, 'reward.grant': false, 'goal.manage': false, 'planning.manage': false, 'smartHome.control': true },
 }
 
 function isObject(v: unknown): v is Record<string, unknown> {

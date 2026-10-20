@@ -283,7 +283,7 @@ describe('reward capability gating (non-admin members)', () => {
 
   it('exposes capabilities on /api/household', async () => {
     const kid = JSON.parse((await call('GET', '/api/household', kidToken)).body).person
-    expect(kid.capabilities).toEqual([])
+    expect(kid.capabilities).toEqual(['smartHome.control'])
     const adult = JSON.parse((await call('GET', '/api/household', adultToken)).body).person
     expect(adult.capabilities).toContain('reward.approve')
   })

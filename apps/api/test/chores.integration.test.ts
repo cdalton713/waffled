@@ -952,11 +952,11 @@ describe('chore capability gating (non-admin members)', () => {
     adultToken = mint(adultSub); kidToken = mint(kidSub)
   })
 
-  it('a non-admin adult holds the default capabilities; a kid holds none', async () => {
+  it('a non-admin adult holds every capability; a kid can use home controls', async () => {
     const adult = JSON.parse((await call('GET', '/api/household', adultToken)).body).person
-    expect(adult.capabilities.sort()).toEqual(['chore.approve', 'chore.manage', 'goal.manage', 'planning.manage', 'reward.approve', 'reward.grant', 'reward.manage'])
+    expect(adult.capabilities.sort()).toEqual(['chore.approve', 'chore.manage', 'goal.manage', 'planning.manage', 'reward.approve', 'reward.grant', 'reward.manage', 'smartHome.control'])
     const kid = JSON.parse((await call('GET', '/api/household', kidToken)).body).person
-    expect(kid.capabilities).toEqual([])
+    expect(kid.capabilities).toEqual(['smartHome.control'])
   })
 
   it('a non-admin adult CAN create a chore for someone else and approve one', async () => {

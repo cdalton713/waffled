@@ -354,6 +354,12 @@ Legend: ✅ done · 🟡 partial / in progress · 🚧 planned · ⛔ dropped (s
 
 ## Partial / in progress 🟡
 
+- **Google Home controls.** The Android connection service and household-scoped backend
+  API are implemented. The service uses Google Home SDK 1.11 and a loopback HTTP API.
+  Real light/thermostat access, the chosen Android hosting app, screen-off operation,
+  and restart behavior must be verified before adding web Settings and Today controls.
+  Setup: `apps/android-home-bridge/README.md`.
+
 - **Waffled-Bites (kid companion device)** — the pairing system and the parent-facing
   control panel (Family → tap a kid → Waffled-Bite: quiet time, night light, wake-up
   light schedule, alarm, sound machine, screen brightness) are done on **web and iOS**

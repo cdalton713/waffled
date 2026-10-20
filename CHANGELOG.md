@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Google Home bridge prototype.** A native Android app provides authenticated local
+  light and thermostat commands. The backend adds encrypted connection storage, device
+  selection, and household permissions. Real-device verification and web controls are pending.
+  See [Test the Google Home bridge](/guides/google-home-bridge/).
+
 - **Night Pantry theme** (web and kiosk). A new look in Settings → Appearance and Display &
   Kiosk in the [Catppuccin](https://catppuccin.com/palette) colors: **Night Pantry** uses
   Frappé and **Night Pantry day** uses Latte, both with a mauve accent, rounder cards and

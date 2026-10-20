@@ -2,7 +2,7 @@
 // them on/off in Settings → Modules (stored in households.settings.modules). See
 // docs/product/extensibility.md for the A/B/C pattern model.
 
-export type ModuleKey = 'pantry' | 'chores' | 'goals' | 'meals' | 'lists' | 'familyNight' | 'quotes' | 'waffledBites' | 'rhythms' | 'weeklyPlanning'
+export type ModuleKey = 'pantry' | 'chores' | 'goals' | 'meals' | 'lists' | 'familyNight' | 'quotes' | 'waffledBites' | 'rhythms' | 'weeklyPlanning' | 'smartHome'
 
 export interface ModuleDef {
   key: ModuleKey
@@ -17,6 +17,7 @@ export interface ModuleDef {
 
 // The catalog. Mirrored (by hand) in apps/web/src/lib/modules.ts for the UI.
 export const MODULES: ModuleDef[] = [
+  { key: 'smartHome', name: 'Smart home', icon: '💡', description: 'Control selected Google Home lights and thermostats through a local Android service.', status: 'available', defaultOn: false },
   {
     key: 'pantry',
     name: 'Pantry',

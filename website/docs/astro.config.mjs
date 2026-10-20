@@ -99,6 +99,7 @@ export default defineConfig({
 						{ label: 'Set up a kitchen kiosk', slug: 'guides/kitchen-kiosk' },
 						{ label: 'Add a recipe from a photo or voice', slug: 'guides/ai-recipe-import' },
 						{ label: 'Move from AnyList', slug: 'guides/import-from-anylist' },
+						{ label: 'Test the Google Home bridge', slug: 'guides/google-home-bridge' },
 						{ label: 'Run AI locally with Ollama', slug: 'guides/local-ai' },
 						{ label: 'Offsite backups (3-2-1)', slug: 'guides/offsite-backups' },
 						{ label: 'Deploy to Oracle Cloud (free)', slug: 'guides/oracle-cloud-terraform' },
